@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Account Type - Worker Connect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold">Join Worker Connect</h1>
+                <p class="lead text-muted">Choose your account type to get started</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Worker Registration -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-lg border-0 hover-card">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <i class="bi bi-person-badge display-1 text-primary"></i>
+                            </div>
+                            <h3 class="card-title fw-bold mb-3">I'm a Worker</h3>
+                            <p class="card-text text-muted mb-4">
+                                Create a profile, showcase your skills, and find great job opportunities
+                            </p>
+                            <ul class="list-unstyled text-start mb-4">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Create professional profile</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Upload credentials & certificates</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Apply for jobs</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Get hired by verified clients</li>
+                            </ul>
+                            <a href="{% url 'accounts:worker_register' %}" class="btn btn-primary btn-lg w-100">
+                                Register as Worker
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Client Registration -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-lg border-0 hover-card">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <i class="bi bi-briefcase display-1 text-success"></i>
+                            </div>
+                            <h3 class="card-title fw-bold mb-3">I'm a Client</h3>
+                            <p class="card-text text-muted mb-4">
+                                Find and hire skilled workers for your projects and daily needs
+                            </p>
+                            <ul class="list-unstyled text-start mb-4">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Search verified workers</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Post job requests</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Review and rate workers</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Direct communication</li>
+                            </ul>
+                            <a href="{% url 'accounts:client_register' %}" class="btn btn-success btn-lg w-100">
+                                Register as Client
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}" class="text-decoration-none">Login here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

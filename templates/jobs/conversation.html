@@ -1,0 +1,311 @@
+{% extends base_template %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block page_title %}Chat with {{ other_user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 200px);
+    }
+
+    .chat-header {
+        background: white;
+        border-radius: 14px 14px 0 0;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+    }
+
+    .chat-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .chat-user-info {
+        flex: 1;
+    }
+
+    .chat-user-name {
+        font-weight: 700;
+        color: #111827;
+        font-size: 1.125rem;
+        margin-bottom: 0.125rem;
+    }
+
+    .chat-user-email {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .back-button {
+        padding: 0.5rem 1rem;
+        background: #f3f4f6;
+        color: #6b7280;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-weight: 600;
+    }
+
+    .back-button:hover {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        background: #f9fafb;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        padding: 0.875rem 1.125rem;
+        border-radius: 14px;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-bubble.sent {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message-bubble.received {
+        align-self: flex-start;
+        background: white;
+        color: #111827;
+        border: 1px solid #e5e7eb;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-subject {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 0.9375rem;
+    }
+
+    .message-text {
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+        opacity: 0.75;
+        text-align: right;
+    }
+
+    .message-bubble.sent .message-time {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .message-bubble.received .message-time {
+        color: #9ca3af;
+    }
+
+    .chat-input-container {
+        background: white;
+        border-radius: 0 0 14px 14px;
+        padding: 1.25rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .chat-input-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .form-control {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+        outline: none;
+    }
+
+    textarea.form-control {
+        resize: none;
+        min-height: 60px;
+    }
+
+    .input-row {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-send {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
+    }
+
+    .empty-chat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #9ca3af;
+    }
+
+    .empty-chat i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 150px);
+        }
+
+        .message-bubble {
+            max-width: 85%;
+        }
+
+        .input-row {
+            flex-direction: column;
+        }
+
+        .btn-send {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <a href="{% url 'jobs:inbox' %}" class="back-button">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+        
+        <div class="chat-avatar">
+            {{ other_user.get_full_name|first|upper }}
+        </div>
+        
+        <div class="chat-user-info">
+            <div class="chat-user-name">{{ other_user.get_full_name }}</div>
+            <div class="chat-user-email">{{ other_user.email }}</div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages">
+        {% if messages_list %}
+            {% for msg in messages_list %}
+            <div class="message-bubble {% if msg.sender == request.user %}sent{% else %}received{% endif %}">
+                {% if msg.subject %}
+                <div class="message-subject">{{ msg.subject }}</div>
+                {% endif %}
+                <div class="message-text">{{ msg.message|safe }}</div>
+                <div class="message-time">
+                    {% load humanize %}
+                    {{ msg.created_at|naturaltime }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-chat">
+            <i class="bi bi-chat-text"></i>
+            <p>No messages yet. Start the conversation!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-container">
+        <form method="post" class="chat-input-form" id="messageForm">
+            {% csrf_token %}
+            
+            <div class="input-row">
+                <textarea name="message" 
+                          class="form-control" 
+                          placeholder="Type your message..." 
+                          required
+                          id="messageInput"></textarea>
+                
+                <button type="submit" class="btn-send">
+                    <i class="bi bi-send me-1"></i> Send
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const messageForm = document.getElementById('messageForm');
+
+    // Scroll to bottom on load
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    scrollToBottom();
+
+    // Focus message input
+    messageInput.focus();
+
+    // Submit on Ctrl+Enter
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            messageForm.submit();
+        }
+    });
+
+    // Scroll to bottom after new message
+    messageForm.addEventListener('submit', function() {
+        setTimeout(scrollToBottom, 100);
+    });
+});
+</script>
+{% endblock %}

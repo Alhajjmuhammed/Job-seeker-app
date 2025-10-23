@@ -1,0 +1,468 @@
+{% extends 'clients/base_client.html' %}
+{% load static %}
+
+{% block title %}Search Workers - Worker Connect{% endblock %}
+{% block page_title %}Search Workers{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Search page specific styles */
+    .search-header {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        padding: 1.5rem 0;
+        margin: -1.25rem -1.25rem 1.25rem -1.25rem;
+    }
+    
+    .search-container {
+        padding: 0 1.25rem 1.25rem;
+    }
+    
+    .filter-sidebar {
+        background: white;
+        border-radius: 14px;
+        padding: 1.25rem;
+        position: sticky;
+        top: 20px;
+    }
+    
+    .filter-title {
+        font-size: 1.0625rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .filter-group {
+        margin-bottom: 1.25rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .filter-group:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .filter-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-check-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .worker-count {
+        background: #14b8a6;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .worker-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .worker-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .worker-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    .worker-header {
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .worker-avatar-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 15px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    }
+    
+    .worker-basic-info {
+        flex: 1;
+    }
+    
+    .worker-name {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+    
+    .worker-category {
+        color: #14b8a6;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .worker-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .rating-stars {
+        color: #fbbf24;
+    }
+    
+    .worker-body {
+        padding: 0 1.5rem 1.5rem;
+    }
+    
+    .worker-bio {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .worker-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .skill-badge {
+        background: #f0fdfa;
+        color: #0f766e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .worker-meta {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .availability-badge.available {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .availability-badge.busy {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .worker-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .btn-view {
+        flex: 1;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.625rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    
+    .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
+        color: white;
+    }
+    
+    .btn-favorite {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .btn-favorite:hover,
+    .btn-favorite.active {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+    
+    .clear-filters {
+        color: #14b8a6;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .clear-filters:hover {
+        text-decoration: underline;
+    }
+    
+    .sort-select {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .results-header {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .results-count {
+        font-weight: 600;
+        color: #111827;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Search Header -->
+<div class="search-header">
+    <div class="container">
+        <h1 class="mb-2">Search Workers</h1>
+        <p class="mb-0">Find the perfect professional for your needs</p>
+    </div>
+</div>
+
+<div class="search-container">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="filter-sidebar">
+                <div class="filter-title">
+                    <span><i class="bi bi-funnel me-2"></i>Filters</span>
+                    <a href="{% url 'clients:search_workers' %}" class="clear-filters">Clear</a>
+                </div>
+                
+                <form method="get" id="filterForm">
+                    <!-- Category Filter -->
+                    <div class="filter-group">
+                        <div class="filter-label">Category</div>
+                        {% for category in categories %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="category" value="{{ category.id }}" 
+                                   id="cat{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label" for="cat{{ category.id }}">
+                                {{ category.name }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Availability Filter -->
+                    <div class="filter-group">
+                        <div class="filter-label">Availability</div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="availability" value="available" 
+                                   id="avail" {% if selected_availability == 'available' %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label" for="avail">Available Now</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="availability" value="busy" 
+                                   id="busy" {% if selected_availability == 'busy' %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label" for="busy">Busy</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Filter -->
+                    <div class="filter-group">
+                        <div class="filter-label">Minimum Rating</div>
+                        <select name="min_rating" class="form-select" onchange="this.form.submit()">
+                            <option value="">Any Rating</option>
+                            <option value="4" {% if selected_min_rating == '4' %}selected{% endif %}>4+ Stars</option>
+                            <option value="3" {% if selected_min_rating == '3' %}selected{% endif %}>3+ Stars</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Location Filter -->
+                    <div class="filter-group">
+                        <div class="filter-label">Location</div>
+                        <input type="text" name="city" class="form-control" placeholder="Enter city" 
+                               value="{{ selected_city }}" onchange="this.form.submit()">
+                    </div>
+                    
+                    <input type="hidden" name="q" value="{{ query }}">
+                </form>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="col-lg-9">
+            <!-- Results Header -->
+            <div class="results-header">
+                <div class="results-count">
+                    <span class="worker-count">{{ workers.count }}</span> workers found
+                </div>
+                
+                <form method="get" class="d-flex align-items-center gap-2">
+                    <label class="mb-0 small text-muted">Sort by:</label>
+                    <select name="sort" class="sort-select" onchange="this.form.submit()">
+                        <option value="-average_rating" {% if selected_sort == '-average_rating' %}selected{% endif %}>Highest Rated</option>
+                        <option value="average_rating" {% if selected_sort == 'average_rating' %}selected{% endif %}>Lowest Rated</option>
+                        <option value="-created_at" {% if selected_sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                    </select>
+                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                    {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                    {% if selected_city %}<input type="hidden" name="city" value="{{ selected_city }}">{% endif %}
+                    {% if selected_availability %}<input type="hidden" name="availability" value="{{ selected_availability }}">{% endif %}
+                    {% if selected_min_rating %}<input type="hidden" name="min_rating" value="{{ selected_min_rating }}">{% endif %}
+                </form>
+            </div>
+            
+            <!-- Worker Grid -->
+            <div class="worker-grid">
+                {% for worker in workers %}
+                <div class="worker-card">
+                    <div class="worker-header">
+                        {% if worker.profile_image %}
+                        <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar-img">
+                        {% else %}
+                        <div class="worker-avatar-img d-flex align-items-center justify-content-center">
+                            <i class="bi bi-person-circle display-4 text-secondary"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="worker-basic-info">
+                            <h3 class="worker-name">{{ worker.user.get_full_name }}</h3>
+                            <div class="worker-category">
+                                {{ worker.categories.first.name|default:"General Worker" }}
+                            </div>
+                            <div class="worker-rating">
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= worker.average_rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                        <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span>{{ worker.average_rating|floatformat:1 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="worker-body">
+                        {% if worker.bio %}
+                        <p class="worker-bio">{{ worker.bio }}</p>
+                        {% endif %}
+                        
+                        <div class="worker-skills">
+                            {% for skill in worker.skills.all|slice:":3" %}
+                            <span class="skill-badge">{{ skill.name }}</span>
+                            {% endfor %}
+                            {% for skill in worker.custom_skills.all|slice:":3" %}
+                            <span class="skill-badge">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="worker-meta">
+                            <div class="meta-item">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ worker.city|default:"N/A" }}
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-briefcase"></i>
+                                {{ worker.experience_years }} years
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% if worker.availability == 'available' %}
+                            <span class="availability-badge available">
+                                <i class="bi bi-circle-fill"></i> Available
+                            </span>
+                            {% else %}
+                            <span class="availability-badge busy">
+                                <i class="bi bi-circle-fill"></i> Busy
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="worker-actions">
+                            <a href="{% url 'clients:worker_detail' worker.pk %}" class="btn btn-view">
+                                View Profile <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                            <form action="{% url 'clients:toggle_favorite' worker.pk %}" method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn-favorite {% if worker.pk in user_favorites %}active{% endif %}" title="{% if worker.pk in user_favorites %}Remove from favorites{% else %}Add to favorites{% endif %}">
+                                    <i class="bi bi-heart{% if worker.pk in user_favorites %}-fill{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-search display-1 text-muted mb-3"></i>
+                    <h3 class="text-muted">No workers found</h3>
+                    <p class="text-muted">Try adjusting your filters or search criteria</p>
+                    <a href="{% url 'clients:search_workers' %}" class="btn btn-primary">Clear Filters</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

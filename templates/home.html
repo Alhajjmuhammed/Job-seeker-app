@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-4 fw-bold mb-3">Find Your Perfect Worker Today</h1>
+                <p class="lead mb-4">Connect with skilled professionals in plumbing, electrical work, housekeeping, and more. Your trusted platform for quality services.</p>
+                <div class="d-grid d-sm-flex gap-2">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:register_choice' %}" class="btn btn-light btn-lg px-4">Get Started</a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg px-4">Login</a>
+                    {% else %}
+                        {% if user.is_client %}
+                            <a href="{% url 'clients:search_workers' %}" class="btn btn-light btn-lg px-4">Find Workers</a>
+                        {% elif user.is_worker %}
+                            <a href="{% url 'jobs:job_list' %}" class="btn btn-light btn-lg px-4">Find Jobs</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-4">
+                        <h3 class="text-dark mb-3">Quick Search</h3>
+                        <form action="{% url 'clients:search_workers' %}" method="get">
+                            <div class="mb-3">
+                                <input type="text" name="q" class="form-control form-control-lg" placeholder="Search for workers, skills...">
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" name="city" class="form-control" placeholder="City or Location">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="bi bi-search"></i> Search Workers
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Popular Categories</h2>
+            <p class="text-muted">Browse workers by their expertise</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-tools display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">Plumbers</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-lightning-charge display-4 text-warning mb-3"></i>
+                        <h5 class="card-title">Electricians</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-house-door display-4 text-success mb-3"></i>
+                        <h5 class="card-title">Housekeepers</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-cup-hot display-4 text-danger mb-3"></i>
+                        <h5 class="card-title">Waiters</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-car-front display-4 text-info mb-3"></i>
+                        <h5 class="card-title">Drivers</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-brush display-4 text-secondary mb-3"></i>
+                        <h5 class="card-title">Painters</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-hammer display-4 text-dark mb-3"></i>
+                        <h5 class="card-title">Carpenters</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 text-center shadow-sm hover-card">
+                    <div class="card-body">
+                        <i class="bi bi-thermometer display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">AC Technicians</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">How It Works</h2>
+            <p class="text-muted">Three simple steps to get started</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-plus-fill display-5"></i>
+                    </div>
+                    <h4>1. Create Account</h4>
+                    <p class="text-muted">Sign up as a client or worker in minutes</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-search display-5"></i>
+                    </div>
+                    <h4>2. Search & Connect</h4>
+                    <p class="text-muted">Find workers or jobs that match your needs</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-check-circle-fill display-5"></i>
+                    </div>
+                    <h4>3. Get Started</h4>
+                    <p class="text-muted">Hire workers or start working on jobs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Why Choose Worker Connect?</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-shield-check text-primary display-4 mb-3"></i>
+                        <h5>Verified Workers</h5>
+                        <p class="text-muted">All workers are verified with documents and credentials</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-star-fill text-warning display-4 mb-3"></i>
+                        <h5>Rated Professionals</h5>
+                        <p class="text-muted">Read reviews and ratings from other clients</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-chat-dots text-success display-4 mb-3"></i>
+                        <h5>Direct Communication</h5>
+                        <p class="text-muted">Message workers directly through our platform</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-clock-history text-info display-4 mb-3"></i>
+                        <h5>24/7 Support</h5>
+                        <p class="text-muted">Get help whenever you need it</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-3">Ready to Get Started?</h2>
+        <p class="lead mb-4">Join thousands of clients and workers on our platform</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:register_choice' %}" class="btn btn-light btn-lg px-5">Sign Up Now</a>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

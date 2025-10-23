@@ -1,0 +1,457 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Worker Verifications - Admin Panel{% endblock %}
+{% block page_title %}Worker Verifications{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="h4 mb-1">
+            <i class="bi bi-person-check"></i> Worker Verification Queue
+        </h2>
+        <p class="text-muted mb-0">Review and verify worker accounts</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="filter" id="all" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="all">All</label>
+            
+            <input type="radio" class="btn-check" name="filter" id="pending" autocomplete="off">
+            <label class="btn btn-outline-warning" for="pending">Pending</label>
+            
+            <input type="radio" class="btn-check" name="filter" id="verified" autocomplete="off">
+            <label class="btn btn-outline-success" for="verified">Verified</label>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-warning mb-1">{{ pending_count }}</h3>
+                <small class="text-muted">Pending Verification</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-success mb-1">{{ verified_count }}</h3>
+                <small class="text-muted">Verified Workers</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-danger mb-1">{{ rejected_count }}</h3>
+                <small class="text-muted">Rejected</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workers List -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        {% if workers %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Worker</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Categories</th>
+                        <th>Status</th>
+                        <th>Registered</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for worker in workers %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if worker.user.profile_picture %}
+                                <img src="{{ worker.user.profile_picture.url }}" 
+                                     alt="{{ worker.user.get_full_name }}" 
+                                     class="rounded-circle me-3" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-secondary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ worker.user.get_full_name }}</div>
+                                    <small class="text-muted">@{{ worker.user.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ worker.user.email }}</td>
+                        <td>{{ worker.user.phone_number|default:"-" }}</td>
+                        <td>
+                            {% for category in worker.categories.all|slice:":2" %}
+                            <span class="badge bg-light text-dark me-1">{{ category.name }}</span>
+                            {% endfor %}
+                            {% if worker.categories.count > 2 %}
+                            <span class="badge bg-light text-dark">+{{ worker.categories.count|add:"-2" }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if worker.verification_status == 'verified' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Verified</span>
+                            {% elif worker.verification_status == 'pending' %}
+                            <span class="badge bg-warning"><i class="bi bi-clock"></i> Pending</span>
+                            {% elif worker.verification_status == 'rejected' %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rejected</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not Verified</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ worker.user.created_at|date:"M d, Y" }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" 
+                                        data-bs-target="#viewModal{{ worker.id }}" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% if worker.verification_status != 'verified' %}
+                                <form method="post" action="{% url 'admin_panel:verify_worker' worker.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="verify">
+                                    <button type="submit" class="btn btn-outline-success" title="Verify">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if worker.verification_status != 'rejected' %}
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" 
+                                        data-bs-target="#rejectModal{{ worker.id }}" title="Reject">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- View Modal -->
+                    <div class="modal fade" id="viewModal{{ worker.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" style="max-width: 90%;">
+                            <div class="modal-content">
+                                <div class="modal-header border-0 pb-0">
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body pt-0">
+                                    <!-- Profile Header -->
+                                    <div class="text-center mb-4">
+                                        {% if worker.profile_image %}
+                                        <img src="{{ worker.profile_image.url }}" 
+                                             alt="{{ worker.user.get_full_name }}" 
+                                             class="rounded-circle border border-3 border-white shadow-lg mb-3" 
+                                             style="width: 120px; height: 120px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-gradient rounded-circle border border-3 border-white shadow-lg mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                             style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <i class="bi bi-person fs-1 text-white"></i>
+                                        </div>
+                                        {% endif %}
+                                        <h4 class="fw-bold mb-1">{{ worker.user.get_full_name }}</h4>
+                                        <p class="text-muted mb-2">@{{ worker.user.username }}</p>
+                                        {% if worker.verification_status == 'verified' %}
+                                        <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle-fill"></i> Verified Worker</span>
+                                        {% elif worker.verification_status == 'pending' %}
+                                        <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-clock-fill"></i> Pending Verification</span>
+                                        {% elif worker.verification_status == 'rejected' %}
+                                        <span class="badge bg-danger px-3 py-2"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Personal Information -->
+                                    <div class="card border-0 shadow-sm mb-3">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-person-circle"></i> Personal Information</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-envelope-fill text-primary me-2 mt-1"></i>
+                                                        <div>
+                                                            <small class="text-muted d-block">Email</small>
+                                                            <strong>{{ worker.user.email }}</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-telephone-fill text-success me-2 mt-1"></i>
+                                                        <div>
+                                                            <small class="text-muted d-block">Phone</small>
+                                                            <strong>{{ worker.user.phone_number|default:"-" }}</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-geo-alt-fill text-danger me-2 mt-1"></i>
+                                                        <div>
+                                                            <small class="text-muted d-block">Location</small>
+                                                            <strong>{{ worker.city|default:"-" }}, {{ worker.state|default:"-" }}</strong><br>
+                                                            <small>{{ worker.country|default:"-" }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-house-fill text-info me-2 mt-1"></i>
+                                                        <div>
+                                                            <small class="text-muted d-block">Address</small>
+                                                            <strong>{{ worker.address|default:"-" }}</strong><br>
+                                                            <small>{{ worker.postal_code|default:"-" }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Work Details -->
+                                    <div class="card border-0 shadow-sm mb-3">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-briefcase-fill"></i> Work Details</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <div class="text-center p-3 bg-light rounded">
+                                                        <i class="bi bi-calendar-check fs-3 text-primary mb-2"></i>
+                                                        <div class="fw-bold fs-5">{{ worker.experience_years }}</div>
+                                                        <small class="text-muted">Years Experience</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="text-center p-3 bg-light rounded">
+                                                        <i class="bi bi-cash-stack fs-3 text-success mb-2"></i>
+                                                        <div class="fw-bold fs-5">${{ worker.hourly_rate|default:"0.00" }}</div>
+                                                        <small class="text-muted">Hourly Rate</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="text-center p-3 bg-light rounded">
+                                                        <i class="bi bi-signal fs-3 text-info mb-2"></i>
+                                                        {% if worker.availability == 'available' %}
+                                                        <div class="badge bg-success mb-1">Available</div>
+                                                        {% elif worker.availability == 'busy' %}
+                                                        <div class="badge bg-warning text-dark mb-1">Busy</div>
+                                                        {% else %}
+                                                        <div class="badge bg-secondary mb-1">Offline</div>
+                                                        {% endif %}
+                                                        <small class="text-muted d-block">Availability</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Categories -->
+                                    <div class="card border-0 shadow-sm mb-3">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-tags-fill"></i> Categories</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for category in worker.categories.all %}
+                                                <span class="badge bg-primary bg-gradient px-3 py-2" style="font-size: 0.875rem;">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>{{ category.name }}
+                                                </span>
+                                                {% empty %}
+                                                <p class="text-muted mb-0"><i class="bi bi-info-circle"></i> No categories selected</p>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Skills -->
+                                    <div class="card border-0 shadow-sm mb-3">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-star-fill"></i> Skills</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for skill in worker.custom_skills.all %}
+                                                <span class="badge bg-success bg-gradient px-3 py-2" style="font-size: 0.875rem;">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>{{ skill.name }}
+                                                    {% if skill.years_of_experience %}
+                                                    <small class="ms-1">({{ skill.years_of_experience }}y)</small>
+                                                    {% endif %}
+                                                    {% if skill.is_verified %}
+                                                    <i class="bi bi-patch-check-fill ms-1" title="Verified"></i>
+                                                    {% endif %}
+                                                </span>
+                                                {% empty %}
+                                                <p class="text-muted mb-0"><i class="bi bi-info-circle"></i> No skills added</p>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Experience -->
+                                    {% if worker.experiences.all %}
+                                    <div class="card border-0 shadow-sm mb-3">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-briefcase"></i> Work Experience</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="timeline">
+                                                {% for exp in worker.experiences.all %}
+                                                <div class="mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <h6 class="mb-1 fw-bold">{{ exp.job_title }}</h6>
+                                                            <p class="mb-0 text-primary"><i class="bi bi-building"></i> {{ exp.company }}</p>
+                                                        </div>
+                                                        {% if exp.is_current %}
+                                                        <span class="badge bg-success">Current</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <p class="text-muted small mb-1">
+                                                        <i class="bi bi-calendar-range"></i>
+                                                        {{ exp.start_date|date:"M Y" }} - 
+                                                        {% if exp.is_current %}
+                                                        Present
+                                                        {% else %}
+                                                        {{ exp.end_date|date:"M Y" }}
+                                                        {% endif %}
+                                                    </p>
+                                                    {% if exp.location %}
+                                                    <p class="text-muted small mb-1">
+                                                        <i class="bi bi-geo-alt"></i> {{ exp.location }}
+                                                    </p>
+                                                    {% endif %}
+                                                    {% if exp.description %}
+                                                    <p class="mb-0 small mt-2">{{ exp.description }}</p>
+                                                    {% endif %}
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Bio -->
+                                    {% if worker.bio %}
+                                    <div class="card border-0 shadow-sm mb-3">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-journal-text"></i> Bio</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-0" style="white-space: pre-line;">{{ worker.bio }}</p>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Statistics -->
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header text-white" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
+                                            <h6 class="mb-0"><i class="bi bi-graph-up"></i> Statistics</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div class="col-6 col-md-3">
+                                                    <div class="text-center">
+                                                        <div class="fs-4 fw-bold text-primary">{{ worker.total_jobs }}</div>
+                                                        <small class="text-muted">Total Jobs</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="text-center">
+                                                        <div class="fs-4 fw-bold text-success">{{ worker.completed_jobs }}</div>
+                                                        <small class="text-muted">Completed</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="text-center">
+                                                        <div class="fs-4 fw-bold text-warning">{{ worker.average_rating }}</div>
+                                                        <small class="text-muted">Rating</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="text-center">
+                                                        <div class="fs-4 fw-bold text-info">{{ worker.profile_completion }}%</div>
+                                                        <small class="text-muted">Profile</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 bg-light">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-lg"></i> Close
+                                    </button>
+                                    {% if worker.verification_status != 'verified' %}
+                                    <form method="post" action="{% url 'admin_panel:verify_worker' worker.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="verify">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check-circle-fill"></i> Verify Worker
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    {% if worker.verification_status != 'rejected' %}
+                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" 
+                                            data-bs-target="#rejectModal{{ worker.id }}" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle-fill"></i> Reject Worker
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reject Modal -->
+                    <div class="modal fade" id="rejectModal{{ worker.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'admin_panel:verify_worker' worker.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Reject Worker</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to reject <strong>{{ worker.user.get_full_name }}</strong>?</p>
+                                        <div class="mb-3">
+                                            <label for="reason{{ worker.id }}" class="form-label">Rejection Reason (optional)</label>
+                                            <textarea class="form-control" id="reason{{ worker.id }}" name="reason" rows="3" 
+                                                      placeholder="Provide a reason for rejection..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Reject Worker</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted"></i>
+            <p class="text-muted mt-3">No workers found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

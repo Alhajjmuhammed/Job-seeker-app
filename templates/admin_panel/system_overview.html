@@ -1,0 +1,485 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}System Overview - Admin Panel{% endblock %}
+{% block page_title %}System Overview{% endblock %}
+
+{% block content %}
+<style>
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 1.5rem 0 1rem 0;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-header:first-child {
+        margin-top: 0;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-card h3 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 0.25rem 0;
+    }
+    
+    .stat-card .stat-subtitle {
+        font-size: 0.8125rem;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .stat-card.highlight-green .stat-value {
+        color: #059669;
+    }
+    
+    .stat-card.highlight-red .stat-value {
+        color: #dc2626;
+    }
+    
+    .stat-card.highlight-blue .stat-value {
+        color: #2563eb;
+    }
+    
+    .stat-card.highlight-yellow .stat-value {
+        color: #d97706;
+    }
+    
+    .stat-card.highlight-teal .stat-value {
+        color: #14b8a6;
+    }
+    
+    .info-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1rem;
+    }
+    
+    .info-card h5 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .category-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .category-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .category-name {
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .category-count {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .activity-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        font-size: 1.125rem;
+        flex-shrink: 0;
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-content h6 {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.9375rem;
+        font-weight: 600;
+    }
+    
+    .activity-content p {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: #6b7280;
+    }
+    
+    .badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .badge-primary {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+</style>
+
+<!-- User Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-people-fill"></i>
+    User Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Users</h3>
+        <p class="stat-value">{{ total_users }}</p>
+    </div>
+    <div class="stat-card highlight-teal">
+        <h3>New Today</h3>
+        <p class="stat-value">{{ new_users_today }}</p>
+    </div>
+    <div class="stat-card highlight-blue">
+        <h3>New This Week</h3>
+        <p class="stat-value">{{ new_users_week }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>New This Month</h3>
+        <p class="stat-value">{{ new_users_month }}</p>
+    </div>
+</div>
+
+<!-- Worker Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-person-workspace"></i>
+    Worker Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Workers</h3>
+        <p class="stat-value">{{ total_workers }}</p>
+    </div>
+    <div class="stat-card highlight-green">
+        <h3>Verified</h3>
+        <p class="stat-value">{{ verified_workers }}</p>
+        <p class="stat-subtitle">{{ verified_workers }} of {{ total_workers }}</p>
+    </div>
+    <div class="stat-card highlight-blue">
+        <h3>Available</h3>
+        <p class="stat-value">{{ available_workers }}</p>
+    </div>
+    <div class="stat-card highlight-yellow">
+        <h3>Pending Verification</h3>
+        <p class="stat-value">{{ pending_verification }}</p>
+    </div>
+</div>
+
+<!-- Client Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-briefcase-fill"></i>
+    Client Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Clients</h3>
+        <p class="stat-value">{{ total_clients }}</p>
+    </div>
+    <div class="stat-card highlight-green">
+        <h3>Active Clients</h3>
+        <p class="stat-value">{{ active_clients }}</p>
+        <p class="stat-subtitle">Posted at least one job</p>
+    </div>
+</div>
+
+<!-- Job Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-briefcase"></i>
+    Job Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Jobs</h3>
+        <p class="stat-value">{{ total_jobs }}</p>
+    </div>
+    <div class="stat-card highlight-blue">
+        <h3>Open Jobs</h3>
+        <p class="stat-value">{{ open_jobs }}</p>
+    </div>
+    <div class="stat-card highlight-yellow">
+        <h3>In Progress</h3>
+        <p class="stat-value">{{ in_progress_jobs }}</p>
+    </div>
+    <div class="stat-card highlight-green">
+        <h3>Completed</h3>
+        <p class="stat-value">{{ completed_jobs }}</p>
+    </div>
+    <div class="stat-card highlight-red">
+        <h3>Cancelled</h3>
+        <p class="stat-value">{{ cancelled_jobs }}</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card highlight-teal">
+        <h3>Jobs Today</h3>
+        <p class="stat-value">{{ jobs_today }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Jobs This Week</h3>
+        <p class="stat-value">{{ jobs_week }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Jobs This Month</h3>
+        <p class="stat-value">{{ jobs_month }}</p>
+    </div>
+</div>
+
+<!-- Application Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-file-earmark-text"></i>
+    Application Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Applications</h3>
+        <p class="stat-value">{{ total_applications }}</p>
+    </div>
+    <div class="stat-card highlight-yellow">
+        <h3>Pending</h3>
+        <p class="stat-value">{{ pending_applications }}</p>
+    </div>
+    <div class="stat-card highlight-green">
+        <h3>Accepted</h3>
+        <p class="stat-value">{{ accepted_applications }}</p>
+    </div>
+    <div class="stat-card highlight-red">
+        <h3>Rejected</h3>
+        <p class="stat-value">{{ rejected_applications }}</p>
+    </div>
+</div>
+
+<!-- Rating Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-star-fill"></i>
+    Rating Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Ratings</h3>
+        <p class="stat-value">{{ total_ratings }}</p>
+    </div>
+    <div class="stat-card highlight-yellow">
+        <h3>Average Rating</h3>
+        <p class="stat-value">{{ avg_rating }}</p>
+        <p class="stat-subtitle">Out of 5.0</p>
+    </div>
+    <div class="stat-card highlight-teal">
+        <h3>Ratings This Week</h3>
+        <p class="stat-value">{{ ratings_week }}</p>
+    </div>
+</div>
+
+<!-- Financial Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-cash-stack"></i>
+    Financial Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Budget</h3>
+        <p class="stat-value">${{ total_budget|floatformat:0 }}</p>
+        <p class="stat-subtitle">All jobs combined</p>
+    </div>
+    <div class="stat-card highlight-green">
+        <h3>Completed Budget</h3>
+        <p class="stat-value">${{ completed_budget|floatformat:0 }}</p>
+        <p class="stat-subtitle">Finished jobs only</p>
+    </div>
+</div>
+
+<!-- Document Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-file-earmark-check"></i>
+    Document Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Documents</h3>
+        <p class="stat-value">{{ total_documents }}</p>
+    </div>
+    <div class="stat-card highlight-yellow">
+        <h3>Pending Review</h3>
+        <p class="stat-value">{{ pending_documents }}</p>
+    </div>
+    <div class="stat-card highlight-green">
+        <h3>Approved</h3>
+        <p class="stat-value">{{ approved_documents }}</p>
+    </div>
+    <div class="stat-card highlight-red">
+        <h3>Rejected</h3>
+        <p class="stat-value">{{ rejected_documents }}</p>
+    </div>
+</div>
+
+<!-- Message Metrics -->
+<h2 class="section-header">
+    <i class="bi bi-chat-dots-fill"></i>
+    Message Metrics
+</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Messages</h3>
+        <p class="stat-value">{{ total_messages }}</p>
+    </div>
+    <div class="stat-card highlight-teal">
+        <h3>Messages Today</h3>
+        <p class="stat-value">{{ messages_today }}</p>
+    </div>
+</div>
+
+<!-- Bottom Section: Categories and Recent Activity -->
+<div class="row">
+    <div class="col-md-4">
+        <!-- Most Popular Categories -->
+        <div class="info-card">
+            <h5><i class="bi bi-grid-3x3"></i>Most Popular Categories</h5>
+            {% for category in most_popular_categories %}
+            <div class="category-item">
+                <span class="category-name">{{ category.name }}</span>
+                <span class="category-count">{{ category.job_count }} jobs</span>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center py-3">No categories yet</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Recent Activity -->
+        <div class="info-card">
+            <h5><i class="bi bi-activity"></i>Recent Activity</h5>
+            <div class="activity-list">
+                <!-- Recent Users -->
+                {% for user in recent_users %}
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #dbeafe; color: #1e40af;">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>New User Registered</h6>
+                        <p>
+                            {{ user.get_full_name|default:user.username }} joined
+                            {% if user.is_worker %}
+                                <span class="badge badge-primary">Worker</span>
+                            {% elif user.is_client %}
+                                <span class="badge badge-warning">Client</span>
+                            {% endif %}
+                            <span class="text-muted ms-2">{{ user.date_joined|timesince }} ago</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Recent Jobs -->
+                {% for job in recent_jobs %}
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #fef3c7; color: #92400e;">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>New Job Posted</h6>
+                        <p>
+                            {{ job.title }} by {{ job.client.get_full_name|default:job.client.username }}
+                            <span class="badge badge-success">${{ job.budget }}</span>
+                            <span class="text-muted ms-2">{{ job.created_at|timesince }} ago</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Recent Applications -->
+                {% for app in recent_applications %}
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #d1fae5; color: #065f46;">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>New Application</h6>
+                        <p>
+                            {{ app.worker.user.get_full_name|default:app.worker.user.username }} applied to {{ app.job.title }}
+                            <span class="text-muted ms-2">{{ app.created_at|timesince }} ago</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

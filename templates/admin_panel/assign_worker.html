@@ -1,0 +1,685 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block page_title %}Assign Worker{% endblock %}
+
+{% block extra_css %}
+<style>
+    .job-details-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .job-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #111827;
+    }
+    
+    .job-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+    }
+    
+    .meta-item i {
+        color: #0eb8a6;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #111827;
+    }
+    
+    .worker-card {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .worker-card:hover {
+        border-color: #0eb8a6;
+        box-shadow: 0 4px 16px rgba(14, 184, 166, 0.1);
+    }
+    
+    .worker-card.selected {
+        border-color: #0eb8a6;
+        background: #f0fdfa;
+    }
+    
+    .worker-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .worker-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0eb8a6 0%, #0d9488 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .worker-info h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .worker-info p {
+        margin: 0.25rem 0 0 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    
+    .worker-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .worker-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+    
+    .worker-stat i {
+        color: #0eb8a6;
+    }
+    
+    .worker-categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .category-badge {
+        background: #f3f4f6;
+        color: #374151;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-suggested {
+        background: #dcfce7;
+        color: #166534;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: auto;
+    }
+    
+    .btn-primary {
+        background: #0eb8a6;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        background: #0d9488;
+    }
+    
+    .btn-primary:disabled {
+        background: #d1d5db;
+        cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #e5e7eb;
+        color: #374151;
+    }
+    
+    .worker-selection-form {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e5e7eb;
+    }
+    
+    .rating-stars {
+        color: #f59e0b;
+    }
+    
+    .no-workers {
+        text-align: center;
+        padding: 3rem;
+        color: #9ca3af;
+    }
+    
+    .no-workers i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .search-box {
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-box input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    
+    .search-box input:focus {
+        outline: none;
+        border-color: #0eb8a6;
+        box-shadow: 0 0 0 3px rgba(14, 184, 166, 0.1);
+    }
+    
+    /* Compact Workers Grid */
+    .workers-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        max-height: 600px;
+        overflow-y: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .worker-card-compact {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .worker-card-compact:hover {
+        border-color: #0eb8a6;
+        box-shadow: 0 2px 8px rgba(14, 184, 166, 0.1);
+    }
+    
+    .worker-card-compact.selected {
+        border-color: #0eb8a6;
+        background: #f0fdfa;
+    }
+    
+    .worker-compact-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .worker-avatar-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0eb8a6 0%, #0d9488 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .worker-info-compact {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .worker-info-compact h6 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .worker-categories-compact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+    }
+    
+    .category-tag {
+        background: #f3f4f6;
+        color: #6b7280;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .category-tag.more {
+        background: #e5e7eb;
+        color: #9ca3af;
+    }
+    
+    .availability-badge {
+        padding: 0.1rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .availability-available {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .availability-busy {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .select-worker-btn {
+        border-color: #0eb8a6;
+        color: #0eb8a6;
+    }
+    
+    .select-worker-btn:hover {
+        background: #0eb8a6;
+        color: white;
+    }
+    
+    .search-filters .form-control, .search-filters .form-select {
+        border-color: #d1d5db;
+    }
+    
+    .search-filters .form-control:focus, .search-filters .form-select:focus {
+        border-color: #0eb8a6;
+        box-shadow: 0 0 0 0.2rem rgba(14, 184, 166, 0.25);
+    }
+    
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-2">Assign Worker to Job</h1>
+            <p class="text-muted">Select a qualified worker for this job</p>
+        </div>
+        <a href="{% url 'admin_panel:job_management' %}" class="btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Jobs
+        </a>
+    </div>
+    
+    <!-- Job Details -->
+    <div class="job-details-card">
+        <h2 class="job-title">{{ job.title }}</h2>
+        <div class="job-meta">
+            <div class="meta-item">
+                <i class="bi bi-person"></i>
+                <span><strong>Client:</strong> {{ job.client.get_full_name }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-tag"></i>
+                <span><strong>Category:</strong> {{ job.category.name|default:"No Category" }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-geo-alt"></i>
+                <span><strong>Location:</strong> {{ job.city }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-currency-dollar"></i>
+                <span><strong>Budget:</strong> ${{ job.budget|floatformat:0 }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-clock"></i>
+                <span><strong>Duration:</strong> {{ job.duration_days }} days</span>
+            </div>
+        </div>
+        <p><strong>Description:</strong></p>
+        <p>{{ job.description }}</p>
+    </div>
+    
+    <!-- Worker Selection Form -->
+    <div class="worker-selection-form">
+        <form method="post" id="assignForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign">
+            <input type="hidden" name="worker_id" id="selectedWorkerId" value="">
+            
+            {% if suggested_workers %}
+            <h3 class="section-title">
+                <i class="bi bi-stars"></i> Suggested Workers (Matching Category)
+            </h3>
+            <div class="search-box">
+                <input type="text" id="searchSuggested" placeholder="Search suggested workers...">
+            </div>
+            <div id="suggestedWorkersList">
+                {% for worker in suggested_workers %}
+                <div class="worker-card" data-worker-id="{{ worker.id }}" data-name="{{ worker.user.get_full_name|lower }}">
+                    <div class="worker-header">
+                        <div class="worker-avatar">
+                            {{ worker.user.first_name.0 }}{{ worker.user.last_name.0 }}
+                        </div>
+                        <div class="worker-info">
+                            <h4>{{ worker.user.get_full_name }}</h4>
+                            <p>{{ worker.user.email }}</p>
+                        </div>
+                        <span class="badge-suggested">
+                            <i class="bi bi-check-circle"></i> Suggested
+                        </span>
+                    </div>
+                    <div class="worker-stats">
+                        <div class="worker-stat">
+                            <i class="bi bi-star-fill rating-stars"></i>
+                            <span>{{ worker.average_rating|floatformat:1 }} Rating</span>
+                        </div>
+                        <div class="worker-stat">
+                            <i class="bi bi-check-circle"></i>
+                            <span>{{ worker.completed_jobs }} Jobs Completed</span>
+                        </div>
+                        <div class="worker-stat">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>{{ worker.city }}</span>
+                        </div>
+                    </div>
+                    <div class="worker-categories">
+                        {% for category in worker.categories.all|slice:":5" %}
+                        <span class="category-badge">{{ category.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <h3 class="section-title mt-4">
+                <i class="bi bi-people"></i> All Verified Workers
+                <span class="text-muted fs-6">({{ all_workers|length }} total)</span>
+            </h3>
+            <div class="search-filters mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" id="searchAll" class="form-control" placeholder="Search workers by name...">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filterAvailability" class="form-select">
+                            <option value="">All Availability</option>
+                            <option value="available">Available</option>
+                            <option value="busy">Busy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="sortWorkers" class="form-select">
+                            <option value="name">Sort by Name</option>
+                            <option value="rating">Sort by Rating</option>
+                            <option value="jobs">Sort by Jobs Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="allWorkersList">
+                <div class="workers-grid">
+                    {% for worker in all_workers %}
+                    <div class="worker-card-compact" data-worker-id="{{ worker.id }}" 
+                         data-name="{{ worker.user.get_full_name|lower }}"
+                         data-availability="{{ worker.availability }}"
+                         data-rating="{{ worker.average_rating|floatformat:1 }}"
+                         data-jobs="{{ worker.completed_jobs }}">
+                        <div class="worker-compact-header">
+                            <div class="worker-avatar-sm">
+                                {{ worker.user.first_name.0 }}{{ worker.user.last_name.0 }}
+                            </div>
+                            <div class="worker-info-compact">
+                                <h6>{{ worker.user.get_full_name }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-star-fill" style="color: #f59e0b;"></i> {{ worker.average_rating|floatformat:1 }} 
+                                    • {{ worker.completed_jobs }} jobs
+                                    • <span class="availability-badge availability-{{ worker.availability }}">{{ worker.availability|title }}</span>
+                                </small>
+                            </div>
+                            <div class="worker-actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary select-worker-btn">
+                                    Select
+                                </button>
+                            </div>
+                        </div>
+                        <div class="worker-categories-compact">
+                            {% for category in worker.categories.all|slice:":3" %}
+                            <span class="category-tag">{{ category.name }}</span>
+                            {% endfor %}
+                            {% if worker.categories.count > 3 %}
+                            <span class="category-tag more">+{{ worker.categories.count|add:-3 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-workers">
+                        <i class="bi bi-person-x"></i>
+                        <p>No available workers found</p>
+                        <small class="text-muted">All verified workers are currently busy with other assignments</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" id="assignBtn" disabled>
+                    <i class="bi bi-person-check"></i> Assign Selected Worker
+                </button>
+                <a href="{% url 'admin_panel:job_management' %}" class="btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Worker selection logic
+    const workerCards = document.querySelectorAll('.worker-card, .worker-card-compact');
+    const selectBtns = document.querySelectorAll('.select-worker-btn');
+    const selectedWorkerInput = document.getElementById('selectedWorkerId');
+    const assignBtn = document.getElementById('assignBtn');
+    const assignForm = document.getElementById('assignForm');
+    
+    function selectWorker(card) {
+        // Remove selected class from all cards
+        workerCards.forEach(c => c.classList.remove('selected'));
+        
+        // Add selected class to clicked card
+        card.classList.add('selected');
+        
+        // Set worker ID
+        const workerId = card.dataset.workerId;
+        selectedWorkerInput.value = workerId;
+        
+        // Enable assign button
+        assignBtn.disabled = false;
+        
+        // Update button text
+        const workerName = card.querySelector('h4, h6').textContent;
+        assignBtn.innerHTML = `<i class="bi bi-person-check"></i> Assign ${workerName}`;
+    }
+    
+    // Handle clicks on worker cards
+    workerCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.classList.contains('select-worker-btn')) {
+                e.stopPropagation();
+                return;
+            }
+            selectWorker(this);
+        });
+    });
+    
+    // Handle clicks on select buttons
+    selectBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = this.closest('.worker-card-compact');
+            selectWorker(card);
+        });
+    });
+    
+    // Form submission confirmation
+    assignForm.addEventListener('submit', function(e) {
+        const selectedWorkerId = selectedWorkerInput.value;
+        const selectedCard = document.querySelector('.worker-card.selected, .worker-card-compact.selected');
+        
+        // Check if worker is selected and has valid ID
+        if (!selectedWorkerId || selectedWorkerId === '' || selectedWorkerId === 'undefined') {
+            e.preventDefault();
+            alert('Please select a worker first.');
+            return false;
+        }
+        
+        if (selectedCard) {
+            const workerName = selectedCard.querySelector('h4, h6').textContent;
+            if (!confirm(`Are you sure you want to assign ${workerName} to this job?`)) {
+                e.preventDefault();
+            }
+        } else {
+            e.preventDefault();
+            alert('Please select a worker first.');
+        }
+    });
+    
+    // Search functionality for suggested workers
+    const searchSuggested = document.getElementById('searchSuggested');
+    if (searchSuggested) {
+        searchSuggested.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const cards = document.querySelectorAll('#suggestedWorkersList .worker-card');
+            
+            cards.forEach(card => {
+                const name = card.dataset.name;
+                if (name.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Advanced filtering and sorting
+    const searchAll = document.getElementById('searchAll');
+    const filterAvailability = document.getElementById('filterAvailability');
+    const sortWorkers = document.getElementById('sortWorkers');
+    
+    function filterAndSortWorkers() {
+        const searchTerm = searchAll.value.toLowerCase();
+        const availabilityFilter = filterAvailability.value;
+        const sortBy = sortWorkers.value;
+        
+        let cards = Array.from(document.querySelectorAll('#allWorkersList .worker-card-compact'));
+        
+        // Filter by search term and availability
+        cards.forEach(card => {
+            const name = card.dataset.name;
+            const availability = card.dataset.availability;
+            
+            const matchesSearch = name.includes(searchTerm);
+            const matchesAvailability = !availabilityFilter || availability === availabilityFilter;
+            
+            if (matchesSearch && matchesAvailability) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Sort visible cards
+        const visibleCards = cards.filter(card => card.style.display !== 'none');
+        
+        visibleCards.sort((a, b) => {
+            switch (sortBy) {
+                case 'rating':
+                    return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+                case 'jobs':
+                    return parseInt(b.dataset.jobs) - parseInt(a.dataset.jobs);
+                case 'name':
+                default:
+                    return a.dataset.name.localeCompare(b.dataset.name);
+            }
+        });
+        
+        // Reorder the cards in DOM
+        const container = document.querySelector('.workers-grid');
+        visibleCards.forEach(card => {
+            container.appendChild(card);
+        });
+    }
+    
+    // Add event listeners for filtering
+    searchAll.addEventListener('input', filterAndSortWorkers);
+    filterAvailability.addEventListener('change', filterAndSortWorkers);
+    sortWorkers.addEventListener('change', filterAndSortWorkers);
+</script>
+{% endblock %}

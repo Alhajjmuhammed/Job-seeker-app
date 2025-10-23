@@ -1,0 +1,1146 @@
+{% extends 'clients/base_client.html' %}
+{% load static %}
+
+{% block page_title %}{{ worker.user.get_full_name }} - Worker Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 14px;
+        margin-bottom: 1.25rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+    }
+
+    .profile-avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .profile-info {
+        flex: 1;
+    }
+
+    .profile-name {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-category {
+        font-size: 1.0625rem;
+        opacity: 0.95;
+        margin-bottom: 0.75rem;
+    }
+
+    .profile-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        font-size: 0.9375rem;
+        opacity: 0.95;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .btn-favorite {
+        padding: 0.75rem 1.25rem;
+        background: white;
+        color: #0f766e;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-favorite:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-favorite.active {
+        background: #ef4444;
+        color: white;
+    }
+
+    .content-section {
+        background: white;
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .rating-summary {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 1.25rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+    }
+
+    .rating-score {
+        text-align: center;
+    }
+
+    .rating-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0f766e;
+    }
+
+    .rating-stars {
+        color: #fbbf24;
+        font-size: 1.25rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.25rem;
+        margin-bottom: 0.375rem;
+    }
+
+    .rating-count {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.625rem;
+    }
+
+    .skill-badge {
+        padding: 0.5rem 1rem;
+        background: #f0fdfa;
+        color: #0f766e;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 1px solid #ccfbf1;
+        position: relative;
+        cursor: help;
+        transition: all 0.3s ease;
+    }
+    
+    .skill-badge:hover {
+        background: #ccfbf1;
+        border-color: #99f6e4;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
+    }
+    
+    .skill-badge.has-description {
+        cursor: help;
+    }
+    
+    /* Custom Skill Description Popover */
+    .skill-popover {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1rem;
+        min-width: 250px;
+        max-width: 350px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .skill-badge:hover .skill-popover {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-12px);
+    }
+    
+    .skill-popover::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 8px solid transparent;
+        border-top-color: white;
+    }
+    
+    .skill-popover::before {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 9px solid transparent;
+        border-top-color: #e5e7eb;
+        margin-top: 1px;
+    }
+    
+    .popover-title {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: #0f766e;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .popover-description {
+        font-size: 0.8125rem;
+        color: #6b7280;
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    .popover-icon {
+        color: #14b8a6;
+        font-size: 1rem;
+    }
+
+    .categories-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.625rem;
+    }
+
+    .category-badge {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .experience-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .experience-timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.625rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #0f766e 0%, #14b8a6 100%);
+    }
+
+    .experience-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .experience-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .experience-item::before {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 0.375rem;
+        width: 12px;
+        height: 12px;
+        background: #14b8a6;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px #14b8a6;
+    }
+
+    .experience-title {
+        font-weight: 700;
+        color: #111827;
+        font-size: 1.0625rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .experience-company {
+        color: #0f766e;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+    }
+
+    .experience-date {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.625rem;
+    }
+
+    .experience-description {
+        color: #4b5563;
+        line-height: 1.6;
+    }
+
+    /* Enhanced Review Styles */
+    .rating-summary-card {
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        border: 2px solid #99f6e4;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .rating-overview {
+        display: flex;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .rating-score-large {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        min-width: 180px;
+    }
+
+    .score-number {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #0f766e;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .score-stars {
+        color: #fbbf24;
+        font-size: 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .score-text {
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .rating-stats {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.0625rem;
+        color: #374151;
+        padding: 0.75rem 1rem;
+        background: white;
+        border-radius: 10px;
+    }
+
+    .stat-item i {
+        font-size: 1.5rem;
+    }
+
+    .reviews-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 1.25rem;
+    }
+
+    .reviews-list-header h5 {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .review-item-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+
+    .review-item-card:hover {
+        border-color: #0f766e;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1);
+    }
+
+    .review-header-new {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .reviewer-info {
+        display: flex;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .reviewer-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .reviewer-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-placeholder {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .reviewer-details {
+        flex: 1;
+    }
+
+    .reviewer-name-new {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .reviewer-date {
+        color: #9ca3af;
+        font-size: 0.8125rem;
+    }
+
+    .review-rating-new {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #fef3c7;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        flex-shrink: 0;
+    }
+
+    .rating-stars-inline {
+        color: #fbbf24;
+        display: flex;
+        gap: 0.125rem;
+        font-size: 0.875rem;
+    }
+
+    .rating-number-small {
+        font-weight: 700;
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+
+    .review-message {
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border-left: 3px solid #0f766e;
+    }
+
+    .review-message p {
+        margin: 0;
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    .review-card {
+        padding: 1.25rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+    }
+
+    .reviewer-name {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+
+    .review-date {
+        color: #9ca3af;
+        font-size: 0.8125rem;
+    }
+
+    .review-rating {
+        color: #fbbf24;
+        display: flex;
+        gap: 0.125rem;
+    }
+
+    .review-comment {
+        color: #4b5563;
+        line-height: 1.6;
+    }
+
+    .btn-rate {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .btn-rate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(15, 118, 110, 0.3);
+        color: white;
+    }
+
+    .btn-rate i {
+        font-size: 1rem;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 2rem;
+        color: #9ca3af;
+    }
+
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .availability-badge.available {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .availability-badge.busy {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .star-rating {
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-view-doc:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        color: white;
+    }
+
+    .btn-view-doc:active {
+        transform: translateY(0);
+    }
+
+    .badge-pending {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        background: #fef3c7;
+        color: #92400e;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    .badge-rejected {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .btn-favorite {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .rating-summary {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
+    /* Rating Modal Styles */
+    .star-label {
+        color: #d1d5db;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .star-label:hover,
+    .star-label.active {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+
+    .star-label i {
+        pointer-events: none;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-close:focus {
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star Rating Interactive
+    const stars = document.querySelectorAll('.star-label');
+    const ratingText = document.getElementById('ratingText');
+    const ratingTexts = {
+        1: '⭐ Poor',
+        2: '⭐⭐ Fair',
+        3: '⭐⭐⭐ Good',
+        4: '⭐⭐⭐⭐ Very Good',
+        5: '⭐⭐⭐⭐⭐ Excellent'
+    };
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            const ratingInput = document.getElementById('star' + rating);
+            
+            // Check the radio button
+            ratingInput.checked = true;
+            
+            // Update star display
+            stars.forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.add('active');
+                    s.querySelector('i').className = 'bi bi-star-fill';
+                } else {
+                    s.classList.remove('active');
+                    s.querySelector('i').className = 'bi bi-star';
+                }
+            });
+            
+            // Update text
+            ratingText.textContent = ratingTexts[rating];
+            ratingText.style.color = '#0f766e';
+            ratingText.style.fontWeight = '600';
+        });
+
+        // Hover effect
+        star.addEventListener('mouseenter', function() {
+            const rating = this.dataset.rating;
+            stars.forEach((s, index) => {
+                if (index < rating) {
+                    s.querySelector('i').className = 'bi bi-star-fill';
+                } else {
+                    s.querySelector('i').className = 'bi bi-star';
+                }
+            });
+        });
+    });
+
+    // Reset on mouse leave
+    const starRating = document.querySelector('.star-rating');
+    if (starRating) {
+        starRating.addEventListener('mouseleave', function() {
+            const checkedInput = document.querySelector('input[name="rating"]:checked');
+            if (checkedInput) {
+                const rating = checkedInput.value;
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.querySelector('i').className = 'bi bi-star-fill';
+                    } else {
+                        s.querySelector('i').className = 'bi bi-star';
+                    }
+                });
+            } else {
+                stars.forEach(s => {
+                    s.querySelector('i').className = 'bi bi-star';
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<div class="profile-header">
+    {% if worker.profile_image %}
+    <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="profile-avatar">
+    {% else %}
+    <div class="profile-avatar-placeholder">
+        {{ worker.user.get_full_name|first|upper }}
+    </div>
+    {% endif %}
+
+    <div class="profile-info">
+        <h1 class="profile-name">{{ worker.user.get_full_name }}</h1>
+        <p class="profile-category">
+            {% if worker.categories.first %}
+                {{ worker.categories.first.name }}
+            {% else %}
+                General Worker
+            {% endif %}
+        </p>
+        <div class="profile-meta">
+            <div class="meta-item">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ worker.city }}, {{ worker.state }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-star-fill"></i>
+                <span>{{ worker.average_rating|default:0|floatformat:1 }} ({{ total_ratings }} reviews)</span>
+            </div>
+            <div class="meta-item">
+                {% if worker.availability == 'available' %}
+                <span class="availability-badge available">
+                    <i class="bi bi-circle-fill"></i> Available
+                </span>
+                {% else %}
+                <span class="availability-badge busy">
+                    <i class="bi bi-circle-fill"></i> Busy
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <form action="{% url 'clients:toggle_favorite' worker.pk %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-favorite {% if is_favorite %}active{% endif %}">
+                <i class="bi bi-heart{% if is_favorite %}-fill{% endif %}"></i>
+                {% if is_favorite %}Saved{% else %}Save{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- About -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="bi bi-person"></i> About
+            </h2>
+            <p>{{ worker.bio|default:"No bio provided yet." }}</p>
+            
+            <!-- Additional Information -->
+            {% if worker.religion or worker.can_work_everywhere %}
+            <div style="margin-top: 1.25rem; padding: 1rem; background: #f9fafb; border-radius: 12px; border-left: 4px solid #0f766e;">
+                <h4 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="bi bi-info-circle"></i> Additional Information
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                    {% if worker.religion %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-star text-primary"></i>
+                        <span style="font-size: 0.875rem; color: #6b7280;">Religion:</span>
+                        <span style="font-size: 0.875rem; font-weight: 500; color: #374151;">{{ worker.get_religion_display }}</span>
+                    </div>
+                    {% endif %}
+                    {% if worker.can_work_everywhere %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-globe2 text-success"></i>
+                        <span style="font-size: 0.875rem; font-weight: 500; color: #059669;">Can work everywhere</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Work Experience -->
+        {% if experiences %}
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="bi bi-briefcase"></i> Work Experience
+            </h2>
+            <div class="experience-timeline">
+                {% for exp in experiences %}
+                <div class="experience-item">
+                    <div class="experience-title">{{ exp.job_title }}</div>
+                    <div class="experience-company">{{ exp.company }}</div>
+                    <div class="experience-date">
+                        {{ exp.start_date|date:"M Y" }} - 
+                        {% if exp.is_current %}
+                            Present
+                        {% elif exp.end_date %}
+                            {{ exp.end_date|date:"M Y" }}
+                        {% endif %}
+                        {% if exp.location %} • {{ exp.location }}{% endif %}
+                    </div>
+                    {% if exp.description %}
+                    <p class="experience-description">{{ exp.description }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Reviews -->
+        <div class="content-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h2 class="section-title" style="margin-bottom: 0;">
+                    <i class="bi bi-star"></i> Reviews & Ratings
+                </h2>
+                {% if request.user.is_authenticated and request.user.is_client %}
+                <button type="button" class="btn-rate" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                    <i class="bi bi-star-fill"></i> Rate Worker
+                </button>
+                {% endif %}
+            </div>
+
+            {% if total_ratings > 0 %}
+            <!-- Overall Rating Summary -->
+            <div class="rating-summary-card">
+                <div class="rating-overview">
+                    <div class="rating-score-large">
+                        <div class="score-number">{{ worker.average_rating|floatformat:1 }}</div>
+                        <div class="score-stars">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= worker.average_rating|default:0 %}
+                                <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="score-text">Overall Rating</div>
+                    </div>
+                    <div class="rating-stats">
+                        <div class="stat-item">
+                            <i class="bi bi-chat-left-text text-primary"></i>
+                            <span>{{ total_ratings }} Review{{ total_ratings|pluralize }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="bi bi-award text-warning"></i>
+                            <span>{% widthratio worker.average_rating 5 100 %}% Satisfaction</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Reviews -->
+            <div class="reviews-list-header">
+                <h5 class="mb-0">Client Reviews</h5>
+                <span class="text-muted">{{ total_ratings }} review{{ total_ratings|pluralize }}</span>
+            </div>
+
+            {% for rating in ratings %}
+            <div class="review-item-card">
+                <div class="review-header-new">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">
+                            {% if rating.client.profile_picture %}
+                            <img src="{{ rating.client.profile_picture.url }}" alt="{{ rating.client.get_full_name }}">
+                            {% else %}
+                            <div class="avatar-placeholder">{{ rating.client.get_full_name|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="reviewer-details">
+                            <div class="reviewer-name-new">{{ rating.client.get_full_name }}</div>
+                            <div class="reviewer-date">{{ rating.created_at|timesince }} ago</div>
+                        </div>
+                    </div>
+                    <div class="review-rating-new">
+                        <div class="rating-stars-inline">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= rating.rating %}
+                                <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="rating-number-small">{{ rating.rating }}.0</span>
+                    </div>
+                </div>
+                {% if rating.review %}
+                <div class="review-message">
+                    <p>{{ rating.review }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-message">
+                <i class="bi bi-star display-4 mb-3"></i>
+                <p>No reviews yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Categories -->
+        {% if categories %}
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="bi bi-tag"></i> Categories
+            </h2>
+            <div class="categories-list">
+                {% for category in categories %}
+                <span class="category-badge">{{ category.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if skills %}
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="bi bi-tools"></i> Skills
+            </h2>
+            <div class="skills-list">
+                {% for skill in skills %}
+                <span class="skill-badge {% if skill.description %}has-description{% endif %}">
+                    {{ skill.name }}
+                    {% if skill.description %}
+                    <div class="skill-popover">
+                        <div class="popover-title">
+                            <i class="bi bi-info-circle popover-icon"></i>
+                            {{ skill.name }}
+                        </div>
+                        <p class="popover-description">{{ skill.description }}</p>
+                    </div>
+                    {% endif %}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Rates -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="bi bi-cash"></i> Rates
+            </h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div class="info-content">
+                        <label>Hourly Rate</label>
+                        <span>${{ worker.hourly_rate|default:"N/A" }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="bi bi-calendar-day"></i>
+                    </div>
+                    <div class="info-content">
+                        <label>Daily Rate</label>
+                        <span>${{ worker.daily_rate|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Rating Modal -->
+{% if request.user.is_authenticated and request.user.is_client %}
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: 1px solid #e5e7eb;">
+                <h5 class="modal-title" id="ratingModalLabel" style="font-weight: 700; color: #111827;">
+                    <i class="bi bi-star-fill" style="color: #fbbf24;"></i> Rate {{ worker.user.get_full_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'clients:rate_worker' worker.pk %}" id="ratingForm">
+                {% csrf_token %}
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <!-- Worker Info -->
+                    <div style="text-align: center; margin-bottom: 1.5rem; padding: 1rem; background: linear-gradient(135deg, #0f766e15 0%, #14b8a615 100%); border-radius: 10px;">
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">{{ worker.categories.first.name }}</div>
+                        <div style="font-weight: 600; color: #0f766e;">Share your experience working with {{ worker.user.get_full_name }}</div>
+                    </div>
+
+                    <!-- Star Rating -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">
+                            Your Rating <span style="color: #ef4444;">*</span>
+                        </label>
+                        <div class="star-rating" style="display: flex; gap: 0.5rem; justify-content: center; font-size: 2.5rem;">
+                            <input type="radio" name="rating" value="1" id="star1" required style="display: none;">
+                            <label for="star1" class="star-label" data-rating="1">
+                                <i class="bi bi-star"></i>
+                            </label>
+
+                            <input type="radio" name="rating" value="2" id="star2" required style="display: none;">
+                            <label for="star2" class="star-label" data-rating="2">
+                                <i class="bi bi-star"></i>
+                            </label>
+
+                            <input type="radio" name="rating" value="3" id="star3" required style="display: none;">
+                            <label for="star3" class="star-label" data-rating="3">
+                                <i class="bi bi-star"></i>
+                            </label>
+
+                            <input type="radio" name="rating" value="4" id="star4" required style="display: none;">
+                            <label for="star4" class="star-label" data-rating="4">
+                                <i class="bi bi-star"></i>
+                            </label>
+
+                            <input type="radio" name="rating" value="5" id="star5" required style="display: none;">
+                            <label for="star5" class="star-label" data-rating="5">
+                                <i class="bi bi-star"></i>
+                            </label>
+                        </div>
+                        <div style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;" id="ratingText">Click on a star to rate</div>
+                    </div>
+
+                    <!-- Review Text -->
+                    <div>
+                        <label for="review" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
+                            Your Review (Optional)
+                        </label>
+                        <textarea 
+                            name="review" 
+                            id="review" 
+                            rows="4" 
+                            class="form-control" 
+                            placeholder="Share your experience with this worker..."
+                            style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem; resize: none;"></textarea>
+                        <div style="font-size: 0.8125rem; color: #9ca3af; margin-top: 0.375rem;">
+                            <i class="bi bi-info-circle"></i> Be honest and constructive
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 0.625rem 1.25rem; border-radius: 8px;">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.625rem 1.5rem; background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); border: none; border-radius: 8px; font-weight: 600;">
+                        <i class="bi bi-star-fill"></i> Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

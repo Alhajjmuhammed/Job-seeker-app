@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Send Message - Worker Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .message-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .message-card {
+        background: white;
+        border-radius: 14px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: #6b7280;
+        margin-bottom: 2rem;
+    }
+
+    .recipient-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .recipient-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .recipient-details {
+        flex: 1;
+    }
+
+    .recipient-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .recipient-role {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .form-control {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 0.875rem 1rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+        outline: none;
+    }
+
+    textarea.form-control {
+        min-height: 200px;
+        resize: vertical;
+    }
+
+    .char-count {
+        text-align: right;
+        font-size: 0.875rem;
+        color: #9ca3af;
+        margin-top: 0.5rem;
+    }
+
+    .btn-send {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
+    }
+
+    .btn-send:active {
+        transform: translateY(0);
+    }
+
+    .btn-cancel {
+        width: 100%;
+        padding: 0.875rem;
+        background: white;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .message-tips {
+        background: #f0fdfa;
+        border: 1px solid #ccfbf1;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .message-tips h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #0f766e;
+        margin-bottom: 0.75rem;
+    }
+
+    .message-tips ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #0f766e;
+        font-size: 0.875rem;
+    }
+
+    .message-tips li {
+        margin-bottom: 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="message-container">
+    <div class="message-card">
+        <h1 class="page-title">Send Message</h1>
+        <p class="page-subtitle">Communicate directly with your recipient</p>
+
+        <!-- Recipient Info -->
+        <div class="recipient-info">
+            <div class="recipient-avatar d-flex align-items-center justify-content-center bg-white bg-opacity-20">
+                <i class="bi bi-person-fill display-6"></i>
+            </div>
+            <div class="recipient-details">
+                <div class="recipient-name">{{ recipient.get_full_name }}</div>
+                <div class="recipient-role">
+                    <i class="bi bi-envelope me-1"></i>{{ recipient.email }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Form -->
+        <form method="post" id="messageForm">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="{{ form.subject.id_for_label }}" class="form-label">
+                    <i class="bi bi-tag me-2"></i>Subject
+                </label>
+                {% render_field form.subject class="form-control" placeholder="What is this message about?" %}
+                {% if form.subject.errors %}
+                    <div class="text-danger small mt-1">{{ form.subject.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.message.id_for_label }}" class="form-label">
+                    <i class="bi bi-chat-text me-2"></i>Message
+                </label>
+                {% render_field form.message class="form-control" placeholder="Type your message here..." id="messageText" %}
+                <div class="char-count">
+                    <span id="charCount">0</span> characters
+                </div>
+                {% if form.message.errors %}
+                    <div class="text-danger small mt-1">{{ form.message.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <a href="javascript:history.back()" class="btn-cancel">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn-send">
+                        <i class="bi bi-send me-2"></i>Send Message
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Message Tips -->
+        <div class="message-tips">
+            <h4><i class="bi bi-lightbulb me-2"></i>Messaging Tips</h4>
+            <ul>
+                <li>Be clear and professional in your communication</li>
+                <li>Include relevant details about your inquiry or job</li>
+                <li>Respond promptly to maintain good communication</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageText = document.getElementById('messageText');
+    const charCount = document.getElementById('charCount');
+
+    if (messageText) {
+        // Update character count
+        messageText.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+
+        // Set initial count
+        charCount.textContent = messageText.value.length;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,288 @@
+{% extends 'clients/base_client.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block page_title %}Rate {{ worker.user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rate-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .rate-card {
+        background: white;
+        border-radius: 14px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .worker-info {
+        text-align: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .worker-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        margin-bottom: 1rem;
+    }
+
+    .worker-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .worker-category {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .rating-stars-input {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 2rem 0;
+    }
+
+    .star-input {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .star-input:hover,
+    .star-input.active {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+
+    .star-input.active {
+        animation: starPop 0.3s ease;
+    }
+
+    @keyframes starPop {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-control {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
+    }
+
+    .btn-cancel {
+        width: 100%;
+        padding: 0.875rem;
+        background: white;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .alert-info {
+        background: #f0fdfa;
+        border: 1px solid #ccfbf1;
+        color: #0f766e;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .current-rating {
+        text-align: center;
+        padding: 1rem;
+        background: #f0fdfa;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+    }
+
+    .current-rating-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f766e;
+        margin-bottom: 0.5rem;
+    }
+
+    .current-rating-stars {
+        color: #fbbf24;
+        font-size: 1.25rem;
+    }
+
+    .rating-hint {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rate-container">
+    <div class="rate-card">
+        <!-- Worker Info -->
+        <div class="worker-info">
+            {% if worker.profile_image %}
+            <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar">
+            {% else %}
+            <div class="worker-avatar mx-auto bg-white bg-opacity-20 d-flex align-items-center justify-content-center">
+                <i class="bi bi-person-fill display-6"></i>
+            </div>
+            {% endif %}
+            <div class="worker-name">{{ worker.user.get_full_name }}</div>
+            <div class="worker-category">{{ worker.categories.first.name|default:"General Worker" }}</div>
+        </div>
+
+        {% if existing_rating %}
+        <div class="current-rating">
+            <div class="current-rating-value">Your Current Rating</div>
+            <div class="current-rating-stars">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= existing_rating.rating %}
+                    <i class="bi bi-star-fill"></i>
+                    {% else %}
+                    <i class="bi bi-star"></i>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <small class="text-muted">Click below to update your rating</small>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Share your experience working with {{ worker.user.get_full_name }}
+        </div>
+        {% endif %}
+
+        <!-- Rating Form -->
+        <form method="post" id="ratingForm">
+            {% csrf_token %}
+            
+            <!-- Star Rating -->
+            <div class="mb-4">
+                <label class="form-label text-center d-block">Your Rating</label>
+                <div class="rating-stars-input" id="starRating">
+                    {% for i in "12345" %}
+                    <i class="bi bi-star-fill star-input" data-rating="{{ forloop.counter }}"></i>
+                    {% endfor %}
+                </div>
+                <div class="rating-hint">Click on a star to rate</div>
+                <input type="hidden" name="rating" id="ratingValue" value="{{ existing_rating.rating|default:'5' }}">
+            </div>
+
+            <!-- Review Text -->
+            <div class="mb-4">
+                <label for="{{ form.review.id_for_label }}" class="form-label">Your Review (Optional)</label>
+                {% render_field form.review class="form-control" rows="4" placeholder="Share your experience with this worker..." %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="row g-3">
+                <div class="col-6">
+                    <a href="{% url 'clients:worker_detail' worker.pk %}" class="btn-cancel">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </a>
+                </div>
+                <div class="col-6">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-star me-2"></i>{% if existing_rating %}Update Rating{% else %}Submit Rating{% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star-input');
+    const ratingInput = document.getElementById('ratingValue');
+    const currentRating = parseInt(ratingInput.value) || 5;
+
+    // Set initial stars
+    updateStars(currentRating);
+
+    // Star click handler
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating);
+            ratingInput.value = rating;
+            updateStars(rating);
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            updateStars(rating);
+        });
+    });
+
+    // Reset stars on mouse leave
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        const currentValue = parseInt(ratingInput.value) || 5;
+        updateStars(currentValue);
+    });
+
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

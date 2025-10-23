@@ -1,0 +1,535 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}User Details - Admin Panel{% endblock %}
+{% block page_title %}User Details{% endblock %}
+
+{% block content %}
+<style>
+    .user-header {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.25rem;
+    }
+    
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .user-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 2rem;
+    }
+    
+    .user-profile-info h2 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .user-profile-info p {
+        margin: 0 0 0.5rem 0;
+        color: #6b7280;
+    }
+    
+    .user-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .badge-primary {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .badge-info {
+        background: #ccfbf1;
+        color: #115e59;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .btn-action {
+        padding: 0.625rem 1.25rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .btn-activate {
+        background: #059669;
+        color: white;
+    }
+    
+    .btn-activate:hover {
+        background: #047857;
+        color: white;
+    }
+    
+    .btn-deactivate {
+        background: #dc2626;
+        color: white;
+    }
+    
+    .btn-deactivate:hover {
+        background: #b91c1c;
+        color: white;
+    }
+    
+    .btn-back {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    
+    .btn-back:hover {
+        background: #e5e7eb;
+        color: #111827;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .stat-card h3 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .info-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1rem;
+    }
+    
+    .info-card h5 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-row {
+        display: flex;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        width: 180px;
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .info-value {
+        flex: 1;
+        color: #111827;
+        font-size: 0.9375rem;
+    }
+    
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        font-size: 1.125rem;
+    }
+    
+    .activity-content h6 {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.9375rem;
+        font-weight: 600;
+    }
+    
+    .activity-content p {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: #6b7280;
+    }
+    
+    .job-item, .application-item, .rating-item {
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .job-item h6, .application-item h6, .rating-item h6 {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9375rem;
+        font-weight: 600;
+    }
+    
+    .job-item p, .application-item p, .rating-item p {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: #6b7280;
+    }
+    
+    .rating-stars {
+        color: #f59e0b;
+        font-size: 0.875rem;
+    }
+</style>
+
+<!-- User Header -->
+<div class="user-header">
+    <div class="user-profile">
+        <div class="user-avatar-large">
+            {% if user.is_worker and worker_profile and worker_profile.profile_image %}
+                <img src="{{ worker_profile.profile_image.url }}" alt="{{ user.get_full_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;">
+            {% elif user.is_client and user.client_profile and user.client_profile.profile_image %}
+                <img src="{{ user.client_profile.profile_image.url }}" alt="{{ user.get_full_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;">
+            {% else %}
+                {{ user.get_full_name|slice:":1"|upper|default:"U" }}
+            {% endif %}
+        </div>
+        <div class="user-profile-info">
+            <h2>{{ user.get_full_name|default:user.username }}</h2>
+            <p>{{ user.email }}</p>
+            <div class="user-badges">
+                {% if user.is_staff %}
+                    <span class="badge badge-danger"><i class="bi bi-shield-check me-1"></i>Admin</span>
+                {% endif %}
+                {% if user.is_worker %}
+                    <span class="badge badge-primary"><i class="bi bi-person-workspace me-1"></i>Worker</span>
+                {% endif %}
+                {% if user.is_client %}
+                    <span class="badge badge-warning"><i class="bi bi-briefcase me-1"></i>Client</span>
+                {% endif %}
+                {% if user.is_active %}
+                    <span class="badge badge-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+                {% else %}
+                    <span class="badge badge-danger"><i class="bi bi-x-circle me-1"></i>Inactive</span>
+                {% endif %}
+                {% if avg_rating %}
+                    <span class="badge badge-info"><i class="bi bi-star-fill me-1"></i>{{ avg_rating }} Rating</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="ms-auto">
+            <div class="action-buttons">
+                {% if user != request.user %}
+                <form method="post" action="{% url 'admin_panel:toggle_user_status' user.id %}" class="d-inline">
+                    {% csrf_token %}
+                    {% if user.is_active %}
+                        <button type="submit" class="btn-action btn-deactivate" onclick="return confirm('Are you sure you want to deactivate this user?')">
+                            <i class="bi bi-x-circle"></i> Deactivate
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn-action btn-activate">
+                            <i class="bi bi-check-circle"></i> Activate
+                        </button>
+                    {% endif %}
+                </form>
+                {% endif %}
+                <a href="{% url 'admin_panel:manage_users' %}" class="btn-action btn-back">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Jobs Posted</h3>
+        <p class="stat-value">{{ jobs_posted|length|default:0 }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Applications</h3>
+        <p class="stat-value">{{ applications|length|default:0 }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Messages Sent</h3>
+        <p class="stat-value">{{ messages_sent|default:0 }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Messages Received</h3>
+        <p class="stat-value">{{ messages_received|default:0 }}</p>
+    </div>
+    {% if avg_rating %}
+    <div class="stat-card">
+        <h3>Average Rating</h3>
+        <p class="stat-value" style="color: #f59e0b;">{{ avg_rating }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <!-- Personal Information -->
+        <div class="info-card">
+            <h5><i class="bi bi-person-fill"></i>Personal Information</h5>
+            <div class="info-row">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">{{ user.get_full_name|default:"Not provided" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ user.email }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Phone</div>
+                <div class="info-value">{{ user.phone_number|default:"Not provided" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Username</div>
+                <div class="info-value">{{ user.username }}</div>
+            </div>
+            {% if user.is_worker and worker_profile %}
+            <div class="info-row">
+                <div class="info-label">Religion</div>
+                <div class="info-value">
+                    {% if worker_profile.religion %}
+                        {{ worker_profile.get_religion_display }}
+                    {% else %}
+                        <span class="text-muted">Not provided</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Work Flexibility</div>
+                <div class="info-value">
+                    {% if worker_profile.can_work_everywhere %}
+                        <span class="badge badge-success"><i class="bi bi-globe2 me-1"></i>Can work everywhere</span>
+                    {% else %}
+                        <span class="badge badge-info"><i class="bi bi-geo-alt me-1"></i>Location specific</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <div class="info-label">Date Joined</div>
+                <div class="info-value">{{ user.date_joined|date:"F d, Y" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Last Login</div>
+                <div class="info-value">{{ user.last_login|date:"F d, Y, g:i A"|default:"Never" }}</div>
+            </div>
+        </div>
+        
+        {% if user.is_worker and worker_profile %}
+        <!-- Worker Information -->
+        <div class="info-card">
+            <h5><i class="bi bi-person-workspace"></i>Worker Information</h5>
+            <div class="info-row">
+                <div class="info-label">Bio</div>
+                <div class="info-value">{{ worker_profile.bio|default:"Not provided" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Hourly Rate</div>
+                <div class="info-value">${{ worker_profile.hourly_rate|default:0 }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Experience</div>
+                <div class="info-value">{{ worker_profile.experience_years|default:0 }} years</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Verification</div>
+                <div class="info-value">
+                    {% if worker_profile.is_verified %}
+                        <span class="badge badge-success">Verified</span>
+                    {% else %}
+                        <span class="badge badge-danger">Not Verified</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Availability</div>
+                <div class="info-value">
+                    {% if worker_profile.is_available %}
+                        <span class="badge badge-success">Available</span>
+                    {% else %}
+                        <span class="badge badge-danger">Not Available</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if skills %}
+            <div class="info-row">
+                <div class="info-label">Skills</div>
+                <div class="info-value">
+                    {% for skill in skills %}
+                        <span class="badge badge-info me-1">{{ skill.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6">
+        <!-- Recent Activity -->
+        <div class="info-card">
+            <h5><i class="bi bi-activity"></i>Recent Activity</h5>
+            {% if activities %}
+                {% for activity in activities %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="bi bi-{{ activity.icon }}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>{{ activity.description }}</h6>
+                        <p>{{ activity.date|date:"F d, Y, g:i A" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center py-3">No recent activity</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Jobs Posted (for clients) -->
+{% if jobs_posted %}
+<div class="info-card">
+    <h5><i class="bi bi-briefcase-fill"></i>Jobs Posted</h5>
+    {% for job in jobs_posted|slice:":5" %}
+    <div class="job-item">
+        <h6>{{ job.title }}</h6>
+        <p>
+            <span class="badge badge-{{ job.status }}">{{ job.status|title }}</span>
+            <span class="text-muted ms-2">Budget: ${{ job.budget }}</span>
+            <span class="text-muted ms-2">{{ job.created_at|date:"M d, Y" }}</span>
+        </p>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Applications (for workers) -->
+{% if applications %}
+<div class="info-card">
+    <h5><i class="bi bi-file-earmark-text-fill"></i>Job Applications</h5>
+    {% for app in applications|slice:":5" %}
+    <div class="application-item">
+        <h6>{{ app.job.title }}</h6>
+        <p>
+            <span class="badge badge-{{ app.status }}">{{ app.status|title }}</span>
+            <span class="text-muted ms-2">Proposal: ${{ app.proposed_rate }}</span>
+            <span class="text-muted ms-2">{{ app.created_at|date:"M d, Y" }}</span>
+        </p>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Ratings -->
+{% if ratings_received %}
+<div class="info-card">
+    <h5><i class="bi bi-star-fill"></i>Ratings Received</h5>
+    {% for rating in ratings_received|slice:":5" %}
+    <div class="rating-item">
+        <h6>From: {{ rating.client.get_full_name }}</h6>
+        <p>
+            <span class="rating-stars">
+                {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= rating.rating %}
+                        <i class="bi bi-star-fill"></i>
+                    {% else %}
+                        <i class="bi bi-star"></i>
+                    {% endif %}
+                {% endfor %}
+            </span>
+            <span class="text-muted ms-2">{{ rating.created_at|date:"M d, Y" }}</span>
+        </p>
+        {% if rating.review %}
+        <p class="mt-2">{{ rating.review }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

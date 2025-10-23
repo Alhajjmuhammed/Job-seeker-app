@@ -1,0 +1,1200 @@
+{% extends base_template %}
+{% load static %}
+
+{% block page_title %}{{ job.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: #0f766e;
+    }
+
+    .job-detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .job-main {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .job-header {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .job-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+    }
+
+    .job-meta-row {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .job-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .job-meta-item i {
+        color: #0f766e;
+    }
+
+    .job-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 1rem;
+    }
+
+    .status-open {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-in-progress {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-completed {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .job-section {
+        margin-bottom: 1.25rem;
+    }
+
+    .job-section h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .job-section h2 i {
+        color: #0f766e;
+    }
+
+    .job-description {
+        color: #4b5563;
+        line-height: 1.8;
+        white-space: pre-line;
+    }
+
+    .job-requirements {
+        list-style: none;
+        padding: 0;
+    }
+
+    .job-requirements li {
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+    }
+
+    .job-requirements li i {
+        color: #0f766e;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .job-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sidebar-card {
+        background: white;
+        border-radius: 14px;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-card h3 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .budget-display {
+        text-align: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #0f766e15 0%, #14b8a615 100%);
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .budget-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0f766e;
+        display: block;
+    }
+
+    .budget-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.5rem;
+    }
+
+    .info-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-value {
+        color: #111827;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .client-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .client-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .client-details h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+
+    .client-details p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .client-stats {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .client-stat {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .client-stat strong {
+        color: #0f766e;
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn-primary {
+        padding: 0.875rem;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-secondary {
+        padding: 0.875rem;
+        background: #f8fafc;
+        color: #1e293b;
+        border: 2px solid #0f766e;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1rem;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 4px rgba(15, 118, 110, 0.1);
+    }
+
+    .btn-secondary:hover {
+        background: #0f766e;
+        color: white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+    }
+
+    .btn-secondary:active {
+        transform: translateY(0);
+    }
+
+    .btn-danger {
+        padding: 0.875rem;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+
+    .alert-info {
+        padding: 1rem;
+        background: #dbeafe;
+        color: #1e40af;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .applications-section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .application-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s;
+    }
+
+    .application-card:hover {
+        border-color: #14b8a6;
+        box-shadow: 0 2px 8px rgba(20, 184, 166, 0.1);
+    }
+
+    .applicant-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .applicant-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .applicant-info h4 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.125rem;
+    }
+
+    .applicant-info p {
+        font-size: 0.8125rem;
+        color: #9ca3af;
+        margin: 0;
+    }
+
+    .application-status {
+        margin-left: auto;
+        padding: 0.375rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-accepted {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .application-content {
+        margin: 0 0 0.75rem 0;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-left: 2px solid #14b8a6;
+        border-radius: 4px;
+    }
+
+    .application-item {
+        padding: 0.5rem 0;
+    }
+
+    .application-item:not(:last-child) {
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .application-item-header {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 0.375rem;
+        font-size: 0.8125rem;
+        color: #374151;
+        font-weight: 600;
+    }
+
+    .application-item-text {
+        color: #6b7280;
+        line-height: 1.5;
+        font-size: 0.8125rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        padding-left: 1.25rem;
+        max-height: 3.6em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .btn-view-file {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        background: #14b8a6;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 1.25rem;
+        transition: all 0.2s;
+    }
+
+    .btn-view-file:hover {
+        background: #0f766e;
+        color: white;
+    }
+
+    .application-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .btn-accept {
+        padding: 0.5rem 1rem;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-accept:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-reject {
+        padding: 0.5rem 1rem;
+        background: white;
+        color: #ef4444;
+        border: 1.5px solid #ef4444;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-reject:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 968px) {
+        .job-detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .job-sidebar {
+            order: -1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .job-detail-container {
+            padding: 1rem;
+        }
+
+        .job-main {
+            padding: 1.5rem;
+        }
+
+        .job-title {
+            font-size: 1.5rem;
+        }
+
+        .job-meta-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    /* Delete Modal Styles */
+    .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        padding: 1.5rem 1.5rem 0.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .modal-body {
+        padding: 1rem 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 0.5rem 1.5rem 1.5rem;
+    }
+
+    .modal-footer .btn {
+        padding: 0.625rem 1.25rem;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
+
+    /* Enhanced Assigned Worker Card Styles */
+    .assigned-worker-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .assigned-worker-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #14b8a6 0%, #0f766e 100%);
+    }
+
+    .assigned-worker-card:hover {
+        border-color: #14b8a6;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(20, 184, 166, 0.15);
+    }
+
+    .worker-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .worker-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        border: 3px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .assigned-worker-card:hover .worker-avatar {
+        border-color: #14b8a6;
+        transform: scale(1.05);
+    }
+
+    .worker-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .worker-avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    .worker-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .worker-name {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        line-height: 1.3;
+    }
+
+    .worker-link {
+        color: #111827;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .worker-link:hover {
+        color: #0f766e;
+    }
+
+    .worker-status {
+        color: #059669;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin: 0 0 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .worker-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .rating-stars {
+        display: flex;
+        gap: 0.125rem;
+    }
+
+    .rating-stars i {
+        font-size: 1rem;
+    }
+
+    .rating-text {
+        font-weight: 700;
+        color: #111827;
+        font-size: 0.875rem;
+    }
+
+    .rating-count {
+        color: #6b7280;
+        font-size: 0.8125rem;
+    }
+
+    .no-rating {
+        color: #9ca3af;
+        font-size: 0.875rem;
+        font-style: italic;
+    }
+
+    .active-badge {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #86efac;
+        padding: 0.5rem 0.875rem;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        white-space: nowrap;
+    }
+
+    .worker-details {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+        border-left: 3px solid #14b8a6;
+    }
+
+    .worker-bio {
+        color: #4b5563;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    .worker-categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .category-badge {
+        background: #f0fdfa;
+        color: #0f766e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid #a7f3d0;
+    }
+
+    .more-count {
+        color: #6b7280;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .worker-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-profile,
+    .btn-message {
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        flex: 1;
+        justify-content: center;
+        min-width: 120px;
+    }
+
+    .btn-profile {
+        background: #14b8a6;
+        color: white;
+        border: 2px solid #14b8a6;
+    }
+
+    .btn-profile:hover {
+        background: #0f766e;
+        border-color: #0f766e;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+
+    .btn-message {
+        background: white;
+        color: #3b82f6;
+        border: 2px solid #3b82f6;
+    }
+
+    .btn-message:hover {
+        background: #3b82f6;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .worker-card-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .worker-info {
+            width: 100%;
+        }
+
+        .active-badge {
+            align-self: center;
+        }
+
+        .worker-actions {
+            flex-direction: column;
+        }
+
+        .btn-profile,
+        .btn-message {
+            flex: none;
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="job-detail-container">
+    <a href="{% url 'jobs:job_list' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Jobs
+    </a>
+
+    <div class="job-detail-grid">
+        <!-- Main Content -->
+        <div class="job-main">
+            <div class="job-header">
+                <h1 class="job-title">{{ job.title }}</h1>
+                <div class="job-meta-row">
+                    <div class="job-meta-item">
+                        <i class="bi bi-calendar"></i>
+                        <span>Posted {{ job.created_at|timesince }} ago</span>
+                    </div>
+                    <div class="job-meta-item">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>{{ job.location|default:"Remote" }}</span>
+                    </div>
+                    <div class="job-meta-item">
+                        <i class="bi bi-tag"></i>
+                        <span>{{ job.category.name }}</span>
+                    </div>
+                    {% if job.urgency == 'urgent' %}
+                    <div class="job-meta-item" style="color: #dc2626;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span><strong>Urgent</strong></span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="job-status-badge status-{{ job.status }}">
+                    {{ job.get_status_display }}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="job-section">
+                <h2><i class="bi bi-file-text"></i> Description</h2>
+                <p class="job-description">{{ job.description }}</p>
+            </div>
+
+            <!-- Requirements -->
+            {% if job.requirements %}
+            <div class="job-section">
+                <h2><i class="bi bi-list-check"></i> Requirements</h2>
+                <ul class="job-requirements">
+                    {% for req in job.requirements.splitlines %}
+                        {% if req.strip %}
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>{{ req }}</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Assigned Workers (Client View) -->
+            <div class="applications-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2><i class="bi bi-people-fill"></i> Assigned Workers ({{ job.assigned_workers.count }}/{{ job.workers_needed }})</h2>
+                    {% if job.assigned_workers.count < job.workers_needed %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 0.375rem 0.75rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600;">
+                        <i class="bi bi-exclamation-triangle"></i> {{ job.workers_needed|add:"-"|add:job.assigned_workers.count }} more needed
+                    </span>
+                    {% else %}
+                    <span style="background: #d1fae5; color: #065f46; padding: 0.375rem 0.75rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600;">
+                        <i class="bi bi-check-circle"></i> Fully Staffed
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if job.assigned_workers.exists %}
+                    {% for worker in job.assigned_workers.all %}
+                    <div class="assigned-worker-card">
+                        <div class="worker-card-header">
+                            <div class="worker-avatar">
+                                {% if worker.profile_image %}
+                                    <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar-img">
+                                {% else %}
+                                    <div class="worker-avatar-placeholder">
+                                        {{ worker.user.get_full_name|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="worker-info">
+                                <h4 class="worker-name">
+                                    <a href="{% url 'clients:worker_detail' worker.id %}" class="worker-link">
+                                        {{ worker.user.get_full_name }}
+                                    </a>
+                                </h4>
+                                <p class="worker-status">
+                                    <i class="bi bi-check-circle-fill"></i> Assigned Worker
+                                </p>
+                                <div class="worker-rating">
+                                    {% if worker.average_rating %}
+                                        <div class="rating-stars">
+                                            {% for i in "12345" %}
+                                                <i class="bi bi-star{% if forloop.counter <= worker.average_rating %}-fill{% endif %}" style="color: #fbbf24;"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="rating-text">{{ worker.average_rating|floatformat:1 }}/5.0</span>
+                                        <span class="rating-count">({{ worker.total_ratings }} review{{ worker.total_ratings|pluralize }})</span>
+                                    {% else %}
+                                        <span class="no-rating">No ratings yet</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="active-badge">
+                                <i class="bi bi-person-check"></i> Active
+                            </span>
+                        </div>
+
+
+
+                        <div class="worker-actions">
+                            <a href="{% url 'clients:worker_detail' worker.id %}" class="btn-profile">
+                                <i class="bi bi-eye"></i> View Profile
+                            </a>
+                            <a href="{% url 'jobs:conversation' job.id %}" class="btn-message">
+                                <i class="bi bi-chat-dots"></i> Message
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 3rem 1rem; background: #f9fafb; border-radius: 12px; border: 2px dashed #d1d5db;">
+                        <i class="bi bi-people" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #374151; margin-bottom: 0.5rem;">No Workers Assigned Yet</h3>
+                        <p style="color: #6b7280; margin: 0;">
+                            This job needs {{ job.workers_needed }} worker{{ job.workers_needed|pluralize }}. 
+                            Admin will assign suitable workers soon.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="job-sidebar">
+            <!-- Budget Card -->
+            <div class="sidebar-card">
+                <div class="budget-display">
+                    <span class="budget-amount">${{ job.budget }}</span>
+                    <p class="budget-label">Project Budget</p>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="bi bi-clock"></i> Duration
+                        </span>
+                        <span class="info-value">{{ job.duration_days }} day{{ job.duration_days|pluralize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="bi bi-flag"></i> Urgency
+                        </span>
+                        <span class="info-value">{{ job.get_urgency_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="bi bi-calendar-check"></i> Posted
+                        </span>
+                        <span class="info-value">{{ job.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Info (Worker View) -->
+            {% if user.is_worker %}
+            <div class="sidebar-card">
+                <h3><i class="bi bi-person-circle"></i> Client Info</h3>
+                <div class="client-info">
+                    <div class="client-avatar">
+                        {{ job.client.get_full_name|first|upper }}
+                    </div>
+                    <div class="client-details">
+                        <h4>{{ job.client.get_full_name }}</h4>
+                        <p>{{ job.client.email }}</p>
+                        <div class="client-stats">
+                            <span class="client-stat">
+                                <strong>{{ job.client.client_profile.total_jobs_posted }}</strong> jobs posted
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons (Worker) -->
+            <div class="sidebar-card">
+                <h3><i class="bi bi-lightning"></i> Actions</h3>
+                <div class="action-buttons">
+                    {% if request.user.worker_profile.verification_status == 'rejected' %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-x-circle-fill"></i>
+                            <span><strong>Profile Rejected</strong><br>Please contact admin for support.</span>
+                        </div>
+                    {% elif request.user.worker_profile.verification_status == 'pending' %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-clock-fill"></i>
+                            <span><strong>Verification Pending</strong><br>Complete your profile to be considered for jobs.</span>
+                        </div>
+                        <a href="{% url 'workers:profile_edit' %}" class="btn-secondary">
+                            <i class="bi bi-person-check"></i> Complete Profile
+                        </a>
+                    {% endif %}
+                    
+                    {% if job.status == 'open' %}
+                        <div class="alert-info">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span>Interested in this job? Contact admin to be assigned.</span>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-lock"></i>
+                            <span>This job is no longer available.</span>
+                        </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'jobs:inbox' %}" class="btn-primary">
+                        <i class="bi bi-chat-dots"></i> Message Admin
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons (Client) -->
+            {% if user.is_client and user == job.client %}
+            <div class="sidebar-card">
+                <h3><i class="bi bi-lightning"></i> Manage Job</h3>
+                <div class="action-buttons">
+                    {% if job.status != 'completed' %}
+                    <a href="{% url 'jobs:job_edit' job.pk %}" class="btn-primary">
+                        <i class="bi bi-pencil"></i> Edit Job
+                    </a>
+                    {% endif %}
+                    
+                    {% if job.status == 'open' %}
+                    <form method="post" action="{% url 'jobs:job_close' job.pk %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger" style="width: 100%;">
+                            <i class="bi bi-x-circle"></i> Close Job
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if job.status == 'completed' %}
+                    <button type="button" class="btn-danger" style="width: 100%;" data-bs-toggle="modal" data-bs-target="#deleteJobModal">
+                        <i class="bi bi-trash"></i> Delete Job
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Job Modal -->
+{% if user.is_client and user == job.client and job.status == 'completed' %}
+<div class="modal fade" id="deleteJobModal" tabindex="-1" aria-labelledby="deleteJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deleteJobModalLabel">
+                    <i class="bi bi-exclamation-triangle text-danger"></i> Delete Job
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3">
+                    <i class="bi bi-info-circle"></i> This action cannot be undone.
+                </div>
+                <p class="mb-2">Are you sure you want to delete this job?</p>
+                <div class="bg-light p-3 rounded">
+                    <strong>{{ job.title }}</strong>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-calendar"></i> Posted {{ job.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    All job details, applications, and related data will be permanently deleted.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cancel
+                </button>
+                <form method="post" action="{% url 'jobs:job_delete' job.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete Job
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
