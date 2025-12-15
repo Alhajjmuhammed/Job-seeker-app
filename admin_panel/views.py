@@ -78,20 +78,26 @@ def worker_verification_list(request):
 
 @staff_member_required
 def verify_worker(request, worker_id):
-    """Verify a worker"""
+    """Verify a worker - Only ID document required for basic verification"""
     worker = get_object_or_404(WorkerProfile, pk=worker_id)
+    
+    # Check if worker has ID document
+    has_id = worker.has_id_document
+    id_approved = worker.documents.filter(document_type='id', verification_status='approved').exists()
     
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        if action == 'verify':
-            worker.verification_status = 'verified'
-            worker.save()
-            messages.success(request, f'Worker {worker.user.get_full_name()} has been verified.')
-        elif action == 'approve':
-            worker.verification_status = 'verified'
-            worker.save()
-            messages.success(request, f'Worker {worker.user.get_full_name()} has been verified.')
+        if action in ['verify', 'approve']:
+            # Check if ID is uploaded and approved
+            if not has_id:
+                messages.error(request, f'Cannot verify {worker.user.get_full_name()} - ID document not uploaded.')
+            elif not id_approved:
+                messages.warning(request, f'Cannot verify {worker.user.get_full_name()} - ID document needs to be approved first.')
+            else:
+                worker.verification_status = 'verified'
+                worker.save()
+                messages.success(request, f'Worker {worker.user.get_full_name()} has been verified! (ID document approved - other documents are optional)')
         elif action == 'reject':
             worker.verification_status = 'rejected'
             reason = request.POST.get('reason', '')
@@ -105,7 +111,12 @@ def verify_worker(request, worker_id):
         else:
             return redirect('admin_panel:worker_verification_list')
     
-    return render(request, 'admin_panel/verify_worker.html', {'worker': worker})
+    context = {
+        'worker': worker,
+        'has_id': has_id,
+        'id_approved': id_approved,
+    }
+    return render(request, 'admin_panel/verify_worker.html', context)
 
 
 @staff_member_required
@@ -186,11 +197,77 @@ def verify_document(request, doc_id):
 
 @staff_member_required
 def category_list(request):
-    """Manage categories"""
+    """Manage categories - View, Add, Edit, Delete"""
+    
+    # Handle POST requests (Add new category)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            name = request.POST.get('name', '').strip()
+            description = request.POST.get('description', '').strip()
+            icon = request.POST.get('icon', '').strip()
+            
+            if name:
+                category, created = Category.objects.get_or_create(
+                    name=name,
+                    defaults={
+                        'description': description,
+                        'icon': icon,
+                        'is_active': True
+                    }
+                )
+                if created:
+                    messages.success(request, f'Category "{name}" created successfully!')
+                else:
+                    messages.warning(request, f'Category "{name}" already exists.')
+            else:
+                messages.error(request, 'Category name is required.')
+        
+        elif action == 'edit':
+            category_id = request.POST.get('category_id')
+            if category_id:
+                try:
+                    category = Category.objects.get(pk=category_id)
+                    category.name = request.POST.get('name', category.name)
+                    category.description = request.POST.get('description', '')
+                    category.icon = request.POST.get('icon', '')
+                    category.save()
+                    messages.success(request, f'Category "{category.name}" updated successfully!')
+                except Category.DoesNotExist:
+                    messages.error(request, 'Category not found.')
+        
+        elif action == 'delete':
+            category_id = request.POST.get('category_id')
+            if category_id:
+                try:
+                    category = Category.objects.get(pk=category_id)
+                    category_name = category.name
+                    category.delete()
+                    messages.success(request, f'Category "{category_name}" deleted successfully!')
+                except Category.DoesNotExist:
+                    messages.error(request, 'Category not found.')
+        
+        elif action == 'toggle_status':
+            category_id = request.POST.get('category_id')
+            if category_id:
+                try:
+                    category = Category.objects.get(pk=category_id)
+                    category.is_active = not category.is_active
+                    category.save()
+                    status = 'activated' if category.is_active else 'deactivated'
+                    messages.success(request, f'Category "{category.name}" {status}!')
+                except Category.DoesNotExist:
+                    messages.error(request, 'Category not found.')
+        
+        return redirect('admin_panel:category_list')
+    
+    # GET request - display categories
     categories = Category.objects.annotate(
         worker_count=Count('workers'),
         job_count=Count('jobs')
-    )
+    ).order_by('name')
+    
     return render(request, 'admin_panel/category_list.html', {'categories': categories})
 
 

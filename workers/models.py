@@ -99,6 +99,16 @@ class WorkerProfile(models.Model):
         return f"{self.user.get_full_name()} - Worker Profile"
     
     @property
+    def has_id_document(self):
+        """Check if worker has uploaded ID document (required for verification)"""
+        return self.documents.filter(document_type='id').exists()
+    
+    @property
+    def can_accept_direct_hires(self):
+        """Worker can accept direct hire requests if they have ID and are verified"""
+        return self.has_id_document and self.verification_status == 'verified'
+    
+    @property
     def completion_rate(self):
         if self.total_jobs > 0:
             return round((self.completed_jobs / self.total_jobs) * 100, 2)
@@ -167,14 +177,14 @@ class WorkerProfile(models.Model):
 
 
 class WorkerDocument(models.Model):
-    """Documents uploaded by workers"""
+    """Documents uploaded by workers - Only ID required for basic verification"""
     
     DOCUMENT_TYPES = (
-        ('id', 'ID Card'),
-        ('cv', 'CV/Resume'),
-        ('certificate', 'Certificate'),
-        ('license', 'License'),
-        ('other', 'Other'),
+        ('id', 'ID Card (Required)'),  # Only this is mandatory
+        ('cv', 'CV/Resume (Optional)'),
+        ('certificate', 'Certificate (Optional)'),
+        ('license', 'License (Optional)'),
+        ('other', 'Other (Optional)'),
     )
     
     VERIFICATION_STATUS = (
@@ -191,12 +201,24 @@ class WorkerDocument(models.Model):
     rejection_reason = models.TextField(blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    is_required = models.BooleanField(default=False, help_text="Is this document required for verification?")
     
     class Meta:
         ordering = ['-uploaded_at']
     
     def __str__(self):
         return f"{self.worker.user.username} - {self.get_document_type_display()}"
+    
+    def save(self, *args, **kwargs):
+        # Mark ID as required
+        if self.document_type == 'id':
+            self.is_required = True
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_id_document(self):
+        """Check if this is an ID document"""
+        return self.document_type == 'id'
 
 
 class WorkExperience(models.Model):

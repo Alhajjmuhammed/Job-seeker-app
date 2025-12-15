@@ -820,7 +820,19 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <div class="profile-actions">
-        <form action="{% url 'clients:toggle_favorite' worker.pk %}" method="post">
+        <!-- Direct Hire Button -->
+        {% if worker.can_accept_direct_hires %}
+        <a href="{% url 'jobs:request_worker_directly' worker.pk %}" class="btn btn-primary btn-lg me-2">
+            <i class="bi bi-lightning-charge-fill"></i> Request Worker Now
+        </a>
+        {% else %}
+        <button class="btn btn-secondary btn-lg me-2" disabled title="Worker needs to upload ID and be verified">
+            <i class="bi bi-lock"></i> Not Available for Quick Hire
+        </button>
+        {% endif %}
+        
+        <!-- Favorite Button -->
+        <form action="{% url 'clients:toggle_favorite' worker.pk %}" method="post" style="display: inline;">
             {% csrf_token %}
             <button type="submit" class="btn-favorite {% if is_favorite %}active{% endif %}">
                 <i class="bi bi-heart{% if is_favorite %}-fill{% endif %}"></i>

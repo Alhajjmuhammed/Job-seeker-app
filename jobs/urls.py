@@ -24,4 +24,12 @@ urlpatterns = [
     path('message/send/<int:recipient_id>/', views.send_message, name='send_message'),
     path('conversation/<int:user_id>/', views.conversation, name='conversation'),
     path('message/<int:pk>/', views.message_detail, name='message_detail'),
+    
+    # Direct Hire / On-Demand Booking
+    path('direct-hire/request/<int:worker_id>/', views.request_worker_directly, name='request_worker_directly'),
+    path('direct-hire/<int:pk>/', views.direct_hire_detail, name='direct_hire_detail'),
+    path('direct-hire/<int:pk>/accept/', views.worker_accept_direct_hire, name='worker_accept_direct_hire'),
+    path('direct-hire/<int:pk>/reject/', views.worker_reject_direct_hire, name='worker_reject_direct_hire'),
+    path('direct-hire/<int:pk>/complete/', views.complete_direct_hire, name='complete_direct_hire'),
+    path('direct-hires/', views.my_direct_hire_requests, name='my_direct_hire_requests'),
 ]

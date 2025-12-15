@@ -3,9 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.utils import timezone
-from .models import JobRequest, JobApplication, Message
-from .forms import JobRequestForm, JobApplicationForm, MessageForm
-from workers.models import Category
+from .models import JobRequest, JobApplication, Message, DirectHireRequest
+from .forms import JobRequestForm, JobApplicationForm, MessageForm, DirectHireRequestForm
+from workers.models import Category, WorkerProfile
 from accounts.models import User
 
 
@@ -513,3 +513,207 @@ def message_detail(request, pk):
         message.save()
     
     return render(request, 'jobs/message_detail.html', {'message': message})
+
+
+# ===============================================
+# DIRECT HIRE / ON-DEMAND BOOKING VIEWS
+# ===============================================
+
+@login_required
+def request_worker_directly(request, worker_id):
+    """Client requests/books a worker directly for quick work"""
+    if not request.user.is_client:
+        messages.error(request, 'Only clients can request workers.')
+        return redirect('home')
+    
+    worker = get_object_or_404(WorkerProfile, pk=worker_id)
+    
+    # Check if worker can accept direct hires
+    if not worker.can_accept_direct_hires:
+        messages.error(request, 'This worker is not available for direct hire requests. They need to upload ID and be verified.')
+        return redirect('clients:worker_detail', pk=worker_id)
+    
+    if request.method == 'POST':
+        form = DirectHireRequestForm(request.POST, worker_hourly_rate=worker.hourly_rate)
+        if form.is_valid():
+            direct_hire = form.save(commit=False)
+            direct_hire.client = request.user
+            direct_hire.worker = worker
+            direct_hire.save()
+            
+            messages.success(request, f'Request sent to {worker.user.get_full_name()}! They will be notified.')
+            return redirect('jobs:direct_hire_detail', pk=direct_hire.pk)
+    else:
+        form = DirectHireRequestForm(worker_hourly_rate=worker.hourly_rate)
+    
+    context = {
+        'form': form,
+        'worker': worker,
+    }
+    return render(request, 'jobs/direct_hire_request_form.html', context)
+
+
+@login_required
+def direct_hire_detail(request, pk):
+    """View details of a direct hire request"""
+    hire_request = get_object_or_404(DirectHireRequest, pk=pk)
+    
+    # Check access
+    if request.user not in [hire_request.client, hire_request.worker.user]:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    
+    context = {
+        'hire_request': hire_request,
+        'is_worker': request.user == hire_request.worker.user,
+        'is_client': request.user == hire_request.client,
+    }
+    return render(request, 'jobs/direct_hire_detail.html', context)
+
+
+@login_required
+def worker_accept_direct_hire(request, pk):
+    """Worker accepts a direct hire request"""
+    hire_request = get_object_or_404(DirectHireRequest, pk=pk)
+    
+    # Check if user is the worker
+    if not hasattr(request.user, 'worker_profile') or request.user.worker_profile != hire_request.worker:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    
+    # Check if already responded
+    if hire_request.status != 'pending':
+        messages.warning(request, 'This request has already been responded to.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+    
+    if request.method == 'POST':
+        response_message = request.POST.get('response_message', '')
+        
+        hire_request.status = 'accepted'
+        hire_request.worker_response_message = response_message
+        hire_request.responded_at = timezone.now()
+        hire_request.save()
+        
+        # Update worker availability
+        hire_request.worker.availability = 'busy'
+        hire_request.worker.save()
+        
+        messages.success(request, 'Request accepted! The client will be notified.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+    
+    return render(request, 'jobs/direct_hire_accept.html', {'hire_request': hire_request})
+
+
+@login_required
+def worker_reject_direct_hire(request, pk):
+    """Worker rejects a direct hire request"""
+    hire_request = get_object_or_404(DirectHireRequest, pk=pk)
+    
+    # Check if user is the worker
+    if not hasattr(request.user, 'worker_profile') or request.user.worker_profile != hire_request.worker:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    
+    # Check if already responded
+    if hire_request.status != 'pending':
+        messages.warning(request, 'This request has already been responded to.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        
+        hire_request.status = 'rejected'
+        hire_request.worker_response_message = reason
+        hire_request.responded_at = timezone.now()
+        hire_request.save()
+        
+        messages.info(request, 'Request declined.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+    
+    return render(request, 'jobs/direct_hire_reject.html', {'hire_request': hire_request})
+
+
+@login_required
+def my_direct_hire_requests(request):
+    """List direct hire requests (different view for client and worker)"""
+    
+    if request.user.is_client:
+        # Client sees requests they've sent
+        hire_requests = DirectHireRequest.objects.filter(client=request.user).select_related('worker__user')
+        template = 'jobs/client_direct_hires.html'
+    elif hasattr(request.user, 'worker_profile'):
+        # Worker sees requests they've received
+        hire_requests = DirectHireRequest.objects.filter(worker=request.user.worker_profile).select_related('client')
+        template = 'jobs/worker_direct_requests.html'
+    else:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    
+    # Filter by status
+    status_filter = request.GET.get('status', 'all')
+    if status_filter != 'all':
+        hire_requests = hire_requests.filter(status=status_filter)
+    
+    hire_requests = hire_requests.order_by('-created_at')
+    
+    # Count by status
+    status_counts = {
+        'pending': hire_requests.filter(status='pending').count(),
+        'accepted': hire_requests.filter(status='accepted').count(),
+        'rejected': hire_requests.filter(status='rejected').count(),
+        'completed': hire_requests.filter(status='completed').count(),
+    }
+    
+    context = {
+        'hire_requests': hire_requests,
+        'status_filter': status_filter,
+        'status_counts': status_counts,
+    }
+    return render(request, template, context)
+
+
+@login_required
+def complete_direct_hire(request, pk):
+    """Client marks direct hire as completed and can rate worker"""
+    hire_request = get_object_or_404(DirectHireRequest, pk=pk)
+    
+    # Only client can complete
+    if request.user != hire_request.client:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    
+    if hire_request.status != 'accepted':
+        messages.error(request, 'Can only complete accepted requests.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        feedback = request.POST.get('feedback', '')
+        
+        hire_request.status = 'completed'
+        hire_request.completed_at = timezone.now()
+        hire_request.client_rating = rating
+        hire_request.client_feedback = feedback
+        hire_request.save()
+        
+        # Update worker stats
+        worker = hire_request.worker
+        worker.completed_jobs += 1
+        worker.total_jobs += 1
+        worker.total_earnings += hire_request.total_amount
+        worker.availability = 'available'  # Make worker available again
+        
+        # Update average rating
+        from clients.models import Rating
+        ratings = Rating.objects.filter(worker=worker)
+        if ratings.exists():
+            from django.db.models import Avg
+            avg = ratings.aggregate(Avg('rating'))['rating__avg']
+            worker.average_rating = round(avg, 2)
+        
+        worker.save()
+        
+        messages.success(request, 'Work completed! Thank you for your feedback.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+    
+    return render(request, 'jobs/direct_hire_complete.html', {'hire_request': hire_request})

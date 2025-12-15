@@ -1,5 +1,5 @@
 from django import forms
-from .models import JobRequest, JobApplication, Message
+from .models import JobRequest, JobApplication, Message, DirectHireRequest
 
 
 class JobRequestForm(forms.ModelForm):
@@ -55,6 +55,68 @@ class JobApplicationForm(forms.ModelForm):
             'cover_letter': 'Additional Notes (Optional)',
             'proposed_rate': 'Proposed Hourly Rate'
         }
+
+
+class DirectHireRequestForm(forms.ModelForm):
+    """Form for clients to request/book a worker directly"""
+    
+    class Meta:
+        model = DirectHireRequest
+        fields = [
+            'title', 'description', 'location', 
+            'duration_type', 'duration_value', 'start_datetime', 
+            'offered_rate'
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Fix kitchen plumbing, Paint bedroom wall'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Describe the work in detail...'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Work location address'
+            }),
+            'duration_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'duration_value': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'placeholder': 'How many hours/days?'
+            }),
+            'start_datetime': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            }),
+            'offered_rate': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'placeholder': 'Rate per hour/day'
+            }),
+        }
+        labels = {
+            'title': 'What work do you need?',
+            'description': 'Work Details',
+            'location': 'Where is the work?',
+            'duration_type': 'Duration Type',
+            'duration_value': 'How long?',
+            'start_datetime': 'When to start?',
+            'offered_rate': 'Your offered rate (SDG)',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        worker_hourly_rate = kwargs.pop('worker_hourly_rate', None)
+        super().__init__(*args, **kwargs)
+        
+        # Pre-fill rate with worker's hourly rate if available
+        if worker_hourly_rate and not self.instance.pk:
+            self.fields['offered_rate'].initial = worker_hourly_rate
+            self.fields['offered_rate'].help_text = f"Worker's rate: {worker_hourly_rate} SDG/hour"
 
 
 class MessageForm(forms.ModelForm):
