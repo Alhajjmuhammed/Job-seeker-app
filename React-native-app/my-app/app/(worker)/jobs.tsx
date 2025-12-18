@@ -1,81 +1,189 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import apiService from '../../services/api';
 
-interface Job {
+interface DirectHireRequest {
   id: number;
-  title: string;
-  category: string;
-  client: string;
-  rate: number;
-  location: string;
-  postedDate: string;
-  applicants: number;
+  clientName: string;
+  durationType: string;
+  offeredRate: number;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  message?: string;
 }
 
 export default function WorkerJobsScreen() {
-  const [activeTab, setActiveTab] = useState<'browse' | 'applications'>('browse');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [directRequests, setDirectRequests] = useState<DirectHireRequest[]>([]);
 
-  const [availableJobs] = useState<Job[]>([
-    {
-      id: 1,
-      title: 'Fix Kitchen Sink Leak',
-      category: 'Plumbing',
-      client: 'Ahmed Hassan',
-      rate: 500,
-      location: 'Khartoum',
-      postedDate: '2 hours ago',
-      applicants: 3,
-    },
-    {
-      id: 2,
-      title: 'Install Ceiling Fan',
-      category: 'Electrical',
-      client: 'Fatima Ali',
-      rate: 600,
-      location: 'Omdurman',
-      postedDate: '5 hours ago',
-      applicants: 7,
-    },
-    {
-      id: 3,
-      title: 'Paint Living Room',
-      category: 'Painting',
-      client: 'Ibrahim Omar',
-      rate: 3000,
-      location: 'Bahri',
-      postedDate: '1 day ago',
-      applicants: 12,
-    },
-  ]);
+  useEffect(() => {
+    loadDirectRequests();
+  }, []);
 
-  const [myApplications] = useState([
-    {
-      id: 1,
-      title: 'Repair Bathroom Tiles',
-      category: 'Construction',
-      client: 'Sara Mohammed',
-      status: 'pending',
-      appliedDate: '2 days ago',
-    },
-    {
-      id: 2,
-      title: 'Fix Air Conditioner',
-      category: 'HVAC',
-      client: 'Omar Ali',
-      status: 'accepted',
-      appliedDate: '1 week ago',
-    },
-  ]);
+  const loadDirectRequests = async () => {
+    try {
+      setLoading(true);
+      const requests = await apiService.getDirectHireRequests();
+      setDirectRequests(requests.map((req: any) => ({
+        id: req.id,
+        clientName: req.client_name || 'Client',
+        durationType: req.duration_type || 'hourly',
+        offeredRate: parseFloat(req.offered_rate || '0'),
+        totalAmount: parseFloat(req.total_amount || '0'),
+        status: req.status,
+        createdAt: new Date(req.created_at).toLocaleDateString(),
+        message: req.message,
+      })));
+    } catch (error) {
+      console.error('Error loading direct requests:', error);
+      Alert.alert('Error', 'Failed to load direct hire requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadDirectRequests();
+    setRefreshing(false);
+  };
+
+  const handleAcceptRequest = async (requestId: number) => {
+    Alert.alert(
+      'Accept Request',
+      'Are you sure you want to accept this job request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Accept',
+          onPress: async () => {
+            try {
+              await apiService.acceptDirectHireRequest(requestId);
+              Alert.alert('Success', 'Request accepted! Client will be notified.');
+              loadDirectRequests();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to accept request');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRejectRequest = async (requestId: number) => {
+    Alert.alert(
+      'Reject Request',
+      'Are you sure you want to reject this job request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.rejectDirectHireRequest(requestId);
+              Alert.alert('Success', 'Request rejected.');
+              loadDirectRequests();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to reject request');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted': return '#4CAF50';
+      case 'rejected': return '#F44336';
+      case 'pending': return '#FF9800';
+      default: return '#666';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'checkmark-circle';
+      case 'rejected': return 'close-circle';
+      case 'pending': return 'time';
+      default: return 'help-circle';
+    }
+  };
+
+  const renderRequestCard = (request: DirectHireRequest) => (
+    <View key={request.id} style={styles.requestCard}>
+      <View style={styles.requestHeader}>
+        <View>
+          <Text style={styles.clientName}>
+            <Ionicons name="person" size={18} color="#1976D2" /> {request.clientName}
+          </Text>
+          <Text style={styles.requestDate}>{request.createdAt}</Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
+          <Ionicons name={getStatusIcon(request.status) as any} size={16} color="#FFF" />
+          <Text style={styles.statusText}>{request.status.toUpperCase()}</Text>
+        </View>
+      </View>
+
+      {request.message && (
+        <View style={styles.messageContainer}>
+          <Ionicons name="mail-outline" size={16} color="#666" />
+          <Text style={styles.messageText}>{request.message}</Text>
+        </View>
+      )}
+
+      <View style={styles.requestDetails}>
+        <View style={styles.detailRow}>
+          <Ionicons name="time-outline" size={18} color="#666" />
+          <Text style={styles.detailLabel}>Duration:</Text>
+          <Text style={styles.detailValue}>{request.durationType}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Ionicons name="cash-outline" size={18} color="#2E7D32" />
+          <Text style={styles.detailLabel}>Offered Rate:</Text>
+          <Text style={[styles.detailValue, styles.rateText]}>${request.offeredRate}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Ionicons name="card-outline" size={18} color="#2E7D32" />
+          <Text style={styles.detailLabel}>Total:</Text>
+          <Text style={[styles.detailValue, styles.totalAmount]}>${request.totalAmount}</Text>
+        </View>
+      </View>
+
+      {request.status === 'pending' && (
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.rejectButton]}
+            onPress={() => handleRejectRequest(request.id)}
+          >
+            <Ionicons name="close-circle" size={20} color="#FFF" />
+            <Text style={styles.actionButtonText}>Reject</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.acceptButton]}
+            onPress={() => handleAcceptRequest(request.id)}
+          >
+            <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+            <Text style={styles.actionButtonText}>Accept</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -83,117 +191,42 @@ export default function WorkerJobsScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Jobs</Text>
+        <Text style={styles.headerTitle}>Direct Hire Requests</Text>
+        <Text style={styles.headerSubtitle}>Clients who want to hire you</Text>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'browse' && styles.tabActive]}
-          onPress={() => setActiveTab('browse')}
-        >
-          <Text style={[styles.tabText, activeTab === 'browse' && styles.tabTextActive]}>
-            Browse Jobs
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'applications' && styles.tabActive]}
-          onPress={() => setActiveTab('applications')}
-        >
-          <Text style={[styles.tabText, activeTab === 'applications' && styles.tabTextActive]}>
-            My Applications
-          </Text>
-        </TouchableOpacity>
+      {/* Info Banner */}
+      <View style={styles.infoBanner}>
+        <Ionicons name="information-circle" size={20} color="#1976D2" />
+        <Text style={styles.infoText}>
+          Clients will find and request you directly. Accept or reject requests below.
+        </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {activeTab === 'browse' ? (
-          <>
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search jobs..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-
-            {/* Filter Buttons */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters}>
-              {['All', 'Plumbing', 'Electrical', 'Carpentry', 'Painting', 'Cleaning'].map(
-                (filter) => (
-                  <TouchableOpacity key={filter} style={styles.filterButton}>
-                    <Text style={styles.filterText}>{filter}</Text>
-                  </TouchableOpacity>
-                )
-              )}
-            </ScrollView>
-
-            {/* Available Jobs */}
-            {availableJobs.map((job) => (
-              <TouchableOpacity
-                key={job.id}
-                style={styles.jobCard}
-                onPress={() => router.push(`/(worker)/job/${job.id}`)}
-              >
-                <View style={styles.jobHeader}>
-                  <View style={styles.jobTitleContainer}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    <Text style={styles.jobCategory}>{job.category}</Text>
-                  </View>
-                  <View style={styles.rateBadge}>
-                    <Text style={styles.rateText}>SDG {job.rate}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.jobDetails}>
-                  <Text style={styles.clientName}>👤 {job.client}</Text>
-                  <Text style={styles.location}>📍 {job.location}</Text>
-                </View>
-
-                <View style={styles.jobFooter}>
-                  <Text style={styles.postedDate}>{job.postedDate}</Text>
-                  <Text style={styles.applicants}>{job.applicants} applicants</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </>
-        ) : (
-          <>
-            {/* My Applications */}
-            {myApplications.map((application) => (
-              <View key={application.id} style={styles.applicationCard}>
-                <View style={styles.applicationHeader}>
-                  <View style={styles.applicationTitleContainer}>
-                    <Text style={styles.applicationTitle}>{application.title}</Text>
-                    <Text style={styles.applicationCategory}>{application.category}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      application.status === 'accepted' && styles.statusAccepted,
-                      application.status === 'pending' && styles.statusPending,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        application.status === 'accepted' && styles.statusTextAccepted,
-                      ]}
-                    >
-                      {application.status === 'accepted' ? '✓ Accepted' : '⏳ Pending'}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={styles.applicationClient}>Client: {application.client}</Text>
-                <Text style={styles.applicationDate}>Applied {application.appliedDate}</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0F766E" />
+          <Text style={styles.loadingText}>Loading requests...</Text>
+        </View>
+      ) : (
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0F766E']} />
+        }
+      >
+            {/* Direct Hire Requests */}
+            {directRequests.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>📬</Text>
+                <Text style={styles.emptyText}>No hire requests yet</Text>
+                <Text style={styles.emptySubtext}>Keep your profile updated and wait for clients to find you!</Text>
               </View>
-            ))}
-          </>
-        )}
+            ) : (
+              directRequests.map(renderRequestCard)
+            )}
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -214,187 +247,165 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  tabs: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: {
-    borderBottomColor: '#0F766E',
-  },
-  tabText: {
+  headerSubtitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
+    color: '#FFFFFF',
+    marginTop: 4,
+    opacity: 0.9,
   },
-  tabTextActive: {
-    color: '#0F766E',
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 8,
+    gap: 12,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1565C0',
+    lineHeight: 20,
   },
   scrollContent: {
     padding: 20,
   },
-  searchContainer: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyIcon: {
+    fontSize: 64,
     marginBottom: 16,
   },
-  searchInput: {
-    height: 48,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  filters: {
-    marginBottom: 20,
-  },
-  filterButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  filterText: {
-    fontSize: 13,
+  emptyText: {
+    fontSize: 18,
     fontWeight: '600',
-    color: '#6B7280',
-  },
-  jobCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  jobHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  jobTitleContainer: {
-    flex: 1,
-    marginRight: 12,
-  },
-  jobTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  jobCategory: {
-    fontSize: 13,
-    color: '#6B7280',
-  },
-  rateBadge: {
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  rateText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F766E',
-  },
-  jobDetails: {
-    marginBottom: 12,
-  },
-  clientName: {
-    fontSize: 14,
     color: '#374151',
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  location: {
+  emptySubtext: {
     fontSize: 14,
     color: '#6B7280',
+    textAlign: 'center',
+    paddingHorizontal: 40,
   },
-  jobFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  postedDate: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  applicants: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  applicationCard: {
+  requestCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
-  applicationHeader: {
+  requestHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  applicationTitleContainer: {
-    flex: 1,
-    marginRight: 12,
-  },
-  applicationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  clientName: {
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 4,
   },
-  applicationCategory: {
-    fontSize: 13,
-    color: '#6B7280',
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusAccepted: {
-    backgroundColor: '#D1FAE5',
-  },
-  statusPending: {
-    backgroundColor: '#FEF3C7',
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#92400E',
-  },
-  statusTextAccepted: {
-    color: '#065F46',
-  },
-  applicationClient: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 4,
-  },
-  applicationDate: {
+  requestDate: {
     fontSize: 12,
     color: '#9CA3AF',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  statusText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 8,
+  },
+  messageText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#4B5563',
+    lineHeight: 20,
+  },
+  requestDetails: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#1F2937',
+    fontWeight: '600',
+  },
+  rateText: {
+    color: '#2E7D32',
+  },
+  totalAmount: {
+    fontSize: 16,
+    color: '#2E7D32',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  acceptButton: {
+    backgroundColor: '#4CAF50',
+  },
+  rejectButton: {
+    backgroundColor: '#F44336',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

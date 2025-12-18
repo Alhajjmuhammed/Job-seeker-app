@@ -23,25 +23,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUser = async () => {
     try {
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 3000)
-      );
-      
       const isAuth = await authService.isAuthenticated();
       if (isAuth) {
-        const userData = await Promise.race([
-          authService.getCurrentUser(),
-          timeoutPromise
-        ]) as User;
-        setUser(userData);
+        try {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+        } catch (userError: any) {
+          console.log('Could not load user data:', userError?.message || 'Unknown error');
+          // Clear invalid auth state
+          await authService.logout();
+          setUser(null);
+        }
       }
     } catch (error: any) {
-      console.error('Error loading user:', error?.message || error);
-      // If network error or timeout, clear auth and proceed to login
-      if (error?.code === 'ECONNABORTED' || error?.message === 'Timeout' || error?.code === 'ERR_NETWORK') {
-        await authService.logout();
-      }
+      console.log('Auth check failed:', error?.message || 'Unknown error');
+      // Clear auth state on error
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Navigate based on user type
       if (response.user.userType === 'worker') {
-        router.replace('/(worker)/dashboard');
+        // Check if profile is complete (for first-time login)
+        if (!response.user.isProfileComplete) {
+          router.replace('/(worker)/profile-setup');
+        } else {
+          router.replace('/(worker)/dashboard');
+        }
       } else if (response.user.userType === 'client') {
         router.replace('/(client)/dashboard');
       }
@@ -70,7 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Navigate based on user type
       if (response.user.userType === 'worker') {
-        router.replace('/(worker)/dashboard');
+        // Check if profile is complete
+        if (!response.user.isProfileComplete) {
+          router.replace('/(worker)/profile-setup');
+        } else {
+          router.replace('/(worker)/dashboard');
+        }
       } else if (response.user.userType === 'client') {
         router.replace('/(client)/dashboard');
       }

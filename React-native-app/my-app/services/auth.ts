@@ -7,6 +7,8 @@ export interface User {
   lastName: string;
   userType: 'worker' | 'client' | 'admin';
   phoneNumber?: string;
+  isProfileComplete?: boolean;
+  profileCompletionPercentage?: number;
 }
 
 export interface AuthResponse {
@@ -46,7 +48,7 @@ export const authService = {
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const userData = await apiService.getUserData();
+      const userData = await apiService.getCurrentUser();
       return userData;
     } catch (error) {
       console.error('Error getting current user:', error);

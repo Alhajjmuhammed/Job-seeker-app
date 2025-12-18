@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import apiService from '../../services/api';
 
 interface Message {
   id: number;
@@ -19,32 +23,47 @@ interface Message {
 }
 
 export default function WorkerMessagesScreen() {
-  const [messages] = React.useState<Message[]>([
-    {
-      id: 1,
-      name: 'Ahmed Hassan',
-      lastMessage: 'Can you start tomorrow at 9 AM?',
-      time: '10 min ago',
-      unread: 2,
-      avatar: 'AH',
-    },
-    {
-      id: 2,
-      name: 'Fatima Ali',
-      lastMessage: 'Thank you for the great work!',
-      time: '2 hours ago',
-      unread: 0,
-      avatar: 'FA',
-    },
-    {
-      id: 3,
-      name: 'Ibrahim Omar',
-      lastMessage: 'What is your rate for this job?',
-      time: '1 day ago',
-      unread: 1,
-      avatar: 'IO',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  const loadMessages = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getMessages();
+      setMessages(data.map((msg: any) => ({
+        id: msg.id,
+        name: msg.sender_name || 'User',
+        lastMessage: msg.content || msg.message || '',
+        time: new Date(msg.created_at).toLocaleDateString(),
+        unread: msg.is_read ? 0 : 1,
+        avatar: (msg.sender_name || 'U').substring(0, 2).toUpperCase(),
+      })));
+    } catch (error: any) {
+      console.error('Error loading messages:', error);
+      // Don't show alert for 404 - endpoint not implemented yet
+      if (error.response?.status !== 404) {
+        Alert.alert('Error', 'Failed to load messages');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadMessages();
+    setRefreshing(false);
+  };
+
+  const filteredMessages = messages.filter(msg =>
+    msg.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <View style={styles.container}>
@@ -61,12 +80,32 @@ export default function WorkerMessagesScreen() {
           style={styles.searchInput}
           placeholder="Search messages..."
           placeholderTextColor="#9CA3AF"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {messages.map((message) => (
-          <TouchableOpacity key={message.id} style={styles.messageCard}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0F766E" />
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      ) : (
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0F766E']} />
+        }
+      >
+        {filteredMessages.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>💬</Text>
+            <Text style={styles.emptyText}>No messages yet</Text>
+            <Text style={styles.emptySubtext}>Start a conversation with clients</Text>
+          </View>
+        ) : (
+          filteredMessages.map((message) => (
+            <TouchableOpacity key={message.id} style={styles.messageCard}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{message.avatar}</Text>
             </View>
@@ -85,8 +124,10 @@ export default function WorkerMessagesScreen() {
               </View>
             )}
           </TouchableOpacity>
-        ))}
+          ))
+        )}
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -185,5 +226,35 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  emptyState: {
+    padding: 60,
+    alignItems: 'center',
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
   },
 });

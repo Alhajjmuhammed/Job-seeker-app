@@ -199,12 +199,12 @@ export default function WorkerDashboard() {
             <Text style={styles.statLabel}>Active Jobs</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.total_applications}</Text>
-            <Text style={styles.statLabel}>Total Applications</Text>
+            <Text style={styles.statValue}>{stats.total_applications || 0}</Text>
+            <Text style={styles.statLabel}>Direct Requests</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.accepted_applications}</Text>
-            <Text style={styles.statLabel}>Accepted Apps</Text>
+            <Text style={styles.statValue}>{stats.accepted_applications || 0}</Text>
+            <Text style={styles.statLabel}>Accepted Jobs</Text>
           </View>
         </View>
 
@@ -274,8 +274,8 @@ export default function WorkerDashboard() {
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/jobs')}
             >
-              <Text style={styles.actionIcon}>💼</Text>
-              <Text style={styles.actionText}>Browse Jobs</Text>
+              <Text style={styles.actionIcon}>�</Text>
+              <Text style={styles.actionText}>View Requests</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}

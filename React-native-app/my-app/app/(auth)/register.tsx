@@ -15,9 +15,11 @@ import { Link } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
 type UserType = 'worker' | 'client';
+type WorkerType = 'professional' | 'non-academic';
 
 export default function RegisterScreen() {
   const [userType, setUserType] = useState<UserType>('worker');
+  const [workerType, setWorkerType] = useState<WorkerType>('non-academic');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -49,6 +51,7 @@ export default function RegisterScreen() {
         phone: formData.phone,
         password: formData.password,
         userType: userType,
+        workerType: userType === 'worker' ? workerType : undefined,
       });
       // Navigation is handled by AuthContext based on user type
     } catch (error: any) {
@@ -129,6 +132,53 @@ export default function RegisterScreen() {
           </View>
         </View>
 
+        {/* Worker Type Selection (only for workers) */}
+        {userType === 'worker' && (
+          <View style={styles.workerTypeContainer}>
+            <Text style={styles.label}>Worker Type *</Text>
+            <View style={styles.workerTypeButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.workerTypeButton,
+                  workerType === 'professional' && styles.workerTypeButtonActive,
+                ]}
+                onPress={() => setWorkerType('professional')}
+              >
+                <Text style={styles.workerTypeIcon}>🎓</Text>
+                <Text
+                  style={[
+                    styles.workerTypeButtonText,
+                    workerType === 'professional' && styles.workerTypeButtonTextActive,
+                  ]}
+                >
+                  Professional
+                </Text>
+                <Text style={styles.workerTypeDesc}>University degree or diploma</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.workerTypeButton,
+                  workerType === 'non-academic' && styles.workerTypeButtonActive,
+                ]}
+                onPress={() => setWorkerType('non-academic')}
+              >
+                <Text style={styles.workerTypeIcon}>🔧</Text>
+                <Text
+                  style={[
+                    styles.workerTypeButtonText,
+                    workerType === 'non-academic' && styles.workerTypeButtonTextActive,
+                  ]}
+                >
+                  Non-Academic
+                </Text>
+                <Text style={styles.workerTypeDesc}>Skilled worker (experience-based)</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* 
         {/* Form Fields */}
         <View style={styles.formContainer}>
           <View style={styles.row}>
@@ -360,5 +410,43 @@ const styles = StyleSheet.create({
     color: '#0F766E',
     fontSize: 14,
     fontWeight: '600',
+  },
+  workerTypeContainer: {
+    marginBottom: 24,
+  },
+  workerTypeButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  workerTypeButton: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
+  workerTypeButtonActive: {
+    backgroundColor: '#D1FAE5',
+    borderColor: '#0F766E',
+  },
+  workerTypeIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  workerTypeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  workerTypeButtonTextActive: {
+    color: '#0F766E',
+  },
+  workerTypeDesc: {
+    fontSize: 11,
+    color: '#6B7280',
+    textAlign: 'center',
   },
 });

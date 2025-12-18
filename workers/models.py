@@ -34,6 +34,11 @@ class Skill(models.Model):
 class WorkerProfile(models.Model):
     """Extended profile for workers"""
     
+    WORKER_TYPE_CHOICES = (
+        ('professional', 'Professional'),
+        ('non_academic', 'Non-Academic'),
+    )
+    
     AVAILABILITY_CHOICES = (
         ('available', 'Available'),
         ('busy', 'Busy'),
@@ -47,8 +52,14 @@ class WorkerProfile(models.Model):
     )
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='worker_profile')
+    worker_type = models.CharField(max_length=20, choices=WORKER_TYPE_CHOICES, default='non_academic')
     bio = models.TextField(blank=True, help_text="Brief introduction about yourself")
-    profile_image = models.ImageField(upload_to='worker_profiles/', blank=True, null=True, help_text="Profile photo")
+    profile_image = models.FileField(upload_to='worker_profiles/', blank=True, null=True, help_text="Profile photo")
+    
+    # Profile completion tracking
+    profile_completion_percentage = models.IntegerField(default=0)
+    is_profile_complete = models.BooleanField(default=False)
+    has_uploaded_national_id = models.BooleanField(default=False)
     
     # Location
     address = models.CharField(max_length=255, blank=True)

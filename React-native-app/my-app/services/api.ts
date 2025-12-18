@@ -15,7 +15,7 @@ class ApiService {
   constructor() {
     this.api = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 5000, // 5 seconds timeout
+      timeout: 15000, // 15 seconds timeout
       headers: {
         'Content-Type': 'application/json',
       },
@@ -114,6 +114,7 @@ class ApiService {
     phone: string;
     password: string;
     userType: 'worker' | 'client';
+    workerType?: 'professional' | 'non-academic';
   }) {
     const response = await this.api.post('/auth/register/', {
       firstName: userData.firstName,
@@ -122,6 +123,7 @@ class ApiService {
       phone: userData.phone,
       password: userData.password,
       userType: userData.userType,
+      workerType: userData.workerType,
     });
     
     if (response.data.token) {
@@ -154,7 +156,15 @@ class ApiService {
   }
 
   async updateWorkerProfile(data: any) {
-    const response = await this.api.patch('/workers/profile/update/', data);
+    // Check if data is FormData (for file uploads)
+    const isFormData = data instanceof FormData;
+    const config = isFormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    } : {};
+    
+    const response = await this.api.patch('/workers/profile/update/', data, config);
     return response.data;
   }
 
@@ -166,17 +176,17 @@ class ApiService {
   }
 
   async getDirectHireRequests() {
-    const response = await this.api.get('/worker/direct-hire-requests/');
+    const response = await this.api.get('/workers/direct-hire-requests/');
     return response.data;
   }
 
   async acceptDirectHireRequest(requestId: number) {
-    const response = await this.api.post(`/worker/direct-hire-requests/${requestId}/accept/`);
+    const response = await this.api.post(`/workers/direct-hire-requests/${requestId}/accept/`);
     return response.data;
   }
 
   async rejectDirectHireRequest(requestId: number) {
-    const response = await this.api.post(`/worker/direct-hire-requests/${requestId}/reject/`);
+    const response = await this.api.post(`/workers/direct-hire-requests/${requestId}/reject/`);
     return response.data;
   }
 
@@ -199,12 +209,38 @@ class ApiService {
   }
 
   async getWorkerStats() {
-    const response = await this.api.get('/worker/stats/');
+    const response = await this.api.get('/workers/stats/');
     return response.data;
   }
 
   async getBrowseJobs(params?: { category?: string; city?: string }) {
     const response = await this.api.get('/jobs/browse/', { params });
+    return response.data;
+  }
+
+  async uploadDocument(file: any, documentType: 'id' | 'cv' | 'certificate' | 'license' | 'other', title?: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('document_type', documentType);
+    if (title) {
+      formData.append('title', title);
+    }
+
+    const response = await this.api.post('/workers/documents/upload/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async getProfileCompletion() {
+    const response = await this.api.get('/workers/profile/completion/');
+    return response.data;
+  }
+
+  async getCategories() {
+    const response = await this.api.get('/workers/categories/');
     return response.data;
   }
 

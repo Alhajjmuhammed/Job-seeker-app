@@ -41,6 +41,13 @@ def login_view(request):
     
     user_serializer = UserSerializer(user)
     
+    # Check if profile is complete (for workers)
+    is_complete = True
+    completion_percentage = 100
+    if user.user_type == 'worker' and hasattr(user, 'worker_profile'):
+        is_complete = user.worker_profile.is_profile_complete
+        completion_percentage = user.worker_profile.profile_completion_percentage
+    
     return Response({
         'token': token.key,
         'user': {
@@ -50,6 +57,8 @@ def login_view(request):
             'lastName': user.last_name,
             'userType': user.user_type,
             'phoneNumber': user.phone_number,
+            'isProfileComplete': is_complete,
+            'profileCompletionPercentage': completion_percentage,
         }
     })
 
@@ -72,6 +81,13 @@ def register_view(request):
     # Create token for the new user
     token = Token.objects.create(user=user)
     
+    # Check if profile is complete (for workers)
+    is_complete = True
+    completion_percentage = 100
+    if user.user_type == 'worker' and hasattr(user, 'worker_profile'):
+        is_complete = user.worker_profile.is_profile_complete
+        completion_percentage = user.worker_profile.profile_completion_percentage
+    
     return Response({
         'token': token.key,
         'user': {
@@ -81,6 +97,8 @@ def register_view(request):
             'lastName': user.last_name,
             'userType': user.user_type,
             'phoneNumber': user.phone_number,
+            'isProfileComplete': is_complete,
+            'profileCompletionPercentage': completion_percentage,
         }
     }, status=status.HTTP_201_CREATED)
 
