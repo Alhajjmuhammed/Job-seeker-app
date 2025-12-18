@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from django.db.models import Count, Q
 from workers.models import WorkerProfile, WorkerDocument, Category
@@ -26,9 +26,9 @@ def worker_profile(request):
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser, FormParser])
+@parser_classes([JSONParser, MultiPartParser, FormParser])
 def update_worker_profile(request):
-    """Update worker profile (supports file uploads for profile_image)"""
+    """Update worker profile (supports file uploads for profile_image and JSON data)"""
     if request.user.user_type != 'worker':
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     

@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -44,7 +45,7 @@ export default function WorkerProfileScreen() {
       setStats({
         rating: profileData.average_rating || 0,
         completedJobs: profileData.completed_jobs || 0,
-        responseRate: 98, // TODO: Calculate from actual data when available
+        responseRate: statsData.response_rate || 0,
       });
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -81,11 +82,18 @@ export default function WorkerProfileScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
-          </Text>
-        </View>
+        {profile?.profile_image ? (
+          <Image
+            source={{ uri: profile.profile_image }}
+            style={styles.avatarImage}
+          />
+        ) : (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </Text>
+          </View>
+        )}
         <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
         <Text style={styles.email}>{user?.email}</Text>
         {profile && profile.categories && profile.categories.length > 0 && (
@@ -117,7 +125,9 @@ export default function WorkerProfileScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.responseRate}%</Text>
+            <Text style={styles.statValue}>
+              {stats.responseRate > 0 ? `${stats.responseRate}%` : 'N/A'}
+            </Text>
             <Text style={styles.statLabel}>Response</Text>
           </View>
         </View>
@@ -150,17 +160,26 @@ export default function WorkerProfileScreen() {
             <Text style={styles.menuText}>Edit Profile</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/(worker)/profile-edit')}
+          >
             <Text style={styles.menuIcon}>💼</Text>
             <Text style={styles.menuText}>Skills & Categories</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/(worker)/documents')}
+          >
             <Text style={styles.menuIcon}>📄</Text>
             <Text style={styles.menuText}>Documents</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/(worker)/earnings')}
+          >
             <Text style={styles.menuIcon}>💰</Text>
             <Text style={styles.menuText}>Earnings & Payments</Text>
             <Text style={styles.menuArrow}>›</Text>
@@ -168,17 +187,26 @@ export default function WorkerProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => Alert.alert('Coming Soon', 'Settings feature is coming soon!')}
+          >
             <Text style={styles.menuIcon}>⚙️</Text>
             <Text style={styles.menuText}>Settings</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => Alert.alert('Help & Support', 'For assistance, please contact: support@workerconnect.com')}
+          >
             <Text style={styles.menuIcon}>❓</Text>
             <Text style={styles.menuText}>Help & Support</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => Alert.alert('Coming Soon', 'Terms & Privacy page is coming soon!')}
+          >
             <Text style={styles.menuIcon}>📋</Text>
             <Text style={styles.menuText}>Terms & Privacy</Text>
             <Text style={styles.menuArrow}>›</Text>
@@ -216,6 +244,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 12,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
   },
   avatarText: {
     fontSize: 32,

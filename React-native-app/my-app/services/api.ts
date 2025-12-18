@@ -162,7 +162,11 @@ class ApiService {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-    } : {};
+    } : {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
     
     const response = await this.api.patch('/workers/profile/update/', data, config);
     return response.data;
