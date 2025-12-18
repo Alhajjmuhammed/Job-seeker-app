@@ -23,13 +23,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUser = async () => {
     try {
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 3000)
+      );
+      
       const isAuth = await authService.isAuthenticated();
       if (isAuth) {
-        const userData = await authService.getCurrentUser();
+        const userData = await Promise.race([
+          authService.getCurrentUser(),
+          timeoutPromise
+        ]) as User;
         setUser(userData);
       }
-    } catch (error) {
-      console.error('Error loading user:', error);
+    } catch (error: any) {
+      console.error('Error loading user:', error?.message || error);
+      // If network error or timeout, clear auth and proceed to login
+      if (error?.code === 'ECONNABORTED' || error?.message === 'Timeout' || error?.code === 'ERR_NETWORK') {
+        await authService.logout();
+      }
     } finally {
       setIsLoading(false);
     }

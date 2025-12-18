@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Redirect } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 
 export default function Index() {
   const { user, isLoading } = useAuth();
@@ -9,7 +9,8 @@ export default function Index() {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#0F766E" />
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -35,5 +36,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6B7280',
   },
 });

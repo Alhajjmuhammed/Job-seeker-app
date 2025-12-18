@@ -47,14 +47,30 @@ export default function WorkerDashboard() {
     try {
       setLoading(true);
       const [requestsData, statsData] = await Promise.all([
-        apiService.getDirectHireRequests(),
-        apiService.getWorkerStats(),
+        apiService.getDirectHireRequests().catch(err => {
+          console.error('Error fetching requests:', err);
+          return [];
+        }),
+        apiService.getWorkerStats().catch(err => {
+          console.error('Error fetching stats:', err);
+          return {
+            pending_requests: 0,
+            active_jobs: 0,
+            total_applications: 0,
+            accepted_applications: 0,
+          };
+        }),
       ]);
-      setPendingRequests(requestsData);
-      setStats(statsData);
-    } catch (error) {
+      setPendingRequests(requestsData || []);
+      setStats(statsData || {
+        pending_requests: 0,
+        active_jobs: 0,
+        total_applications: 0,
+        accepted_applications: 0,
+      });
+    } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
-      Alert.alert('Error', 'Failed to load dashboard data');
+      console.error('Error details:', error?.response?.data || error?.message);
     } finally {
       setLoading(false);
     }

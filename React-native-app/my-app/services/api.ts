@@ -15,7 +15,7 @@ class ApiService {
   constructor() {
     this.api = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 10000,
+      timeout: 5000, // 5 seconds timeout
       headers: {
         'Content-Type': 'application/json',
       },
@@ -154,7 +154,7 @@ class ApiService {
   }
 
   async updateWorkerProfile(data: any) {
-    const response = await this.api.patch('/workers/profile/', data);
+    const response = await this.api.patch('/workers/profile/update/', data);
     return response.data;
   }
 
@@ -203,30 +203,55 @@ class ApiService {
     return response.data;
   }
 
+  async getBrowseJobs(params?: { category?: string; city?: string }) {
+    const response = await this.api.get('/jobs/browse/', { params });
+    return response.data;
+  }
+
   // ============ Client Methods ============
   async getClientProfile() {
-    const response = await this.api.get('/clients/profile/');
+    const response = await this.api.get('/client/profile/');
     return response.data;
   }
 
   async updateClientProfile(data: any) {
-    const response = await this.api.patch('/clients/profile/', data);
+    const response = await this.api.patch('/client/profile/update/', data);
+    return response.data;
+  }
+
+  async getClientStats() {
+    const response = await this.api.get('/client/stats/');
+    return response.data;
+  }
+
+  async getFeaturedWorkers() {
+    const response = await this.api.get('/client/workers/featured/');
     return response.data;
   }
 
   async searchWorkers(params?: {
     category?: string;
     location?: string;
-    minRating?: number;
-    isAvailable?: boolean;
+    min_rating?: number;
+    is_available?: boolean;
     search?: string;
   }) {
-    const response = await this.api.get('/workers/search/', { params });
+    const response = await this.api.get('/client/workers/search/', { params });
     return response.data;
   }
 
   async getWorkerDetail(workerId: number) {
-    const response = await this.api.get(`/workers/${workerId}/`);
+    const response = await this.api.get(`/client/workers/${workerId}/`);
+    return response.data;
+  }
+
+  async toggleFavoriteWorker(workerId: number) {
+    const response = await this.api.post(`/client/workers/${workerId}/favorite/`);
+    return response.data;
+  }
+
+  async getFavoriteWorkers() {
+    const response = await this.api.get('/client/favorites/');
     return response.data;
   }
 
@@ -244,7 +269,12 @@ class ApiService {
 
   async getClientJobs(status?: string) {
     const params = status ? { status } : {};
-    const response = await this.api.get('/jobs/client/jobs/', { params });
+    const response = await this.api.get('/client/jobs/', { params });
+    return response.data;
+  }
+
+  async getClientJobDetail(jobId: number) {
+    const response = await this.api.get(`/client/jobs/${jobId}/`);
     return response.data;
   }
 
@@ -252,36 +282,45 @@ class ApiService {
     title: string;
     description: string;
     category: number;
-    budget?: number;
+    city: string;
     location?: string;
+    budget?: number;
+    duration_days?: number;
+    workers_needed?: number;
+    urgency?: string;
   }) {
-    const response = await this.api.post('/jobs/', jobData);
+    const response = await this.api.post('/client/jobs/', jobData);
     return response.data;
   }
 
-  async getJobDetail(jobId: number) {
-    const response = await this.api.get(`/jobs/${jobId}/`);
+  async updateJob(jobId: number, jobData: any) {
+    const response = await this.api.patch(`/client/jobs/${jobId}/`, jobData);
+    return response.data;
+  }
+
+  async deleteJob(jobId: number) {
+    const response = await this.api.delete(`/client/jobs/${jobId}/`);
     return response.data;
   }
 
   async getJobApplications(jobId: number) {
-    const response = await this.api.get(`/jobs/${jobId}/applications/`);
+    const response = await this.api.get(`/client/jobs/${jobId}/applications/`);
     return response.data;
   }
 
   async acceptJobApplication(applicationId: number) {
-    const response = await this.api.post(`/jobs/applications/${applicationId}/accept/`);
+    const response = await this.api.post(`/client/applications/${applicationId}/accept/`);
     return response.data;
   }
 
   async rejectJobApplication(applicationId: number) {
-    const response = await this.api.post(`/jobs/applications/${applicationId}/reject/`);
+    const response = await this.api.post(`/client/applications/${applicationId}/reject/`);
     return response.data;
   }
 
   // ============ Common Methods ============
   async getCategories() {
-    const response = await this.api.get('/categories/');
+    const response = await this.api.get('/client/categories/');
     return response.data;
   }
 

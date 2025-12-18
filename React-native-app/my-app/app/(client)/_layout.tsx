@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ClientLayout() {
   return (
@@ -28,7 +28,7 @@ export default function ClientLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>🏠</Text>
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
@@ -37,7 +37,7 @@ export default function ClientLayout() {
         options={{
           title: 'Search',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>🔍</Text>
+            <Ionicons name="search" size={size} color={color} />
           ),
         }}
       />
@@ -46,7 +46,7 @@ export default function ClientLayout() {
         options={{
           title: 'My Jobs',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>📋</Text>
+            <Ionicons name="clipboard" size={size} color={color} />
           ),
         }}
       />
@@ -55,7 +55,7 @@ export default function ClientLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>👤</Text>
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />

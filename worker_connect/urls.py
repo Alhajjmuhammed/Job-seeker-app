@@ -12,6 +12,8 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('api/', include('accounts.api_urls')),  # Auth API endpoints
     path('api/', include('jobs.api_urls')),  # Jobs API endpoints
+    path('api/client/', include('clients.api_urls')),  # Client API endpoints
+    path('api/workers/', include('workers.api_urls')),  # Workers API endpoints
     path('accounts/', include('accounts.urls')),
     path('workers/', include('workers.urls')),
     path('clients/', include('clients.urls')),

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,41 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../../contexts/AuthContext';
+import apiService from '../../services/api';
 
 export default function ClientProfileScreen() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    activeJobs: 0,
+    completedJobs: 0,
+    favorites: 0,
+  });
+
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    try {
+      setLoading(true);
+      const statsData = await apiService.getClientStats();
+      setStats({
+        activeJobs: statsData.active_jobs,
+        completedJobs: statsData.completed_jobs,
+        favorites: statsData.favorites,
+      });
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      Alert.alert('Error', 'Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -31,27 +60,35 @@ export default function ClientProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>FA</Text>
+          <Text style={styles.avatarText}>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </Text>
         </View>
-        <Text style={styles.name}>Fatima Ahmed</Text>
-        <Text style={styles.email}>fatima@example.com</Text>
+        <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+        <Text style={styles.email}>{user?.email}</Text>
       </View>
 
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0F766E" />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Stats Card */}
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>2</Text>
+            <Text style={styles.statValue}>{stats.activeJobs}</Text>
             <Text style={styles.statLabel}>Active Jobs</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>15</Text>
+            <Text style={styles.statValue}>{stats.completedJobs}</Text>
             <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>8</Text>
+            <Text style={styles.statValue}>{stats.favorites}</Text>
             <Text style={styles.statLabel}>Favorites</Text>
           </View>
         </View>
@@ -105,6 +142,7 @@ export default function ClientProfileScreen() {
 
         <Text style={styles.version}>Version 1.0.0</Text>
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -226,6 +264,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     color: '#9CA3AF',
-    marginTop: 20,
+    marginTop: 32,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6B7280',
   },
 });

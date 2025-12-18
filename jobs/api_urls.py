@@ -7,6 +7,12 @@ from .api_views import (
     worker_applications,
     apply_for_job,
     worker_stats,
+    client_jobs,
+    client_job_detail,
+    client_job_applications,
+    accept_application,
+    reject_application,
+    browse_jobs,
 )
 
 urlpatterns = [
@@ -18,4 +24,14 @@ urlpatterns = [
     path('worker/applications/', worker_applications, name='api_worker_applications'),
     path('worker/jobs/<int:job_id>/apply/', apply_for_job, name='api_apply_for_job'),
     path('worker/stats/', worker_stats, name='api_worker_stats'),
+    
+    # Client endpoints
+    path('client/jobs/', client_jobs, name='api_client_jobs'),
+    path('client/jobs/<int:job_id>/', client_job_detail, name='api_client_job_detail'),
+    path('client/jobs/<int:job_id>/applications/', client_job_applications, name='api_client_job_applications'),
+    path('client/applications/<int:application_id>/accept/', accept_application, name='api_accept_application'),
+    path('client/applications/<int:application_id>/reject/', reject_application, name='api_reject_application'),
+    
+    # Common endpoints
+    path('jobs/browse/', browse_jobs, name='api_browse_jobs'),
 ]

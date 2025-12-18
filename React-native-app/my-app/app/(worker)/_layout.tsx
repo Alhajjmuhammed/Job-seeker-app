@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function WorkerLayout() {
   return (
@@ -28,7 +28,7 @@ export default function WorkerLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>🏠</Text>
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
@@ -37,7 +37,7 @@ export default function WorkerLayout() {
         options={{
           title: 'Jobs',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>💼</Text>
+            <Ionicons name="briefcase" size={size} color={color} />
           ),
         }}
       />
@@ -46,7 +46,7 @@ export default function WorkerLayout() {
         options={{
           title: 'Messages',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>💬</Text>
+            <Ionicons name="chatbubbles" size={size} color={color} />
           ),
           tabBarBadge: 3,
         }}
@@ -56,7 +56,7 @@ export default function WorkerLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>👤</Text>
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />

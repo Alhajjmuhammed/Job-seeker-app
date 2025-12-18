@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,61 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../../contexts/AuthContext';
+import apiService from '../../services/api';
 
 export default function WorkerProfileScreen() {
+  const { user, logout } = useAuth();
   const [isAvailable, setIsAvailable] = useState(true);
-  const { logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [stats, setStats] = useState({
+    rating: 0,
+    completedJobs: 0,
+    responseRate: 0,
+  });
+
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    try {
+      setLoading(true);
+      const [profileData, statsData] = await Promise.all([
+        apiService.getWorkerProfile(),
+        apiService.getWorkerStats(),
+      ]);
+      
+      setProfile(profileData);
+      setIsAvailable(profileData.availability === 'available');
+      
+      // Calculate stats from profile and API data
+      setStats({
+        rating: profileData.average_rating || 0,
+        completedJobs: profileData.completed_jobs || 0,
+        responseRate: 98, // TODO: Calculate from actual data when available
+      });
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      Alert.alert('Error', 'Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAvailabilityToggle = async (value: boolean) => {
+    try {
+      await apiService.updateWorkerAvailability(value);
+      setIsAvailable(value);
+    } catch (error) {
+      console.error('Error updating availability:', error);
+      Alert.alert('Error', 'Failed to update availability');
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -33,28 +81,42 @@ export default function WorkerProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>MA</Text>
+          <Text style={styles.avatarText}>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </Text>
         </View>
-        <Text style={styles.name}>Mohammed Ahmed</Text>
-        <Text style={styles.email}>mohammed@example.com</Text>
-        <Text style={styles.category}>⚡ Electrician • Plumber</Text>
+        <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+        <Text style={styles.email}>{user?.email}</Text>
+        {profile && profile.categories && profile.categories.length > 0 && (
+          <Text style={styles.category}>
+            {profile.categories.map((cat: any) => cat.name).join(' • ')}
+          </Text>
+        )}
       </View>
 
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0F766E" />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Stats Card */}
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>4.8</Text>
+            <Text style={styles.statValue}>
+              {stats.rating > 0 ? stats.rating.toFixed(1) : 'N/A'}
+            </Text>
             <Text style={styles.statLabel}>Rating</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>47</Text>
+            <Text style={styles.statValue}>{stats.completedJobs}</Text>
             <Text style={styles.statLabel}>Jobs Done</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>98%</Text>
+            <Text style={styles.statValue}>{stats.responseRate}%</Text>
             <Text style={styles.statLabel}>Response</Text>
           </View>
         </View>
@@ -70,7 +132,7 @@ export default function WorkerProfileScreen() {
             </View>
             <Switch
               value={isAvailable}
-              onValueChange={setIsAvailable}
+              onValueChange={handleAvailabilityToggle}
               trackColor={{ false: '#D1D5DB', true: '#6EE7B7' }}
               thumbColor={isAvailable ? '#0F766E' : '#9CA3AF'}
             />
@@ -126,6 +188,7 @@ export default function WorkerProfileScreen() {
 
         <Text style={styles.version}>Version 1.0.0</Text>
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -268,6 +331,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     color: '#9CA3AF',
-    marginTop: 20,
+    marginTop: 32,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6B7280',
   },
 });

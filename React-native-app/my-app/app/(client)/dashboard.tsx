@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,13 @@ import {
   TextInput,
   Alert,
   Image,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { useAuth } from '../../contexts/AuthContext';
+import apiService from '../../services/api';
 
 interface Worker {
   id: number;
@@ -33,65 +37,91 @@ interface Job {
 }
 
 export default function ClientDashboard() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  // Mock data - will be replaced with API calls
-  const [featuredWorkers] = useState<Worker[]>([
-    {
-      id: 1,
-      name: 'Mohammed Ali',
-      category: 'Plumber',
-      rating: 4.8,
-      hourlyRate: 500,
-      completedJobs: 143,
-      isAvailable: true,
-    },
-    {
-      id: 2,
-      name: 'Ahmed Hassan',
-      category: 'Electrician',
-      rating: 4.9,
-      hourlyRate: 600,
-      completedJobs: 201,
-      isAvailable: true,
-    },
-    {
-      id: 3,
-      name: 'Ibrahim Omar',
-      category: 'Carpenter',
-      rating: 4.7,
-      hourlyRate: 550,
-      completedJobs: 98,
-      isAvailable: false,
-    },
-  ]);
-
-  const [myJobs] = useState<Job[]>([
-    {
-      id: 1,
-      title: 'Fix Kitchen Sink Leak',
-      category: 'Plumbing',
-      status: 'active',
-      applicants: 5,
-      postedDate: '2 days ago',
-    },
-    {
-      id: 2,
-      title: 'Install Ceiling Fan',
-      category: 'Electrical',
-      status: 'in_progress',
-      applicants: 1,
-      postedDate: '1 week ago',
-    },
-  ]);
-
-  const [stats] = useState({
-    activeJobs: 2,
-    completedJobs: 15,
-    totalSpent: 47500,
-    favorites: 8,
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [featuredWorkers, setFeaturedWorkers] = useState<Worker[]>([]);
+  const [myJobs, setMyJobs] = useState<Job[]>([]);
+  const [stats, setStats] = useState({
+    activeJobs: 0,
+    completedJobs: 0,
+    totalSpent: 0,
+    favorites: 0,
   });
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchClientStats(),
+        fetchFeaturedWorkers(),
+        fetchMyJobs(),
+      ]);
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      Alert.alert('Error', 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClientStats = async () => {
+    try {
+      const data = await apiService.getClientStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchFeaturedWorkers = async () => {
+    try {
+      const data = await apiService.getFeaturedWorkers();
+      const workers = data.map((worker: any) => ({
+        id: worker.id,
+        name: worker.name,
+        category: worker.categories?.[0]?.name || 'General',
+        rating: worker.average_rating || 0,
+        hourlyRate: parseFloat(worker.hourly_rate || '0'),
+        completedJobs: worker.completed_jobs || 0,
+        isAvailable: worker.availability === 'available',
+      }));
+      setFeaturedWorkers(workers);
+    } catch (error) {
+      console.error('Error fetching featured workers:', error);
+    }
+  };
+
+  const fetchMyJobs = async () => {
+    try {
+      const data = await apiService.getClientJobs();
+      const jobs = data
+        .filter((job: any) => job.status === 'open' || job.status === 'in_progress')
+        .slice(0, 3)
+        .map((job: any) => ({
+          id: job.id,
+          title: job.title,
+          category: job.category_name || 'General',
+          status: job.status === 'open' ? 'active' : job.status,
+          applicants: job.application_count || 0,
+          postedDate: new Date(job.created_at).toLocaleDateString(),
+        }));
+      setMyJobs(jobs);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboardData();
+    setRefreshing(false);
+  };
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -117,7 +147,7 @@ export default function ClientDashboard() {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Hello! 👋</Text>
-          <Text style={styles.name}>Fatima Ahmed</Text>
+          <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
         </View>
         <TouchableOpacity style={styles.notificationButton}>
           <Text style={styles.notificationText}>🔔</Text>
@@ -127,7 +157,18 @@ export default function ClientDashboard() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0F766E" />
+          <Text style={styles.loadingText}>Loading dashboard...</Text>
+        </View>
+      ) : (
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
@@ -317,6 +358,7 @@ export default function ClientDashboard() {
           </View>
         </View>
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -672,5 +714,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1F2937',
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6B7280',
   },
 });
