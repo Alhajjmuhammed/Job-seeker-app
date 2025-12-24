@@ -297,12 +297,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#1F2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   userTypeContainer: {
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#374151',
     marginBottom: 8,
   },
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
   },
   userTypeButtonText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#6B7280',
     marginBottom: 4,
   },
@@ -342,6 +343,7 @@ const styles = StyleSheet.create({
   },
   userTypeSubtext: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#9CA3AF',
   },
   userTypeSubtextActive: {
@@ -368,6 +370,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     backgroundColor: '#F9FAFB',
   },
   registerButton: {
@@ -385,20 +388,20 @@ const styles = StyleSheet.create({
   registerButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   termsContainer: {
     marginBottom: 24,
   },
   termsText: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 18,
   },
   termsLink: {
     color: '#0F766E',
-    fontWeight: '600',
   },
   loginContainer: {
     flexDirection: 'row',
@@ -407,11 +410,12 @@ const styles = StyleSheet.create({
   loginText: {
     color: '#6B7280',
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
   },
   loginLink: {
     color: '#0F766E',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   workerTypeContainer: {
     marginBottom: 24,
@@ -435,11 +439,12 @@ const styles = StyleSheet.create({
   },
   workerTypeIcon: {
     fontSize: 32,
+    fontFamily: 'Poppins_400Regular',
     marginBottom: 8,
   },
   workerTypeButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#374151',
     marginBottom: 4,
   },
@@ -448,6 +453,7 @@ const styles = StyleSheet.create({
   },
   workerTypeDesc: {
     fontSize: 11,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     textAlign: 'center',
   },

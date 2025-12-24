@@ -22,7 +22,7 @@ export default function WorkerLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontFamily: 'Poppins_600SemiBold',
         },
       }}
     >

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -61,11 +62,13 @@ export default function WorkerDashboard() {
     greeting: {
       fontSize: 15,
       marginBottom: 6,
-      fontWeight: '500',
+      fontFamily: theme.fontMedium,
+      color: theme.text,
     },
     name: {
       fontSize: 24,
-      fontWeight: 'bold',
+      fontFamily: theme.fontBold,
+      color: theme.textSecondary,
     },
     scrollContent: {
       padding: 16,
@@ -90,12 +93,13 @@ export default function WorkerDashboard() {
     },
     availabilityTitle: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.text,
       marginBottom: 4,
     },
     availabilitySubtitle: {
       fontSize: 12,
+      fontFamily: theme.fontRegular,
       color: theme.textSecondary,
     },
     statsContainer: {
@@ -119,22 +123,22 @@ export default function WorkerDashboard() {
     },
     statValue: {
       fontSize: 28,
-      fontWeight: 'bold',
+      fontFamily: theme.fontBold,
       color: theme.primary,
       marginBottom: 6,
     },
     statLabel: {
       fontSize: 13,
+      fontFamily: theme.fontMedium,
       color: theme.textSecondary,
       textAlign: 'center',
-      fontWeight: '500',
     },
     section: {
       marginBottom: 20,
     },
     sectionTitle: {
       fontSize: 20,
-      fontWeight: 'bold',
+      fontFamily: theme.fontBold,
       color: theme.text,
       marginBottom: 14,
       paddingHorizontal: 2,
@@ -158,12 +162,13 @@ export default function WorkerDashboard() {
     },
     clientName: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.text,
       marginBottom: 4,
     },
     requestTime: {
       fontSize: 12,
+      fontFamily: theme.fontRegular,
       color: theme.textTertiary,
     },
     amountBadge: {
@@ -174,7 +179,7 @@ export default function WorkerDashboard() {
     },
     amountText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.primary,
     },
     requestDetails: {
@@ -187,11 +192,12 @@ export default function WorkerDashboard() {
     },
     detailLabel: {
       fontSize: 14,
+      fontFamily: theme.fontRegular,
       color: theme.textSecondary,
     },
     detailValue: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.text,
     },
     requestActions: {
@@ -210,7 +216,7 @@ export default function WorkerDashboard() {
     },
     rejectButtonText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.textSecondary,
     },
     acceptButton: {
@@ -223,7 +229,7 @@ export default function WorkerDashboard() {
     },
     acceptButtonText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: '#FFFFFF',
     },
     emptyState: {
@@ -243,12 +249,13 @@ export default function WorkerDashboard() {
     },
     emptyStateTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.text,
       marginBottom: 6,
     },
     emptyStateSubtitle: {
       fontSize: 15,
+      fontFamily: theme.fontRegular,
       color: theme.textSecondary,
       textAlign: 'center',
     },
@@ -276,7 +283,7 @@ export default function WorkerDashboard() {
     },
     actionText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: theme.fontSemiBold,
       color: theme.text,
       textAlign: 'center',
     },
@@ -288,6 +295,7 @@ export default function WorkerDashboard() {
     loadingText: {
       marginTop: 12,
       fontSize: 16,
+      fontFamily: theme.fontRegular,
     },
   });
 
@@ -416,14 +424,14 @@ export default function WorkerDashboard() {
       >
         {/* Greeting Section */}
         <View style={[styles.greetingSection, { backgroundColor: theme.surface }]}>
-          <Text style={[styles.greeting, { color: theme.text }]}>Welcome back! 👋</Text>
+          <Text style={[styles.greeting, { color: theme.text }]}>Welcome back! �</Text>
           <Text style={[styles.name, { color: theme.textSecondary }]}>{user?.firstName} {user?.lastName}</Text>
         </View>
         {/* Availability Toggle */}
         <View style={styles.availabilityCard}>
           <View style={styles.availabilityInfo}>
             <Text style={styles.availabilityTitle}>
-              {isAvailable ? '✅ Available for Work' : '⏸️ Currently Unavailable'}
+              {isAvailable ? '✓ Available for Work' : '⏸ Currently Unavailable'}
             </Text>
             <Text style={styles.availabilitySubtitle}>
               {isAvailable
@@ -464,7 +472,7 @@ export default function WorkerDashboard() {
           <Text style={styles.sectionTitle}>Pending Requests ({pendingRequests.length})</Text>
           {pendingRequests.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>📭</Text>
+              <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
               <Text style={styles.emptyStateTitle}>No pending requests</Text>
               <Text style={styles.emptyStateSubtitle}>
                 New job requests will appear here
@@ -525,28 +533,28 @@ export default function WorkerDashboard() {
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/jobs')}
             >
-              <Text style={styles.actionIcon}>�</Text>
+              <Ionicons name="briefcase-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
               <Text style={styles.actionText}>View Requests</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/profile')}
             >
-              <Text style={styles.actionIcon}>👤</Text>
+              <Ionicons name="person-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
               <Text style={styles.actionText}>My Profile</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/earnings')}
             >
-              <Text style={styles.actionIcon}>💰</Text>
+              <Ionicons name="cash-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
               <Text style={styles.actionText}>Earnings</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/documents')}
             >
-              <Text style={styles.actionIcon}>📄</Text>
+              <Ionicons name="document-text-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
               <Text style={styles.actionText}>Documents</Text>
             </TouchableOpacity>
           </View>

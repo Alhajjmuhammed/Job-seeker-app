@@ -223,7 +223,7 @@ export default function WorkerJobsScreen() {
             {/* Direct Hire Requests */}
             {directRequests.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyIcon}>📬</Text>
+                <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
                 <Text style={styles.emptyText}>No hire requests yet</Text>
                 <Text style={styles.emptySubtext}>Keep your profile updated and wait for clients to find you!</Text>
               </View>
@@ -249,11 +249,13 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#FFFFFF',
     marginTop: 4,
     opacity: 0.9,
@@ -271,6 +273,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#1565C0',
     lineHeight: 20,
   },
@@ -286,6 +289,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   emptyState: {
@@ -294,16 +298,19 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: 'Poppins_400Regular',
     marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     textAlign: 'center',
     paddingHorizontal: 40,
@@ -327,12 +334,14 @@ const styles = StyleSheet.create({
   },
   clientName: {
     fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 4,
   },
   requestDate: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#9CA3AF',
   },
   statusBadge: {
@@ -346,6 +355,7 @@ const styles = StyleSheet.create({
   statusText: {
     color: '#FFFFFF',
     fontSize: 12,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
   },
   messageContainer: {
@@ -360,6 +370,7 @@ const styles = StyleSheet.create({
   messageText: {
     flex: 1,
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#4B5563',
     lineHeight: 20,
   },
@@ -374,11 +385,13 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
+    fontFamily: 'Poppins_500Medium',
     color: '#6B7280',
     fontWeight: '500',
   },
   detailValue: {
     fontSize: 14,
+    fontFamily: 'Poppins_600SemiBold',
     color: '#1F2937',
     fontWeight: '600',
   },
@@ -387,6 +400,7 @@ const styles = StyleSheet.create({
   },
   totalAmount: {
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#2E7D32',
   },
   actionButtons: {
@@ -411,6 +425,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
   },
 });

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
@@ -162,7 +163,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => router.push('/(worker)/profile-edit')}
           >
-            <Text style={styles.menuIcon}>👤</Text>
+            <Ionicons name="person-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Edit Profile</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -170,7 +171,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => router.push('/(worker)/profile-edit')}
           >
-            <Text style={styles.menuIcon}>💼</Text>
+            <Ionicons name="briefcase-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Skills & Categories</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -178,7 +179,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => router.push('/(worker)/documents')}
           >
-            <Text style={styles.menuIcon}>📄</Text>
+            <Ionicons name="document-text-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Documents</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -186,7 +187,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
             onPress={() => router.push('/(worker)/earnings')}
           >
-            <Text style={styles.menuIcon}>💰</Text>
+            <Ionicons name="cash-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Earnings & Payments</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -197,7 +198,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => Alert.alert('Coming Soon', 'Settings feature is coming soon!')}
           >
-            <Text style={styles.menuIcon}>⚙️</Text>
+            <Ionicons name="settings-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Settings</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -205,7 +206,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => Alert.alert('Help & Support', 'For assistance, please contact: support@workerconnect.com')}
           >
-            <Text style={styles.menuIcon}>❓</Text>
+            <Ionicons name="help-circle-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Help & Support</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -213,7 +214,7 @@ export default function WorkerProfileScreen() {
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
             onPress={() => Alert.alert('Coming Soon', 'Terms & Privacy page is coming soon!')}
           >
-            <Text style={styles.menuIcon}>📋</Text>
+            <Ionicons name="document-text-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Terms & Privacy</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
@@ -263,20 +264,22 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#FFFFFF',
   },
   name: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     marginBottom: 8,
   },
   category: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     marginTop: 8,
   },
   statsCard: {
@@ -297,11 +300,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
   },
   statDivider: {
     width: 1,
@@ -325,11 +329,12 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     marginBottom: 4,
   },
   settingSubtitle: {
     fontSize: 13,
+    fontFamily: 'Poppins_400Regular',
   },
   menuItem: {
     flexDirection: 'row',
@@ -344,6 +349,7 @@ const styles = StyleSheet.create({
   menuText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: 'Poppins_400Regular',
   },
   menuArrow: {
     fontSize: 24,
@@ -356,12 +362,13 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#FFFFFF',
   },
   version: {
     textAlign: 'center',
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     marginTop: 32,
     marginBottom: 20,
   },
@@ -374,6 +381,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
 });

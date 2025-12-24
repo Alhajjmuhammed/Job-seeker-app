@@ -46,10 +46,7 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <StatusBar style="dark" />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
@@ -143,7 +140,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -153,88 +150,92 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  scrollContent: {
-    flexGrow: 1,
+  content: {
+    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 40,
+    paddingBottom: 20,
+    justifyContent: 'space-between',
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#0F766E',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontFamily: 'Poppins_700Bold',
     color: '#FFFFFF',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontFamily: 'Poppins_700Bold',
     color: '#1F2937',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   formContainer: {
     width: '100%',
   },
   welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontFamily: 'Poppins_700Bold',
     color: '#1F2937',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
-    marginBottom: 32,
-  },
-  inputContainer: {
     marginBottom: 20,
   },
+  inputContainer: {
+    marginBottom: 16,
+  },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontFamily: 'Poppins_600SemiBold',
     color: '#374151',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   input: {
-    height: 50,
+    height: 44,
     borderWidth: 1,
     borderColor: '#D1D5DB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    fontFamily: 'Poppins_400Regular',
     backgroundColor: '#F9FAFB',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   forgotPasswordText: {
     color: '#0F766E',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   loginButton: {
-    height: 54,
+    height: 48,
     backgroundColor: '#0F766E',
-    borderRadius: 12,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   loginButtonDisabled: {
     opacity: 0.6,
@@ -242,12 +243,12 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   dividerLine: {
     flex: 1,
@@ -258,6 +259,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     color: '#9CA3AF',
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
   },
   registerContainer: {
     flexDirection: 'row',
@@ -266,25 +268,25 @@ const styles = StyleSheet.create({
   registerText: {
     color: '#6B7280',
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
   },
   registerLink: {
     color: '#0F766E',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   testingContainer: {
-    marginTop: 30,
-    padding: 16,
+    padding: 14,
     backgroundColor: '#FEF3C7',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#FCD34D',
   },
   testingTitle: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontFamily: 'Poppins_600SemiBold',
     color: '#92400E',
-    marginBottom: 12,
+    marginBottom: 10,
     textAlign: 'center',
   },
   testingButtons: {
@@ -293,7 +295,7 @@ const styles = StyleSheet.create({
   },
   testButton: {
     flex: 1,
-    height: 40,
+    height: 36,
     backgroundColor: '#0F766E',
     borderRadius: 8,
     justifyContent: 'center',
@@ -305,6 +307,6 @@ const styles = StyleSheet.create({
   testButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

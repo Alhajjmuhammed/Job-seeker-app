@@ -224,10 +224,12 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 28,
+    fontFamily: 'Poppins_400Regular',
     color: '#FFFFFF',
   },
   headerTitle: {
     fontSize: 20,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -242,6 +244,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   scrollContent: {
@@ -259,11 +262,13 @@ const styles = StyleSheet.create({
   },
   infoIcon: {
     fontSize: 24,
+    fontFamily: 'Poppins_400Regular',
     marginRight: 12,
   },
   infoText: {
     flex: 1,
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#1E40AF',
     lineHeight: 20,
   },
@@ -278,11 +283,13 @@ const styles = StyleSheet.create({
   },
   uploadIcon: {
     fontSize: 20,
+    fontFamily: 'Poppins_400Regular',
     marginRight: 8,
   },
   uploadButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
   },
   section: {
@@ -290,6 +297,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 12,
@@ -302,16 +310,19 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: 'Poppins_400Regular',
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   documentCard: {
@@ -338,23 +349,27 @@ const styles = StyleSheet.create({
   },
   documentIconText: {
     fontSize: 24,
+    fontFamily: 'Poppins_400Regular',
   },
   documentInfo: {
     flex: 1,
   },
   documentName: {
     fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
   documentType: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     marginBottom: 2,
   },
   documentDate: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#9CA3AF',
   },
   documentRight: {
@@ -368,6 +383,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     textTransform: 'capitalize',
   },
@@ -377,6 +393,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#EF4444',
   },
   guideSection: {
@@ -386,6 +403,7 @@ const styles = StyleSheet.create({
   },
   guideTitle: {
     fontSize: 16,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 16,
@@ -397,6 +415,7 @@ const styles = StyleSheet.create({
   },
   guideIcon: {
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#059669',
     marginRight: 12,
     width: 20,
@@ -411,6 +430,7 @@ const styles = StyleSheet.create({
   },
   guideSectionTitle: {
     fontSize: 14,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     marginTop: 12,
@@ -418,6 +438,7 @@ const styles = StyleSheet.create({
   },
   guideText: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#4B5563',
     flex: 1,
   },

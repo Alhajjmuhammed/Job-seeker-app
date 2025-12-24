@@ -32,6 +32,12 @@ interface ThemeColors {
   
   // Status bar
   statusBar: 'light' | 'dark';
+  
+  // Font families
+  fontRegular: string;
+  fontMedium: string;
+  fontSemiBold: string;
+  fontBold: string;
 }
 
 interface ThemeContextType {
@@ -64,6 +70,11 @@ const lightTheme: ThemeColors = {
   divider: '#F3F4F6',
   
   statusBar: 'dark',
+  
+  fontRegular: 'Poppins_400Regular',
+  fontMedium: 'Poppins_500Medium',
+  fontSemiBold: 'Poppins_600SemiBold',
+  fontBold: 'Poppins_700Bold',
 };
 
 const darkTheme: ThemeColors = {
@@ -79,15 +90,20 @@ const darkTheme: ThemeColors = {
   primaryLight: '#2DD4BF',
   primaryDark: '#0D9488',
   
-  accent: '#60A5FA',
-  success: '#34D399',
-  warning: '#FBBF24',
-  error: '#F87171',
+  accent: '#3B82F6',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
   
-  border: '#374151',
-  divider: '#1F2937',
+  border: '#2D2D2D',
+  divider: '#262626',
   
   statusBar: 'light',
+  
+  fontRegular: 'Poppins_400Regular',
+  fontMedium: 'Poppins_500Medium',
+  fontSemiBold: 'Poppins_600SemiBold',
+  fontBold: 'Poppins_700Bold',
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

@@ -210,9 +210,9 @@ export default function ProfileEditScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0F766E" />
-        <Text style={styles.loadingText}>Loading profile...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading profile...</Text>
       </View>
     );
   }
@@ -231,18 +231,18 @@ export default function ProfileEditScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Completion */}
         {profile && (
-          <View style={styles.completionCard}>
+          <View style={[styles.completionCard, { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.1)' : '#0F766E15' }]}>
             <View style={styles.completionHeader}>
-              <Text style={styles.completionTitle}>Profile Completion</Text>
-              <Text style={styles.completionPercent}>
+              <Text style={[styles.completionTitle, { color: theme.text }]}>Profile Completion</Text>
+              <Text style={[styles.completionPercent, { color: theme.primary }]}>
                 {profile.profile_completion_percentage || 0}%
               </Text>
             </View>
-            <View style={styles.progressBar}>
+            <View style={[styles.progressBar, { backgroundColor: theme.surfaceVariant }]}>
               <View 
                 style={[
                   styles.progressFill, 
-                  { width: `${profile.profile_completion_percentage || 0}%` }
+                  { width: `${profile.profile_completion_percentage || 0}%`, backgroundColor: theme.primary }
                 ]} 
               />
             </View>
@@ -250,12 +250,12 @@ export default function ProfileEditScreen() {
         )}
 
         {/* Profile Photo Section */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="camera" size={24} color="#0F766E" />
+            <Ionicons name="camera" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={styles.sectionTitle}>Profile Photo</Text>
-              <Text style={styles.sectionSubtitle}>Upload a professional photo</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Profile Photo</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Upload a professional photo</Text>
             </View>
           </View>
 
@@ -263,14 +263,14 @@ export default function ProfileEditScreen() {
             {profile?.profile_image ? (
               <Image source={{ uri: profile.profile_image }} style={styles.profileImage} />
             ) : (
-              <View style={styles.profilePlaceholder}>
+              <View style={[styles.profilePlaceholder, { backgroundColor: theme.primary }]}>
                 <Text style={styles.placeholderText}>
                   {user?.firstName?.[0]}{user?.lastName?.[0]}
                 </Text>
               </View>
             )}
             <TouchableOpacity 
-              style={styles.changePhotoButton} 
+              style={[styles.changePhotoButton, { backgroundColor: theme.primary }]} 
               onPress={handlePickImage}
               disabled={saving}
             >
@@ -283,22 +283,23 @@ export default function ProfileEditScreen() {
         </View>
 
         {/* Personal Information */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="person" size={24} color="#0F766E" />
+            <Ionicons name="person" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
-              <Text style={styles.sectionSubtitle}>Tell us about yourself</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Personal Information</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Tell us about yourself</Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Bio</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Bio</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={bio}
               onChangeText={setBio}
               placeholder="Write a brief introduction about your skills and experience"
+              placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -306,74 +307,78 @@ export default function ProfileEditScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Phone Number</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: isDark ? theme.surfaceVariant : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
               value={phone}
               onChangeText={setPhone}
               placeholder="+255712345678"
+              placeholderTextColor={theme.textSecondary}
               keyboardType="phone-pad"
               editable={false}
             />
-            <Text style={styles.helpText}>Phone cannot be changed</Text>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>Phone cannot be changed</Text>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Email Address</Text>
             <TextInput
-              style={[styles.input, styles.disabledInput]}
+              style={[styles.input, styles.disabledInput, { backgroundColor: isDark ? theme.surfaceVariant : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
               value={user?.email}
               editable={false}
             />
-            <Text style={styles.helpText}>Email cannot be changed</Text>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>Email cannot be changed</Text>
           </View>
         </View>
 
         {/* Location */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="location" size={24} color="#0F766E" />
+            <Ionicons name="location" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={styles.sectionTitle}>Location</Text>
-              <Text style={styles.sectionSubtitle}>Where are you based?</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Location</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Where are you based?</Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Address</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Address</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={address}
               onChangeText={setAddress}
               placeholder="Street address"
+              placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           <View style={styles.row}>
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={styles.label}>City</Text>
+              <Text style={[styles.label, { color: theme.text }]}>City</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={city}
                 onChangeText={setCity}
                 placeholder="City"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
 
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={styles.label}>State/Province</Text>
+              <Text style={[styles.label, { color: theme.text }]}>State/Province</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={state}
                 onChangeText={setState}
                 placeholder="State"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
           </View>
 
           <View style={styles.row}>
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Country</Text>
+              <Text style={[styles.label, { color: theme.text }]}>Country</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={country}
@@ -396,18 +401,19 @@ export default function ProfileEditScreen() {
             </View>
 
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Postal Code</Text>
+              <Text style={[styles.label, { color: theme.text }]}>Postal Code</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={postalCode}
                 onChangeText={setPostalCode}
                 placeholder="Postal code"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Religion (Optional)</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Religion (Optional)</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={religion}
@@ -433,56 +439,59 @@ export default function ProfileEditScreen() {
           >
             <View style={[
               styles.checkbox,
-              canWorkEverywhere && styles.checkboxChecked
+              { borderColor: theme.primary, backgroundColor: theme.surface },
+              canWorkEverywhere && { backgroundColor: theme.primary }
             ]}>
               {canWorkEverywhere && (
                 <Ionicons name="checkmark" size={16} color="#FFF" />
               )}
             </View>
-            <Text style={styles.checkboxLabel}>
+            <Text style={[styles.checkboxLabel, { color: theme.text }]}>
               Can work everywhere (any location)
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Professional Details */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="briefcase" size={24} color="#0F766E" />
+            <Ionicons name="briefcase" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={styles.sectionTitle}>Professional Details</Text>
-              <Text style={styles.sectionSubtitle}>Your skills and rates</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Professional Details</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Your skills and rates</Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Years of Experience</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Years of Experience</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={experienceYears}
               onChangeText={setExperienceYears}
               placeholder="0"
+              placeholderTextColor={theme.textSecondary}
               keyboardType="numeric"
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Hourly Rate (USD)</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Hourly Rate (USD)</Text>
             <View style={styles.inputWithPrefix}>
-              <Text style={styles.inputPrefix}>$</Text>
+              <Text style={[styles.inputPrefix, { color: theme.textSecondary }]}>$</Text>
               <TextInput
-                style={[styles.input, styles.inputWithPrefixField]}
+                style={[styles.input, styles.inputWithPrefixField, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={hourlyRate}
                 onChangeText={setHourlyRate}
                 placeholder="0.00"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="decimal-pad"
               />
             </View>
-            <Text style={styles.helpText}>Your hourly rate in US dollars</Text>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>Your hourly rate in US dollars</Text>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Availability</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Availability</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={availability}
@@ -498,12 +507,12 @@ export default function ProfileEditScreen() {
         </View>
 
         {/* Categories */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="pricetags" size={24} color="#0F766E" />
+            <Ionicons name="pricetags" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={styles.sectionTitle}>Categories</Text>
-              <Text style={styles.sectionSubtitle}>Select your work categories</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Categories</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Select your work categories</Text>
             </View>
           </View>
 
@@ -513,14 +522,16 @@ export default function ProfileEditScreen() {
                 key={category.id}
                 style={[
                   styles.categoryItem,
-                  selectedCategories.includes(category.id) && styles.categoryItemSelected,
+                  { backgroundColor: theme.surfaceVariant, borderColor: theme.border },
+                  selectedCategories.includes(category.id) && { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.2)' : '#F0FDF4', borderColor: theme.primary },
                 ]}
                 onPress={() => toggleCategory(category.id)}
                 activeOpacity={0.7}
               >
                 <View style={[
                   styles.categoryCheckbox,
-                  selectedCategories.includes(category.id) && styles.categoryCheckboxChecked
+                  { borderColor: theme.primary, backgroundColor: theme.surface },
+                  selectedCategories.includes(category.id) && { backgroundColor: theme.primary }
                 ]}>
                   {selectedCategories.includes(category.id) && (
                     <Ionicons name="checkmark" size={16} color="#FFF" />
@@ -529,7 +540,8 @@ export default function ProfileEditScreen() {
                 <Text
                   style={[
                     styles.categoryLabel,
-                    selectedCategories.includes(category.id) && styles.categoryLabelSelected,
+                    { color: theme.text },
+                    selectedCategories.includes(category.id) && { color: theme.primary, fontFamily: 'Poppins_600SemiBold' },
                   ]}
                 >
                   {category.name}
@@ -542,7 +554,7 @@ export default function ProfileEditScreen() {
         {/* Save Button */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[styles.saveButton, saving && styles.disabledButton]}
+            style={[styles.saveButton, { backgroundColor: theme.primary }, saving && styles.disabledButton]}
             onPress={handleSave}
             disabled={saving}
           >
@@ -561,7 +573,7 @@ export default function ProfileEditScreen() {
             onPress={() => router.back()}
             disabled={saving}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</Text>
           </TouchableOpacity>
         </View>
 
@@ -585,6 +597,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   header: {
@@ -601,7 +614,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#FFFFFF',
   },
   scrollView: {
@@ -621,12 +634,12 @@ const styles = StyleSheet.create({
   },
   completionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#111827',
   },
   completionPercent: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#0F766E',
   },
   progressBar: {
@@ -663,11 +676,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'Poppins_700Bold',
     color: '#111827',
   },
   sectionSubtitle: {
     fontSize: 13,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     marginTop: 2,
   },
@@ -690,7 +704,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 48,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#FFF',
   },
   changePhotoButton: {
@@ -705,14 +719,14 @@ const styles = StyleSheet.create({
   changePhotoText: {
     color: '#FFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   formGroup: {
     marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#374151',
     marginBottom: 8,
   },
@@ -722,6 +736,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     backgroundColor: '#FFF',
   },
   textArea: {
@@ -734,6 +749,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     marginTop: 4,
   },
@@ -774,6 +790,7 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#4B5563',
     flex: 1,
   },
@@ -785,7 +802,7 @@ const styles = StyleSheet.create({
     left: 12,
     top: 12,
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#6B7280',
     zIndex: 1,
   },
@@ -824,12 +841,13 @@ const styles = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 15,
+    fontFamily: 'Poppins_400Regular',
     color: '#4B5563',
     flex: 1,
   },
   categoryLabelSelected: {
     color: '#065F46',
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   actions: {
     marginHorizontal: 20,
@@ -848,7 +866,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
   disabledButton: {
     opacity: 0.6,
@@ -860,6 +878,6 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#6B7280',
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'Poppins_500Medium',
   },
 });

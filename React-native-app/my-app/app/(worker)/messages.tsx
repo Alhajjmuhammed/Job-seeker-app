@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
@@ -105,7 +106,7 @@ export default function WorkerMessagesScreen() {
       >
         {filteredMessages.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>💬</Text>
+            <Ionicons name="chatbubbles-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
             <Text style={styles.emptyText}>No messages yet</Text>
             <Text style={styles.emptySubtext}>Start a conversation with clients</Text>
           </View>
@@ -151,6 +152,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -167,6 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 16,
     fontSize: 15,
+    fontFamily: 'Poppins_400Regular',
   },
   scrollContent: {
     padding: 20,
@@ -196,6 +199,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
   },
   messageContent: {
@@ -208,15 +212,18 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
   },
   time: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#9CA3AF',
   },
   lastMessage: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   unreadBadge: {
@@ -231,6 +238,7 @@ const styles = StyleSheet.create({
   unreadText: {
     color: '#FFFFFF',
     fontSize: 11,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
   },
   loadingContainer: {
@@ -242,6 +250,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   emptyState: {
@@ -250,16 +259,19 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: 'Poppins_400Regular',
     marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     textAlign: 'center',
   },

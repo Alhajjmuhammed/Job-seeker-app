@@ -177,10 +177,12 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 28,
+    fontFamily: 'Poppins_400Regular',
     color: '#FFFFFF',
   },
   headerTitle: {
     fontSize: 20,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -195,6 +197,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   scrollContent: {
@@ -217,11 +220,13 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     marginBottom: 8,
   },
   balanceAmount: {
     fontSize: 36,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#0F766E',
   },
@@ -242,11 +247,13 @@ const styles = StyleSheet.create({
   },
   smallCardLabel: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     marginBottom: 4,
   },
   smallCardAmount: {
     fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: '700',
     color: '#1F2937',
   },
@@ -260,6 +267,7 @@ const styles = StyleSheet.create({
   withdrawButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
   },
   section: {
@@ -267,6 +275,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 12,
@@ -279,16 +288,19 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: 'Poppins_400Regular',
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
   },
   transactionCard: {
@@ -309,17 +321,20 @@ const styles = StyleSheet.create({
   },
   transactionTitle: {
     fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
   transactionClient: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: '#6B7280',
     marginBottom: 2,
   },
   transactionDate: {
     fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
     color: '#9CA3AF',
   },
   transactionRight: {
@@ -327,6 +342,7 @@ const styles = StyleSheet.create({
   },
   transactionAmount: {
     fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
     fontWeight: 'bold',
     color: '#059669',
     marginBottom: 4,
@@ -338,6 +354,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
     color: '#1F2937',
     textTransform: 'capitalize',
