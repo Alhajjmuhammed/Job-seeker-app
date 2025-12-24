@@ -14,8 +14,10 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Link } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function LoginScreen() {
+  const { theme, isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

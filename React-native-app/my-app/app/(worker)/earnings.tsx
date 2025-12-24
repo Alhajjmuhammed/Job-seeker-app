@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 interface Transaction {
@@ -22,6 +24,7 @@ interface Transaction {
 }
 
 export default function EarningsScreen() {
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [pendingAmount, setPendingAmount] = useState(0);
@@ -63,17 +66,16 @@ export default function EarningsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Earnings</Text>
-        <View style={styles.headerRight} />
-      </View>
+      {/* Header Component */}
+      <Header 
+        showNotifications 
+        showSearch 
+        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+        onSearchPress={() => Alert.alert('Search', 'Search coming soon')}
+      />
 
       {loading ? (
         <View style={styles.loadingContainer}>

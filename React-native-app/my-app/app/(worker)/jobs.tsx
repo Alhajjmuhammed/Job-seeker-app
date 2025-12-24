@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 interface DirectHireRequest {
@@ -25,6 +27,7 @@ interface DirectHireRequest {
 }
 
 export default function WorkerJobsScreen() {
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [directRequests, setDirectRequests] = useState<DirectHireRequest[]>([]);
@@ -186,14 +189,16 @@ export default function WorkerJobsScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Direct Hire Requests</Text>
-        <Text style={styles.headerSubtitle}>Clients who want to hire you</Text>
-      </View>
+      {/* Header Component */}
+      <Header 
+        showNotifications 
+        showSearch 
+        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+        onSearchPress={() => Alert.alert('Search', 'Search coming soon')}
+      />
 
       {/* Info Banner */}
       <View style={styles.infoBanner}>

@@ -11,6 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 interface Message {
@@ -23,6 +25,7 @@ interface Message {
 }
 
 export default function WorkerMessagesScreen() {
+  const { theme, isDark } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -66,13 +69,16 @@ export default function WorkerMessagesScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
-      </View>
+      {/* Header Component */}
+      <Header 
+        showNotifications 
+        showSearch 
+        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+        onSearchPress={() => Alert.alert('Search', 'Search messages')}
+      />
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>

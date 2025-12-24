@@ -13,11 +13,13 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Link } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type UserType = 'worker' | 'client';
 type WorkerType = 'professional' | 'non-academic';
 
 export default function RegisterScreen() {
+  const { theme, isDark } = useTheme();
   const [userType, setUserType] = useState<UserType>('worker');
   const [workerType, setWorkerType] = useState<WorkerType>('non-academic');
   const [formData, setFormData] = useState({

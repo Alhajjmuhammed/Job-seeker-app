@@ -13,10 +13,13 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 export default function WorkerProfileScreen() {
   const { user, logout } = useAuth();
+  const { theme, isDark } = useTheme();
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
@@ -77,148 +80,151 @@ export default function WorkerProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <StatusBar style={theme.statusBar} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        {profile?.profile_image ? (
-          <Image
-            source={{ uri: profile.profile_image }}
-            style={styles.avatarImage}
-          />
-        ) : (
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </Text>
-          </View>
-        )}
-        <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-        {profile && profile.categories && profile.categories.length > 0 && (
-          <Text style={styles.category}>
-            {profile.categories.map((cat: any) => cat.name).join(' • ')}
-          </Text>
-        )}
-      </View>
-
+      {/* Header Component */}
+      <Header showBack={false} showNotifications={false} showSearch={false} />
+      
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading profile...</Text>
+        <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading profile...</Text>
         </View>
       ) : (
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Profile Header Card */}
+        <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {profile?.profile_image ? (
+            <Image
+              source={{ uri: profile.profile_image }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+              <Text style={styles.avatarText}>
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </Text>
+            </View>
+          )}
+          <Text style={[styles.name, { color: theme.text }]}>{user?.firstName} {user?.lastName}</Text>
+          <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
+          {profile && profile.categories && profile.categories.length > 0 && (
+            <Text style={[styles.category, { color: theme.textTertiary }]}>
+              {profile.categories.map((cat: any) => cat.name).join(' • ')}
+            </Text>
+          )}
+        </View>
+
         {/* Stats Card */}
-        <View style={styles.statsCard}>
+        <View style={[styles.statsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: theme.primary }]}>
               {stats.rating > 0 ? stats.rating.toFixed(1) : 'N/A'}
             </Text>
-            <Text style={styles.statLabel}>Rating</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Rating</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.completedJobs}</Text>
-            <Text style={styles.statLabel}>Jobs Done</Text>
+            <Text style={[styles.statValue, { color: theme.primary }]}>{stats.completedJobs}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Jobs Done</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: theme.primary }]}>
               {stats.responseRate > 0 ? `${stats.responseRate}%` : 'N/A'}
             </Text>
-            <Text style={styles.statLabel}>Response</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Response</Text>
           </View>
         </View>
 
         {/* Availability Toggle */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.availabilityRow}>
             <View>
-              <Text style={styles.settingTitle}>Available for Work</Text>
-              <Text style={styles.settingSubtitle}>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>Available for Work</Text>
+              <Text style={[styles.settingSubtitle, { color: theme.textSecondary }]}>
                 Clients can see your profile
               </Text>
             </View>
             <Switch
               value={isAvailable}
               onValueChange={handleAvailabilityToggle}
-              trackColor={{ false: '#D1D5DB', true: '#6EE7B7' }}
-              thumbColor={isAvailable ? '#0F766E' : '#9CA3AF'}
+              trackColor={{ false: theme.border, true: theme.primaryLight }}
+              thumbColor={isAvailable ? theme.primary : theme.textTertiary}
             />
           </View>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => router.push('/(worker)/profile-edit')}
           >
             <Text style={styles.menuIcon}>👤</Text>
-            <Text style={styles.menuText}>Edit Profile</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Edit Profile</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => router.push('/(worker)/profile-edit')}
           >
             <Text style={styles.menuIcon}>💼</Text>
-            <Text style={styles.menuText}>Skills & Categories</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Skills & Categories</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => router.push('/(worker)/documents')}
           >
             <Text style={styles.menuIcon}>📄</Text>
-            <Text style={styles.menuText}>Documents</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Documents</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
             onPress={() => router.push('/(worker)/earnings')}
           >
             <Text style={styles.menuIcon}>💰</Text>
-            <Text style={styles.menuText}>Earnings & Payments</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Earnings & Payments</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => Alert.alert('Coming Soon', 'Settings feature is coming soon!')}
           >
             <Text style={styles.menuIcon}>⚙️</Text>
-            <Text style={styles.menuText}>Settings</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Settings</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.divider }]}
             onPress={() => Alert.alert('Help & Support', 'For assistance, please contact: support@workerconnect.com')}
           >
             <Text style={styles.menuIcon}>❓</Text>
-            <Text style={styles.menuText}>Help & Support</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Help & Support</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
             onPress={() => Alert.alert('Coming Soon', 'Terms & Privacy page is coming soon!')}
           >
             <Text style={styles.menuIcon}>📋</Text>
-            <Text style={styles.menuText}>Terms & Privacy</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Terms & Privacy</Text>
+            <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: theme.error }]} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={[styles.version, { color: theme.textTertiary }]}>Version 1.0.0</Text>
       </ScrollView>
       )}
     </View>
@@ -226,21 +232,25 @@ export default function WorkerProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
+  scrollContent: {
+    padding: 20,
   },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 32,
+  profileCard: {
+    borderRadius: 12,
+    padding: 24,
     alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -250,43 +260,36 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     marginBottom: 12,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
   },
   avatarText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#0F766E',
+    color: '#FFFFFF',
   },
   name: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: '#D1FAE5',
     marginBottom: 8,
   },
   category: {
     fontSize: 14,
-    color: '#D1FAE5',
-  },
-  scrollContent: {
-    padding: 20,
+    marginTop: 8,
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    borderWidth: 1,
   },
   statItem: {
     flex: 1,
@@ -295,19 +298,15 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0F766E',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
   },
   section: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     marginBottom: 12,
     overflow: 'hidden',
@@ -316,6 +315,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    borderWidth: 1,
   },
   availabilityRow: {
     flexDirection: 'row',
@@ -326,19 +326,16 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 4,
   },
   settingSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   menuIcon: {
     fontSize: 20,
@@ -347,31 +344,26 @@ const styles = StyleSheet.create({
   menuText: {
     flex: 1,
     fontSize: 15,
-    color: '#1F2937',
   },
   menuArrow: {
     fontSize: 24,
-    color: '#9CA3AF',
   },
   logoutButton: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#EF4444',
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#EF4444',
+    color: '#FFFFFF',
   },
   version: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#9CA3AF',
     marginTop: 32,
+    marginBottom: 20,
   },
   loadingContainer: {
     flex: 1,

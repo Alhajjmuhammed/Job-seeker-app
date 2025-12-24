@@ -16,6 +16,8 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 type Category = {
@@ -27,6 +29,7 @@ type Category = {
 
 export default function ProfileEditScreen() {
   const { user } = useAuth();
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -215,17 +218,15 @@ export default function ProfileEditScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      {/* Header Component */}
+      <Header 
+        showBack
+        showNotifications 
+        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+      />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Completion */}

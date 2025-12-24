@@ -14,6 +14,8 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 
 interface DirectHireRequest {
   id: number;
@@ -28,6 +30,7 @@ interface DirectHireRequest {
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
+  const { theme, isDark } = useTheme();
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -37,6 +40,255 @@ export default function WorkerDashboard() {
     active_jobs: 0,
     total_applications: 0,
     accepted_applications: 0,
+  });
+
+  // Create theme-aware styles
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    greetingSection: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    greeting: {
+      fontSize: 15,
+      marginBottom: 6,
+      fontWeight: '500',
+    },
+    name: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    scrollContent: {
+      padding: 16,
+    },
+    availabilityCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    availabilityInfo: {
+      flex: 1,
+      marginRight: 12,
+    },
+    availabilityTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.text,
+      marginBottom: 4,
+    },
+    availabilitySubtitle: {
+      fontSize: 12,
+      color: theme.textSecondary,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 20,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '47%',
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    statValue: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.primary,
+      marginBottom: 6,
+    },
+    statLabel: {
+      fontSize: 13,
+      color: theme.textSecondary,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    section: {
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.text,
+      marginBottom: 14,
+      paddingHorizontal: 2,
+    },
+    requestCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    requestHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    clientName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.text,
+      marginBottom: 4,
+    },
+    requestTime: {
+      fontSize: 12,
+      color: theme.textTertiary,
+    },
+    amountBadge: {
+      backgroundColor: isDark ? theme.primaryDark : '#ECFDF5',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    amountText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.primary,
+    },
+    requestDetails: {
+      marginBottom: 16,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    detailLabel: {
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    detailValue: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.text,
+    },
+    requestActions: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    rejectButton: {
+      flex: 1,
+      height: 44,
+      backgroundColor: theme.card,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    rejectButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.textSecondary,
+    },
+    acceptButton: {
+      flex: 2,
+      height: 44,
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    acceptButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    emptyState: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 40,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    emptyStateText: {
+      fontSize: 56,
+      marginBottom: 16,
+    },
+    emptyStateTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.text,
+      marginBottom: 6,
+    },
+    emptyStateSubtitle: {
+      fontSize: 15,
+      color: theme.textSecondary,
+      textAlign: 'center',
+    },
+    quickActions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      minWidth: '47%',
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 24,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    actionIcon: {
+      fontSize: 36,
+      marginBottom: 10,
+    },
+    actionText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.text,
+      textAlign: 'center',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+    },
   });
 
   useEffect(() => {
@@ -135,27 +387,21 @@ export default function WorkerDashboard() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome back! 👋</Text>
-          <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
-        </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Text style={styles.notificationText}>🔔</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>2</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Header Component */}
+      <Header 
+        showNotifications 
+        showSearch 
+        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+        onSearchPress={() => router.push('/(worker)/jobs')}
+      />
 
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading dashboard...</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading dashboard...</Text>
         </View>
       ) : (
       <ScrollView 
@@ -164,10 +410,15 @@ export default function WorkerDashboard() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#0F766E"
+            tintColor={theme.primary}
           />
         }
       >
+        {/* Greeting Section */}
+        <View style={[styles.greetingSection, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.greeting, { color: theme.text }]}>Welcome back! 👋</Text>
+          <Text style={[styles.name, { color: theme.textSecondary }]}>{user?.firstName} {user?.lastName}</Text>
+        </View>
         {/* Availability Toggle */}
         <View style={styles.availabilityCard}>
           <View style={styles.availabilityInfo}>
@@ -305,268 +556,3 @@ export default function WorkerDashboard() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  greeting: {
-    fontSize: 14,
-    color: '#D1FAE5',
-    marginBottom: 4,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  notificationButton: {
-    position: 'relative',
-  },
-  notificationText: {
-    fontSize: 24,
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  availabilityCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  availabilityInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  availabilityTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  availabilitySubtitle: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '47%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#0F766E',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  requestCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  requestHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  clientName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  requestTime: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  amountBadge: {
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  amountText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F766E',
-  },
-  requestDetails: {
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  requestActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  rejectButton: {
-    flex: 1,
-    height: 44,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  rejectButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  acceptButton: {
-    flex: 2,
-    height: 44,
-    backgroundColor: '#0F766E',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  acceptButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  emptyState: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  emptyStateTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  emptyStateSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    minWidth: '47%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  actionIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  actionText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1F2937',
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-});
