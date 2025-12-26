@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 
 interface Worker {
   id: number;
@@ -22,6 +24,7 @@ interface Worker {
 }
 
 export default function ClientSearchScreen() {
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -88,29 +91,28 @@ export default function ClientSearchScreen() {
   });
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Find Workers</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Header title="Find Workers" showBack={false} />
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by name or category..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+      <View style={[styles.searchContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <View style={[styles.searchInputContainer, { backgroundColor: theme.background }]}>
+          <Ionicons name="search" size={20} color={theme.textSecondary} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text, fontFamily: 'Poppins_400Regular' }]}
+            placeholder="Search by name or category..."
+            placeholderTextColor={theme.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
       {/* Category Filters */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
+        style={[styles.filtersContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
         contentContainerStyle={styles.filtersContent}
       >
         {categories.map((category) => (
@@ -118,14 +120,16 @@ export default function ClientSearchScreen() {
             key={category}
             style={[
               styles.filterButton,
-              selectedCategory === category && styles.filterButtonActive,
+              { backgroundColor: theme.background, borderColor: theme.border },
+              selectedCategory === category && { backgroundColor: theme.primary, borderColor: theme.primary },
             ]}
             onPress={() => setSelectedCategory(category)}
           >
             <Text
               style={[
                 styles.filterText,
-                selectedCategory === category && styles.filterTextActive,
+                { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
+                selectedCategory === category && { color: theme.textLight },
               ]}
             >
               {category}
@@ -135,50 +139,54 @@ export default function ClientSearchScreen() {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.resultsText}>
+        <Text style={[styles.resultsText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
           {filteredWorkers.length} worker{filteredWorkers.length !== 1 ? 's' : ''} found
         </Text>
 
         {filteredWorkers.map((worker) => (
-          <View key={worker.id} style={styles.workerCard}>
+          <View key={worker.id} style={[styles.workerCard, { backgroundColor: theme.card }]}>
             <View style={styles.workerInfo}>
-              <View style={styles.workerAvatar}>
-                <Text style={styles.workerAvatarText}>
+              <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
+                <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
                   {worker.name.split(' ').map(n => n[0]).join('')}
                 </Text>
               </View>
               <View style={styles.workerDetails}>
                 <View style={styles.workerNameRow}>
-                  <Text style={styles.workerName}>{worker.name}</Text>
+                  <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{worker.name}</Text>
                   {worker.isAvailable && (
                     <View style={styles.availableBadge}>
-                      <Text style={styles.availableBadgeText}>Available</Text>
+                      <Text style={[styles.availableBadgeText, { fontFamily: 'Poppins_600SemiBold' }]}>Available</Text>
                     </View>
                   )}
                 </View>
-                <Text style={styles.workerCategory}>{worker.category}</Text>
-                <Text style={styles.workerLocation}>📍 {worker.location}</Text>
+                <Text style={[styles.workerCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{worker.category}</Text>
+                <View style={styles.workerLocationRow}>
+                  <Ionicons name="location" size={13} color={theme.textSecondary} />
+                  <Text style={[styles.workerLocation, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}> {worker.location}</Text>
+                </View>
                 <View style={styles.workerStats}>
-                  <Text style={styles.workerRating}>⭐ {worker.rating}</Text>
-                  <Text style={styles.workerJobs}>• {worker.completedJobs} jobs</Text>
-                  <Text style={styles.workerRate}>• SDG {worker.hourlyRate}/hr</Text>
+                  <Ionicons name="star" size={13} color="#F59E0B" />
+                  <Text style={[styles.workerRating, { fontFamily: 'Poppins_600SemiBold' }]}> {worker.rating}</Text>
+                  <Text style={[styles.workerJobs, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• {worker.completedJobs} jobs</Text>
+                  <Text style={[styles.workerRate, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• SDG {worker.hourlyRate}/hr</Text>
                 </View>
               </View>
             </View>
 
             <View style={styles.workerActions}>
               <TouchableOpacity
-                style={styles.viewProfileButton}
+                style={[styles.viewProfileButton, { backgroundColor: theme.background, borderColor: theme.border }]}
                 onPress={() => router.push(`/(client)/worker/${worker.id}`)}
               >
-                <Text style={styles.viewProfileButtonText}>View Profile</Text>
+                <Text style={[styles.viewProfileButtonText, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>View Profile</Text>
               </TouchableOpacity>
               {worker.isAvailable && (
                 <TouchableOpacity
-                  style={styles.requestButton}
+                  style={[styles.requestButton, { backgroundColor: theme.primary }]}
                   onPress={() => router.push(`/(client)/request-worker/${worker.id}` as any)}
                 >
-                  <Text style={styles.requestButtonText}>Request Now</Text>
+                  <Text style={[styles.requestButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Request Now</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -192,73 +200,49 @@ export default function ClientSearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   searchContainer: {
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
-  searchInput: {
+  searchInputContainer: {
     height: 48,
-    backgroundColor: '#F3F4F6',
     borderRadius: 12,
     paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
     fontSize: 15,
   },
   filtersContainer: {
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   filtersContent: {
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   filterButton: {
-    backgroundColor: '#F3F4F6',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  filterButtonActive: {
-    backgroundColor: '#0F766E',
-    borderColor: '#0F766E',
   },
   filterText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  filterTextActive: {
-    color: '#FFFFFF',
   },
   scrollContent: {
     padding: 20,
   },
   resultsText: {
     fontSize: 14,
-    color: '#6B7280',
     marginBottom: 16,
   },
   workerCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -276,15 +260,12 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#0F766E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   workerAvatarText: {
-    color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: 'bold',
   },
   workerDetails: {
     flex: 1,
@@ -296,8 +277,6 @@ const styles = StyleSheet.create({
   },
   workerName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
     marginRight: 8,
   },
   availableBadge: {
@@ -308,36 +287,35 @@ const styles = StyleSheet.create({
   },
   availableBadgeText: {
     fontSize: 10,
-    fontWeight: '600',
     color: '#065F46',
   },
   workerCategory: {
     fontSize: 14,
-    color: '#6B7280',
+    marginBottom: 4,
+  },
+  workerLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
   workerLocation: {
     fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 4,
   },
   workerStats: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignItems: 'center',
   },
   workerRating: {
     fontSize: 13,
     color: '#F59E0B',
-    fontWeight: '600',
   },
   workerJobs: {
     fontSize: 13,
-    color: '#6B7280',
     marginLeft: 4,
   },
   workerRate: {
     fontSize: 13,
-    color: '#6B7280',
     marginLeft: 4,
   },
   workerActions: {
@@ -347,29 +325,22 @@ const styles = StyleSheet.create({
   viewProfileButton: {
     flex: 1,
     height: 40,
-    backgroundColor: '#F3F4F6',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   viewProfileButtonText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
   },
   requestButton: {
     flex: 1,
     height: 40,
-    backgroundColor: '#0F766E',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   requestButtonText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });

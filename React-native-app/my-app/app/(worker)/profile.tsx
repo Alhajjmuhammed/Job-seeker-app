@@ -30,9 +30,18 @@ export default function WorkerProfileScreen() {
     responseRate: 0,
   });
 
+  // Redirect if wrong user type
   useEffect(() => {
-    loadProfileData();
-  }, []);
+    if (user && user.userType !== 'worker') {
+      console.log('Wrong user type for worker profile, redirecting to client');
+      router.replace('/(client)/profile');
+      return;
+    }
+    // Only load data if user type is correct
+    if (user && user.userType === 'worker') {
+      loadProfileData();
+    }
+  }, [user]);
 
   const loadProfileData = async () => {
     try {

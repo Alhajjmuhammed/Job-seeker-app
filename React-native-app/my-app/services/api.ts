@@ -318,6 +318,11 @@ class ApiService {
     return response.data;
   }
 
+  // Alias for consistency
+  async getJobDetail(jobId: number) {
+    return this.getClientJobDetail(jobId);
+  }
+
   async postJob(jobData: {
     title: string;
     description: string;
@@ -343,6 +348,27 @@ class ApiService {
     return response.data;
   }
 
+  async createJobRequest(jobData: {
+    title: string;
+    description: string;
+    budget: string;
+    location: string;
+    worker_id: number;
+    category: string;
+    startDate?: string;
+  }) {
+    const response = await this.api.post('/client/jobs/', {
+      title: jobData.title,
+      description: jobData.description,
+      budget: parseFloat(jobData.budget),
+      location: jobData.location,
+      assigned_worker: jobData.worker_id,
+      category_name: jobData.category,
+      start_date: jobData.startDate,
+    });
+    return response.data;
+  }
+
   async getJobApplications(jobId: number) {
     const response = await this.api.get(`/client/jobs/${jobId}/applications/`);
     return response.data;
@@ -355,25 +381,6 @@ class ApiService {
 
   async rejectJobApplication(applicationId: number) {
     const response = await this.api.post(`/client/applications/${applicationId}/reject/`);
-    return response.data;
-  }
-
-  // ============ Common Methods ============
-  async getMessages() {
-    const response = await this.api.get('/messages/');
-    return response.data;
-  }
-
-  async sendMessage(recipientId: number, message: string) {
-    const response = await this.api.post('/messages/', {
-      recipient: recipientId,
-      message,
-    });
-    return response.data;
-  }
-
-  async getConversation(userId: number) {
-    const response = await this.api.get(`/messages/conversation/${userId}/`);
     return response.data;
   }
 
@@ -398,6 +405,12 @@ class ApiService {
       message,
       subject: subject || '',
     });
+    return response.data;
+  }
+
+  // Get conversation with specific user
+  async getConversation(userId: number) {
+    const response = await this.api.get(`/messages/conversation/${userId}/`);
     return response.data;
   }
 

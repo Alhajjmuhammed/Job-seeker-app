@@ -6,8 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 
 interface Job {
   id: number;
@@ -21,6 +23,7 @@ interface Job {
 }
 
 export default function ClientJobsScreen() {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
   const [activeJobs] = useState<Job[]>([
@@ -90,46 +93,77 @@ export default function ClientJobsScreen() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'active':
-        return '📢 Open';
+        return 'Open';
       case 'in_progress':
-        return '⚙️ In Progress';
+        return 'In Progress';
       case 'completed':
-        return '✓ Completed';
+        return 'Completed';
       default:
         return status;
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'megaphone-outline';
+      case 'in_progress':
+        return 'settings-outline';
+      case 'completed':
+        return 'checkmark-circle';
+      default:
+        return 'help-circle';
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Jobs</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Header title="My Jobs" showBack={false} />
+
+      {/* Post Job Button */}
+      <View style={[styles.postJobSection, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <TouchableOpacity
-          style={styles.postJobButton}
+          style={[styles.postJobButton, { backgroundColor: theme.primary }]}
           onPress={() => router.push('/(client)/post-job' as any)}
         >
-          <Text style={styles.postJobButtonText}>+ Post Job</Text>
+          <Ionicons name="add" size={20} color={theme.textLight} />
+          <Text style={[styles.postJobButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Post New Job</Text>
         </TouchableOpacity>
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabs}>
+      <View style={[styles.tabs, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'active' && styles.tabActive]}
+          style={[
+            styles.tab,
+            activeTab === 'active' && { borderBottomColor: theme.primary },
+          ]}
           onPress={() => setActiveTab('active')}
         >
-          <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>
+          <Text
+            style={[
+              styles.tabText,
+              { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
+              activeTab === 'active' && { color: theme.primary },
+            ]}
+          >
             Active & In Progress
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'completed' && styles.tabActive]}
+          style={[
+            styles.tab,
+            activeTab === 'completed' && { borderBottomColor: theme.primary },
+          ]}
           onPress={() => setActiveTab('completed')}
         >
-          <Text style={[styles.tabText, activeTab === 'completed' && styles.tabTextActive]}>
+          <Text
+            style={[
+              styles.tabText,
+              { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
+              activeTab === 'completed' && { color: theme.primary },
+            ]}
+          >
             Completed
           </Text>
         </TouchableOpacity>
@@ -140,21 +174,26 @@ export default function ClientJobsScreen() {
           activeJobs.map((job) => (
             <TouchableOpacity
               key={job.id}
-              style={styles.jobCard}
+              style={[styles.jobCard, { backgroundColor: theme.card }]}
               onPress={() => router.push(`/(client)/job/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle}>{job.title}</Text>
+                <Text style={[styles.jobTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{job.title}</Text>
                 <View
                   style={[
                     styles.statusBadge,
                     { backgroundColor: getStatusBadgeStyle(job.status).backgroundColor },
                   ]}
                 >
+                  <Ionicons
+                    name={getStatusIcon(job.status) as any}
+                    size={12}
+                    color={getStatusBadgeStyle(job.status).color}
+                  />
                   <Text
                     style={[
                       styles.statusText,
-                      { color: getStatusBadgeStyle(job.status).color },
+                      { color: getStatusBadgeStyle(job.status).color, fontFamily: 'Poppins_600SemiBold' },
                     ]}
                   >
                     {getStatusText(job.status)}
@@ -162,25 +201,27 @@ export default function ClientJobsScreen() {
                 </View>
               </View>
 
-              <Text style={styles.jobCategory}>{job.category}</Text>
+              <Text style={[styles.jobCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{job.category}</Text>
 
               {job.status === 'active' && job.applicants && (
-                <View style={styles.applicantsRow}>
-                  <Text style={styles.applicantsText}>
-                    👥 {job.applicants} applicant{job.applicants !== 1 ? 's' : ''}
+                <View style={[styles.applicantsRow, { backgroundColor: theme.background }]}>
+                  <Ionicons name="people" size={14} color={theme.text} />
+                  <Text style={[styles.applicantsText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+                    {' '}{job.applicants} applicant{job.applicants !== 1 ? 's' : ''}
                   </Text>
                 </View>
               )}
 
               {job.status === 'in_progress' && job.workerName && (
                 <View style={styles.workerRow}>
-                  <Text style={styles.workerText}>👷 Worker: {job.workerName}</Text>
+                  <Ionicons name="person" size={14} color="#065F46" />
+                  <Text style={[styles.workerText, { fontFamily: 'Poppins_500Medium' }]}> Worker: {job.workerName}</Text>
                 </View>
               )}
 
-              <View style={styles.jobFooter}>
-                <Text style={styles.budgetText}>Budget: SDG {job.budget?.toLocaleString()}</Text>
-                <Text style={styles.dateText}>{job.postedDate}</Text>
+              <View style={[styles.jobFooter, { borderTopColor: theme.border }]}>
+                <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>Budget: SDG {job.budget?.toLocaleString()}</Text>
+                <Text style={[styles.dateText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{job.postedDate}</Text>
               </View>
             </TouchableOpacity>
           ))
@@ -188,21 +229,26 @@ export default function ClientJobsScreen() {
           completedJobs.map((job) => (
             <TouchableOpacity
               key={job.id}
-              style={styles.jobCard}
+              style={[styles.jobCard, { backgroundColor: theme.card }]}
               onPress={() => router.push(`/(client)/job/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle}>{job.title}</Text>
+                <Text style={[styles.jobTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{job.title}</Text>
                 <View
                   style={[
                     styles.statusBadge,
                     { backgroundColor: getStatusBadgeStyle(job.status).backgroundColor },
                   ]}
                 >
+                  <Ionicons
+                    name={getStatusIcon(job.status) as any}
+                    size={12}
+                    color={getStatusBadgeStyle(job.status).color}
+                  />
                   <Text
                     style={[
                       styles.statusText,
-                      { color: getStatusBadgeStyle(job.status).color },
+                      { color: getStatusBadgeStyle(job.status).color, fontFamily: 'Poppins_600SemiBold' },
                     ]}
                   >
                     {getStatusText(job.status)}
@@ -210,17 +256,18 @@ export default function ClientJobsScreen() {
                 </View>
               </View>
 
-              <Text style={styles.jobCategory}>{job.category}</Text>
+              <Text style={[styles.jobCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{job.category}</Text>
 
               {job.workerName && (
                 <View style={styles.workerRow}>
-                  <Text style={styles.workerText}>👷 Worker: {job.workerName}</Text>
+                  <Ionicons name="person" size={14} color="#065F46" />
+                  <Text style={[styles.workerText, { fontFamily: 'Poppins_500Medium' }]}> Worker: {job.workerName}</Text>
                 </View>
               )}
 
-              <View style={styles.jobFooter}>
-                <Text style={styles.budgetText}>Paid: SDG {job.budget?.toLocaleString()}</Text>
-                <Text style={styles.dateText}>Completed {job.postedDate}</Text>
+              <View style={[styles.jobFooter, { borderTopColor: theme.border }]}>
+                <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>Paid: SDG {job.budget?.toLocaleString()}</Text>
+                <Text style={[styles.dateText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Completed {job.postedDate}</Text>
               </View>
             </TouchableOpacity>
           ))
@@ -233,38 +280,25 @@ export default function ClientJobsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
   },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  postJobSection: {
+    padding: 16,
+    borderBottomWidth: 1,
   },
   postJobButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   postJobButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F766E',
+    fontSize: 16,
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   tab: {
     flex: 1,
@@ -273,22 +307,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: {
-    borderBottomColor: '#0F766E',
-  },
   tabText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  tabTextActive: {
-    color: '#0F766E',
   },
   scrollContent: {
     padding: 20,
   },
   jobCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -307,37 +332,37 @@ const styles = StyleSheet.create({
   jobTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
     marginRight: 8,
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '600',
   },
   jobCategory: {
     fontSize: 13,
-    color: '#6B7280',
     marginBottom: 12,
   },
   applicantsRow: {
-    backgroundColor: '#F3F4F6',
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
     borderRadius: 8,
     marginBottom: 12,
   },
   applicantsText: {
     fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
   },
   workerRow: {
     backgroundColor: '#ECFDF5',
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
     borderRadius: 8,
     marginBottom: 12,
@@ -345,22 +370,17 @@ const styles = StyleSheet.create({
   workerText: {
     fontSize: 14,
     color: '#065F46',
-    fontWeight: '500',
   },
   jobFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
   budgetText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#0F766E',
   },
   dateText: {
     fontSize: 12,
-    color: '#9CA3AF',
   },
 });

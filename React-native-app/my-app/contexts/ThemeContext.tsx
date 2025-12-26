@@ -14,6 +14,7 @@ interface ThemeColors {
   text: string;
   textSecondary: string;
   textTertiary: string;
+  textLight: string;
   
   // Primary colors
   primary: string;
@@ -56,6 +57,7 @@ const lightTheme: ThemeColors = {
   text: '#111827',
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
+  textLight: '#FFFFFF',
   
   primary: '#0F766E',
   primaryLight: '#14B8A6',
@@ -85,6 +87,7 @@ const darkTheme: ThemeColors = {
   text: '#F9FAFB',
   textSecondary: '#D1D5DB',
   textTertiary: '#9CA3AF',
+  textLight: '#FFFFFF',
   
   primary: '#14B8A6',
   primaryLight: '#2DD4BF',

@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Image,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 interface Worker {
@@ -38,6 +39,7 @@ interface Job {
 
 export default function ClientDashboard() {
   const { user } = useAuth();
+  const { theme, isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,9 +52,18 @@ export default function ClientDashboard() {
     favorites: 0,
   });
 
+  // Redirect if wrong user type
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (user && user.userType !== 'client') {
+      console.log('Wrong user type for client dashboard, redirecting to worker');
+      router.replace('/(worker)/dashboard');
+      return;
+    }
+    // Only load data if user type is correct
+    if (user && user.userType === 'client') {
+      loadDashboardData();
+    }
+  }, [user]);
 
   const loadDashboardData = async () => {
     try {
@@ -140,88 +151,79 @@ export default function ClientDashboard() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Hello! 👋</Text>
-          <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
-        </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Text style={styles.notificationText}>🔔</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>3</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Header 
+        title={`Hello, ${user?.firstName || 'Client'}!`}
+        showNotifications={true}
+        onNotificationPress={() => router.push('/(client)/notifications' as any)}
+      />
 
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading dashboard...</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading dashboard...</Text>
         </View>
       ) : (
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />
         }
       >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { backgroundColor: theme.card, color: theme.text, fontFamily: 'Poppins_400Regular' }]}
             placeholder="Search for workers or services..."
+            placeholderTextColor={theme.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
           />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>🔍</Text>
+          <TouchableOpacity style={[styles.searchButton, { backgroundColor: theme.primary }]} onPress={handleSearch}>
+            <Ionicons name="search" size={20} color={theme.textLight} />
           </TouchableOpacity>
         </View>
 
         {/* Quick Stats */}
         <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.activeJobs}</Text>
-            <Text style={styles.statLabel}>Active Jobs</Text>
+          <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.activeJobs}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Active Jobs</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.completedJobs}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+          <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.completedJobs}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Completed</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>SDG {(stats.totalSpent / 1000).toFixed(1)}K</Text>
-            <Text style={styles.statLabel}>Total Spent</Text>
+          <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>SDG {(stats.totalSpent / 1000).toFixed(1)}K</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Total Spent</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.favorites}</Text>
-            <Text style={styles.statLabel}>Favorites</Text>
+          <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.favorites}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Favorites</Text>
           </View>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>Quick Actions</Text>
           <View style={styles.quickActions}>
             <TouchableOpacity
-              style={styles.actionCard}
+              style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/post-job' as any)}
             >
-              <Text style={styles.actionIcon}>📝</Text>
-              <Text style={styles.actionTitle}>Post a Job</Text>
-              <Text style={styles.actionSubtitle}>Get multiple bids</Text>
+              <Ionicons name="create-outline" size={36} color={theme.primary} />
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Post a Job</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Get multiple bids</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.actionCard}
+              style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/search')}
             >
-              <Text style={styles.actionIcon}>🔍</Text>
-              <Text style={styles.actionTitle}>Find Workers</Text>
-              <Text style={styles.actionSubtitle}>Browse & hire now</Text>
+              <Ionicons name="search-outline" size={36} color={theme.primary} />
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Find Workers</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Browse & hire now</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -229,51 +231,52 @@ export default function ClientDashboard() {
         {/* Featured Available Workers */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Available Workers</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>Available Workers</Text>
             <TouchableOpacity onPress={() => router.push('/(client)/search')}>
-              <Text style={styles.seeAllText}>See All</Text>
+              <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
             </TouchableOpacity>
           </View>
 
           {featuredWorkers.map((worker) => (
-            <View key={worker.id} style={styles.workerCard}>
+            <View key={worker.id} style={[styles.workerCard, { backgroundColor: theme.card }]}>
               <View style={styles.workerInfo}>
-                <View style={styles.workerAvatar}>
-                  <Text style={styles.workerAvatarText}>
+                <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
+                  <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
                     {worker.name.split(' ').map(n => n[0]).join('')}
                   </Text>
                 </View>
                 <View style={styles.workerDetails}>
                   <View style={styles.workerNameRow}>
-                    <Text style={styles.workerName}>{worker.name}</Text>
+                    <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{worker.name}</Text>
                     {worker.isAvailable && (
                       <View style={styles.availableBadge}>
-                        <Text style={styles.availableBadgeText}>Available</Text>
+                        <Text style={[styles.availableBadgeText, { fontFamily: 'Poppins_600SemiBold' }]}>Available</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={styles.workerCategory}>{worker.category}</Text>
+                  <Text style={[styles.workerCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{worker.category}</Text>
                   <View style={styles.workerStats}>
-                    <Text style={styles.workerRating}>⭐ {worker.rating}</Text>
-                    <Text style={styles.workerJobs}>• {worker.completedJobs} jobs</Text>
-                    <Text style={styles.workerRate}>• SDG {worker.hourlyRate}/hr</Text>
+                    <Ionicons name="star" size={13} color="#F59E0B" />
+                    <Text style={[styles.workerRating, { fontFamily: 'Poppins_600SemiBold' }]}> {worker.rating}</Text>
+                    <Text style={[styles.workerJobs, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• {worker.completedJobs} jobs</Text>
+                    <Text style={[styles.workerRate, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• SDG {worker.hourlyRate}/hr</Text>
                   </View>
                 </View>
               </View>
 
               <View style={styles.workerActions}>
                 <TouchableOpacity
-                  style={styles.viewProfileButton}
+                  style={[styles.viewProfileButton, { backgroundColor: theme.background, borderColor: theme.border }]}
                   onPress={() => handleViewWorkerProfile(worker.id)}
                 >
-                  <Text style={styles.viewProfileButtonText}>View Profile</Text>
+                  <Text style={[styles.viewProfileButtonText, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>View Profile</Text>
                 </TouchableOpacity>
                 {worker.isAvailable && (
                   <TouchableOpacity
-                    style={styles.requestButton}
+                    style={[styles.requestButton, { backgroundColor: theme.primary }]}
                     onPress={() => handleRequestWorker(worker.id)}
                   >
-                    <Text style={styles.requestButtonText}>Request Now</Text>
+                    <Text style={[styles.requestButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Request Now</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -284,20 +287,20 @@ export default function ClientDashboard() {
         {/* My Jobs */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Jobs</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>My Jobs</Text>
             <TouchableOpacity onPress={() => router.push('/(client)/jobs')}>
-              <Text style={styles.seeAllText}>See All</Text>
+              <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
             </TouchableOpacity>
           </View>
 
           {myJobs.map((job) => (
             <TouchableOpacity
               key={job.id}
-              style={styles.jobCard}
+              style={[styles.jobCard, { backgroundColor: theme.card }]}
               onPress={() => router.push(`/(client)/job/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle}>{job.title}</Text>
+                <Text style={[styles.jobTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{job.title}</Text>
                 <View
                   style={[
                     styles.statusBadge,
@@ -308,6 +311,7 @@ export default function ClientDashboard() {
                   <Text
                     style={[
                       styles.statusText,
+                      { fontFamily: 'Poppins_600SemiBold' },
                       job.status === 'active' && styles.statusTextActive,
                       job.status === 'in_progress' && styles.statusTextInProgress,
                     ]}
@@ -316,12 +320,12 @@ export default function ClientDashboard() {
                   </Text>
                 </View>
               </View>
-              <Text style={styles.jobCategory}>{job.category}</Text>
+              <Text style={[styles.jobCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{job.category}</Text>
               <View style={styles.jobFooter}>
-                <Text style={styles.jobInfo}>
+                <Text style={[styles.jobInfo, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
                   {job.applicants} applicant{job.applicants !== 1 ? 's' : ''}
                 </Text>
-                <Text style={styles.jobInfo}>• {job.postedDate}</Text>
+                <Text style={[styles.jobInfo, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• {job.postedDate}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -329,29 +333,24 @@ export default function ClientDashboard() {
 
         {/* Categories */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Browse by Category</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>Browse by Category</Text>
           <View style={styles.categoriesGrid}>
-            {['Plumbing', 'Electrical', 'Carpentry', 'Cleaning', 'Painting', 'Moving'].map(
+            {[
+              { name: 'Plumbing', icon: 'hammer-outline' },
+              { name: 'Electrical', icon: 'flash-outline' },
+              { name: 'Carpentry', icon: 'construct-outline' },
+              { name: 'Cleaning', icon: 'sparkles-outline' },
+              { name: 'Painting', icon: 'color-palette-outline' },
+              { name: 'Moving', icon: 'cube-outline' },
+            ].map(
               (category) => (
                 <TouchableOpacity
-                  key={category}
-                  style={styles.categoryCard}
-                  onPress={() => router.push(`/(client)/search?category=${category}`)}
+                  key={category.name}
+                  style={[styles.categoryCard, { backgroundColor: theme.card }]}
+                  onPress={() => router.push(`/(client)/search?category=${category.name}`)}
                 >
-                  <Text style={styles.categoryIcon}>
-                    {category === 'Plumbing'
-                      ? '🔧'
-                      : category === 'Electrical'
-                      ? '⚡'
-                      : category === 'Carpentry'
-                      ? '🪚'
-                      : category === 'Cleaning'
-                      ? '🧹'
-                      : category === 'Painting'
-                      ? '🎨'
-                      : '📦'}
-                  </Text>
-                  <Text style={styles.categoryName}>{category}</Text>
+                  <Ionicons name={category.icon as any} size={32} color={theme.primary} />
+                  <Text style={[styles.categoryName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{category.name}</Text>
                 </TouchableOpacity>
               )
             )}
@@ -366,48 +365,6 @@ export default function ClientDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  greeting: {
-    fontSize: 14,
-    color: '#D1FAE5',
-    marginBottom: 4,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  notificationButton: {
-    position: 'relative',
-  },
-  notificationText: {
-    fontSize: 24,
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: 'bold',
   },
   scrollContent: {
     padding: 20,
@@ -420,7 +377,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 50,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 15,
@@ -433,13 +389,9 @@ const styles = StyleSheet.create({
   searchButton: {
     width: 50,
     height: 50,
-    backgroundColor: '#0F766E',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  searchButtonText: {
-    fontSize: 20,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -450,7 +402,6 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: '22%',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
@@ -462,13 +413,10 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0F766E',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 10,
-    color: '#6B7280',
     textAlign: 'center',
   },
   section: {
@@ -482,13 +430,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
   },
   seeAllText: {
     fontSize: 14,
-    color: '#0F766E',
-    fontWeight: '600',
   },
   quickActions: {
     flexDirection: 'row',
@@ -496,7 +440,6 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
@@ -506,22 +449,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  actionIcon: {
-    fontSize: 36,
-    marginBottom: 8,
-  },
   actionTitle: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 4,
+    marginTop: 8,
   },
   actionSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
   },
   workerCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -539,15 +475,12 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#0F766E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   workerAvatarText: {
-    color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: 'bold',
   },
   workerDetails: {
     flex: 1,
@@ -559,8 +492,6 @@ const styles = StyleSheet.create({
   },
   workerName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
     marginRight: 8,
   },
   availableBadge: {
@@ -576,26 +507,23 @@ const styles = StyleSheet.create({
   },
   workerCategory: {
     fontSize: 14,
-    color: '#6B7280',
     marginBottom: 4,
   },
   workerStats: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignItems: 'center',
   },
   workerRating: {
     fontSize: 13,
     color: '#F59E0B',
-    fontWeight: '600',
   },
   workerJobs: {
     fontSize: 13,
-    color: '#6B7280',
     marginLeft: 4,
   },
   workerRate: {
     fontSize: 13,
-    color: '#6B7280',
     marginLeft: 4,
   },
   workerActions: {
@@ -605,33 +533,25 @@ const styles = StyleSheet.create({
   viewProfileButton: {
     flex: 1,
     height: 40,
-    backgroundColor: '#F3F4F6',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   viewProfileButtonText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
   },
   requestButton: {
     flex: 1,
     height: 40,
-    backgroundColor: '#0F766E',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   requestButtonText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   jobCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -650,8 +570,6 @@ const styles = StyleSheet.create({
   jobTitle: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
     marginRight: 8,
   },
   statusBadge: {
@@ -667,7 +585,6 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '600',
   },
   statusTextActive: {
     color: '#1E40AF',
@@ -677,7 +594,6 @@ const styles = StyleSheet.create({
   },
   jobCategory: {
     fontSize: 13,
-    color: '#6B7280',
     marginBottom: 8,
   },
   jobFooter: {
@@ -685,7 +601,6 @@ const styles = StyleSheet.create({
   },
   jobInfo: {
     fontSize: 12,
-    color: '#9CA3AF',
     marginRight: 4,
   },
   categoriesGrid: {
@@ -695,7 +610,6 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: '30%',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -705,15 +619,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  categoryIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
   categoryName: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1F2937',
     textAlign: 'center',
+    marginTop: 8,
   },
   loadingContainer: {
     flex: 1,
@@ -724,6 +633,5 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
   },
 });

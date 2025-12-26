@@ -9,11 +9,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 export default function ClientProfileScreen() {
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeJobs: 0,
@@ -21,9 +26,18 @@ export default function ClientProfileScreen() {
     favorites: 0,
   });
 
+  // Redirect if wrong user type
   useEffect(() => {
-    loadProfileData();
-  }, []);
+    if (user && user.userType !== 'client') {
+      console.log('Wrong user type for client profile, redirecting to worker');
+      router.replace('/(worker)/profile');
+      return;
+    }
+    // Only load data if user type is correct
+    if (user && user.userType === 'client') {
+      loadProfileData();
+    }
+  }, [user]);
 
   const loadProfileData = async () => {
     try {
@@ -54,93 +68,130 @@ export default function ClientProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
-          </Text>
-        </View>
-        <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
+      <Header title="Profile" showBack={false} />
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading profile...</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+            Loading profile...
+          </Text>
         </View>
       ) : (
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Profile Info Card */}
+        <View style={[styles.profileCard, { backgroundColor: theme.card }]}>
+          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+            <Text style={[styles.avatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </Text>
+          </View>
+          <Text style={[styles.name, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>
+            {user?.firstName} {user?.lastName}
+          </Text>
+          <Text style={[styles.email, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{user?.email}</Text>
+        </View>
+
         {/* Stats Card */}
-        <View style={styles.statsCard}>
+        <View style={[styles.statsCard, { backgroundColor: theme.card }]}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.activeJobs}</Text>
-            <Text style={styles.statLabel}>Active Jobs</Text>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
+              {stats.activeJobs}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+              Active Jobs
+            </Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.completedJobs}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
+              {stats.completedJobs}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+              Completed
+            </Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.favorites}</Text>
-            <Text style={styles.statLabel}>Favorites</Text>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
+              {stats.favorites}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+              Favorites
+            </Text>
           </View>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>👤</Text>
-            <Text style={styles.menuText}>Edit Profile</Text>
-            <Text style={styles.menuArrow}>›</Text>
+        <View style={[styles.section, { backgroundColor: theme.card }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="person-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Edit Profile
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>⭐</Text>
-            <Text style={styles.menuText}>Favorite Workers</Text>
-            <Text style={styles.menuArrow}>›</Text>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="heart-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Favorite Workers
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>💳</Text>
-            <Text style={styles.menuText}>Payment Methods</Text>
-            <Text style={styles.menuArrow}>›</Text>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="card-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Payment Methods
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>📍</Text>
-            <Text style={styles.menuText}>Saved Addresses</Text>
-            <Text style={styles.menuArrow}>›</Text>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
+            <Ionicons name="location-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Saved Addresses
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>⚙️</Text>
-            <Text style={styles.menuText}>Settings</Text>
-            <Text style={styles.menuArrow}>›</Text>
+        <View style={[styles.section, { backgroundColor: theme.card }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="settings-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Settings
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>❓</Text>
-            <Text style={styles.menuText}>Help & Support</Text>
-            <Text style={styles.menuArrow}>›</Text>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="help-circle-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Help & Support
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>📋</Text>
-            <Text style={styles.menuText}>Terms & Privacy</Text>
-            <Text style={styles.menuArrow}>›</Text>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
+            <Ionicons name="document-text-outline" size={22} color={theme.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
+              Terms & Privacy
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
+        <TouchableOpacity 
+          style={[styles.logoutButton, { backgroundColor: theme.card, borderColor: '#EF4444' }]} 
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" style={{ marginRight: 8 }} />
+          <Text style={[styles.logoutText, { fontFamily: 'Poppins_600SemiBold' }]}>Logout</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={[styles.version, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+          Version 1.0.0
+        </Text>
       </ScrollView>
       )}
     </View>
@@ -150,44 +201,42 @@ export default function ClientProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
   },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 32,
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  profileCard: {
     alignItems: 'center',
+    padding: 24,
+    marginBottom: 16,
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
   avatarText: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#0F766E',
   },
   name: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: '#D1FAE5',
-  },
-  scrollContent: {
-    padding: 20,
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
@@ -203,20 +252,15 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0F766E',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
   },
   section: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     marginBottom: 12,
     overflow: 'hidden',
@@ -231,39 +275,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   menuIcon: {
-    fontSize: 20,
     marginRight: 12,
   },
   menuText: {
     flex: 1,
     fontSize: 15,
-    color: '#1F2937',
-  },
-  menuArrow: {
-    fontSize: 24,
-    color: '#9CA3AF',
   },
   logoutButton: {
-    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#EF4444',
   },
   logoutText: {
     fontSize: 16,
-    fontWeight: '600',
     color: '#EF4444',
   },
   version: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#9CA3AF',
     marginTop: 32,
   },
   loadingContainer: {
@@ -275,6 +310,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
+    color: '#1F2937',
+  },
+  menuArrow: {
+    fontSize: 24,
+    color: '#9CA3AF',
   },
 });

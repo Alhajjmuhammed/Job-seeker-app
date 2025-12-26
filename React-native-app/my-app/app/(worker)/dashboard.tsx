@@ -43,6 +43,19 @@ export default function WorkerDashboard() {
     accepted_applications: 0,
   });
 
+  // Redirect if wrong user type
+  useEffect(() => {
+    if (user && user.userType !== 'worker') {
+      console.log('Wrong user type for worker dashboard, redirecting to client');
+      router.replace('/(client)/dashboard');
+      return;
+    }
+    // Only load data if user type is correct
+    if (user && user.userType === 'worker') {
+      fetchDashboardData();
+    }
+  }, [user]);
+
   // Create theme-aware styles
   const styles = StyleSheet.create({
     container: {
