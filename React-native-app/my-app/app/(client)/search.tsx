@@ -176,7 +176,7 @@ export default function ClientSearchScreen() {
               {worker.isAvailable && (
                 <TouchableOpacity
                   style={styles.requestButton}
-                  onPress={() => router.push(`/(client)/request-worker/${worker.id}`)}
+                  onPress={() => router.push(`/(client)/request-worker/${worker.id}` as any)}
                 >
                   <Text style={styles.requestButtonText}>Request Now</Text>
                 </TouchableOpacity>

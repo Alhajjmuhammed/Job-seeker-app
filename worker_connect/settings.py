@@ -280,8 +280,10 @@ REST_FRAMEWORK = {
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",
-    "http://192.168.100.111:8081",
-    "exp://192.168.100.111:8081",
+    "http://192.168.0.235:8081",  # Updated current IP
+    "exp://192.168.0.235:8081",   # Updated current IP for Expo
+    "http://192.168.100.111:8081",  # Keep old IP for reference
+    "exp://192.168.100.111:8081",   # Keep old IP for reference
 ]
 
 CORS_ALLOW_CREDENTIALS = True

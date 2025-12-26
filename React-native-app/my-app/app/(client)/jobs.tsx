@@ -109,7 +109,7 @@ export default function ClientJobsScreen() {
         <Text style={styles.headerTitle}>My Jobs</Text>
         <TouchableOpacity
           style={styles.postJobButton}
-          onPress={() => router.push('/(client)/post-job')}
+          onPress={() => router.push('/(client)/post-job' as any)}
         >
           <Text style={styles.postJobButtonText}>+ Post Job</Text>
         </TouchableOpacity>
@@ -141,7 +141,7 @@ export default function ClientJobsScreen() {
             <TouchableOpacity
               key={job.id}
               style={styles.jobCard}
-              onPress={() => router.push(`/(client)/job/${job.id}`)}
+              onPress={() => router.push(`/(client)/job/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>{job.title}</Text>
@@ -189,7 +189,7 @@ export default function ClientJobsScreen() {
             <TouchableOpacity
               key={job.id}
               style={styles.jobCard}
-              onPress={() => router.push(`/(client)/job/${job.id}`)}
+              onPress={() => router.push(`/(client)/job/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>{job.title}</Text>

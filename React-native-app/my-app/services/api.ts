@@ -359,11 +359,6 @@ class ApiService {
   }
 
   // ============ Common Methods ============
-  async getCategories() {
-    const response = await this.api.get('/client/categories/');
-    return response.data;
-  }
-
   async getMessages() {
     const response = await this.api.get('/messages/');
     return response.data;

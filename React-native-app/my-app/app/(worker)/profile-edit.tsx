@@ -238,7 +238,7 @@ export default function ProfileEditScreen() {
                 {profile.profile_completion_percentage || 0}%
               </Text>
             </View>
-            <View style={[styles.progressBar, { backgroundColor: theme.surfaceVariant }]}>
+            <View style={[styles.progressBar, { backgroundColor: theme.surface }]}>
               <View 
                 style={[
                   styles.progressFill, 
@@ -309,7 +309,7 @@ export default function ProfileEditScreen() {
           <View style={styles.formGroup}>
             <Text style={[styles.label, { color: theme.text }]}>Phone Number</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: isDark ? theme.surfaceVariant : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
+            style={[styles.input, { backgroundColor: isDark ? theme.surface : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
               value={phone}
               onChangeText={setPhone}
               placeholder="+255712345678"
@@ -323,7 +323,7 @@ export default function ProfileEditScreen() {
           <View style={styles.formGroup}>
             <Text style={[styles.label, { color: theme.text }]}>Email Address</Text>
             <TextInput
-              style={[styles.input, styles.disabledInput, { backgroundColor: isDark ? theme.surfaceVariant : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
+              style={[styles.input, styles.disabledInput, { backgroundColor: isDark ? theme.surface : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
               value={user?.email}
               editable={false}
             />
@@ -522,7 +522,7 @@ export default function ProfileEditScreen() {
                 key={category.id}
                 style={[
                   styles.categoryItem,
-                  { backgroundColor: theme.surfaceVariant, borderColor: theme.border },
+                  { backgroundColor: theme.surface, borderColor: theme.border },
                   selectedCategories.includes(category.id) && { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.2)' : '#F0FDF4', borderColor: theme.primary },
                 ]}
                 onPress={() => toggleCategory(category.id)}

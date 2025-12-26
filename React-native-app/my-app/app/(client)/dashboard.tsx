@@ -132,7 +132,7 @@ export default function ClientDashboard() {
   };
 
   const handleRequestWorker = (workerId: number) => {
-    router.push(`/(client)/request-worker/${workerId}`);
+    router.push(`/(client)/request-worker/${workerId}` as any);
   };
 
   const handleViewWorkerProfile = (workerId: number) => {
@@ -209,7 +209,7 @@ export default function ClientDashboard() {
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={styles.actionCard}
-              onPress={() => router.push('/(client)/post-job')}
+              onPress={() => router.push('/(client)/post-job' as any)}
             >
               <Text style={styles.actionIcon}>📝</Text>
               <Text style={styles.actionTitle}>Post a Job</Text>
@@ -294,7 +294,7 @@ export default function ClientDashboard() {
             <TouchableOpacity
               key={job.id}
               style={styles.jobCard}
-              onPress={() => router.push(`/(client)/job/${job.id}`)}
+              onPress={() => router.push(`/(client)/job/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>{job.title}</Text>

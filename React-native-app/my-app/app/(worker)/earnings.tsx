@@ -79,60 +79,60 @@ export default function EarningsScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading earnings...</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading earnings...</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Balance Cards */}
           <View style={styles.balanceSection}>
-            <View style={styles.balanceCard}>
-              <Text style={styles.balanceLabel}>Total Earnings</Text>
-              <Text style={styles.balanceAmount}>SDG {totalEarnings.toFixed(2)}</Text>
+            <View style={[styles.balanceCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+              <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Total Earnings</Text>
+              <Text style={[styles.balanceAmount, { color: theme.primary }]}>SDG {totalEarnings.toFixed(2)}</Text>
             </View>
 
             <View style={styles.smallCards}>
-              <View style={styles.smallCard}>
-                <Text style={styles.smallCardLabel}>Available</Text>
-                <Text style={styles.smallCardAmount}>SDG {pendingAmount.toFixed(2)}</Text>
+              <View style={[styles.smallCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+                <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Available</Text>
+                <Text style={[styles.smallCardAmount, { color: theme.text }]}>SDG {pendingAmount.toFixed(2)}</Text>
               </View>
-              <View style={styles.smallCard}>
-                <Text style={styles.smallCardLabel}>Withdrawn</Text>
-                <Text style={styles.smallCardAmount}>SDG {withdrawnAmount.toFixed(2)}</Text>
+              <View style={[styles.smallCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+                <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Withdrawn</Text>
+                <Text style={[styles.smallCardAmount, { color: theme.text }]}>SDG {withdrawnAmount.toFixed(2)}</Text>
               </View>
             </View>
           </View>
 
           {/* Withdraw Button */}
-          <TouchableOpacity style={styles.withdrawButton} onPress={handleWithdraw}>
+          <TouchableOpacity style={[styles.withdrawButton, { backgroundColor: theme.primary }]} onPress={handleWithdraw}>
             <Text style={styles.withdrawButtonText}>💰 Withdraw Funds</Text>
           </TouchableOpacity>
 
           {/* Transactions */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Recent Transactions</Text>
             {transactions.length === 0 ? (
-              <View style={styles.emptyState}>
+              <View style={[styles.emptyState, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                 <Text style={styles.emptyIcon}>💸</Text>
-                <Text style={styles.emptyText}>No transactions yet</Text>
-                <Text style={styles.emptySubtext}>
+                <Text style={[styles.emptyText, { color: theme.text }]}>No transactions yet</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
                   Complete jobs to start earning
                 </Text>
               </View>
             ) : (
               transactions.map((txn) => (
-                <View key={txn.id} style={styles.transactionCard}>
+                <View key={txn.id} style={[styles.transactionCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                   <View style={styles.transactionInfo}>
-                    <Text style={styles.transactionTitle}>{txn.jobTitle}</Text>
-                    <Text style={styles.transactionClient}>{txn.clientName}</Text>
-                    <Text style={styles.transactionDate}>{txn.date}</Text>
+                    <Text style={[styles.transactionTitle, { color: theme.text }]}>{txn.jobTitle}</Text>
+                    <Text style={[styles.transactionClient, { color: theme.textSecondary }]}>{txn.clientName}</Text>
+                    <Text style={[styles.transactionDate, { color: theme.textSecondary }]}>{txn.date}</Text>
                   </View>
                   <View style={styles.transactionRight}>
-                    <Text style={styles.transactionAmount}>
+                    <Text style={[styles.transactionAmount, { color: isDark ? '#6EE7B7' : '#059669' }]}>
                       +SDG {txn.amount.toFixed(2)}
                     </Text>
                     <View style={[styles.statusBadge, getStatusStyle(txn.status)]}>
-                      <Text style={styles.statusText}>{txn.status}</Text>
+                      <Text style={[styles.statusText, { color: theme.text }]}>{txn.status}</Text>
                     </View>
                   </View>
                 </View>

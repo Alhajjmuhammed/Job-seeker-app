@@ -70,7 +70,7 @@ export default function WorkerDetailScreen() {
   };
 
   const handleRequestDirectly = () => {
-    router.push(`/(client)/request-worker/${id}`);
+    router.push(`/(client)/request-worker/${id}` as any);
   };
 
   if (loading) {

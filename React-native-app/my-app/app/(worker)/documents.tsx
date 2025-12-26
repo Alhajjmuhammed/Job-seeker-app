@@ -115,47 +115,47 @@ export default function DocumentsScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading documents...</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading documents...</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Info Banner */}
-          <View style={styles.infoBanner}>
+          <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF', borderLeftColor: theme.primary }]}>
             <Text style={styles.infoIcon}>📋</Text>
-            <Text style={styles.infoText}>
-              <Text style={styles.requiredText}>Required:</Text> National ID only.{'\n'}
-              <Text style={styles.optionalText}>Optional:</Text> Certificates, degrees, and proof of experience.
+            <Text style={[styles.infoText, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>
+              <Text style={[styles.requiredText, { color: isDark ? '#FCA5A5' : '#DC2626' }]}>Required:</Text> National ID only.{'\n'}
+              <Text style={[styles.optionalText, { color: isDark ? '#6EE7B7' : '#059669' }]}>Optional:</Text> Certificates, degrees, and proof of experience.
             </Text>
           </View>
 
           {/* Upload Button */}
-          <TouchableOpacity style={styles.uploadButton} onPress={handleUploadDocument}>
+          <TouchableOpacity style={[styles.uploadButton, { backgroundColor: theme.primary }]} onPress={handleUploadDocument}>
             <Text style={styles.uploadIcon}>📤</Text>
             <Text style={styles.uploadButtonText}>Upload Document</Text>
           </TouchableOpacity>
 
           {/* Documents List */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Uploaded Documents</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Uploaded Documents</Text>
             {documents.length === 0 ? (
-              <View style={styles.emptyState}>
+              <View style={[styles.emptyState, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                 <Text style={styles.emptyIcon}>📄</Text>
-                <Text style={styles.emptyText}>No documents uploaded</Text>
-                <Text style={styles.emptySubtext}>
+                <Text style={[styles.emptyText, { color: theme.text }]}>No documents uploaded</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
                   Upload documents to verify your profile
                 </Text>
               </View>
             ) : (
               documents.map((doc) => (
-                <View key={doc.id} style={styles.documentCard}>
-                  <View style={styles.documentIcon}>
+                <View key={doc.id} style={[styles.documentCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+                  <View style={[styles.documentIcon, { backgroundColor: isDark ? theme.border : '#F3F4F6' }]}>
                     <Text style={styles.documentIconText}>📄</Text>
                   </View>
                   <View style={styles.documentInfo}>
-                    <Text style={styles.documentName}>{doc.name}</Text>
-                    <Text style={styles.documentType}>{doc.type}</Text>
-                    <Text style={styles.documentDate}>Uploaded {doc.uploadDate}</Text>
+                    <Text style={[styles.documentName, { color: theme.text }]}>{doc.name}</Text>
+                    <Text style={[styles.documentType, { color: theme.textSecondary }]}>{doc.type}</Text>
+                    <Text style={[styles.documentDate, { color: theme.textSecondary }]}>Uploaded {doc.uploadDate}</Text>
                   </View>
                   <View style={styles.documentRight}>
                     <View style={[styles.statusBadge, getStatusStyle(doc.status)]}>
@@ -176,27 +176,27 @@ export default function DocumentsScreen() {
           </View>
 
           {/* Document Guidelines */}
-          <View style={styles.guideSection}>
-            <Text style={styles.guideTitle}>Document Guidelines</Text>
+          <View style={[styles.guideSection, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+            <Text style={[styles.guideTitle, { color: theme.text }]}>Document Guidelines</Text>
             
-            <Text style={styles.guideSectionTitle}>🔴 Required (Must Upload)</Text>
+            <Text style={[styles.guideSectionTitle, { color: theme.text }]}>🔴 Required (Must Upload)</Text>
             <View style={styles.guideItem}>
-              <Text style={styles.guideIcon}>✓</Text>
-              <Text style={styles.guideText}>National ID or Passport</Text>
+              <Text style={[styles.guideIcon, { color: theme.primary }]}>✓</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>National ID or Passport</Text>
             </View>
 
-            <Text style={styles.guideSectionTitle}>⚪ Optional (Recommended)</Text>
+            <Text style={[styles.guideSectionTitle, { color: theme.text }]}>⚪ Optional (Recommended)</Text>
             <View style={styles.guideItem}>
-              <Text style={styles.guideIcon}>•</Text>
-              <Text style={styles.guideText}>Professional Certificates (for professionals)</Text>
+              <Text style={[styles.guideIcon, { color: theme.textSecondary }]}>•</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>Professional Certificates (for professionals)</Text>
             </View>
             <View style={styles.guideItem}>
-              <Text style={styles.guideIcon}>•</Text>
-              <Text style={styles.guideText}>University Degrees (for professionals)</Text>
+              <Text style={[styles.guideIcon, { color: theme.textSecondary }]}>•</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>University Degrees (for professionals)</Text>
             </View>
             <View style={styles.guideItem}>
-              <Text style={styles.guideIcon}>•</Text>
-              <Text style={styles.guideText}>Proof of Experience (for non-academic workers)</Text>
+              <Text style={[styles.guideIcon, { color: theme.textSecondary }]}>•</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>Proof of Experience (for non-academic workers)</Text>
             </View>
           </View>
         </ScrollView>

@@ -1,6 +1,8 @@
 // API Configuration
 // Update these values based on your environment
 
+import { Platform } from 'react-native';
+
 const isDevelopment = __DEV__;
 
 // For local development:
@@ -10,22 +12,28 @@ const isDevelopment = __DEV__;
 
 export const API_CONFIG = {
   // Replace with your actual IP address when testing on physical device
-  LOCAL_IP: '192.168.100.111',
+  LOCAL_IP: '192.168.0.235',  // Updated to current IP
   LOCAL_PORT: '8000',
   
   // Production URL (update when deploying)
   PRODUCTION_URL: 'https://your-production-domain.com',
   
-  // Auto-detect based on environment
+  // Auto-detect based on environment and platform
   get BASE_URL() {
     if (isDevelopment) {
-      return `http://${this.LOCAL_IP}:${this.LOCAL_PORT}`;
+      // Always use LOCAL_IP for all platforms (works for both emulator and physical devices)
+      const host = this.LOCAL_IP;
+      const url = `http://${host}:${this.LOCAL_PORT}`;
+      console.log(`[API Config] Platform: ${Platform.OS}, Using BASE_URL: ${url}`);
+      return url;
     }
     return this.PRODUCTION_URL;
   },
   
   get API_URL() {
-    return `${this.BASE_URL}/api`;
+    const apiUrl = `${this.BASE_URL}/api`;
+    console.log(`[API Config] API_URL: ${apiUrl}`);
+    return apiUrl;
   },
 };
 

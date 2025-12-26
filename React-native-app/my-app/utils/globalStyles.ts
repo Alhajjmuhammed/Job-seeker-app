@@ -12,7 +12,7 @@ export const applyFontFamily = (style: TextStyle, theme: ThemeFonts): TextStyle 
     return { ...style, fontFamily: theme.fontRegular };
   } else if (style.fontWeight === '500') {
     return { ...style, fontFamily: theme.fontMedium };
-  } else if (style.fontWeight === '600' || style.fontWeight === 'semi-bold') {
+  } else if (style.fontWeight === '600' || style.fontWeight === 'semibold') {
     return { ...style, fontFamily: theme.fontSemiBold };
   } else if (style.fontWeight === 'bold' || style.fontWeight === '700') {
     return { ...style, fontFamily: theme.fontBold };
