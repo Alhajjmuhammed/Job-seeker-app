@@ -14,8 +14,17 @@ from .api_views import (
     reject_application,
     browse_jobs,
 )
+from . import api_messages
 
 urlpatterns = [
+    # Messaging API
+    path('messages/conversations/', api_messages.get_conversations, name='api_conversations'),
+    path('messages/<int:user_id>/', api_messages.get_messages, name='api_messages'),
+    path('messages/send/', api_messages.send_message_api, name='api_send_message'),
+    path('messages/unread/', api_messages.get_unread_count, name='api_unread_count'),
+    path('messages/<int:message_id>/read/', api_messages.mark_as_read, name='api_mark_read'),
+    path('messages/search-users/', api_messages.search_users, name='api_search_users'),
+    
     # Worker endpoints
     path('worker/direct-hire-requests/', worker_direct_hire_requests, name='api_worker_direct_hire_requests'),
     path('worker/direct-hire-requests/<int:request_id>/accept/', accept_direct_hire_request, name='api_accept_direct_hire'),

@@ -430,9 +430,17 @@ export default function WorkerDashboard() {
         {/* Availability Toggle */}
         <View style={styles.availabilityCard}>
           <View style={styles.availabilityInfo}>
-            <Text style={styles.availabilityTitle}>
-              {isAvailable ? '✓ Available for Work' : '⏸ Currently Unavailable'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons 
+                name={isAvailable ? 'checkmark-circle' : 'pause-circle'} 
+                size={20} 
+                color={isAvailable ? theme.success : theme.textSecondary} 
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.availabilityTitle}>
+                {isAvailable ? 'Available for Work' : 'Currently Unavailable'}
+              </Text>
+            </View>
             <Text style={styles.availabilitySubtitle}>
               {isAvailable
                 ? 'Clients can send you direct hire requests'

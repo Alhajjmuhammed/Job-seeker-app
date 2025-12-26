@@ -17,8 +17,8 @@ interface HeaderProps {
 
 export default function Header({
   showBack = false,
-  showNotifications = true,
-  showSearch = true,
+  showNotifications = false,
+  showSearch = false,
   showMenu = true,
   onSearchPress,
   onNotificationPress,

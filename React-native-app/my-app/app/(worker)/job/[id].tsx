@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../../contexts/ThemeContext';
+import Header from '../../../components/Header';
 import apiService from '../../../services/api';
 
 interface JobDetail {
@@ -31,6 +34,7 @@ interface JobDetail {
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams();
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<JobDetail | null>(null);
   const [applying, setApplying] = useState(false);
@@ -96,19 +100,220 @@ export default function JobDetailScreen() {
     );
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      color: theme.textSecondary,
+      fontFamily: 'Poppins_400Regular',
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    emptyText: {
+      fontSize: 18,
+      color: theme.textSecondary,
+      fontFamily: 'Poppins_400Regular',
+      marginTop: 16,
+    },
+    scrollContent: {
+      padding: 20,
+      paddingBottom: 100,
+    },
+    titleSection: {
+      marginBottom: 20,
+    },
+    jobTitle: {
+      fontSize: 24,
+      color: theme.text,
+      marginBottom: 12,
+      fontFamily: 'Poppins_700Bold',
+    },
+    categoryBadge: {
+      backgroundColor: isDark ? theme.primaryDark : '#E0F2FE',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      alignSelf: 'flex-start',
+    },
+    categoryText: {
+      fontSize: 14,
+      color: theme.primary,
+      fontFamily: 'Poppins_600SemiBold',
+    },
+    budgetCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 20,
+      ...(isDark ? {} : {
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      }),
+    },
+    budgetLabel: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginBottom: 4,
+      fontFamily: 'Poppins_400Regular',
+    },
+    budgetAmount: {
+      fontSize: 32,
+      color: theme.primary,
+      marginBottom: 4,
+      fontFamily: 'Poppins_700Bold',
+    },
+    budgetDuration: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontFamily: 'Poppins_400Regular',
+    },
+    infoSection: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 20,
+      ...(isDark ? {} : {
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      }),
+    },
+    infoItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    infoTextContainer: {
+      flex: 1,
+    },
+    infoLabel: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      marginBottom: 2,
+      fontFamily: 'Poppins_400Regular',
+    },
+    infoValue: {
+      fontSize: 16,
+      color: theme.text,
+      fontFamily: 'Poppins_600SemiBold',
+    },
+    descriptionSection: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 20,
+      ...(isDark ? {} : {
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      }),
+    },
+    sectionTitle: {
+      fontSize: 18,
+      color: theme.text,
+      marginBottom: 12,
+      fontFamily: 'Poppins_700Bold',
+    },
+    descriptionText: {
+      fontSize: 15,
+      color: theme.textSecondary,
+      lineHeight: 24,
+      fontFamily: 'Poppins_400Regular',
+    },
+    requirementsSection: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 16,
+      ...(isDark ? {} : {
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      }),
+    },
+    requirementItem: {
+      flexDirection: 'row',
+      marginBottom: 8,
+    },
+    requirementBullet: {
+      fontSize: 16,
+      color: theme.primary,
+      marginRight: 8,
+      fontFamily: 'Poppins_700Bold',
+    },
+    requirementText: {
+      flex: 1,
+      fontSize: 15,
+      color: theme.textSecondary,
+      lineHeight: 22,
+      fontFamily: 'Poppins_400Regular',
+    },
+    bottomSection: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: theme.surface,
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      ...(isDark ? {} : {
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      }),
+    },
+    applyButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    applyButtonDisabled: {
+      opacity: 0.6,
+    },
+    applyButtonText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontFamily: 'Poppins_700Bold',
+    },
+  });
+
   if (loading) {
     return (
       <View style={styles.container}>
-        <StatusBar style="light" />
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Job Details</Text>
-          <View style={styles.headerRight} />
-        </View>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Header title="Job Details" showBack />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
+          <ActivityIndicator size="large" color={theme.primary} />
           <Text style={styles.loadingText}>Loading job...</Text>
         </View>
       </View>
@@ -118,16 +323,10 @@ export default function JobDetailScreen() {
   if (!job) {
     return (
       <View style={styles.container}>
-        <StatusBar style="light" />
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Job Details</Text>
-          <View style={styles.headerRight} />
-        </View>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Header title="Job Details" showBack />
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📋</Text>
+          <Ionicons name="document-text-outline" size={64} color={theme.textSecondary} />
           <Text style={styles.emptyText}>Job not found</Text>
         </View>
       </View>
@@ -136,16 +335,9 @@ export default function JobDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Job Details</Text>
-        <View style={styles.headerRight} />
-      </View>
+      <Header title="Job Details" showBack />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Job Title */}
@@ -166,7 +358,7 @@ export default function JobDetailScreen() {
         {/* Job Info */}
         <View style={styles.infoSection}>
           <View style={styles.infoItem}>
-            <Text style={styles.infoIcon}>📍</Text>
+            <Ionicons name="location-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>Location</Text>
               <Text style={styles.infoValue}>{job.location}</Text>
@@ -174,17 +366,19 @@ export default function JobDetailScreen() {
           </View>
 
           <View style={styles.infoItem}>
-            <Text style={styles.infoIcon}>👤</Text>
+            <Ionicons name="person-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>Client</Text>
-              <Text style={styles.infoValue}>
-                {job.client.name} ⭐ {job.client.rating}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.infoValue}>{job.client.name}</Text>
+                <Ionicons name="star" size={16} color="#FFA500" style={{ marginLeft: 6, marginRight: 4 }} />
+                <Text style={styles.infoValue}>{job.client.rating}</Text>
+              </View>
             </View>
           </View>
 
           <View style={styles.infoItem}>
-            <Text style={styles.infoIcon}>📅</Text>
+            <Ionicons name="calendar-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>Posted</Text>
               <Text style={styles.infoValue}>{job.postedDate}</Text>
@@ -192,7 +386,7 @@ export default function JobDetailScreen() {
           </View>
 
           <View style={styles.infoItem}>
-            <Text style={styles.infoIcon}>👥</Text>
+            <Ionicons name="people-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>Applicants</Text>
               <Text style={styles.infoValue}>{job.applicants} workers applied</Text>
@@ -231,231 +425,17 @@ export default function JobDetailScreen() {
           onPress={handleApply}
           disabled={applying}
         >
+          <Ionicons 
+            name={applying ? 'hourglass-outline' : 'checkmark-circle'} 
+            size={20} 
+            color="#FFFFFF" 
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.applyButtonText}>
-            {applying ? 'Applying...' : '✓ Apply for this Job'}
+            {applying ? 'Applying...' : 'Apply for this Job'}
           </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    width: 40,
-  },
-  backIcon: {
-    fontSize: 28,
-    color: '#FFFFFF',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  headerRight: {
-    width: 40,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: '#6B7280',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  titleSection: {
-    marginBottom: 20,
-  },
-  jobTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  categoryBadge: {
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0369A1',
-  },
-  budgetCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  budgetLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  budgetAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#0F766E',
-    marginBottom: 4,
-  },
-  budgetDuration: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  infoSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  infoIcon: {
-    fontSize: 24,
-    marginRight: 12,
-    width: 32,
-  },
-  infoTextContainer: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  descriptionSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  descriptionText: {
-    fontSize: 15,
-    color: '#4B5563',
-    lineHeight: 24,
-  },
-  requirementsSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  requirementItem: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  requirementBullet: {
-    fontSize: 16,
-    color: '#0F766E',
-    marginRight: 8,
-    fontWeight: 'bold',
-  },
-  requirementText: {
-    flex: 1,
-    fontSize: 15,
-    color: '#4B5563',
-    lineHeight: 22,
-  },
-  bottomSection: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  applyButton: {
-    backgroundColor: '#0F766E',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  applyButtonDisabled: {
-    opacity: 0.6,
-  },
-  applyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});

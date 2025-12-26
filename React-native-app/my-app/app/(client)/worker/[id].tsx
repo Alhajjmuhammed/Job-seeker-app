@@ -73,6 +73,10 @@ export default function WorkerDetailScreen() {
     router.push(`/(client)/request-worker/${id}` as any);
   };
 
+  const handleMessageWorker = () => {
+    router.push(`/(client)/conversation/${id}?name=${worker?.name}` as any);
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -194,6 +198,12 @@ export default function WorkerDetailScreen() {
 
       {/* Action Buttons */}
       <View style={styles.bottomSection}>
+        <TouchableOpacity
+          style={styles.messageButton}
+          onPress={handleMessageWorker}
+        >
+          <Text style={styles.messageButtonText}>💬 Message Worker</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.requestButton}
           onPress={handleRequestDirectly}
@@ -437,8 +447,25 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  messageButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#0F766E',
+  },
+  messageButtonText: {
+    color: '#0F766E',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   requestButton: {
+    flex: 1,
     backgroundColor: '#0F766E',
     borderRadius: 12,
     padding: 16,
@@ -446,7 +473,7 @@ const styles = StyleSheet.create({
   },
   requestButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

@@ -13,7 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
+import Header from '../../components/Header';
 
 type SetupStep = 'welcome' | 'documents' | 'skills' | 'complete';
 
@@ -24,6 +26,7 @@ export default function ProfileSetupScreen() {
   const [loading, setLoading] = useState(false);
   const [completion, setCompletion] = useState(20);
   const { user } = useAuth();
+  const { theme, isDark } = useTheme();
 
   // Fetch current profile completion on mount
   useEffect(() => {
@@ -143,7 +146,7 @@ export default function ProfileSetupScreen() {
   const renderWelcomeStep = () => (
     <View style={styles.stepContainer}>
       <View style={styles.welcomeIcon}>
-        <Text style={styles.welcomeEmoji}>🎉</Text>
+        <Ionicons name="checkmark-done-circle" size={80} color={theme.primary} />
       </View>
       <Text style={styles.welcomeTitle}>Welcome, {user?.firstName}!</Text>
       <Text style={styles.welcomeSubtitle}>
@@ -208,20 +211,32 @@ export default function ProfileSetupScreen() {
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { width: `${completion}%` }]} />
         </View>
-        <Text style={styles.progressHint}>
-          {!hasUploadedID
-            ? '🔴 Upload National ID to proceed'
-            : completion === 100
-            ? '✅ Profile complete!'
-            : '⚪ Add more documents for 100%'}
-        </Text>
+        <View style={styles.progressHintContainer}>
+          {!hasUploadedID ? (
+            <>
+              <Ionicons name="alert-circle" size={16} color={theme.error} />
+              <Text style={styles.progressHint}>Upload National ID to proceed</Text>
+            </>
+          ) : completion === 100 ? (
+            <>
+              <Ionicons name="checkmark-circle" size={16} color={theme.success} />
+              <Text style={styles.progressHint}>Profile complete!</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="ellipse-outline" size={16} color={theme.textSecondary} />
+              <Text style={styles.progressHint}>Add more documents for 100%</Text>
+            </>
+          )}
+        </View>
       </View>
 
       {/* National ID Upload */}
       <View style={styles.documentSection}>
-        <Text style={styles.documentSectionTitle}>
-          🔴 Required Document
-        </Text>
+        <View style={styles.documentSectionTitleContainer}>
+          <Ionicons name="alert-circle" size={20} color={theme.error} />
+          <Text style={styles.documentSectionTitle}>Required Document</Text>
+        </View>
         <TouchableOpacity
           style={[
             styles.uploadCard,
@@ -235,26 +250,27 @@ export default function ProfileSetupScreen() {
           disabled={loading || hasUploadedID}
         >
           {loading && !hasUploadedID ? (
-            <ActivityIndicator size="large" color="#0F766E" />
+            <ActivityIndicator size="large" color={theme.primary} />
           ) : (
             <Ionicons
               name={hasUploadedID ? 'checkmark-circle' : 'cloud-upload-outline'}
               size={32}
-              color={hasUploadedID ? '#4CAF50' : '#0F766E'}
+              color={hasUploadedID ? theme.success : theme.primary}
             />
           )}
           <Text style={styles.uploadCardTitle}>National ID</Text>
           <Text style={styles.uploadCardStatus}>
-            {hasUploadedID ? 'Uploaded ✓' : 'Tap to upload'}
+            {hasUploadedID ? 'Uploaded' : 'Tap to upload'}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Optional Documents */}
       <View style={styles.documentSection}>
-        <Text style={styles.documentSectionTitle}>
-          ⚪ Optional Documents (Recommended)
-        </Text>
+        <View style={styles.documentSectionTitleContainer}>
+          <Ionicons name="ellipse-outline" size={20} color={theme.textSecondary} />
+          <Text style={styles.documentSectionTitle}>Optional Documents (Recommended)</Text>
+        </View>
         <View style={styles.optionalDocsGrid}>
           <TouchableOpacity
             style={styles.uploadCard}
@@ -262,9 +278,9 @@ export default function ProfileSetupScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#0F766E" />
+              <ActivityIndicator size="small" color={theme.primary} />
             ) : (
-              <Ionicons name="school-outline" size={32} color="#0F766E" />
+              <Ionicons name="school-outline" size={32} color={theme.primary} />
             )}
             <Text style={styles.uploadCardTitle}>Certificates</Text>
             <Text style={styles.uploadCardStatus}>Tap to upload</Text>
@@ -276,9 +292,9 @@ export default function ProfileSetupScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#0F766E" />
+              <ActivityIndicator size="small" color={theme.primary} />
             ) : (
-              <Ionicons name="briefcase-outline" size={32} color="#0F766E" />
+              <Ionicons name="briefcase-outline" size={32} color={theme.primary} />
             )}
             <Text style={styles.uploadCardTitle}>CV/Resume</Text>
             <Text style={styles.uploadCardStatus}>Tap to upload</Text>
@@ -293,7 +309,7 @@ export default function ProfileSetupScreen() {
           disabled={!canProceed}
         >
           <Text style={styles.secondaryButtonText}>Continue</Text>
-          <Ionicons name="arrow-forward" size={20} color={canProceed ? '#0F766E' : '#9CA3AF'} />
+          <Ionicons name="arrow-forward" size={20} color={canProceed ? theme.primary : theme.textSecondary} />
         </TouchableOpacity>
 
         {canProceed && (
@@ -316,7 +332,7 @@ export default function ProfileSetupScreen() {
       </Text>
 
       <View style={styles.infoCard}>
-        <Ionicons name="information-circle" size={24} color="#1976D2" />
+        <Ionicons name="information-circle" size={24} color={theme.primary} />
         <Text style={styles.infoText}>
           You can add more details later from your profile page
         </Text>
@@ -339,14 +355,255 @@ export default function ProfileSetupScreen() {
     </View>
   );
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    stepIndicatorContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 8,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    stepDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+    },
+    stepDotActive: {
+      backgroundColor: theme.primary,
+    },
+    scrollContent: {
+      padding: 20,
+    },
+    stepContainer: {
+      flex: 1,
+    },
+    welcomeIcon: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    welcomeTitle: {
+      fontSize: 28,
+      fontFamily: theme.fontBold,
+      color: theme.text,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    welcomeSubtitle: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      textAlign: 'center',
+      marginBottom: 40,
+      lineHeight: 24,
+    },
+    setupSteps: {
+      marginBottom: 40,
+    },
+    setupStepItem: {
+      flexDirection: 'row',
+      marginBottom: 24,
+    },
+    stepNumber: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 16,
+    },
+    stepNumberText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontFamily: theme.fontBold,
+    },
+    stepContent: {
+      flex: 1,
+    },
+    stepTitle: {
+      fontSize: 18,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginBottom: 16,
+    },
+    stepDescription: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      lineHeight: 20,
+    },
+    stepSubtitle: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginBottom: 24,
+    },
+    progressCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    progressLabel: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+    },
+    progressPercentage: {
+      fontSize: 18,
+      fontFamily: theme.fontBold,
+      color: theme.primary,
+    },
+    progressBarContainer: {
+      height: 8,
+      backgroundColor: isDark ? '#374151' : '#E5E7EB',
+      borderRadius: 4,
+      overflow: 'hidden',
+      marginBottom: 12,
+    },
+    progressBar: {
+      height: '100%',
+      backgroundColor: theme.primary,
+      borderRadius: 4,
+    },
+    progressHintContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    progressHint: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      textAlign: 'center',
+    },
+    documentSection: {
+      marginBottom: 24,
+    },
+    documentSectionTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 12,
+    },
+    documentSectionTitle: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+    },
+    uploadCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: isDark ? '#4B5563' : '#E5E7EB',
+      borderStyle: 'dashed',
+    },
+    uploadCardComplete: {
+      borderColor: '#4CAF50',
+      borderStyle: 'solid',
+      backgroundColor: isDark ? '#065f46' : '#F0F9FF',
+    },
+    uploadCardTitle: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginTop: 12,
+    },
+    uploadCardStatus: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginTop: 4,
+    },
+    optionalDocsGrid: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    buttonGroup: {
+      marginTop: 24,
+    },
+    primaryButton: {
+      backgroundColor: theme.primary,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      borderRadius: 12,
+      gap: 8,
+    },
+    primaryButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+    },
+    secondaryButton: {
+      backgroundColor: theme.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      borderRadius: 12,
+      gap: 8,
+      borderWidth: 2,
+      borderColor: theme.primary,
+      marginBottom: 12,
+    },
+    secondaryButtonText: {
+      color: theme.primary,
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+    },
+    buttonDisabled: {
+      opacity: 0.5,
+      borderColor: theme.textSecondary,
+    },
+    linkButton: {
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    linkButtonText: {
+      color: theme.primary,
+      fontSize: 14,
+      fontFamily: theme.fontMedium,
+    },
+    infoCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? '#1E3A8A' : '#E3F2FD',
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 24,
+      gap: 12,
+    },
+    infoText: {
+      flex: 1,
+      fontSize: 14,
+      color: isDark ? '#BFDBFE' : '#1565C0',
+      lineHeight: 20,
+    },
+  });
+
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile Setup</Text>
-        <View style={styles.stepIndicator}>
+      <Header title="Profile Setup" showBack={false} showNotifications={false} showSearch={false} />
+
+      <View style={{ paddingTop: 8 }}>
+        <View style={styles.stepIndicatorContainer}>
           <View style={[styles.stepDot, currentStep !== 'welcome' && styles.stepDotActive]} />
           <View style={[styles.stepDot, currentStep === 'skills' && styles.stepDotActive]} />
           <View style={[styles.stepDot, currentStep === 'complete' && styles.stepDotActive]} />
@@ -364,245 +621,3 @@ export default function ProfileSetupScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-  },
-  stepDotActive: {
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  stepContainer: {
-    flex: 1,
-  },
-  welcomeIcon: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  welcomeEmoji: {
-    fontSize: 80,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-  },
-  setupSteps: {
-    marginBottom: 40,
-  },
-  setupStepItem: {
-    flexDirection: 'row',
-    marginBottom: 24,
-  },
-  stepNumber: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#0F766E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  stepNumberText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  stepContent: {
-    flex: 1,
-  },
-  stepTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  stepDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  stepSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 24,
-  },
-  progressCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  progressLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  progressPercentage: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0F766E',
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#0F766E',
-    borderRadius: 4,
-  },
-  progressHint: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  documentSection: {
-    marginBottom: 24,
-  },
-  documentSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  uploadCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
-  },
-  uploadCardComplete: {
-    borderColor: '#4CAF50',
-    borderStyle: 'solid',
-    backgroundColor: '#F0F9FF',
-  },
-  uploadCardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginTop: 12,
-  },
-  uploadCardStatus: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  optionalDocsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  buttonGroup: {
-    marginTop: 24,
-  },
-  primaryButton: {
-    backgroundColor: '#0F766E',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-    borderWidth: 2,
-    borderColor: '#0F766E',
-    marginBottom: 12,
-  },
-  secondaryButtonText: {
-    color: '#0F766E',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-    borderColor: '#9CA3AF',
-  },
-  linkButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  linkButtonText: {
-    color: '#0F766E',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    gap: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1565C0',
-    lineHeight: 20,
-  },
-});

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 
@@ -91,13 +92,13 @@ export default function DocumentsScreen() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'verified':
-        return '✓';
+        return 'checkmark-circle';
       case 'pending':
-        return '⏳';
+        return 'time-outline';
       case 'rejected':
-        return '✗';
+        return 'close-circle';
       default:
-        return '📄';
+        return 'document-text-outline';
     }
   };
 
@@ -140,7 +141,7 @@ export default function DocumentsScreen() {
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Uploaded Documents</Text>
             {documents.length === 0 ? (
               <View style={[styles.emptyState, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
-                <Text style={styles.emptyIcon}>📄</Text>
+                <Ionicons name="document-text-outline" size={48} color={theme.textSecondary} />
                 <Text style={[styles.emptyText, { color: theme.text }]}>No documents uploaded</Text>
                 <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
                   Upload documents to verify your profile
@@ -150,7 +151,7 @@ export default function DocumentsScreen() {
               documents.map((doc) => (
                 <View key={doc.id} style={[styles.documentCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                   <View style={[styles.documentIcon, { backgroundColor: isDark ? theme.border : '#F3F4F6' }]}>
-                    <Text style={styles.documentIconText}>📄</Text>
+                    <Ionicons name="document-text-outline" size={24} color={theme.primary} />
                   </View>
                   <View style={styles.documentInfo}>
                     <Text style={[styles.documentName, { color: theme.text }]}>{doc.name}</Text>
@@ -159,8 +160,14 @@ export default function DocumentsScreen() {
                   </View>
                   <View style={styles.documentRight}>
                     <View style={[styles.statusBadge, getStatusStyle(doc.status)]}>
+                      <Ionicons 
+                        name={getStatusIcon(doc.status) as any} 
+                        size={14} 
+                        color={getStatusStyle(doc.status).color} 
+                        style={{ marginRight: 4 }}
+                      />
                       <Text style={[styles.statusText, { color: getStatusStyle(doc.status).color }]}>
-                        {getStatusIcon(doc.status)} {doc.status}
+                        {doc.status}
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -181,7 +188,7 @@ export default function DocumentsScreen() {
             
             <Text style={[styles.guideSectionTitle, { color: theme.text }]}>🔴 Required (Must Upload)</Text>
             <View style={styles.guideItem}>
-              <Text style={[styles.guideIcon, { color: theme.primary }]}>✓</Text>
+              <Ionicons name="checkmark" size={16} color={theme.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.guideText, { color: theme.textSecondary }]}>National ID or Passport</Text>
             </View>
 
@@ -230,7 +237,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#FFFFFF',
   },
   headerRight: {
@@ -290,7 +296,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
   },
   section: {
     marginBottom: 24,
@@ -298,7 +303,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 12,
   },
@@ -316,7 +320,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
@@ -357,7 +360,6 @@ const styles = StyleSheet.create({
   documentName: {
     fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
@@ -376,6 +378,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -384,7 +388,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     textTransform: 'capitalize',
   },
   deleteButton: {
@@ -404,7 +407,6 @@ const styles = StyleSheet.create({
   guideTitle: {
     fontSize: 16,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 16,
   },
@@ -421,17 +423,16 @@ const styles = StyleSheet.create({
     width: 20,
   },
   requiredText: {
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#DC2626',
   },
   optionalText: {
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#059669',
   },
   guideSectionTitle: {
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#1F2937',
     marginTop: 12,
     marginBottom: 8,

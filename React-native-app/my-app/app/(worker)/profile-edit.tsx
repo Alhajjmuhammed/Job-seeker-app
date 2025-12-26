@@ -50,6 +50,307 @@ export default function ProfileEditScreen() {
   const [availability, setAvailability] = useState('available');
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
+  // Dynamic styles using theme
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.background,
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      fontFamily: 'Poppins_400Regular',
+      color: theme.textSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: theme.primary,
+      paddingTop: 60,
+      paddingBottom: 20,
+      paddingHorizontal: 20,
+    },
+    backButton: {
+      padding: 8,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontFamily: 'Poppins_700Bold',
+      color: '#FFFFFF',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    completionCard: {
+      backgroundColor: isDark ? 'rgba(15, 118, 110, 0.1)' : '#0F766E15',
+      margin: 20,
+      padding: 20,
+      borderRadius: 12,
+    },
+    completionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    completionTitle: {
+      fontSize: 16,
+      fontFamily: 'Poppins_600SemiBold',
+      color: theme.text,
+    },
+    completionPercent: {
+      fontSize: 20,
+      fontFamily: 'Poppins_700Bold',
+      color: theme.primary,
+    },
+    progressBar: {
+      height: 10,
+      backgroundColor: isDark ? theme.surface : '#FFF',
+      borderRadius: 20,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: theme.primary,
+      borderRadius: 20,
+    },
+    section: {
+      backgroundColor: theme.surface,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      padding: 20,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+      gap: 12,
+    },
+    sectionTitleContainer: {
+      flex: 1,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontFamily: 'Poppins_700Bold',
+      color: theme.text,
+    },
+    sectionSubtitle: {
+      fontSize: 13,
+      fontFamily: 'Poppins_400Regular',
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
+    photoContainer: {
+      alignItems: 'center',
+      gap: 16,
+    },
+    profileImage: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+    },
+    profilePlaceholder: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: theme.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    placeholderText: {
+      fontSize: 48,
+      fontFamily: 'Poppins_700Bold',
+      color: '#FFF',
+    },
+    changePhotoButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: theme.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+    },
+    changePhotoText: {
+      color: '#FFF',
+      fontSize: 14,
+      fontFamily: 'Poppins_600SemiBold',
+    },
+    formGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      fontFamily: 'Poppins_600SemiBold',
+      color: theme.text,
+      marginBottom: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      fontFamily: 'Poppins_400Regular',
+      backgroundColor: theme.surface,
+      color: theme.text,
+    },
+    textArea: {
+      minHeight: 100,
+      paddingTop: 12,
+    },
+    disabledInput: {
+      backgroundColor: isDark ? theme.surface : '#F9FAFB',
+      color: theme.textSecondary,
+    },
+    helpText: {
+      fontSize: 12,
+      fontFamily: 'Poppins_400Regular',
+      color: theme.textSecondary,
+      marginTop: 4,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    halfWidth: {
+      flex: 1,
+    },
+    pickerContainer: {
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    picker: {
+      height: 50,
+    },
+    checkboxRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 8,
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderWidth: 2,
+      borderColor: theme.primary,
+      borderRadius: 6,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.surface,
+    },
+    checkboxChecked: {
+      backgroundColor: theme.primary,
+    },
+    checkboxLabel: {
+      fontSize: 14,
+      fontFamily: 'Poppins_400Regular',
+      color: theme.text,
+      flex: 1,
+    },
+    inputWithPrefix: {
+      position: 'relative',
+    },
+    inputPrefix: {
+      position: 'absolute',
+      left: 12,
+      top: 12,
+      fontSize: 14,
+      fontFamily: 'Poppins_600SemiBold',
+      color: theme.textSecondary,
+      zIndex: 1,
+    },
+    inputWithPrefixField: {
+      paddingLeft: 32,
+    },
+    categoriesGrid: {
+      gap: 12,
+    },
+    categoryItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 16,
+      backgroundColor: isDark ? theme.surface : '#F9FAFB',
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    categoryItemSelected: {
+      backgroundColor: isDark ? 'rgba(15, 118, 110, 0.2)' : '#F0FDF4',
+      borderColor: theme.primary,
+    },
+    categoryCheckbox: {
+      width: 24,
+      height: 24,
+      borderWidth: 2,
+      borderColor: theme.primary,
+      borderRadius: 6,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.surface,
+    },
+    categoryCheckboxChecked: {
+      backgroundColor: theme.primary,
+    },
+    categoryLabel: {
+      fontSize: 15,
+      fontFamily: 'Poppins_400Regular',
+      color: theme.text,
+      flex: 1,
+    },
+    categoryLabelSelected: {
+      color: theme.primary,
+      fontFamily: 'Poppins_600SemiBold',
+    },
+    actions: {
+      marginHorizontal: 20,
+      marginTop: 8,
+      gap: 12,
+    },
+    saveButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: theme.primary,
+      paddingVertical: 16,
+      borderRadius: 12,
+    },
+    saveButtonText: {
+      color: '#FFF',
+      fontSize: 16,
+      fontFamily: 'Poppins_600SemiBold',
+    },
+    disabledButton: {
+      opacity: 0.6,
+    },
+    cancelButton: {
+      alignItems: 'center',
+      paddingVertical: 16,
+    },
+    cancelButtonText: {
+      color: theme.textSecondary,
+      fontSize: 16,
+      fontFamily: 'Poppins_500Medium',
+    },
+  });
+
   useEffect(() => {
     fetchProfileData();
   }, []);
@@ -224,8 +525,6 @@ export default function ProfileEditScreen() {
       {/* Header Component */}
       <Header 
         showBack
-        showNotifications 
-        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
       />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -582,302 +881,3 @@ export default function ProfileEditScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontFamily: 'Poppins_400Regular',
-    color: '#6B7280',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontFamily: 'Poppins_700Bold',
-    color: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  completionCard: {
-    backgroundColor: '#0F766E15',
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
-  },
-  completionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  completionTitle: {
-    fontSize: 16,
-    fontFamily: 'Poppins_600SemiBold',
-    color: '#111827',
-  },
-  completionPercent: {
-    fontSize: 20,
-    fontFamily: 'Poppins_700Bold',
-    color: '#0F766E',
-  },
-  progressBar: {
-    height: 10,
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#0F766E',
-    borderRadius: 20,
-  },
-  section: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 12,
-  },
-  sectionTitleContainer: {
-    flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins_700Bold',
-    color: '#111827',
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    fontFamily: 'Poppins_400Regular',
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  photoContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  profilePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#0F766E',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 48,
-    fontFamily: 'Poppins_700Bold',
-    color: '#FFF',
-  },
-  changePhotoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#0F766E',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  changePhotoText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    fontFamily: 'Poppins_400Regular',
-    backgroundColor: '#FFF',
-  },
-  textArea: {
-    minHeight: 100,
-    paddingTop: 12,
-  },
-  disabledInput: {
-    backgroundColor: '#F9FAFB',
-    color: '#9CA3AF',
-  },
-  helpText: {
-    fontSize: 12,
-    fontFamily: 'Poppins_400Regular',
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  halfWidth: {
-    flex: 1,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 8,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#0F766E',
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-  },
-  checkboxChecked: {
-    backgroundColor: '#0F766E',
-  },
-  checkboxLabel: {
-    fontSize: 14,
-    fontFamily: 'Poppins_400Regular',
-    color: '#4B5563',
-    flex: 1,
-  },
-  inputWithPrefix: {
-    position: 'relative',
-  },
-  inputPrefix: {
-    position: 'absolute',
-    left: 12,
-    top: 12,
-    fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
-    color: '#6B7280',
-    zIndex: 1,
-  },
-  inputWithPrefixField: {
-    paddingLeft: 32,
-  },
-  categoriesGrid: {
-    gap: 12,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  categoryItemSelected: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#86EFAC',
-  },
-  categoryCheckbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#0F766E',
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-  },
-  categoryCheckboxChecked: {
-    backgroundColor: '#0F766E',
-  },
-  categoryLabel: {
-    fontSize: 15,
-    fontFamily: 'Poppins_400Regular',
-    color: '#4B5563',
-    flex: 1,
-  },
-  categoryLabelSelected: {
-    color: '#065F46',
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  actions: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    gap: 12,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#0F766E',
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  saveButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  cancelButton: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  cancelButtonText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontFamily: 'Poppins_500Medium',
-  },
-});

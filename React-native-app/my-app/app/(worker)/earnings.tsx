@@ -105,7 +105,7 @@ export default function EarningsScreen() {
 
           {/* Withdraw Button */}
           <TouchableOpacity style={[styles.withdrawButton, { backgroundColor: theme.primary }]} onPress={handleWithdraw}>
-            <Text style={styles.withdrawButtonText}>💰 Withdraw Funds</Text>
+            <Text style={styles.withdrawButtonText}>Withdraw Funds</Text>
           </TouchableOpacity>
 
           {/* Transactions */}
@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#FFFFFF',
   },
   headerRight: {
@@ -227,7 +226,6 @@ const styles = StyleSheet.create({
   balanceAmount: {
     fontSize: 36,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#0F766E',
   },
   smallCards: {
@@ -254,7 +252,6 @@ const styles = StyleSheet.create({
   smallCardAmount: {
     fontSize: 18,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: '700',
     color: '#1F2937',
   },
   withdrawButton: {
@@ -268,7 +265,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
   },
   section: {
     marginBottom: 24,
@@ -276,7 +272,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 12,
   },
@@ -294,7 +289,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
@@ -322,7 +316,6 @@ const styles = StyleSheet.create({
   transactionTitle: {
     fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
@@ -343,7 +336,6 @@ const styles = StyleSheet.create({
   transactionAmount: {
     fontSize: 18,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#059669',
     marginBottom: 4,
   },
@@ -355,7 +347,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#1F2937',
     textTransform: 'capitalize',
   },

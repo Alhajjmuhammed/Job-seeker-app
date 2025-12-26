@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api_messages
 
 app_name = 'jobs'
 
@@ -19,11 +20,19 @@ urlpatterns = [
     path('application/<int:pk>/accept/', views.accept_application, name='accept_application'),
     path('application/<int:pk>/reject/', views.reject_application, name='reject_application'),
     
-    # Messaging
+    # Messaging (Traditional Views)
     path('inbox/', views.inbox, name='inbox'),
     path('message/send/<int:recipient_id>/', views.send_message, name='send_message'),
     path('conversation/<int:user_id>/', views.conversation, name='conversation'),
     path('message/<int:pk>/', views.message_detail, name='message_detail'),
+    
+    # Messaging API (for React Native)
+    path('api/messages/conversations/', api_messages.get_conversations, name='api_conversations'),
+    path('api/messages/<int:user_id>/', api_messages.get_messages, name='api_messages'),
+    path('api/messages/send/', api_messages.send_message_api, name='api_send_message'),
+    path('api/messages/unread/', api_messages.get_unread_count, name='api_unread_count'),
+    path('api/messages/<int:message_id>/read/', api_messages.mark_as_read, name='api_mark_read'),
+    path('api/messages/search-users/', api_messages.search_users, name='api_search_users'),
     
     # Direct Hire / On-Demand Booking
     path('direct-hire/request/<int:worker_id>/', views.request_worker_directly, name='request_worker_directly'),

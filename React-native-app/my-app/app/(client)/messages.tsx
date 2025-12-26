@@ -1,18 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
@@ -23,79 +12,82 @@ interface Conversation {
   username: string;
   user_type: string;
   last_message: string;
-  last_message_time: string | null;
+  last_message_time: string;
   unread_count: number;
   is_online: boolean;
 }
 
-export default function WorkerMessagesScreen() {
+export default function ClientMessagesScreen() {
+  const router = useRouter();
   const { theme, isDark } = useTheme();
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadConversations();
   }, []);
 
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredConversations(conversations);
+    } else {
+      const filtered = conversations.filter(conv =>
+        conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conv.username.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredConversations(filtered);
+    }
+  }, [searchQuery, conversations]);
+
   const loadConversations = async () => {
     try {
-      setLoading(true);
-      const data = await apiService.getConversations();
-      setConversations(data.conversations || []);
-    } catch (error: any) {
+      const response = await apiService.getConversations();
+      setConversations(response.conversations || []);
+    } catch (error) {
       console.error('Error loading conversations:', error);
-      if (error.response?.status !== 404) {
-        Alert.alert('Error', 'Failed to load conversations');
-      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    await loadConversations();
-    setRefreshing(false);
+    loadConversations();
+  }, []);
+
+  const handleConversationPress = (userId: number, userName: string) => {
+    router.push(`/(client)/conversation/${userId}?name=${userName}`);
   };
 
-  const handleConversationPress = (userId: number, name: string) => {
-    router.push(`/(worker)/conversation/${userId}?name=${encodeURIComponent(name)}` as any);
-  };
-
-  const filteredConversations = conversations.filter(conv =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const formatTime = (timestamp: string | null) => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
+  const formatTime = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString();
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar style={theme.statusBar} />
-      
-      {/* Header Component */}
-      <Header />
+      <Header title="Messages" />
 
-      {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+      <View style={[styles.searchContainer, { borderBottomColor: theme.border }]}>
         <TextInput
-          style={[styles.searchInput, { backgroundColor: theme.background, color: theme.text }]}
-          placeholder="Search messages..."
+          style={[styles.searchInput, { backgroundColor: theme.surface, color: theme.text }]}
+          placeholder="Search conversations..."
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -118,7 +110,7 @@ export default function WorkerMessagesScreen() {
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
             <Text style={[styles.emptyText, { color: theme.text }]}>No conversations yet</Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Start chatting with clients and admins</Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Start chatting with workers and admins</Text>
           </View>
         ) : (
           filteredConversations.map((conv) => (
@@ -275,11 +267,6 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: 60,
     alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 64,
-    fontFamily: 'Poppins_400Regular',
-    marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,

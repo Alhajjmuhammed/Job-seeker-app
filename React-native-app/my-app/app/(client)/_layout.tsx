@@ -51,12 +51,46 @@ export default function ClientLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubbles" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
+        }}
+      />
+      {/* Hidden routes */}
+      <Tabs.Screen
+        name="conversation/[id]"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="job/[id]"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="worker/[id]"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="request-worker/[id]"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

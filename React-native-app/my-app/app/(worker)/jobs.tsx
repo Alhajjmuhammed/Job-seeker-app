@@ -128,13 +128,13 @@ export default function WorkerJobsScreen() {
   };
 
   const renderRequestCard = (request: DirectHireRequest) => (
-    <View key={request.id} style={styles.requestCard}>
+    <View key={request.id} style={[styles.requestCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
       <View style={styles.requestHeader}>
         <View>
-          <Text style={styles.clientName}>
-            <Ionicons name="person" size={18} color="#1976D2" /> {request.clientName}
+          <Text style={[styles.clientName, { color: theme.text }]}>
+            <Ionicons name="person" size={18} color={theme.primary} /> {request.clientName}
           </Text>
-          <Text style={styles.requestDate}>{request.createdAt}</Text>
+          <Text style={[styles.requestDate, { color: theme.textSecondary }]}>{request.createdAt}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
           <Ionicons name={getStatusIcon(request.status) as any} size={16} color="#FFF" />
@@ -143,27 +143,27 @@ export default function WorkerJobsScreen() {
       </View>
 
       {request.message && (
-        <View style={styles.messageContainer}>
-          <Ionicons name="mail-outline" size={16} color="#666" />
-          <Text style={styles.messageText}>{request.message}</Text>
+        <View style={[styles.messageContainer, { backgroundColor: isDark ? theme.border : '#F9FAFB' }]}>
+          <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
+          <Text style={[styles.messageText, { color: theme.textSecondary }]}>{request.message}</Text>
         </View>
       )}
 
       <View style={styles.requestDetails}>
         <View style={styles.detailRow}>
-          <Ionicons name="time-outline" size={18} color="#666" />
-          <Text style={styles.detailLabel}>Duration:</Text>
-          <Text style={styles.detailValue}>{request.durationType}</Text>
+          <Ionicons name="time-outline" size={18} color={theme.textSecondary} />
+          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Duration:</Text>
+          <Text style={[styles.detailValue, { color: theme.text }]}>{request.durationType}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Ionicons name="cash-outline" size={18} color="#2E7D32" />
-          <Text style={styles.detailLabel}>Offered Rate:</Text>
-          <Text style={[styles.detailValue, styles.rateText]}>${request.offeredRate}</Text>
+          <Ionicons name="cash-outline" size={18} color={isDark ? '#81C784' : '#2E7D32'} />
+          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Offered Rate:</Text>
+          <Text style={[styles.detailValue, styles.rateText, { color: isDark ? '#81C784' : '#2E7D32' }]}>${request.offeredRate}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Ionicons name="card-outline" size={18} color="#2E7D32" />
-          <Text style={styles.detailLabel}>Total:</Text>
-          <Text style={[styles.detailValue, styles.totalAmount]}>${request.totalAmount}</Text>
+          <Ionicons name="card-outline" size={18} color={isDark ? '#81C784' : '#2E7D32'} />
+          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Total:</Text>
+          <Text style={[styles.detailValue, styles.totalAmount, { color: isDark ? '#81C784' : '#2E7D32' }]}>${request.totalAmount}</Text>
         </View>
       </View>
 
@@ -201,31 +201,31 @@ export default function WorkerJobsScreen() {
       />
 
       {/* Info Banner */}
-      <View style={styles.infoBanner}>
-        <Ionicons name="information-circle" size={20} color="#1976D2" />
-        <Text style={styles.infoText}>
+      <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(25, 118, 210, 0.1)' : '#E3F2FD' }]}>
+        <Ionicons name="information-circle" size={20} color={theme.primary} />
+        <Text style={[styles.infoText, { color: isDark ? '#90CAF9' : '#1565C0' }]}>
           Clients will find and request you directly. Accept or reject requests below.
         </Text>
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0F766E" />
-          <Text style={styles.loadingText}>Loading requests...</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</Text>
         </View>
       ) : (
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0F766E']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />
         }
       >
             {/* Direct Hire Requests */}
             {directRequests.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
-                <Text style={styles.emptyText}>No hire requests yet</Text>
-                <Text style={styles.emptySubtext}>Keep your profile updated and wait for clients to find you!</Text>
+                <Text style={[styles.emptyText, { color: theme.text }]}>No hire requests yet</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Keep your profile updated and wait for clients to find you!</Text>
               </View>
             ) : (
               directRequests.map(renderRequestCard)
@@ -250,7 +250,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#FFFFFF',
   },
   headerSubtitle: {
@@ -304,7 +303,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
   },
@@ -335,7 +333,6 @@ const styles = StyleSheet.create({
   clientName: {
     fontSize: 18,
     fontFamily: 'Poppins_700Bold',
-    fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 4,
   },
@@ -356,7 +353,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
   },
   messageContainer: {
     flexDirection: 'row',
@@ -387,13 +383,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Poppins_500Medium',
     color: '#6B7280',
-    fontWeight: '500',
   },
   detailValue: {
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
     color: '#1F2937',
-    fontWeight: '600',
   },
   rateText: {
     color: '#2E7D32',
@@ -426,6 +420,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
   },
 });

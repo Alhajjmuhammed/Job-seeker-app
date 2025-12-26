@@ -376,6 +376,50 @@ class ApiService {
     const response = await this.api.get(`/messages/conversation/${userId}/`);
     return response.data;
   }
+
+  // ============== MESSAGING API ==============
+  
+  // Get all conversations (chat list)
+  async getConversations() {
+    const response = await this.api.get('/messages/conversations/');
+    return response.data;
+  }
+
+  // Get messages with a specific user
+  async getMessages(userId: number) {
+    const response = await this.api.get(`/messages/${userId}/`);
+    return response.data;
+  }
+
+  // Send a message to a user
+  async sendMessage(recipientId: number, message: string, subject?: string) {
+    const response = await this.api.post('/messages/send/', {
+      recipient_id: recipientId,
+      message,
+      subject: subject || '',
+    });
+    return response.data;
+  }
+
+  // Get unread message count
+  async getUnreadMessageCount() {
+    const response = await this.api.get('/messages/unread/');
+    return response.data;
+  }
+
+  // Mark message as read
+  async markMessageAsRead(messageId: number) {
+    const response = await this.api.post(`/messages/${messageId}/read/`);
+    return response.data;
+  }
+
+  // Search for users to start conversation
+  async searchUsers(query: string, userType?: 'worker' | 'client' | 'admin') {
+    const params: any = { q: query };
+    if (userType) params.type = userType;
+    const response = await this.api.get('/messages/search-users/', { params });
+    return response.data;
+  }
 }
 
 // Export singleton instance
