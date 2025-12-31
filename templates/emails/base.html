@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Worker Connect{% endblock %}</title>
+    <style>
+        /* Reset and base styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .email-header .tagline {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* Body */
+        .email-body {
+            padding: 40px;
+        }
+        
+        .email-body h2 {
+            color: #1f2937;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .email-body p {
+            color: #4b5563;
+            margin-bottom: 16px;
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+        }
+        
+        /* Info box */
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h3 {
+            color: #1e40af;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box p {
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        /* Alert box */
+        .alert-box {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .alert-success {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        
+        .alert-warning {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        
+        /* Details list */
+        .details-list {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .details-list .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .details-list .item:last-child {
+            border-bottom: none;
+        }
+        
+        .details-list .label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .details-list .value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #f9fafb;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .email-footer p {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 5px 0;
+        }
+        
+        .email-footer .social-links {
+            margin: 15px 0;
+        }
+        
+        .email-footer .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #6b7280;
+            text-decoration: none;
+        }
+        
+        .email-footer .unsubscribe {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        
+        .email-footer .unsubscribe a {
+            color: #6b7280;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 620px) {
+            .email-body, .email-header, .email-footer {
+                padding: 20px;
+            }
+            
+            .email-body h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <h1>Worker Connect</h1>
+            <div class="tagline">Connecting skilled workers with opportunities</div>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <div class="social-links">
+                <a href="#">Facebook</a>
+                <a href="#">Twitter</a>
+                <a href="#">LinkedIn</a>
+            </div>
+            <p>Worker Connect, Inc.</p>
+            <p>123 Business Street, City, State 12345</p>
+            <div class="unsubscribe">
+                <a href="{{ unsubscribe_url|default:'#' }}">Unsubscribe</a> | 
+                <a href="{{ preferences_url|default:'#' }}">Email Preferences</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

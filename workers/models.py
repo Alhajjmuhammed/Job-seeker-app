@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from accounts.models import User
 
 
@@ -86,8 +87,11 @@ class WorkerProfile(models.Model):
     # Work details
     categories = models.ManyToManyField(Category, related_name='workers')
     skills = models.ManyToManyField(Skill, related_name='workers', blank=True)
-    experience_years = models.IntegerField(default=0)
-    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    experience_years = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(70)])
+    hourly_rate = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(0)]
+    )
     
     # Status
     availability = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='available')
@@ -95,9 +99,12 @@ class WorkerProfile(models.Model):
     is_featured = models.BooleanField(default=False)
     
     # Statistics
-    total_jobs = models.IntegerField(default=0)
-    completed_jobs = models.IntegerField(default=0)
-    average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
+    total_jobs = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    completed_jobs = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    average_rating = models.DecimalField(
+        max_digits=3, decimal_places=2, default=0.0,
+        validators=[MinValueValidator(0), MaxValueValidator(5)]
+    )
     total_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0.0)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -105,6 +112,16 @@ class WorkerProfile(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['verification_status']),
+            models.Index(fields=['availability']),
+            models.Index(fields=['city']),
+            models.Index(fields=['worker_type']),
+            models.Index(fields=['is_featured']),
+            models.Index(fields=['average_rating']),
+            models.Index(fields=['-created_at']),
+        ]
     
     def __str__(self):
         return f"{self.user.get_full_name()} - Worker Profile"

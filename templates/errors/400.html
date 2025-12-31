@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Bad Request - Worker Connect{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <h1 class="display-1 text-warning">400</h1>
+    <h2 class="mb-4">Bad Request</h2>
+    <p class="lead text-muted mb-4">The request could not be understood by the server.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Go Home</a>
+</div>
+{% endblock %}

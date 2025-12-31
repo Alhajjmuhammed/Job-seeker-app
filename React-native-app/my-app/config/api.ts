@@ -2,8 +2,12 @@
 // Update these values based on your environment
 
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 const isDevelopment = __DEV__;
+
+// Get config from app.json extra or environment
+const expoConfig = Constants.expoConfig?.extra || {};
 
 // For local development:
 // - Physical device: Use your computer's local IP (find with `ipconfig` on Windows or `ifconfig` on Mac/Linux)
@@ -11,12 +15,12 @@ const isDevelopment = __DEV__;
 // - iOS simulator: Use localhost or 127.0.0.1
 
 export const API_CONFIG = {
-  // Replace with your actual IP address when testing on physical device
-  LOCAL_IP: '192.168.0.235',  // Updated to current IP
-  LOCAL_PORT: '8000',
+  // Get from environment/config or use default for development
+  LOCAL_IP: expoConfig.apiHost || process.env.EXPO_PUBLIC_API_HOST || '192.168.0.235',
+  LOCAL_PORT: expoConfig.apiPort || process.env.EXPO_PUBLIC_API_PORT || '8000',
   
-  // Production URL (update when deploying)
-  PRODUCTION_URL: 'https://your-production-domain.com',
+  // Production URL from environment/config
+  PRODUCTION_URL: expoConfig.apiUrl || process.env.EXPO_PUBLIC_API_URL || 'https://your-production-domain.com',
   
   // Auto-detect based on environment and platform
   get BASE_URL() {
@@ -24,7 +28,9 @@ export const API_CONFIG = {
       // Always use LOCAL_IP for all platforms (works for both emulator and physical devices)
       const host = this.LOCAL_IP;
       const url = `http://${host}:${this.LOCAL_PORT}`;
-      console.log(`[API Config] Platform: ${Platform.OS}, Using BASE_URL: ${url}`);
+      if (__DEV__) {
+        console.log(`[API Config] Platform: ${Platform.OS}, Using BASE_URL: ${url}`);
+      }
       return url;
     }
     return this.PRODUCTION_URL;
@@ -32,7 +38,9 @@ export const API_CONFIG = {
   
   get API_URL() {
     const apiUrl = `${this.BASE_URL}/api`;
-    console.log(`[API Config] API_URL: ${apiUrl}`);
+    if (__DEV__) {
+      console.log(`[API Config] API_URL: ${apiUrl}`);
+    }
     return apiUrl;
   },
 };

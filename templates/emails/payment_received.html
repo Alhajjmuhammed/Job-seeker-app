@@ -1,0 +1,52 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Payment Received{% endblock %}
+
+{% block content %}
+<h2>Payment Received! 💰</h2>
+
+<p>Hi {{ worker_name }},</p>
+
+<p>Great news! A payment has been received for your services.</p>
+
+<div class="alert-box alert-success">
+    <p style="text-align: center; font-size: 32px; font-weight: bold; margin: 10px 0;">
+        ${{ payment.amount }}
+    </p>
+    <p style="text-align: center; margin: 0;">has been added to your account</p>
+</div>
+
+<div class="details-list">
+    <div class="item">
+        <span class="label">Transaction ID</span>
+        <span class="value">{{ payment.transaction_id }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Client</span>
+        <span class="value">{{ client_name }}</span>
+    </div>
+    {% if payment.job %}
+    <div class="item">
+        <span class="label">Job</span>
+        <span class="value">{{ payment.job.title }}</span>
+    </div>
+    {% endif %}
+    <div class="item">
+        <span class="label">Date</span>
+        <span class="value">{{ payment.created_at|date:"M d, Y H:i" }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Status</span>
+        <span class="value" style="color: #10b981;">✓ {{ payment.status|title }}</span>
+    </div>
+</div>
+
+<p style="text-align: center;">
+    <a href="{{ earnings_url }}" class="btn">View Earnings</a>
+</p>
+
+<p>Thank you for being a valued member of Worker Connect!</p>
+
+<p>Best regards,<br>
+<strong>The Worker Connect Team</strong></p>
+{% endblock %}

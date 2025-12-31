@@ -10,6 +10,8 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import apiService from '../../services/api';
+import { useEffect } from 'react';
 
 interface Job {
   id: number;
@@ -26,56 +28,56 @@ export default function ClientJobsScreen() {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
-  const [activeJobs] = useState<Job[]>([
-    {
-      id: 1,
-      title: 'Fix Kitchen Sink Leak',
-      category: 'Plumbing',
-      status: 'active',
-      applicants: 5,
-      postedDate: '2 days ago',
-      budget: 800,
-    },
-    {
-      id: 2,
-      title: 'Install Ceiling Fan',
-      category: 'Electrical',
-      status: 'in_progress',
-      workerName: 'Ahmed Hassan',
-      postedDate: '1 week ago',
-      budget: 1200,
-    },
-    {
-      id: 3,
-      title: 'Paint Living Room',
-      category: 'Painting',
-      status: 'active',
-      applicants: 8,
-      postedDate: '3 days ago',
-      budget: 4500,
-    },
-  ]);
+  const [activeJobs, setActiveJobs] = useState<Job[]>([]);
+  const [completedJobs, setCompletedJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [completedJobs] = useState<Job[]>([
-    {
-      id: 4,
-      title: 'Repair Bathroom Tiles',
-      category: 'Construction',
-      status: 'completed',
-      workerName: 'Mohammed Ali',
-      postedDate: '2 weeks ago',
-      budget: 2500,
-    },
-    {
-      id: 5,
-      title: 'Clean House',
-      category: 'Cleaning',
-      status: 'completed',
-      workerName: 'Omar Abdullah',
-      postedDate: '1 month ago',
-      budget: 600,
-    },
-  ]);
+  useEffect(() => {
+    let mounted = true;
+    const loadJobs = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.getClientJobs();
+        const list = Array.isArray(data) ? data : (data.results || []);
+
+        const active = list
+          .filter((j: any) => j.status === 'open' || j.status === 'in_progress')
+          .map((job: any) => ({
+            id: job.id,
+            title: job.title,
+            category: job.category_name || job.category || 'General',
+            status: job.status === 'open' ? 'active' : job.status,
+            applicants: job.application_count || 0,
+            workerName: job.assigned_worker_name || job.assigned_workers?.[0]?.user?.first_name || undefined,
+            postedDate: new Date(job.created_at).toLocaleDateString(),
+            budget: job.budget,
+          }));
+
+        const completed = list
+          .filter((j: any) => j.status === 'completed')
+          .map((job: any) => ({
+            id: job.id,
+            title: job.title,
+            category: job.category_name || job.category || 'General',
+            status: job.status,
+            workerName: job.assigned_worker_name || job.assigned_workers?.[0]?.user?.first_name || undefined,
+            postedDate: new Date(job.completed_at || job.created_at).toLocaleDateString(),
+            budget: job.budget,
+          }));
+
+        if (mounted) {
+          setActiveJobs(active);
+          setCompletedJobs(completed);
+        }
+      } catch (error) {
+        console.error('Error loading client jobs:', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    loadJobs();
+    return () => { mounted = false; };
+  }, []);
 
   const getStatusBadgeStyle = (status: string) => {
     switch (status) {

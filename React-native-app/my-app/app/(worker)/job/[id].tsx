@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,10 @@ import {
   Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../../contexts/RatingContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
 
@@ -35,6 +36,7 @@ interface JobDetail {
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams();
   const { theme, isDark } = useTheme();
+  const { refreshTrigger } = useRatingRefresh();
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<JobDetail | null>(null);
   const [applying, setApplying] = useState(false);
@@ -42,6 +44,13 @@ export default function JobDetailScreen() {
   useEffect(() => {
     loadJobDetail();
   }, [id]);
+
+  // Refresh when screen comes into focus (after rating changes)
+  useFocusEffect(
+    useCallback(() => {
+      loadJobDetail();
+    }, [id, refreshTrigger])
+  );
 
   const loadJobDetail = async () => {
     try {

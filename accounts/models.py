@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, EmailValidator
 
 
 class User(AbstractUser):
@@ -10,6 +10,15 @@ class User(AbstractUser):
         ('worker', 'Worker'),
         ('client', 'Client'),
         ('admin', 'Admin'),
+    )
+    
+    # Make email required and unique
+    email = models.EmailField(
+        unique=True,
+        validators=[EmailValidator()],
+        error_messages={
+            'unique': 'A user with this email already exists.',
+        }
     )
     
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
@@ -24,8 +33,18 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Use email as username field for authentication
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['user_type']),
+            models.Index(fields=['phone_number']),
+            models.Index(fields=['created_at']),
+        ]
     
     def __str__(self):
         return f"{self.username} ({self.get_user_type_display()})"

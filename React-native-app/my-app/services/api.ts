@@ -1,13 +1,9 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_CONFIG from '../config/api';
+import * as SecureStorage from './secureStorage';
 
 // Use centralized API configuration
 const API_BASE_URL = API_CONFIG.API_URL;
-
-// Storage keys
-const TOKEN_KEY = '@auth_token';
-const USER_KEY = '@user_data';
 
 class ApiService {
   private api: AxiosInstance;
@@ -21,13 +17,22 @@ class ApiService {
       },
     });
 
-    // Request interceptor to add auth token
+    // Request interceptor to add auth token and cache busting
     this.api.interceptors.request.use(
       async (config) => {
-        const token = await this.getToken();
+        const token = await SecureStorage.getToken();
         if (token) {
           config.headers.Authorization = `Token ${token}`;
         }
+        
+        // Add cache busting for GET requests to ensure fresh data
+        if (config.method === 'get') {
+          config.params = {
+            ...config.params,
+            _t: Date.now()
+          };
+        }
+        
         return config;
       },
       (error) => {
@@ -41,55 +46,39 @@ class ApiService {
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
           // Token expired or invalid, clear storage
-          await this.clearAuth();
+          await SecureStorage.clearAuth();
         }
         return Promise.reject(error);
       }
     );
   }
 
-  // ============ Storage Methods ============
+  // ============ Storage Methods (delegate to SecureStorage) ============
   async getToken(): Promise<string | null> {
-    try {
-      return await AsyncStorage.getItem(TOKEN_KEY);
-    } catch (error) {
-      console.error('Error getting token:', error);
-      return null;
-    }
+    return SecureStorage.getToken();
   }
 
   async setToken(token: string): Promise<void> {
-    try {
-      await AsyncStorage.setItem(TOKEN_KEY, token);
-    } catch (error) {
-      console.error('Error setting token:', error);
-    }
+    return SecureStorage.setToken(token);
   }
 
   async getUserData(): Promise<any | null> {
-    try {
-      const userData = await AsyncStorage.getItem(USER_KEY);
-      return userData ? JSON.parse(userData) : null;
-    } catch (error) {
-      console.error('Error getting user data:', error);
-      return null;
-    }
+    return SecureStorage.getUserData();
   }
 
   async setUserData(userData: any): Promise<void> {
-    try {
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
-    } catch (error) {
-      console.error('Error setting user data:', error);
-    }
+    return SecureStorage.setUserData(userData);
   }
 
   async clearAuth(): Promise<void> {
-    try {
-      await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
-    } catch (error) {
-      console.error('Error clearing auth:', error);
-    }
+    return SecureStorage.clearAuth();
+  }
+
+  // Callback for handling auth expiration (set by app to navigate to login)
+  private onAuthExpired?: () => void;
+  
+  setOnAuthExpired(callback: () => void): void {
+    this.onAuthExpired = callback;
   }
 
   // ============ Authentication Methods ============
@@ -105,6 +94,40 @@ class ApiService {
     }
     
     return response.data;
+  }
+
+  /**
+   * Check if user session is still valid
+   * Call this on app startup or resume
+   */
+  async validateSession(): Promise<boolean> {
+    try {
+      const token = await this.getToken();
+      if (!token) {
+        return false;
+      }
+      
+      // Try to fetch current user to validate token
+      const response = await this.api.get('/auth/me/');
+      
+      // Update stored user data with fresh data
+      if (response.data) {
+        await this.setUserData(response.data);
+      }
+      
+      return true;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        // Token is invalid/expired
+        await this.clearAuth();
+        if (this.onAuthExpired) {
+          this.onAuthExpired();
+        }
+        return false;
+      }
+      // Network error or other issue - don't clear auth
+      throw error;
+    }
   }
 
   async register(userData: {
@@ -382,6 +405,31 @@ class ApiService {
   async rejectJobApplication(applicationId: number) {
     const response = await this.api.post(`/client/applications/${applicationId}/reject/`);
     return response.data;
+  }
+
+  async rateWorker(workerId: number, ratingData: {
+    rating: number;
+    review?: string;
+  }) {
+    const response = await this.api.post(`/client/workers/${workerId}/rate/`, ratingData);
+    
+    // Clear any cached data after rating submission to ensure fresh data
+    this.clearCache();
+    
+    return response.data;
+  }
+  
+  // Method to clear cached data (force fresh API calls)
+  private clearCache() {
+    // This ensures next API calls get fresh data
+    this.api.defaults.headers.common['Cache-Control'] = 'no-cache';
+    this.api.defaults.headers.common['Pragma'] = 'no-cache';
+    
+    // Reset after a short delay
+    setTimeout(() => {
+      delete this.api.defaults.headers.common['Cache-Control'];
+      delete this.api.defaults.headers.common['Pragma'];
+    }, 1000);
   }
 
   // ============== MESSAGING API ==============

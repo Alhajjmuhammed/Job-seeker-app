@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,18 @@ import {
   Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../contexts/RatingContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 
 export default function WorkerProfileScreen() {
   const { user, logout } = useAuth();
   const { theme, isDark } = useTheme();
+  const { refreshTrigger } = useRatingRefresh();
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
@@ -42,6 +44,22 @@ export default function WorkerProfileScreen() {
       loadProfileData();
     }
   }, [user]);
+
+  // Refresh when screen comes into focus (after rating changes)
+  useFocusEffect(
+    useCallback(() => {
+      if (user && user.userType === 'worker') {
+        loadProfileData();
+      }
+    }, [user, refreshTrigger])
+  );
+
+  // Additional immediate refresh when rating changes
+  useEffect(() => {
+    if (refreshTrigger > 0 && user && user.userType === 'worker') {
+      loadProfileData();
+    }
+  }, [refreshTrigger, user]);
 
   const loadProfileData = async () => {
     try {
@@ -130,7 +148,7 @@ export default function WorkerProfileScreen() {
         <View style={[styles.statsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: theme.primary }]}>
-              {stats.rating > 0 ? stats.rating.toFixed(1) : 'N/A'}
+              {(Number(stats.rating) || 0) > 0 ? (Number(stats.rating) || 0).toFixed(1) : 'N/A'}
             </Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Rating</Text>
           </View>

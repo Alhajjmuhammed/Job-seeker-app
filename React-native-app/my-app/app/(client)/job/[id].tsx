@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../../contexts/RatingContext';
 import apiService from '../../../services/api';
 
 interface JobDetail {
@@ -33,12 +35,20 @@ interface JobDetail {
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
+  const { refreshTrigger } = useRatingRefresh();
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<JobDetail | null>(null);
 
   useEffect(() => {
     loadJobDetail();
   }, [id]);
+
+  // Refresh when screen comes into focus (after rating changes)
+  useFocusEffect(
+    useCallback(() => {
+      loadJobDetail();
+    }, [id, refreshTrigger])
+  );
 
   const loadJobDetail = async () => {
     try {
@@ -187,20 +197,24 @@ export default function JobDetailScreen() {
               style={styles.workerCard}
               onPress={() => router.push(`/(client)/worker/${job.worker?.id}` as any)}
             >
-              <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
-                <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
-                  {job.worker.name[0]}
-                </Text>
-              </View>
+              {job.worker?.profile_image ? (
+                <Image source={{ uri: job.worker.profile_image }} style={[styles.workerAvatar, { borderRadius: 24 }]} />
+              ) : (
+                <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
+                  <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
+                    {job.worker?.name?.[0] || ''}
+                  </Text>
+                </View>
+              )}
               <View style={styles.workerInfo}>
                 <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
                   {job.worker.name}
                 </Text>
                 <View style={styles.ratingRow}>
                   <Ionicons name="star" size={16} color="#FCD34D" />
-                  <Text style={[styles.ratingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-                    {job.worker.rating.toFixed(1)}
-                  </Text>
+                    <Text style={[styles.ratingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+                      {(Number(job.worker?.rating) || 0).toFixed(1)}
+                    </Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />

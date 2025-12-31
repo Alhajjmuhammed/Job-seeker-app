@@ -11,22 +11,36 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# CRITICAL: Remove the default in production! Must be set in .env file
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-CHANGE-THIS')
+# Generate a new key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+SECRET_KEY = config('SECRET_KEY', default=None)
 
-if SECRET_KEY == 'django-insecure-dev-key-CHANGE-THIS':
-    import warnings
-    warnings.warn(
-        "WARNING: You are using the default SECRET_KEY. "
-        "This is insecure! Set a proper SECRET_KEY in your .env file.",
-        RuntimeWarning
-    )
+if not SECRET_KEY:
+    if config('DEBUG', default=False, cast=bool):
+        # Only allow fallback in explicit debug mode
+        SECRET_KEY = 'dev-only-insecure-key-not-for-production'
+        import warnings
+        warnings.warn(
+            "WARNING: Using insecure development SECRET_KEY. "
+            "Set SECRET_KEY in .env for production!",
+            RuntimeWarning
+        )
+    else:
+        raise ValueError(
+            "SECRET_KEY environment variable is required! "
+            "Generate one with: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'"
+        )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# CRITICAL: Must be False in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for development
+# SECURITY: Configure allowed hosts from environment
+# In development: ALLOWED_HOSTS=localhost,127.0.0.1
+# In production: ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1,0.0.0.0',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
 
 
 # Application definition
@@ -47,6 +61,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'widget_tweaks',
+    'drf_yasg',  # API documentation
     
     # Local apps
     'accounts',
@@ -65,6 +80,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'worker_connect.request_tracking.RequestIDMiddleware',  # Request ID tracking
+    'worker_connect.middleware.APILoggingMiddleware',  # API request/response logging
+    'worker_connect.middleware.SecurityHeadersMiddleware',  # Security headers
 ]
 
 ROOT_URLCONF = 'worker_connect.urls'
@@ -91,12 +109,31 @@ WSGI_APPLICATION = 'worker_connect.wsgi.application'
 
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Support for DATABASE_URL environment variable (production)
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=config('DB_CONN_MAX_AGE', default=600, cast=int),
+            conn_health_checks=True,
+        )
     }
-}
+    # Add connection pooling options for PostgreSQL
+    if 'postgresql' in DATABASE_URL or 'postgres' in DATABASE_URL:
+        DATABASES['default']['OPTIONS'] = {
+            'connect_timeout': config('DB_CONNECT_TIMEOUT', default=10, cast=int),
+        }
+else:
+    # Default SQLite for development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -149,8 +186,44 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
-# Email configuration (for production)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Configuration
+# For development: console backend (prints to terminal)
+# For production: smtp backend with proper settings
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+
+# SMTP Settings (for production)
+# Handle empty strings from .env by using custom cast functions
+def _cast_int_or_default(val, default):
+    """Cast to int, returning default if empty or invalid"""
+    if not val or val == '':
+        return default
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return default
+
+def _cast_bool_or_default(val, default):
+    """Cast to bool, returning default if empty"""
+    if not val or val == '':
+        return default
+    return val.lower() in ('true', '1', 'yes', 'on')
+
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com') or 'smtp.gmail.com'
+EMAIL_PORT = _cast_int_or_default(config('EMAIL_PORT', default=''), 587)
+EMAIL_USE_TLS = _cast_bool_or_default(config('EMAIL_USE_TLS', default=''), True)
+EMAIL_USE_SSL = _cast_bool_or_default(config('EMAIL_USE_SSL', default=''), False)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+# Default sender email
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@workerconnect.com')
+SERVER_EMAIL = config('SERVER_EMAIL', default='errors@workerconnect.com')
+
+# Email subject prefix for admin emails
+EMAIL_SUBJECT_PREFIX = '[Worker Connect] '
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
@@ -224,6 +297,10 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'api': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'console': {
@@ -243,6 +320,14 @@ LOGGING = {
             'filename': LOGS_DIR / 'security.log',
             'formatter': 'verbose',
         },
+        'api_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'api.log',
+            'formatter': 'api',
+            'maxBytes': 10485760,  # 10MB
+            'backupCount': 5,
+        },
     },
     'loggers': {
         'django': {
@@ -253,6 +338,11 @@ LOGGING = {
         'django.security': {
             'handlers': ['console', 'security'] if not DEBUG else ['console'],
             'level': 'WARNING',
+            'propagate': False,
+        },
+        'api': {
+            'handlers': ['api_file', 'console'] if DEBUG else ['api_file'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
@@ -275,15 +365,37 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',  # Anonymous users: 100 requests per hour
+        'user': '1000/hour',  # Authenticated users: 1000 requests per hour
+    },
 }
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8081",
-    "http://192.168.0.235:8081",  # Updated current IP
-    "exp://192.168.0.235:8081",   # Updated current IP for Expo
-    "http://192.168.100.111:8081",  # Keep old IP for reference
-    "exp://192.168.100.111:8081",   # Keep old IP for reference
+# Configure via environment variable (comma-separated list)
+# Example: CORS_ALLOWED_ORIGINS=http://localhost:8081,http://localhost:19006
+_cors_origins = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:8081,http://localhost:19006,http://localhost:3000',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
+
+# Allow all origins for development (NOT recommended for production)
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+
+# If not allowing all origins, use the configured list
+if not CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS = _cors_origins
+
+# Allow mobile app origins with regex (for Expo development)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https?://192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$',  # Local network devices
+    r'^https?://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$',  # Private network
+    r'^exp://.*$',  # Expo development
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -298,4 +410,64 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-request-id',
+    'x-api-version',
 ]
+
+CORS_EXPOSE_HEADERS = [
+    'x-request-id',
+    'x-ratelimit-limit',
+    'x-ratelimit-remaining',
+    'x-ratelimit-reset',
+    'x-api-version',
+    'deprecation',
+    'sunset',
+]
+
+# CORS preflight cache time (in seconds)
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+
+# Frontend URL for password reset links, etc.
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8081')
+
+# API Configuration
+API_VERSION = '1.0'
+API_TITLE = 'Worker Connect API'
+
+# Analytics Configuration
+ANALYTICS_ENABLED = config('ANALYTICS_ENABLED', default=True, cast=bool)
+
+# Celery Configuration
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': config(
+            'CACHE_BACKEND',
+            default='django.core.cache.backends.locmem.LocMemCache'
+        ),
+        'LOCATION': config('CACHE_LOCATION', default='unique-snowflake'),
+        'TIMEOUT': config('CACHE_TIMEOUT', default=300, cast=int),
+        'OPTIONS': {
+            'MAX_ENTRIES': config('CACHE_MAX_ENTRIES', default=1000, cast=int),
+        }
+    }
+}
+
+# Redis cache for production
+if config('REDIS_URL', default=None):
+    CACHES['default'] = {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': config('REDIS_URL'),
+    }
+
+# Custom Exception Handler for standardized error responses
+REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'worker_connect.error_codes.custom_exception_handler'

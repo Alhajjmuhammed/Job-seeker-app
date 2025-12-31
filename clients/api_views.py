@@ -1,15 +1,20 @@
+import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db import models
 from django.db.models import Q, Count
 from .models import ClientProfile, Favorite, Rating
 from workers.models import WorkerProfile, Category
 from jobs.models import JobRequest, DirectHireRequest
+from worker_connect.pagination import paginate_queryset
 from .serializers import (
     ClientProfileSerializer, WorkerSearchSerializer,
     CategorySerializer, FavoriteSerializer, RatingSerializer
 )
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
@@ -44,7 +49,8 @@ def client_stats(request):
             'total_spent': 0,  # TODO: Calculate actual spent when payment system is implemented
         })
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching client stats: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch statistics'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -56,7 +62,8 @@ def client_profile(request):
         serializer = ClientProfileSerializer(profile)
         return Response(serializer.data)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching client profile: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch profile'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['PATCH'])
@@ -72,7 +79,8 @@ def update_client_profile(request):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error updating client profile: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to update profile'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -119,14 +127,10 @@ def search_workers(request):
         sort_by = request.GET.get('sort', '-average_rating')
         workers = workers.order_by(sort_by).distinct()
         
-        serializer = WorkerSearchSerializer(
-            workers,
-            many=True,
-            context={'request': request}
-        )
-        return Response(serializer.data)
+        return paginate_queryset(request, workers, WorkerSearchSerializer)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error searching workers: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to search workers'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -148,7 +152,8 @@ def worker_detail(request, worker_id):
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching worker detail: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch worker details'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -171,7 +176,8 @@ def toggle_favorite(request, worker_id):
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error toggling favorite: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to update favorites'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -180,10 +186,10 @@ def favorites_list(request):
     """Get client's favorite workers"""
     try:
         favorites = Favorite.objects.filter(client=request.user).select_related('worker')
-        serializer = FavoriteSerializer(favorites, many=True)
-        return Response(serializer.data)
+        return paginate_queryset(request, favorites, FavoriteSerializer)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching favorites: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch favorites'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -195,7 +201,8 @@ def categories_list(request):
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching categories: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch categories'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -216,4 +223,130 @@ def featured_workers(request):
         )
         return Response(serializer.data)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching featured workers: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch featured workers'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def client_jobs(request):
+    """Get client's posted jobs"""
+    try:
+        from jobs.serializers import JobRequestSerializer
+        
+        jobs = JobRequest.objects.filter(client=request.user).order_by('-created_at')
+        
+        # Filter by status if provided
+        status_filter = request.GET.get('status')
+        if status_filter:
+            jobs = jobs.filter(status=status_filter)
+        
+        return paginate_queryset(request, jobs, JobRequestSerializer)
+    except Exception as e:
+        logger.error(f"Error fetching client jobs: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch jobs'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def client_job_detail(request, job_id):
+    """Get detailed information about a specific job"""
+    try:
+        job = JobRequest.objects.get(id=job_id, client=request.user)
+        from jobs.serializers import JobRequestSerializer
+        serializer = JobRequestSerializer(job)
+        return Response(serializer.data)
+    except JobRequest.DoesNotExist:
+        return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error fetching job detail: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch job details'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_worker(request, worker_id):
+    """Rate a worker after job completion"""
+    try:
+        worker = WorkerProfile.objects.get(id=worker_id)
+        rating_value = request.data.get('rating')
+        review_text = request.data.get('review', '')
+        
+        if not rating_value or rating_value < 1 or rating_value > 5:
+            return Response({'error': 'Rating must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create or update rating
+        rating, created = Rating.objects.update_or_create(
+            client=request.user,
+            worker=worker,
+            defaults={
+                'rating': rating_value,
+                'review': review_text
+            }
+        )
+        
+        # Update worker's average rating
+        from django.db.models import Avg
+        ratings = Rating.objects.filter(worker=worker)
+        avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
+        worker.average_rating = round(avg_rating, 2) if avg_rating else 0
+        worker.save(update_fields=['average_rating'])
+        
+        return Response({
+            'message': 'Rating submitted successfully',
+            'rating': {
+                'id': rating.id,
+                'rating': rating.rating,
+                'review': rating.review,
+                'created_at': rating.created_at.isoformat()
+            }
+        })
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error submitting rating: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to submit rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_worker(request, worker_id):
+    """Rate a worker after job completion"""
+    try:
+        worker = WorkerProfile.objects.get(id=worker_id)
+        rating_value = request.data.get('rating')
+        review_text = request.data.get('review', '')
+        
+        if not rating_value or rating_value < 1 or rating_value > 5:
+            return Response({'error': 'Rating must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create or update rating
+        rating, created = Rating.objects.update_or_create(
+            client=request.user,
+            worker=worker,
+            defaults={
+                'rating': rating_value,
+                'review': review_text
+            }
+        )
+        
+        # Update worker's average rating
+        ratings = Rating.objects.filter(worker=worker)
+        avg_rating = ratings.aggregate(avg=models.Avg('rating'))['avg']
+        worker.average_rating = round(avg_rating, 2) if avg_rating else 0
+        worker.save(update_fields=['average_rating'])
+        
+        return Response({
+            'message': 'Rating submitted successfully',
+            'rating': {
+                'id': rating.id,
+                'rating': rating.rating,
+                'review': rating.review,
+                'created_at': rating.created_at.isoformat()
+            }
+        })
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error submitting rating: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to submit rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,11 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../contexts/RatingContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 
@@ -40,6 +41,7 @@ interface Job {
 export default function ClientDashboard() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
+  const { refreshTrigger } = useRatingRefresh();
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -64,6 +66,22 @@ export default function ClientDashboard() {
       loadDashboardData();
     }
   }, [user]);
+
+  // Refresh when screen comes into focus (after rating changes)
+  useFocusEffect(
+    useCallback(() => {
+      if (user && user.userType === 'client') {
+        loadDashboardData();
+      }
+    }, [user, refreshTrigger])
+  );
+
+  // Additional immediate refresh when rating changes
+  useEffect(() => {
+    if (refreshTrigger > 0 && user && user.userType === 'client') {
+      loadDashboardData();
+    }
+  }, [refreshTrigger, user]);
 
   const loadDashboardData = async () => {
     try {
@@ -111,7 +129,9 @@ export default function ClientDashboard() {
   const fetchMyJobs = async () => {
     try {
       const data = await apiService.getClientJobs();
-      const jobs = data
+      // Handle paginated response
+      const jobsList = Array.isArray(data) ? data : (data.results || []);
+      const jobs = jobsList
         .filter((job: any) => job.status === 'open' || job.status === 'in_progress')
         .slice(0, 3)
         .map((job: any) => ({
@@ -196,7 +216,7 @@ export default function ClientDashboard() {
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Completed</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>SDG {(stats.totalSpent / 1000).toFixed(1)}K</Text>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>SDG {((Number(stats.totalSpent) || 0) / 1000).toFixed(1)}K</Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Total Spent</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>

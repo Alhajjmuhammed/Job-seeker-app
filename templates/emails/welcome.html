@@ -1,0 +1,43 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Welcome to Worker Connect{% endblock %}
+
+{% block content %}
+<h2>Welcome to Worker Connect, {{ user.first_name|default:user.username }}! 🎉</h2>
+
+<p>Thank you for joining Worker Connect! We're excited to have you on board.</p>
+
+<p>Whether you're looking to hire skilled workers or offer your services, we're here to help you succeed.</p>
+
+<div class="info-box">
+    <h3>Get Started</h3>
+    <p>Complete your profile to start connecting with {% if is_worker %}clients{% else %}workers{% endif %} in your area.</p>
+</div>
+
+<p style="text-align: center;">
+    <a href="{{ dashboard_url }}" class="btn">Complete Your Profile</a>
+</p>
+
+{% if is_worker %}
+<h3>As a Worker, you can:</h3>
+<ul>
+    <li>Browse and apply for jobs that match your skills</li>
+    <li>Build your portfolio to showcase past work</li>
+    <li>Set your availability and rates</li>
+    <li>Earn badges and build your reputation</li>
+</ul>
+{% else %}
+<h3>As a Client, you can:</h3>
+<ul>
+    <li>Post jobs and receive applications from qualified workers</li>
+    <li>Browse worker profiles and reviews</li>
+    <li>Securely communicate and manage projects</li>
+    <li>Process payments safely through our platform</li>
+</ul>
+{% endif %}
+
+<p>If you have any questions, our support team is always here to help.</p>
+
+<p>Best regards,<br>
+<strong>The Worker Connect Team</strong></p>
+{% endblock %}

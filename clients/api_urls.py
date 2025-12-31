@@ -11,6 +11,10 @@ urlpatterns = [
     # Statistics
     path('stats/', api_views.client_stats, name='client_stats'),
     
+    # Jobs
+    path('jobs/', api_views.client_jobs, name='client_jobs'),
+    path('jobs/<int:job_id>/', api_views.client_job_detail, name='client_job_detail'),
+    
     # Worker search and discovery
     path('workers/search/', api_views.search_workers, name='search_workers'),
     path('workers/featured/', api_views.featured_workers, name='featured_workers'),
@@ -18,6 +22,7 @@ urlpatterns = [
     
     # Favorites
     path('workers/<int:worker_id>/favorite/', api_views.toggle_favorite, name='toggle_favorite'),
+    path('workers/<int:worker_id>/rate/', api_views.rate_worker, name='rate_worker'),
     path('favorites/', api_views.favorites_list, name='favorites_list'),
     
     # Categories

@@ -6,11 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Image,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../contexts/RatingContext';
 import Header from '../../components/Header';
+import apiService from '../../services/api';
+import { useEffect } from 'react';
 
 interface Worker {
   id: number;
@@ -21,67 +25,83 @@ interface Worker {
   completedJobs: number;
   isAvailable: boolean;
   location: string;
+  profileImage?: string | null;
 }
 
 export default function ClientSearchScreen() {
   const { theme } = useTheme();
+  const { refresh } = useLocalSearchParams();
+  const { refreshTrigger } = useRatingRefresh();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [categories, setCategories] = useState<string[]>(['All']);
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const categories = ['All', 'Plumbing', 'Electrical', 'Carpentry', 'Cleaning', 'Painting', 'Moving'];
+  useEffect(() => {
+    let mounted = true;
+    const loadInitial = async () => {
+      try {
+        setLoading(true);
+        const cats = await apiService.getCategories();
+        const catsList = Array.isArray(cats) ? cats : (cats.results || cats);
+        if (mounted) setCategories(['All', ...catsList.map((c: any) => c.name || c)]);
 
-  const [workers] = useState<Worker[]>([
-    {
-      id: 1,
-      name: 'Mohammed Ali',
-      category: 'Plumber',
-      rating: 4.8,
-      hourlyRate: 500,
-      completedJobs: 143,
-      isAvailable: true,
-      location: 'Khartoum',
-    },
-    {
-      id: 2,
-      name: 'Ahmed Hassan',
-      category: 'Electrician',
-      rating: 4.9,
-      hourlyRate: 600,
-      completedJobs: 201,
-      isAvailable: true,
-      location: 'Omdurman',
-    },
-    {
-      id: 3,
-      name: 'Ibrahim Omar',
-      category: 'Carpenter',
-      rating: 4.7,
-      hourlyRate: 550,
-      completedJobs: 98,
-      isAvailable: false,
-      location: 'Bahri',
-    },
-    {
-      id: 4,
-      name: 'Khalid Yousif',
-      category: 'Painter',
-      rating: 4.6,
-      hourlyRate: 450,
-      completedJobs: 76,
-      isAvailable: true,
-      location: 'Khartoum',
-    },
-    {
-      id: 5,
-      name: 'Omar Abdullah',
-      category: 'Cleaner',
-      rating: 4.9,
-      hourlyRate: 400,
-      completedJobs: 189,
-      isAvailable: true,
-      location: 'Omdurman',
-    },
-  ]);
+        // Load workers: prefer search endpoint to get all verified workers
+        const featured = await apiService.searchWorkers();
+        const list = Array.isArray(featured) ? featured : (featured.results || []);
+        if (mounted) {
+          setWorkers(list.map((w: any) => ({
+            id: w.id,
+            name: w.name || (w.user?.first_name || '') + ' ' + (w.user?.last_name || ''),
+            category: w.categories?.[0]?.name || 'General',
+            rating: w.average_rating || 0,
+            hourlyRate: w.hourly_rate || 0,
+            completedJobs: w.completed_jobs_count || 0,
+            isAvailable: w.availability === 'available',
+            location: w.city || '',
+            profileImage: w.profile_image || null,
+          })));
+        }
+      } catch (error) {
+        console.error('Error loading search data:', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    loadInitial();
+    return () => { mounted = false; };
+  }, [refresh, refreshTrigger]);
+
+  // Additional immediate refresh when rating changes
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      let mounted = true;
+      const quickRefresh = async () => {
+        try {
+          const featured = await apiService.searchWorkers();
+          const list = Array.isArray(featured) ? featured : (featured.results || []);
+          if (mounted) {
+            setWorkers(list.map((w: any) => ({
+              id: w.id,
+              name: w.name || 'Unknown',
+              category: w.categories?.[0]?.name || 'General',
+              rating: w.average_rating || 0,
+              hourlyRate: parseFloat(w.hourly_rate || '0'),
+              completedJobs: w.completed_jobs || 0,
+              isAvailable: w.availability === 'available',
+              location: w.city || '',
+              profileImage: w.profile_image || null,
+            })));
+          }
+        } catch (error) {
+          console.error('Error refreshing workers:', error);
+        }
+      };
+      quickRefresh();
+      return () => { mounted = false; };
+    }
+  }, [refreshTrigger]);
 
   const filteredWorkers = workers.filter((worker) => {
     const matchesSearch = worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -115,30 +135,37 @@ export default function ClientSearchScreen() {
         style={[styles.filtersContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
         contentContainerStyle={styles.filtersContent}
       >
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[
-              styles.filterButton,
-              { backgroundColor: theme.background, borderColor: theme.border },
-              selectedCategory === category && { backgroundColor: theme.primary, borderColor: theme.primary },
-            ]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
               style={[
-                styles.filterText,
-                { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
-                selectedCategory === category && { color: theme.textLight },
+                styles.filterButton,
+                { backgroundColor: theme.background, borderColor: theme.border },
+                selectedCategory === category && { backgroundColor: theme.primary, borderColor: theme.primary },
               ]}
+              onPress={() => setSelectedCategory(category)}
+              activeOpacity={0.8}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: theme.textSecondary, fontFamily: 'Poppins_500Medium' },
+                  selectedCategory === category && { color: theme.textLight },
+                ]}
+                numberOfLines={1}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={[styles.resultsText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
           {filteredWorkers.length} worker{filteredWorkers.length !== 1 ? 's' : ''} found
         </Text>
@@ -146,11 +173,15 @@ export default function ClientSearchScreen() {
         {filteredWorkers.map((worker) => (
           <View key={worker.id} style={[styles.workerCard, { backgroundColor: theme.card }]}>
             <View style={styles.workerInfo}>
-              <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
-                <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
-                  {worker.name.split(' ').map(n => n[0]).join('')}
-                </Text>
-              </View>
+              {worker.profileImage ? (
+                <Image source={{ uri: worker.profileImage }} style={[styles.workerAvatar, { borderRadius: 30 }]} />
+              ) : (
+                <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
+                  <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
+                    {(worker.name || '').split(' ').map(n => n?.[0] || '').join('')}
+                  </Text>
+                </View>
+              )}
               <View style={styles.workerDetails}>
                 <View style={styles.workerNameRow}>
                   <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{worker.name}</Text>
@@ -219,28 +250,35 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   filtersContainer: {
-    borderBottomWidth: 1,
+    borderBottomWidth: 0,
+    maxHeight: 40,
   },
   filtersContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    gap: 6,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 0,
     borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterText: {
-    fontSize: 13,
+    fontSize: 11,
+    fontWeight: '500',
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
   },
   resultsText: {
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   workerCard: {
     borderRadius: 12,

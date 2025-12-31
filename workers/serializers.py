@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from workers.models import WorkerProfile, Category
+from worker_connect.serializer_mixins import SanitizedSerializerMixin
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -8,7 +9,12 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'icon']
 
 
-class WorkerProfileSerializer(serializers.ModelSerializer):
+class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
+    """Worker profile serializer with input sanitization"""
+    
+    # Fields to sanitize for XSS prevention
+    sanitize_fields = ['bio', 'address', 'city', 'state', 'country', 'postal_code']
+    
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)

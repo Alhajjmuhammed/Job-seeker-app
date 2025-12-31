@@ -34,15 +34,17 @@ class WorkerSearchSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(source='user.phone_number', read_only=True)
     categories = CategorySerializer(many=True, read_only=True)
     is_favorite = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
     
     class Meta:
         model = WorkerProfile
         fields = [
             'id', 'user_id', 'name', 'email', 'phone_number',
-            'bio', 'hourly_rate', 'city', 'state', 'zip_code',
+            'bio', 'hourly_rate', 'city', 'state', 'postal_code', 'profile_image',
             'availability', 'verification_status', 'average_rating',
-            'total_reviews', 'completed_jobs', 'categories', 'is_favorite',
-            'created_at'
+            'total_reviews', 'completed_jobs', 'total_jobs', 'categories', 'is_favorite',
+            'experience_years', 'worker_type', 'created_at'
         ]
     
     def get_name(self, obj):
@@ -53,6 +55,19 @@ class WorkerSearchSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return Favorite.objects.filter(client=request.user, worker=obj).exists()
         return False
+    
+    def get_profile_image(self, obj):
+        """Return full URL for profile image"""
+        if obj.profile_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile_image.url)
+            return None
+        return None
+    
+    def get_total_reviews(self, obj):
+        """Get total number of reviews for this worker"""
+        return obj.ratings_received.count()
 
 
 class RatingSerializer(serializers.ModelSerializer):

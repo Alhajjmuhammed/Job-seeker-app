@@ -1,0 +1,51 @@
+{% extends "emails/base.html" %}
+
+{% block title %}New Job Application{% endblock %}
+
+{% block content %}
+<h2>New Application Received! 📋</h2>
+
+<p>Hi {{ client_name }},</p>
+
+<p>Great news! You've received a new application for your job posting.</p>
+
+<div class="info-box">
+    <h3>{{ job.title }}</h3>
+    <p>{{ job.description|truncatewords:30 }}</p>
+</div>
+
+<div class="details-list">
+    <div class="item">
+        <span class="label">Applicant</span>
+        <span class="value">{{ worker.name }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Rating</span>
+        <span class="value">{{ worker.rating|default:"New Worker" }} ⭐</span>
+    </div>
+    <div class="item">
+        <span class="label">Completed Jobs</span>
+        <span class="value">{{ worker.completed_jobs }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Proposed Rate</span>
+        <span class="value">${{ application.proposed_rate|default:job.budget }}</span>
+    </div>
+</div>
+
+{% if application.cover_letter %}
+<div class="info-box">
+    <h3>Cover Letter</h3>
+    <p>{{ application.cover_letter|truncatewords:50 }}</p>
+</div>
+{% endif %}
+
+<p style="text-align: center;">
+    <a href="{{ application_url }}" class="btn">View Application</a>
+</p>
+
+<p>Don't keep them waiting - respond to your applicants promptly for the best results!</p>
+
+<p>Best regards,<br>
+<strong>The Worker Connect Team</strong></p>
+{% endblock %}

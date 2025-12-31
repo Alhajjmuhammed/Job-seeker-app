@@ -57,7 +57,7 @@ export default function EarningsScreen() {
   const handleWithdraw = () => {
     Alert.alert(
       'Withdraw Funds',
-      `Available balance: SDG ${pendingAmount.toFixed(2)}`,
+      `Available balance: SDG ${(Number(pendingAmount) || 0).toFixed(2)}`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Withdraw', onPress: () => Alert.alert('Coming Soon', 'Withdrawal feature coming soon!') },
@@ -88,17 +88,17 @@ export default function EarningsScreen() {
           <View style={styles.balanceSection}>
             <View style={[styles.balanceCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
               <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Total Earnings</Text>
-              <Text style={[styles.balanceAmount, { color: theme.primary }]}>SDG {totalEarnings.toFixed(2)}</Text>
+              <Text style={[styles.balanceAmount, { color: theme.primary }]}>SDG {(Number(totalEarnings) || 0).toFixed(2)}</Text>
             </View>
 
             <View style={styles.smallCards}>
               <View style={[styles.smallCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                 <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Available</Text>
-                <Text style={[styles.smallCardAmount, { color: theme.text }]}>SDG {pendingAmount.toFixed(2)}</Text>
+                <Text style={[styles.smallCardAmount, { color: theme.text }]}>SDG {(Number(pendingAmount) || 0).toFixed(2)}</Text>
               </View>
               <View style={[styles.smallCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                 <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Withdrawn</Text>
-                <Text style={[styles.smallCardAmount, { color: theme.text }]}>SDG {withdrawnAmount.toFixed(2)}</Text>
+                <Text style={[styles.smallCardAmount, { color: theme.text }]}>SDG {(Number(withdrawnAmount) || 0).toFixed(2)}</Text>
               </View>
             </View>
           </View>
@@ -129,7 +129,7 @@ export default function EarningsScreen() {
                   </View>
                   <View style={styles.transactionRight}>
                     <Text style={[styles.transactionAmount, { color: isDark ? '#6EE7B7' : '#059669' }]}>
-                      +SDG {txn.amount.toFixed(2)}
+                      +SDG {(Number(txn.amount) || 0).toFixed(2)}
                     </Text>
                     <View style={[styles.statusBadge, getStatusStyle(txn.status)]}>
                       <Text style={[styles.statusText, { color: theme.text }]}>{txn.status}</Text>

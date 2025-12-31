@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from jobs.models import DirectHireRequest, JobRequest, JobApplication
+from worker_connect.serializer_mixins import SanitizedSerializerMixin
 
 
 class DirectHireRequestSerializer(serializers.ModelSerializer):
@@ -16,7 +17,11 @@ class DirectHireRequestSerializer(serializers.ModelSerializer):
         return f"{obj.client.first_name} {obj.client.last_name}"
 
 
-class JobRequestSerializer(serializers.ModelSerializer):
+class JobRequestSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
+    """Job request serializer with input sanitization"""
+    
+    sanitize_fields = ['title', 'description', 'location', 'city']
+    
     client_name = serializers.SerializerMethodField()
     category_name = serializers.CharField(source='category.name', read_only=True)
     application_count = serializers.IntegerField(read_only=True)
@@ -34,8 +39,10 @@ class JobRequestSerializer(serializers.ModelSerializer):
         return f"{obj.client.first_name} {obj.client.last_name}"
 
 
-class JobRequestCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating job requests"""
+class JobRequestCreateSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
+    """Serializer for creating job requests with input sanitization"""
+    
+    sanitize_fields = ['title', 'description', 'location', 'city']
     
     class Meta:
         model = JobRequest
@@ -49,7 +56,11 @@ class JobRequestCreateSerializer(serializers.ModelSerializer):
         return JobRequest.objects.create(**validated_data)
 
 
-class JobApplicationSerializer(serializers.ModelSerializer):
+class JobApplicationSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
+    """Job application serializer with input sanitization"""
+    
+    sanitize_fields = ['cover_letter']
+    
     job_title = serializers.CharField(source='job.title', read_only=True)
     job_id = serializers.IntegerField(source='job.id', read_only=True)
     client_name = serializers.SerializerMethodField()
@@ -70,8 +81,10 @@ class JobApplicationSerializer(serializers.ModelSerializer):
         return f"{obj.worker.user.first_name} {obj.worker.user.last_name}"
 
 
-class JobApplicationCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating job applications"""
+class JobApplicationCreateSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
+    """Serializer for creating job applications with input sanitization"""
+    
+    sanitize_fields = ['cover_letter']
     
     class Meta:
         model = JobApplication

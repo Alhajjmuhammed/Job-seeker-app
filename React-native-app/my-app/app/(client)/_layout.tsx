@@ -97,6 +97,12 @@ export default function ClientLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="rate-worker/[workerId]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

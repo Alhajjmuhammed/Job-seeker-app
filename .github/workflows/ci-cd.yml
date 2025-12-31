@@ -1,0 +1,287 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================
+  # Backend Tests (Django)
+  # ============================================
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
+
+      - name: Install Python dependencies
+        working-directory: ./Job-seeker-app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-django pytest-cov
+
+      - name: Run Django tests
+        working-directory: ./Job-seeker-app
+        env:
+          DEBUG: 'True'
+          SECRET_KEY: 'test-secret-key-for-ci-only'
+          DATABASE_URL: 'postgres://testuser:testpass@localhost:5432/testdb'
+          ALLOWED_HOSTS: 'localhost,127.0.0.1'
+        run: |
+          python manage.py migrate
+          python manage.py test --verbosity=2
+
+      - name: Run pytest with coverage
+        working-directory: ./Job-seeker-app
+        env:
+          DEBUG: 'True'
+          SECRET_KEY: 'test-secret-key-for-ci-only'
+          DATABASE_URL: 'postgres://testuser:testpass@localhost:5432/testdb'
+          ALLOWED_HOSTS: 'localhost,127.0.0.1'
+        run: |
+          pytest --cov=. --cov-report=xml --cov-report=html -v
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./Job-seeker-app/coverage.xml
+          fail_ci_if_error: false
+
+  # ============================================
+  # Backend Linting & Security
+  # ============================================
+  backend-lint:
+    name: Backend Lint & Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 bandit safety black isort
+
+      - name: Run Black (formatting check)
+        working-directory: ./Job-seeker-app
+        run: |
+          black --check --diff . || echo "Formatting issues found"
+
+      - name: Run isort (import sorting)
+        working-directory: ./Job-seeker-app
+        run: |
+          isort --check-only --diff . || echo "Import sorting issues found"
+
+      - name: Run Flake8
+        working-directory: ./Job-seeker-app
+        run: |
+          flake8 . --max-line-length=120 --exclude=migrations,__pycache__,venv,.venv
+
+      - name: Run Bandit (security)
+        working-directory: ./Job-seeker-app
+        run: |
+          bandit -r . -x ./tests,./migrations -ll
+
+      - name: Run Safety (dependency check)
+        working-directory: ./Job-seeker-app
+        run: |
+          pip install -r requirements.txt
+          safety check || echo "Vulnerabilities found - review required"
+
+  # ============================================
+  # Frontend Tests (React Native)
+  # ============================================
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './Job-seeker-app/React-native-app/my-app/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./Job-seeker-app/React-native-app/my-app
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./Job-seeker-app/React-native-app/my-app
+        run: npm run lint || echo "Lint issues found"
+
+      - name: Run TypeScript check
+        working-directory: ./Job-seeker-app/React-native-app/my-app
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        working-directory: ./Job-seeker-app/React-native-app/my-app
+        run: npm test -- --coverage --passWithNoTests
+
+  # ============================================
+  # Django Check & Migrations
+  # ============================================
+  django-check:
+    name: Django System Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ./Job-seeker-app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django checks
+        working-directory: ./Job-seeker-app
+        env:
+          DEBUG: 'True'
+          SECRET_KEY: 'test-secret-key-for-ci-only'
+        run: |
+          python manage.py check --deploy
+          python manage.py makemigrations --check --dry-run
+
+  # ============================================
+  # Build Docker Image
+  # ============================================
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [backend-tests, backend-lint, frontend-tests]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        working-directory: ./Job-seeker-app
+        run: |
+          docker build -t workerconnect:${{ github.sha }} .
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'workerconnect:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+  # ============================================
+  # Deploy to Staging
+  # ============================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your staging deployment commands here
+          # Example: ssh deploy@staging-server 'cd /app && docker-compose pull && docker-compose up -d'
+
+  # ============================================
+  # Deploy to Production
+  # ============================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add your production deployment commands here
+          # Example with SSH:
+          # ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+          # ssh deploy@${{ secrets.PRODUCTION_HOST }} 'cd /app && ./deploy.sh'
+
+  # ============================================
+  # Notify on Failure
+  # ============================================
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [backend-tests, backend-lint, frontend-tests, django-check]
+    if: failure()
+
+    steps:
+      - name: Send failure notification
+        run: |
+          echo "Pipeline failed! Review required."
+          # Add notification (Slack, email, etc.)
+          # Example with Slack:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"CI/CD Pipeline failed for ${{ github.repository }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}

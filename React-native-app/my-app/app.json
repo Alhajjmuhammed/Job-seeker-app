@@ -1,17 +1,28 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "Worker Connect",
+    "slug": "worker-connect",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "workerconnect",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.workerconnect.app",
+      "associatedDomains": [
+        "applinks:workerconnect.com",
+        "applinks:*.workerconnect.com"
+      ],
+      "infoPlist": {
+        "NSCameraUsageDescription": "Worker Connect needs camera access to take photos for your profile and portfolio.",
+        "NSPhotoLibraryUsageDescription": "Worker Connect needs photo library access to upload images for your profile and portfolio.",
+        "NSLocationWhenInUseUsageDescription": "Worker Connect uses your location to find nearby jobs and workers."
+      }
     },
     "android": {
+      "package": "com.workerconnect.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +30,42 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "workerconnect.com",
+              "pathPrefix": "/app"
+            },
+            {
+              "scheme": "https",
+              "host": "*.workerconnect.com",
+              "pathPrefix": "/app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "workerconnect"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",

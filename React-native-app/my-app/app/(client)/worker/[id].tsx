@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../../contexts/RatingContext';
 import apiService from '../../../services/api';
 
 interface WorkerDetail {
@@ -25,17 +27,33 @@ interface WorkerDetail {
   skills: string[];
   isAvailable: boolean;
   isFavorite: boolean;
+  profileImage?: string | null;
 }
 
 export default function WorkerDetailScreen() {
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
+  const { refreshTrigger } = useRatingRefresh();
   const [loading, setLoading] = useState(true);
   const [worker, setWorker] = useState<WorkerDetail | null>(null);
 
   useEffect(() => {
     loadWorkerDetail();
   }, [id]);
+
+  // Refresh data when screen comes into focus (e.g., after rating)
+  useFocusEffect(
+    useCallback(() => {
+      loadWorkerDetail();
+    }, [id, refreshTrigger])
+  );
+
+  // Additional immediate refresh when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      loadWorkerDetail();
+    }
+  }, [refreshTrigger]);
 
   const loadWorkerDetail = async () => {
     try {
@@ -49,10 +67,11 @@ export default function WorkerDetailScreen() {
         hourlyRate: parseFloat(workerData.hourly_rate || '0'),
         completedJobs: workerData.completed_jobs || 0,
         bio: workerData.bio || 'No bio available',
-        location: `${workerData.city}, ${workerData.country}`,
+        location: [workerData.city, workerData.state, workerData.country].filter(Boolean).join(', ') || 'Location not specified',
         skills: workerData.skills?.map((s: any) => s.name) || [],
         isAvailable: workerData.availability === 'available',
         isFavorite: workerData.is_favorite || false,
+        profileImage: workerData.profile_image || null,
       });
     } catch (error) {
       console.error('Error loading worker:', error);
@@ -135,11 +154,15 @@ export default function WorkerDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Profile Section */}
         <View style={[styles.profileSection, { backgroundColor: theme.card }]}>
-          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-            <Text style={[styles.avatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
-              {worker.name[0]}
-            </Text>
-          </View>
+          {worker.profileImage ? (
+            <Image source={{ uri: worker.profileImage }} style={styles.avatarImage} />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+              <Text style={[styles.avatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
+                {worker.name?.[0] || ''}
+              </Text>
+            </View>
+          )}
           <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>{worker.name}</Text>
           <Text style={[styles.workerCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{worker.category}</Text>
           
@@ -167,7 +190,7 @@ export default function WorkerDetailScreen() {
               <View style={styles.statValueRow}>
                 <Ionicons name="star" size={20} color="#FCD34D" />
                 <Text style={[styles.statValue, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>
-                  {worker.rating.toFixed(1)}
+                  {(Number(worker.rating) || 0).toFixed(1)}
                 </Text>
               </View>
               <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Rating</Text>
@@ -223,18 +246,30 @@ export default function WorkerDetailScreen() {
         <TouchableOpacity
           style={[styles.messageButton, { borderColor: theme.primary }]}
           onPress={handleMessageWorker}
+          activeOpacity={0.8}
         >
           <Ionicons name="chatbubble-outline" size={20} color={theme.primary} />
           <Text style={[styles.messageButtonText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>
-            Message Worker
+            Message
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.rateButton, { backgroundColor: '#FCD34D' }]}
+          onPress={() => router.push(`/(client)/rate-worker/${id}?workerName=${worker?.name}` as any)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="star" size={22} color="#D97706" />
+          <Text style={[styles.rateButtonText, { color: '#92400E', fontFamily: 'Poppins_700Bold' }]}>
+            Rate
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.requestButton, { backgroundColor: theme.primary }]}
           onPress={handleRequestDirectly}
+          activeOpacity={0.8}
         >
           <Text style={[styles.requestButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>
-            Request Directly
+            Request
           </Text>
         </TouchableOpacity>
       </View>
@@ -307,6 +342,12 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     marginBottom: 16,
   },
   avatarText: {
@@ -439,20 +480,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 2,
   },
   messageButtonText: {
     fontSize: 16,
+    fontWeight: '600',
+  },
+  rateButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 16,
+    padding: 16,
+    backgroundColor: '#FCD34D',
+    elevation: 4,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    transform: [{ scale: 1 }],
+  },
+  rateButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
   },
   requestButton: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   requestButtonText: {
     fontSize: 16,
+    fontWeight: '600',
   },
 });

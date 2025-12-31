@@ -1,0 +1,53 @@
+{% extends "emails/base.html" %}
+
+{% block title %}You've Been Assigned to a Job{% endblock %}
+
+{% block content %}
+<h2>Congratulations! You've Been Assigned! 🎉</h2>
+
+<p>Hi {{ worker_name }},</p>
+
+<p>Great news! {{ client_name }} has assigned you to their job.</p>
+
+<div class="info-box">
+    <h3>{{ job.title }}</h3>
+    <p>{{ job.description|truncatewords:30 }}</p>
+</div>
+
+<div class="details-list">
+    <div class="item">
+        <span class="label">Client</span>
+        <span class="value">{{ client_name }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Location</span>
+        <span class="value">{{ job.location }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Schedule</span>
+        <span class="value">{{ job.start_date|date:"M d, Y" }}{% if job.end_date %} - {{ job.end_date|date:"M d, Y" }}{% endif %}</span>
+    </div>
+    <div class="item">
+        <span class="label">Budget</span>
+        <span class="value">${{ job.budget }}</span>
+    </div>
+</div>
+
+<div class="alert-box alert-warning">
+    <strong>Next Steps:</strong>
+    <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+        <li>Review the job details carefully</li>
+        <li>Contact the client to confirm scheduling</li>
+        <li>Mark the job as "In Progress" when you start</li>
+    </ol>
+</div>
+
+<p style="text-align: center;">
+    <a href="{{ job_url }}" class="btn">View Job Details</a>
+</p>
+
+<p>Best of luck with the project!</p>
+
+<p>Best regards,<br>
+<strong>The Worker Connect Team</strong></p>
+{% endblock %}

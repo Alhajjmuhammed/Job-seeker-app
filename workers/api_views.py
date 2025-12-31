@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -7,6 +8,8 @@ from django.db.models import Count, Q
 from workers.models import WorkerProfile, WorkerDocument, Category
 from jobs.models import DirectHireRequest, JobApplication
 from .serializers import WorkerProfileSerializer, CategorySerializer
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
@@ -38,7 +41,7 @@ def update_worker_profile(request):
         # Handle profile_image separately if provided
         if 'profile_image' in request.FILES:
             image_file = request.FILES['profile_image']
-            print(f"Received file: {image_file.name}, Size: {image_file.size}, Type: {image_file.content_type}")
+            logger.debug(f"Received file: {image_file.name}, Size: {image_file.size}, Type: {image_file.content_type}")
             
             try:
                 # Optional: Validate it's an image file by extension
@@ -51,12 +54,10 @@ def update_worker_profile(request):
                 # Save the file
                 profile.profile_image = image_file
                 profile.save()
-                print(f"File saved successfully to: {profile.profile_image.url}")
+                logger.debug(f"File saved successfully to: {profile.profile_image.url}")
             except Exception as e:
-                print(f"Error saving file: {str(e)}")
-                import traceback
-                traceback.print_exc()
-                return Response({'error': f'Failed to save file: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+                logger.error(f"Error saving profile image: {str(e)}", exc_info=True)
+                return Response({'error': 'Failed to save file. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Update other fields
         serializer = WorkerProfileSerializer(profile, data=request.data, partial=True, context={'request': request})

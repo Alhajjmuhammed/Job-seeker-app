@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useRatingRefresh } from '../../../contexts/RatingContext';
 import apiService from '../../../services/api';
 
 interface WorkerInfo {
@@ -22,11 +24,13 @@ interface WorkerInfo {
   category: string;
   hourlyRate: number;
   rating: number;
+  profileImage?: string | null;
 }
 
 export default function RequestWorkerScreen() {
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
+  const { refreshTrigger } = useRatingRefresh();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [worker, setWorker] = useState<WorkerInfo | null>(null);
@@ -43,6 +47,13 @@ export default function RequestWorkerScreen() {
     loadWorkerInfo();
   }, [id]);
 
+  // Refresh when screen comes into focus (after rating changes)
+  useFocusEffect(
+    useCallback(() => {
+      loadWorkerInfo();
+    }, [id, refreshTrigger])
+  );
+
   const loadWorkerInfo = async () => {
     try {
       setLoading(true);
@@ -53,6 +64,7 @@ export default function RequestWorkerScreen() {
         category: workerData.categories?.[0]?.name || 'General',
         hourlyRate: parseFloat(workerData.hourly_rate || '0'),
         rating: workerData.average_rating || 0,
+        profileImage: workerData.profile_image || null,
       });
     } catch (error) {
       console.error('Error loading worker:', error);
@@ -143,11 +155,15 @@ export default function RequestWorkerScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Worker Info Card */}
         <View style={[styles.workerCard, { backgroundColor: theme.card }]}>
-          <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
-            <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
-              {worker?.name[0]}
-            </Text>
-          </View>
+          {worker?.profileImage ? (
+            <Image source={{ uri: worker.profileImage }} style={[styles.workerAvatar, { borderRadius: 30 }]} />
+          ) : (
+            <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
+              <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
+                {worker?.name?.[0] || ''}
+              </Text>
+            </View>
+          )}
           <View style={styles.workerInfo}>
             <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
               {worker?.name}
@@ -159,7 +175,7 @@ export default function RequestWorkerScreen() {
               <View style={styles.detailItem}>
                 <Ionicons name="star" size={16} color="#FCD34D" />
                 <Text style={[styles.detailText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-                  {worker?.rating.toFixed(1)}
+                  {(Number(worker?.rating) || 0).toFixed(1)}
                 </Text>
               </View>
               <View style={styles.detailItem}>

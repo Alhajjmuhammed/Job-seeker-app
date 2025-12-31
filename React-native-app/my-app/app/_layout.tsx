@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+import { RatingProvider } from '../contexts/RatingContext';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -41,7 +42,8 @@ function RootLayoutContent() {
   return (
     <>
       <AuthProvider>
-        <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <RatingProvider>
+          <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -52,6 +54,7 @@ function RootLayoutContent() {
           </Stack>
           <StatusBar style={theme?.statusBar || 'auto'} />
         </NavigationThemeProvider>
+        </RatingProvider>
       </AuthProvider>
     </>
   );

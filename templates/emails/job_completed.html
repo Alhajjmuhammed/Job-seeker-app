@@ -1,0 +1,61 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Job Completed{% endblock %}
+
+{% block content %}
+<h2>Job Completed Successfully! ✅</h2>
+
+<p>Hi {{ recipient_name }},</p>
+
+<p>The job "{{ job.title }}" has been marked as completed.</p>
+
+<div class="details-list">
+    <div class="item">
+        <span class="label">Job</span>
+        <span class="value">{{ job.title }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Worker</span>
+        <span class="value">{{ worker_name }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Client</span>
+        <span class="value">{{ client_name }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Completion Date</span>
+        <span class="value">{{ completion_date|date:"M d, Y" }}</span>
+    </div>
+    <div class="item">
+        <span class="label">Total Amount</span>
+        <span class="value">${{ total_amount }}</span>
+    </div>
+</div>
+
+{% if is_client %}
+<div class="alert-box alert-success">
+    <strong>Payment Processing:</strong>
+    <p style="margin: 10px 0 0 0;">The payment will be released to the worker according to your payment agreement.</p>
+</div>
+
+<p>We'd love to hear about your experience! Please take a moment to leave a review.</p>
+
+<p style="text-align: center;">
+    <a href="{{ review_url }}" class="btn">Leave a Review</a>
+</p>
+{% else %}
+<div class="alert-box alert-success">
+    <strong>Great work!</strong>
+    <p style="margin: 10px 0 0 0;">Your payment will be processed according to your agreement with the client.</p>
+</div>
+
+<p style="text-align: center;">
+    <a href="{{ job_url }}" class="btn">View Job Details</a>
+</p>
+{% endif %}
+
+<p>Thank you for using Worker Connect!</p>
+
+<p>Best regards,<br>
+<strong>The Worker Connect Team</strong></p>
+{% endblock %}

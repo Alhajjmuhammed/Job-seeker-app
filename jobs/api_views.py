@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Count
 from jobs.models import DirectHireRequest, JobRequest, JobApplication
 from workers.models import WorkerProfile
+from worker_connect.pagination import paginate_queryset
 from .serializers import (
     DirectHireRequestSerializer, JobRequestSerializer, JobApplicationSerializer,
     JobRequestCreateSerializer, JobApplicationCreateSerializer
@@ -28,8 +29,7 @@ def worker_direct_hire_requests(request):
         status='pending'
     ).order_by('-created_at')
     
-    serializer = DirectHireRequestSerializer(requests, many=True)
-    return Response(serializer.data)
+    return paginate_queryset(request, requests, DirectHireRequestSerializer)
 
 
 @api_view(['POST'])
@@ -65,8 +65,7 @@ def reject_direct_hire_request(request, request_id):
 def worker_job_listings(request):
     """Get available job listings for workers"""
     jobs = JobRequest.objects.filter(status='open').order_by('-created_at')
-    serializer = JobRequestSerializer(jobs, many=True)
-    return Response(serializer.data)
+    return paginate_queryset(request, jobs, JobRequestSerializer)
 
 
 @api_view(['GET'])
@@ -82,8 +81,7 @@ def worker_applications(request):
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
     applications = JobApplication.objects.filter(worker=worker_profile).order_by('-created_at')
-    serializer = JobApplicationSerializer(applications, many=True)
-    return Response(serializer.data)
+    return paginate_queryset(request, applications, JobApplicationSerializer)
 
 
 @api_view(['POST'])
@@ -158,8 +156,7 @@ def client_jobs(request):
             jobs = jobs.filter(status=status_filter)
         
         jobs = jobs.annotate(application_count=Count('applications')).order_by('-created_at')
-        serializer = JobRequestSerializer(jobs, many=True)
-        return Response(serializer.data)
+        return paginate_queryset(request, jobs, JobRequestSerializer)
     
     elif request.method == 'POST':
         # Create new job
@@ -208,8 +205,7 @@ def client_job_applications(request, job_id):
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     
     applications = JobApplication.objects.filter(job=job).order_by('-created_at')
-    serializer = JobApplicationSerializer(applications, many=True)
-    return Response(serializer.data)
+    return paginate_queryset(request, applications, JobApplicationSerializer)
 
 
 @api_view(['POST'])
@@ -262,5 +258,4 @@ def browse_jobs(request):
     if city:
         jobs = jobs.filter(city__icontains=city)
     
-    serializer = JobRequestSerializer(jobs, many=True)
-    return Response(serializer.data)
+    return paginate_queryset(request, jobs, JobRequestSerializer)
