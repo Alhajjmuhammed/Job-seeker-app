@@ -64,7 +64,10 @@ def reject_direct_hire_request(request, request_id):
 @permission_classes([IsAuthenticated])
 def worker_job_listings(request):
     """Get available job listings for workers"""
-    jobs = JobRequest.objects.filter(status='open').order_by('-created_at')
+    jobs = JobRequest.objects.filter(status='open') \
+        .select_related('client', 'category') \
+        .prefetch_related('assigned_workers') \
+        .order_by('-created_at')
     return paginate_queryset(request, jobs, JobRequestSerializer)
 
 
@@ -80,7 +83,9 @@ def worker_applications(request):
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    applications = JobApplication.objects.filter(worker=worker_profile).order_by('-created_at')
+    applications = JobApplication.objects.filter(worker=worker_profile) \
+        .select_related('job', 'job__client', 'job__category', 'worker') \
+        .order_by('-created_at')
     return paginate_queryset(request, applications, JobApplicationSerializer)
 
 
@@ -213,15 +218,21 @@ def client_job_applications(request, job_id):
 def accept_application(request, application_id):
     """Accept a job application"""
     try:
-        application = JobApplication.objects.get(id=application_id, job__client=request.user)
+        application = JobApplication.objects.select_related('job', 'job__client').get(id=application_id)
+        
+        # Explicit permission check
+        if application.job.client != request.user:
+            return Response({'error': 'You do not have permission to accept this application'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
         application.status = 'accepted'
-        application.save()
+        application.save(update_fields=['status'])
         
         # Update job status to in_progress
         job = application.job
         if job.status == 'open':
             job.status = 'in_progress'
-            job.save()
+            job.save(update_fields=['status'])
         
         return Response({'message': 'Application accepted successfully'})
     except JobApplication.DoesNotExist:
@@ -233,9 +244,15 @@ def accept_application(request, application_id):
 def reject_application(request, application_id):
     """Reject a job application"""
     try:
-        application = JobApplication.objects.get(id=application_id, job__client=request.user)
+        application = JobApplication.objects.select_related('job', 'job__client').get(id=application_id)
+        
+        # Explicit permission check
+        if application.job.client != request.user:
+            return Response({'error': 'You do not have permission to reject this application'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
         application.status = 'rejected'
-        application.save()
+        application.save(update_fields=['status'])
         return Response({'message': 'Application rejected successfully'})
     except JobApplication.DoesNotExist:
         return Response({'error': 'Application not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -245,9 +262,11 @@ def reject_application(request, application_id):
 @permission_classes([IsAuthenticated])
 def browse_jobs(request):
     """Browse all open job listings (for workers)"""
-    jobs = JobRequest.objects.filter(status='open').annotate(
-        application_count=Count('applications')
-    ).order_by('-created_at')
+    jobs = JobRequest.objects.filter(status='open') \
+        .select_related('client', 'category') \
+        .prefetch_related('assigned_workers') \
+        .annotate(application_count=Count('applications')) \
+        .order_by('-created_at')
     
     # Optional filters
     category = request.GET.get('category')

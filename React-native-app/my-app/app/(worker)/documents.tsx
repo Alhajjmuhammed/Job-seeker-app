@@ -7,25 +7,40 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Linking,
+  Modal,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import apiService from '../../services/api';
 
 interface Document {
   id: number;
-  name: string;
-  type: string;
-  uploadDate: string;
-  status: 'verified' | 'pending' | 'rejected';
+  title: string;
+  document_type: string;
+  file_url: string;
+  verification_status: 'verified' | 'pending' | 'rejected';
+  uploaded_at: string;
+  rejection_reason?: string;
+}
+
+interface DocumentTypeOption {
+  type: 'id' | 'cv' | 'certificate' | 'license' | 'other';
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  required?: boolean;
 }
 
 export default function DocumentsScreen() {
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [hasNationalId, setHasNationalId] = useState(false);
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
 
   useEffect(() => {
     loadDocuments();
@@ -34,12 +49,9 @@ export default function DocumentsScreen() {
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      // TODO: Implement getDocuments API endpoint
-      // const docs = await apiService.getWorkerDocuments();
-      // setDocuments(docs);
-      
-      // Mock data for now
-      setDocuments([]);
+      const response = await apiService.getWorkerDocuments();
+      setDocuments(response.documents || []);
+      setHasNationalId(response.has_national_id || false);
     } catch (error) {
       console.error('Error loading documents:', error);
       Alert.alert('Error', 'Failed to load documents');
@@ -49,13 +61,86 @@ export default function DocumentsScreen() {
   };
 
   const handleUploadDocument = () => {
-    Alert.alert('Upload Document', 'Document upload feature coming soon!');
+    // Get already uploaded document types
+    const uploadedTypes = documents.map(doc => doc.document_type);
+    
+    // Check if all types are uploaded
+    const allTypesUploaded = ['id', 'cv', 'certificate', 'license'].every(type => 
+      uploadedTypes.includes(type)
+    );
+    
+    if (allTypesUploaded) {
+      Alert.alert(
+        'All Documents Uploaded',
+        'You have already uploaded all required document types. You can only add more "Other" documents or delete existing ones to upload new versions.'
+      );
+    }
+    
+    // Show type selector
+    setShowTypeSelector(true);
   };
 
-  const handleDeleteDocument = (docId: number) => {
+  const getAvailableDocumentTypes = (): DocumentTypeOption[] => {
+    const uploadedTypes = documents.map(doc => doc.document_type);
+    const allTypes: DocumentTypeOption[] = [
+      { type: 'id', label: 'National ID Card', icon: 'card-outline', required: true },
+      { type: 'cv', label: 'CV/Resume', icon: 'document-text-outline' },
+      { type: 'certificate', label: 'Certificate', icon: 'school-outline' },
+      { type: 'license', label: 'License', icon: 'ribbon-outline' },
+      { type: 'other', label: 'Other Document', icon: 'folder-outline' },
+    ];
+    
+    return allTypes.filter(docType => 
+      docType.type === 'other' || !uploadedTypes.includes(docType.type)
+    );
+  };
+
+  const handleSelectDocumentType = async (documentType: 'id' | 'cv' | 'certificate' | 'license' | 'other') => {
+    setShowTypeSelector(false);
+    
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const file = result.assets[0];
+      await uploadFile(file, documentType);
+    } catch (error) {
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to pick document');
+    }
+  };
+
+  const uploadFile = async (file: any, documentType: 'id' | 'cv' | 'certificate' | 'license' | 'other') => {
+    try {
+      setLoading(true);
+
+      const fileToUpload: any = {
+        uri: file.uri,
+        type: file.mimeType || 'application/octet-stream',
+        name: file.name,
+      };
+
+      await apiService.uploadDocument(fileToUpload, documentType);
+      Alert.alert('Success', 'Document uploaded successfully!');
+      loadDocuments(); // Reload the list
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      Alert.alert('Upload Failed', error.response?.data?.error || 'Failed to upload document');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteDocument = (doc: Document) => {
     Alert.alert(
       'Delete Document',
-      'Are you sure you want to delete this document?',
+      `Are you sure you want to delete "${doc.title}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -63,17 +148,44 @@ export default function DocumentsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // TODO: Implement deleteDocument API endpoint
-              // await apiService.deleteDocument(docId);
-              setDocuments(documents.filter(doc => doc.id !== docId));
-              Alert.alert('Success', 'Document deleted');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete document');
+              setLoading(true);
+              await apiService.deleteDocument(doc.id);
+              Alert.alert('Success', 'Document deleted successfully');
+              loadDocuments(); // Reload the list
+            } catch (error: any) {
+              console.error('Delete error:', error);
+              Alert.alert('Error', error.response?.data?.error || 'Failed to delete document');
+            } finally {
+              setLoading(false);
             }
           },
         },
       ]
     );
+  };
+
+  const handleViewDocument = (doc: Document) => {
+    if (doc.file_url) {
+      Linking.openURL(doc.file_url).catch(() => {
+        Alert.alert('Error', 'Unable to open document');
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const getDocumentTypeLabel = (type: string) => {
+    const labels: { [key: string]: string } = {
+      'id': 'National ID',
+      'cv': 'CV/Resume',
+      'certificate': 'Certificate',
+      'license': 'License',
+      'other': 'Other Document',
+    };
+    return labels[type] || type;
   };
 
   const getStatusStyle = (status: string) => {
@@ -132,7 +244,7 @@ export default function DocumentsScreen() {
 
           {/* Upload Button */}
           <TouchableOpacity style={[styles.uploadButton, { backgroundColor: theme.primary }]} onPress={handleUploadDocument}>
-            <Text style={styles.uploadIcon}>📤</Text>
+            <Ionicons name="cloud-upload-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.uploadButtonText}>Upload Document</Text>
           </TouchableOpacity>
 
@@ -150,29 +262,37 @@ export default function DocumentsScreen() {
             ) : (
               documents.map((doc) => (
                 <View key={doc.id} style={[styles.documentCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
-                  <View style={[styles.documentIcon, { backgroundColor: isDark ? theme.border : '#F3F4F6' }]}>
+                  <TouchableOpacity 
+                    style={[styles.documentIcon, { backgroundColor: isDark ? theme.border : '#F3F4F6' }]}
+                    onPress={() => handleViewDocument(doc)}
+                  >
                     <Ionicons name="document-text-outline" size={24} color={theme.primary} />
-                  </View>
+                  </TouchableOpacity>
                   <View style={styles.documentInfo}>
-                    <Text style={[styles.documentName, { color: theme.text }]}>{doc.name}</Text>
-                    <Text style={[styles.documentType, { color: theme.textSecondary }]}>{doc.type}</Text>
-                    <Text style={[styles.documentDate, { color: theme.textSecondary }]}>Uploaded {doc.uploadDate}</Text>
+                    <Text style={[styles.documentName, { color: theme.text }]}>{doc.title}</Text>
+                    <Text style={[styles.documentType, { color: theme.textSecondary }]}>{getDocumentTypeLabel(doc.document_type)}</Text>
+                    <Text style={[styles.documentDate, { color: theme.textSecondary }]}>Uploaded {formatDate(doc.uploaded_at)}</Text>
+                    {doc.rejection_reason && (
+                      <Text style={[styles.rejectionReason, { color: '#DC2626' }]}>
+                        Reason: {doc.rejection_reason}
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.documentRight}>
-                    <View style={[styles.statusBadge, getStatusStyle(doc.status)]}>
+                    <View style={[styles.statusBadge, getStatusStyle(doc.verification_status)]}>
                       <Ionicons 
-                        name={getStatusIcon(doc.status) as any} 
+                        name={getStatusIcon(doc.verification_status) as any} 
                         size={14} 
-                        color={getStatusStyle(doc.status).color} 
+                        color={getStatusStyle(doc.verification_status).color} 
                         style={{ marginRight: 4 }}
                       />
-                      <Text style={[styles.statusText, { color: getStatusStyle(doc.status).color }]}>
-                        {doc.status}
+                      <Text style={[styles.statusText, { color: getStatusStyle(doc.verification_status).color }]}>
+                        {doc.verification_status}
                       </Text>
                     </View>
                     <TouchableOpacity
                       style={styles.deleteButton}
-                      onPress={() => handleDeleteDocument(doc.id)}
+                      onPress={() => handleDeleteDocument(doc)}
                     >
                       <Text style={styles.deleteButtonText}>Delete</Text>
                     </TouchableOpacity>
@@ -208,6 +328,52 @@ export default function DocumentsScreen() {
           </View>
         </ScrollView>
       )}
+
+      {/* Document Type Selector Modal */}
+      <Modal
+        visible={showTypeSelector}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTypeSelector(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setShowTypeSelector(false)}
+        >
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Select Document Type</Text>
+              <TouchableOpacity onPress={() => setShowTypeSelector(false)}>
+                <Ionicons name="close" size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.optionsList}>
+              {getAvailableDocumentTypes().map((docType) => (
+                <TouchableOpacity
+                  key={docType.type}
+                  style={[styles.optionItem, { borderBottomColor: theme.border }]}
+                  onPress={() => handleSelectDocumentType(docType.type)}
+                >
+                  <View style={[styles.optionIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                    <Ionicons name={docType.icon} size={24} color={theme.primary} />
+                  </View>
+                  <View style={styles.optionTextContainer}>
+                    <Text style={[styles.optionLabel, { color: theme.text }]}>
+                      {docType.label}
+                    </Text>
+                    {docType.required && (
+                      <Text style={[styles.requiredBadge, { color: '#DC2626' }]}>Required</Text>
+                    )}
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -374,6 +540,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     color: '#9CA3AF',
   },
+  rejectionReason: {
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+    color: '#DC2626',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
   documentRight: {
     alignItems: 'flex-end',
   },
@@ -442,5 +615,63 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     color: '#4B5563',
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#1F2937',
+  },
+  optionsList: {
+    padding: 16,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  optionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#D1FAE5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionLabel: {
+    fontSize: 16,
+    fontFamily: 'Poppins_500Medium',
+    color: '#1F2937',
+  },
+  requiredBadge: {
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+    color: '#DC2626',
+    marginTop: 2,
   },
 });

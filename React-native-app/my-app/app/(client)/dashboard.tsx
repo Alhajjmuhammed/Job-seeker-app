@@ -56,15 +56,22 @@ export default function ClientDashboard() {
 
   // Redirect if wrong user type
   useEffect(() => {
+    let mounted = true;
+    
     if (user && user.userType !== 'client') {
       console.log('Wrong user type for client dashboard, redirecting to worker');
       router.replace('/(worker)/dashboard');
       return;
     }
-    // Only load data if user type is correct
-    if (user && user.userType === 'client') {
+    
+    // Only load data if user type is correct and component is mounted
+    if (user && user.userType === 'client' && mounted) {
       loadDashboardData();
     }
+    
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   // Refresh when screen comes into focus (after rating changes)
@@ -78,9 +85,15 @@ export default function ClientDashboard() {
 
   // Additional immediate refresh when rating changes
   useEffect(() => {
-    if (refreshTrigger > 0 && user && user.userType === 'client') {
+    let mounted = true;
+    
+    if (refreshTrigger > 0 && user && user.userType === 'client' && mounted) {
       loadDashboardData();
     }
+    
+    return () => {
+      mounted = false;
+    };
   }, [refreshTrigger, user]);
 
   const loadDashboardData = async () => {

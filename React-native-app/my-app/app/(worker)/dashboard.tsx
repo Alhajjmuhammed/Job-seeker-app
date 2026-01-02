@@ -45,15 +45,22 @@ export default function WorkerDashboard() {
 
   // Redirect if wrong user type
   useEffect(() => {
+    let mounted = true;
+    
     if (user && user.userType !== 'worker') {
       console.log('Wrong user type for worker dashboard, redirecting to client');
       router.replace('/(client)/dashboard');
       return;
     }
-    // Only load data if user type is correct
-    if (user && user.userType === 'worker') {
+    
+    // Only load data if user type is correct and component is mounted
+    if (user && user.userType === 'worker' && mounted) {
       fetchDashboardData();
     }
+    
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   // Create theme-aware styles
@@ -316,7 +323,7 @@ export default function WorkerDashboard() {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isMounted = () => true) => {
     try {
       setLoading(true);
       const [requestsData, statsData] = await Promise.all([
@@ -334,18 +341,24 @@ export default function WorkerDashboard() {
           };
         }),
       ]);
-      setPendingRequests(requestsData || []);
-      setStats(statsData || {
-        pending_requests: 0,
-        active_jobs: 0,
-        total_applications: 0,
-        accepted_applications: 0,
-      });
+      
+      // Only update state if component is still mounted
+      if (isMounted()) {
+        setPendingRequests(requestsData || []);
+        setStats(statsData || {
+          pending_requests: 0,
+          active_jobs: 0,
+          total_applications: 0,
+          accepted_applications: 0,
+        });
+      }
     } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
       console.error('Error details:', error?.response?.data || error?.message);
     } finally {
-      setLoading(false);
+      if (isMounted()) {
+        setLoading(false);
+      }
     }
   };
 

@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { RatingProvider } from '../contexts/RatingContext';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -41,21 +42,23 @@ function RootLayoutContent() {
 
   return (
     <>
-      <AuthProvider>
-        <RatingProvider>
-          <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(worker)" options={{ headerShown: false }} />
-            <Stack.Screen name="(client)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-          </Stack>
-          <StatusBar style={theme?.statusBar || 'auto'} />
-        </NavigationThemeProvider>
-        </RatingProvider>
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <RatingProvider>
+            <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(worker)" options={{ headerShown: false }} />
+              <Stack.Screen name="(client)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            </Stack>
+            <StatusBar style={theme?.statusBar || 'auto'} />
+          </NavigationThemeProvider>
+          </RatingProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     </>
   );
 }

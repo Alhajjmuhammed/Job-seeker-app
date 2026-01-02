@@ -4,10 +4,12 @@ from rest_framework.decorators import api_view, permission_classes, parser_class
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from workers.models import WorkerProfile, WorkerDocument, Category
 from jobs.models import DirectHireRequest, JobApplication
 from .serializers import WorkerProfileSerializer, CategorySerializer
+from workers.file_validators import validate_document_file
 
 logger = logging.getLogger(__name__)
 
@@ -44,17 +46,16 @@ def update_worker_profile(request):
             logger.debug(f"Received file: {image_file.name}, Size: {image_file.size}, Type: {image_file.content_type}")
             
             try:
-                # Optional: Validate it's an image file by extension
-                allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
-                file_ext = image_file.name.lower().split('.')[-1]
-                if f'.{file_ext}' not in allowed_extensions:
-                    return Response({'error': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'}, 
-                                  status=status.HTTP_400_BAD_REQUEST)
+                # Validate file type and size using MIME type checking
+                from .file_validators import validate_image_file
+                validate_image_file(image_file)
                 
                 # Save the file
                 profile.profile_image = image_file
                 profile.save()
                 logger.debug(f"File saved successfully to: {profile.profile_image.url}")
+            except ValidationError as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
                 logger.error(f"Error saving profile image: {str(e)}", exc_info=True)
                 return Response({'error': 'Failed to save file. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -84,9 +85,9 @@ def update_worker_availability(request):
         if is_available is None:
             return Response({'error': 'is_available field is required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Update availability
-        profile.availability = 'available' if is_available else 'unavailable'
-        profile.save()
+        # Update availability (use 'offline' instead of 'unavailable')
+        profile.availability = 'available' if is_available else 'offline'
+        profile.save(update_fields=['availability'])
         
         serializer = WorkerProfileSerializer(profile, context={'request': request})
         return Response(serializer.data)
@@ -224,6 +225,23 @@ def upload_document(request):
             }
             title = title_map.get(document_type, 'Document')
         
+        # Check if document type already exists (except 'other' type which can have multiple)
+        if document_type != 'other':
+            existing_doc = WorkerDocument.objects.filter(
+                worker=profile, 
+                document_type=document_type
+            ).first()
+            if existing_doc:
+                return Response({
+                    'error': f'You have already uploaded a {title}. Please delete the existing one first.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate the document file (MIME type, size)
+        try:
+            validate_document_file(file)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Create document
         document = WorkerDocument.objects.create(
             worker=profile,
@@ -266,6 +284,89 @@ def upload_document(request):
         
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_documents(request):
+    """Get all documents uploaded by the worker"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        profile = WorkerProfile.objects.get(user=request.user)
+        documents = profile.documents.all()
+        
+        documents_data = [{
+            'id': doc.id,
+            'document_type': doc.document_type,
+            'title': doc.title,
+            'file_url': request.build_absolute_uri(doc.file.url) if doc.file else None,
+            'verification_status': doc.verification_status,
+            'rejection_reason': doc.rejection_reason,
+            'uploaded_at': doc.uploaded_at.isoformat(),
+            'verified_at': doc.verified_at.isoformat() if doc.verified_at else None,
+        } for doc in documents]
+        
+        return Response({
+            'documents': documents_data,
+            'total_count': documents.count(),
+            'has_national_id': profile.has_uploaded_national_id,
+        }, status=status.HTTP_200_OK)
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_document(request, document_id):
+    """Delete a document uploaded by the worker"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        profile = WorkerProfile.objects.get(user=request.user)
+        document = WorkerDocument.objects.get(id=document_id, worker=profile)
+        
+        # Check if it's the National ID
+        is_national_id = document.document_type == 'id'
+        
+        # Delete the file from storage
+        if document.file:
+            document.file.delete()
+        
+        # Delete the document record
+        document.delete()
+        
+        # Update profile if National ID was deleted
+        if is_national_id:
+            profile.has_uploaded_national_id = False
+            # Recalculate completion percentage
+            optional_docs = profile.documents.exclude(document_type='id').count()
+            base_percentage = 20  # Registration complete
+            optional_percentage = min(optional_docs * 10, 30)
+            profile.profile_completion_percentage = base_percentage + optional_percentage
+            profile.save()
+        else:
+            # Recalculate for optional documents
+            optional_docs = profile.documents.exclude(document_type='id').count()
+            base_percentage = 20
+            id_percentage = 40 if profile.has_uploaded_national_id else 0
+            optional_percentage = min(optional_docs * 10, 30)
+            profile.profile_completion_percentage = base_percentage + id_percentage + optional_percentage
+            profile.save()
+        
+        return Response({
+            'message': 'Document deleted successfully',
+            'profile_completion_percentage': profile.profile_completion_percentage,
+            'has_uploaded_national_id': profile.has_uploaded_national_id,
+        }, status=status.HTTP_200_OK)
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    except WorkerDocument.DoesNotExist:
+        return Response({'error': 'Document not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])

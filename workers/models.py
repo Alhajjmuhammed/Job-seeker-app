@@ -121,6 +121,10 @@ class WorkerProfile(models.Model):
             models.Index(fields=['is_featured']),
             models.Index(fields=['average_rating']),
             models.Index(fields=['-created_at']),
+            # Composite indexes for common query patterns
+            models.Index(fields=['verification_status', 'availability', '-average_rating']),
+            models.Index(fields=['city', 'verification_status']),
+            models.Index(fields=['verification_status', '-created_at']),
         ]
     
     def __str__(self):

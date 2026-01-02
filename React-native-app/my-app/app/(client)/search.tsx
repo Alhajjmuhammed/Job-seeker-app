@@ -12,6 +12,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useRatingRefresh } from '../../contexts/RatingContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 import { useEffect } from 'react';
@@ -37,6 +38,9 @@ export default function ClientSearchScreen() {
   const [categories, setCategories] = useState<string[]>(['All']);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // Debounce search query to avoid excessive API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
     let mounted = true;
@@ -104,8 +108,8 @@ export default function ClientSearchScreen() {
   }, [refreshTrigger]);
 
   const filteredWorkers = workers.filter((worker) => {
-    const matchesSearch = worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         worker.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = worker.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+                         worker.category.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || worker.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

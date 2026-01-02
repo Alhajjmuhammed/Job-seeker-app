@@ -11,5 +11,7 @@ urlpatterns = [
     path('stats/', api_views.worker_stats, name='worker_stats'),
     path('direct-hire-requests/', api_views.direct_hire_requests, name='direct_hire_requests'),
     path('documents/upload/', api_views.upload_document, name='upload_document'),
+    path('documents/', api_views.get_documents, name='get_documents'),
+    path('documents/<int:document_id>/delete/', api_views.delete_document, name='delete_document'),
     path('categories/', api_views.get_categories, name='get_categories'),
 ]

@@ -1,10 +1,14 @@
 """
-Custom error views for the application.
-Provides JSON responses for API errors and HTML for web errors.
+Custom error views and decorators for the application.
+Provides JSON responses for API errors, HTML for web errors, and consistent error handling decorators.
 """
 import logging
+from functools import wraps
 from django.http import JsonResponse
 from django.shortcuts import render
+from rest_framework import status
+from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
+from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -68,3 +72,81 @@ def handler500(request):
         }, status=500)
     
     return render(request, 'errors/500.html', status=500)
+
+
+def api_error_handler(func):
+    """
+    Decorator for Django REST Framework views to handle errors consistently.
+    Catches common exceptions and returns standardized JSON error responses.
+    
+    Usage:
+        @api_error_handler
+        @api_view(['POST'])
+        def my_view(request):
+            ...
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        
+        except ValidationError as e:
+            # DRF ValidationError
+            logger.warning(f"Validation error in {func.__name__}: {str(e)}")
+            return JsonResponse(
+                {
+                    'success': False,
+                    'error': 'Validation error',
+                    'details': e.detail if hasattr(e, 'detail') else str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        except DjangoValidationError as e:
+            # Django core ValidationError
+            logger.warning(f"Django validation error in {func.__name__}: {str(e)}")
+            return JsonResponse(
+                {
+                    'success': False,
+                    'error': 'Validation error',
+                    'details': e.messages if hasattr(e, 'messages') else str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        except PermissionDenied as e:
+            logger.warning(f"Permission denied in {func.__name__}: {str(e)}")
+            return JsonResponse(
+                {
+                    'success': False,
+                    'error': 'Permission denied',
+                    'details': str(e) if str(e) else 'You do not have permission to perform this action'
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        except (ObjectDoesNotExist, NotFound) as e:
+            logger.warning(f"Resource not found in {func.__name__}: {str(e)}")
+            return JsonResponse(
+                {
+                    'success': False,
+                    'error': 'Not found',
+                    'details': str(e) if str(e) else 'The requested resource was not found'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        except Exception as e:
+            # Catch-all for unexpected errors
+            logger.error(f"Unexpected error in {func.__name__}: {str(e)}", exc_info=True)
+            return JsonResponse(
+                {
+                    'success': False,
+                    'error': 'Internal server error',
+                    'details': 'An unexpected error occurred. Please try again later.'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    return wrapper
+

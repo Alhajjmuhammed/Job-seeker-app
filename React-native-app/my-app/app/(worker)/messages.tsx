@@ -36,21 +36,50 @@ export default function WorkerMessagesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    loadConversations();
+    let mounted = true;
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.getConversations();
+        if (mounted) {
+          setConversations(data.conversations || []);
+        }
+      } catch (error: any) {
+        console.error('Error loading conversations:', error);
+        if (mounted && error.response?.status !== 404) {
+          Alert.alert('Error', 'Failed to load conversations');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loadConversations = async () => {
+  const loadConversations = async (checkMounted = () => true) => {
     try {
       setLoading(true);
       const data = await apiService.getConversations();
-      setConversations(data.conversations || []);
+      if (checkMounted()) {
+        setConversations(data.conversations || []);
+      }
     } catch (error: any) {
       console.error('Error loading conversations:', error);
-      if (error.response?.status !== 404) {
+      if (checkMounted() && error.response?.status !== 404) {
         Alert.alert('Error', 'Failed to load conversations');
       }
     } finally {
-      setLoading(false);
+      if (checkMounted()) {
+        setLoading(false);
+      }
     }
   };
 

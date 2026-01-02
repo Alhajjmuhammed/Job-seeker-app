@@ -3,8 +3,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db import models
-from django.db.models import Q, Count
+from django.db import models, transaction
+from django.db.models import Q, Count, Avg
 from .models import ClientProfile, Favorite, Rating
 from workers.models import WorkerProfile, Category
 from jobs.models import JobRequest, DirectHireRequest
@@ -88,7 +88,9 @@ def update_client_profile(request):
 def search_workers(request):
     """Search and filter workers"""
     try:
-        workers = WorkerProfile.objects.filter(verification_status='verified')
+        workers = WorkerProfile.objects.filter(verification_status='verified') \
+            .select_related('user') \
+            .prefetch_related('categories', 'skills')
         
         # Search query
         query = request.GET.get('search', '').strip()
@@ -138,7 +140,9 @@ def search_workers(request):
 def worker_detail(request, worker_id):
     """Get detailed worker profile"""
     try:
-        worker = WorkerProfile.objects.get(id=worker_id, verification_status='verified')
+        worker = WorkerProfile.objects.select_related('user') \
+            .prefetch_related('categories', 'skills') \
+            .get(id=worker_id, verification_status='verified')
         serializer = WorkerSearchSerializer(worker, context={'request': request})
         
         # Get worker's ratings
@@ -275,66 +279,23 @@ def rate_worker(request, worker_id):
         if not rating_value or rating_value < 1 or rating_value > 5:
             return Response({'error': 'Rating must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create or update rating
-        rating, created = Rating.objects.update_or_create(
-            client=request.user,
-            worker=worker,
-            defaults={
-                'rating': rating_value,
-                'review': review_text
-            }
-        )
-        
-        # Update worker's average rating
-        from django.db.models import Avg
-        ratings = Rating.objects.filter(worker=worker)
-        avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
-        worker.average_rating = round(avg_rating, 2) if avg_rating else 0
-        worker.save(update_fields=['average_rating'])
-        
-        return Response({
-            'message': 'Rating submitted successfully',
-            'rating': {
-                'id': rating.id,
-                'rating': rating.rating,
-                'review': rating.review,
-                'created_at': rating.created_at.isoformat()
-            }
-        })
-    except WorkerProfile.DoesNotExist:
-        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        logger.error(f"Error submitting rating: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to submit rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def rate_worker(request, worker_id):
-    """Rate a worker after job completion"""
-    try:
-        worker = WorkerProfile.objects.get(id=worker_id)
-        rating_value = request.data.get('rating')
-        review_text = request.data.get('review', '')
-        
-        if not rating_value or rating_value < 1 or rating_value > 5:
-            return Response({'error': 'Rating must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create or update rating
-        rating, created = Rating.objects.update_or_create(
-            client=request.user,
-            worker=worker,
-            defaults={
-                'rating': rating_value,
-                'review': review_text
-            }
-        )
-        
-        # Update worker's average rating
-        ratings = Rating.objects.filter(worker=worker)
-        avg_rating = ratings.aggregate(avg=models.Avg('rating'))['avg']
-        worker.average_rating = round(avg_rating, 2) if avg_rating else 0
-        worker.save(update_fields=['average_rating'])
+        # Use atomic transaction to ensure data consistency
+        with transaction.atomic():
+            # Create or update rating
+            rating, created = Rating.objects.update_or_create(
+                client=request.user,
+                worker=worker,
+                defaults={
+                    'rating': rating_value,
+                    'review': review_text
+                }
+            )
+            
+            # Update worker's average rating
+            ratings = Rating.objects.filter(worker=worker)
+            avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
+            worker.average_rating = round(avg_rating, 2) if avg_rating else 0
+            worker.save(update_fields=['average_rating'])
         
         return Response({
             'message': 'Rating submitted successfully',

@@ -7,6 +7,8 @@ const API_BASE_URL = API_CONFIG.API_URL;
 
 class ApiService {
   private api: AxiosInstance;
+  private maxRetries = 3;
+  private retryDelay = 1000; // Base retry delay in ms
 
   constructor() {
     this.api = axios.create({
@@ -40,15 +42,45 @@ class ApiService {
       }
     );
 
-    // Response interceptor to handle errors
+    // Response interceptor to handle errors and retries
     this.api.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid, clear storage
-          await SecureStorage.clearAuth();
+        const config = error.config as any;
+        
+        // Check if we should retry
+        if (!config || config.__retryCount >= this.maxRetries) {
+          // Max retries reached or no config
+          if (error.response?.status === 401) {
+            await SecureStorage.clearAuth();
+          }
+          return Promise.reject(error);
         }
-        return Promise.reject(error);
+
+        // Only retry on network errors or 5xx server errors
+        const shouldRetry = 
+          !error.response || 
+          (error.response.status >= 500 && error.response.status < 600);
+
+        if (!shouldRetry) {
+          if (error.response?.status === 401) {
+            await SecureStorage.clearAuth();
+          }
+          return Promise.reject(error);
+        }
+
+        // Initialize retry count
+        config.__retryCount = config.__retryCount || 0;
+        config.__retryCount += 1;
+
+        // Calculate exponential backoff delay
+        const delay = this.retryDelay * Math.pow(2, config.__retryCount - 1);
+
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        // Retry the request
+        return this.api(config);
       }
     );
   }
@@ -258,6 +290,16 @@ class ApiService {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  }
+
+  async getWorkerDocuments() {
+    const response = await this.api.get('/workers/documents/');
+    return response.data;
+  }
+
+  async deleteDocument(documentId: number) {
+    const response = await this.api.delete(`/workers/documents/${documentId}/delete/`);
     return response.data;
   }
 

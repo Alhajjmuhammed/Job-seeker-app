@@ -28,7 +28,28 @@ export default function ClientMessagesScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadConversations();
+    let mounted = true;
+    
+    const loadData = async () => {
+      try {
+        const response = await apiService.getConversations();
+        if (mounted) {
+          setConversations(response.conversations || []);
+        }
+      } catch (error) {
+        console.error('Error loading conversations:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -43,15 +64,19 @@ export default function ClientMessagesScreen() {
     }
   }, [searchQuery, conversations]);
 
-  const loadConversations = async () => {
+  const loadConversations = async (checkMounted = () => true) => {
     try {
       const response = await apiService.getConversations();
-      setConversations(response.conversations || []);
+      if (checkMounted()) {
+        setConversations(response.conversations || []);
+      }
     } catch (error) {
       console.error('Error loading conversations:', error);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (checkMounted()) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 

@@ -51,6 +51,30 @@ class JobRequestCreateSerializer(SanitizedSerializerMixin, serializers.ModelSeri
             'budget', 'duration_days', 'start_date', 'workers_needed', 'urgency'
         ]
     
+    def validate_budget(self, value):
+        """Validate budget is positive"""
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Budget must be a positive number")
+        if value is not None and value > 1000000:
+            raise serializers.ValidationError("Budget cannot exceed 1,000,000")
+        return value
+    
+    def validate_workers_needed(self, value):
+        """Validate workers_needed is within reasonable range"""
+        if value < 1:
+            raise serializers.ValidationError("At least 1 worker is required")
+        if value > 100:
+            raise serializers.ValidationError("Cannot request more than 100 workers")
+        return value
+    
+    def validate_duration_days(self, value):
+        """Validate duration_days is positive"""
+        if value is not None and value < 1:
+            raise serializers.ValidationError("Duration must be at least 1 day")
+        if value is not None and value > 365:
+            raise serializers.ValidationError("Duration cannot exceed 365 days")
+        return value
+    
     def create(self, validated_data):
         # Client is set from request.user in the view
         return JobRequest.objects.create(**validated_data)

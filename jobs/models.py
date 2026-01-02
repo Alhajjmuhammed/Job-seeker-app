@@ -1,5 +1,6 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 from accounts.models import User
 from workers.models import WorkerProfile, Category
 
@@ -79,6 +80,10 @@ class JobRequest(models.Model):
             models.Index(fields=['urgency']),
             models.Index(fields=['-created_at']),
             models.Index(fields=['status', 'created_at']),
+            # Composite indexes for common query patterns
+            models.Index(fields=['status', 'city', '-created_at']),
+            models.Index(fields=['status', 'category']),
+            models.Index(fields=['client', 'status']),
         ]
     
     def __str__(self):
@@ -97,6 +102,30 @@ class JobRequest(models.Model):
     def is_fully_staffed(self):
         """Check if job has enough workers assigned"""
         return self.assigned_workers.count() >= self.workers_needed
+    
+    @transaction.atomic
+    def assign_worker(self, worker):
+        """
+        Safely assign a worker to this job with atomic transaction.
+        Raises ValidationError if job is fully staffed.
+        """
+        # Use select_for_update to lock the row and prevent race conditions
+        job = JobRequest.objects.select_for_update().get(id=self.id)
+        
+        if job.assigned_workers.count() >= job.workers_needed:
+            raise ValidationError(f"Job is already fully staffed ({job.workers_needed} workers)")
+        
+        if job.assigned_workers.filter(id=worker.id).exists():
+            raise ValidationError("Worker is already assigned to this job")
+        
+        job.assigned_workers.add(worker)
+        
+        # Update status if this was the first worker
+        if job.status == 'open' and job.assigned_workers.count() > 0:
+            job.status = 'in_progress'
+            job.save(update_fields=['status'])
+        
+        return job
 
 
 class JobApplication(models.Model):

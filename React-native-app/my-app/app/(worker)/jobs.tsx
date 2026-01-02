@@ -33,28 +33,70 @@ export default function WorkerJobsScreen() {
   const [directRequests, setDirectRequests] = useState<DirectHireRequest[]>([]);
 
   useEffect(() => {
-    loadDirectRequests();
+    let mounted = true;
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const requests = await apiService.getDirectHireRequests();
+        
+        if (mounted) {
+          setDirectRequests(requests.map((req: any) => ({
+            id: req.id,
+            clientName: req.client_name || 'Client',
+            durationType: req.duration_type || 'hourly',
+            offeredRate: parseFloat(req.offered_rate || '0'),
+            totalAmount: parseFloat(req.total_amount || '0'),
+            status: req.status,
+            createdAt: new Date(req.created_at).toLocaleDateString(),
+            message: req.message,
+          })));
+        }
+      } catch (error) {
+        console.error('Error loading direct requests:', error);
+        if (mounted) {
+          Alert.alert('Error', 'Failed to load direct hire requests');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loadDirectRequests = async () => {
+  const loadDirectRequests = async (checkMounted = () => true) => {
     try {
       setLoading(true);
       const requests = await apiService.getDirectHireRequests();
-      setDirectRequests(requests.map((req: any) => ({
-        id: req.id,
-        clientName: req.client_name || 'Client',
-        durationType: req.duration_type || 'hourly',
-        offeredRate: parseFloat(req.offered_rate || '0'),
-        totalAmount: parseFloat(req.total_amount || '0'),
-        status: req.status,
-        createdAt: new Date(req.created_at).toLocaleDateString(),
-        message: req.message,
-      })));
+      
+      if (checkMounted()) {
+        setDirectRequests(requests.map((req: any) => ({
+          id: req.id,
+          clientName: req.client_name || 'Client',
+          durationType: req.duration_type || 'hourly',
+          offeredRate: parseFloat(req.offered_rate || '0'),
+          totalAmount: parseFloat(req.total_amount || '0'),
+          status: req.status,
+          createdAt: new Date(req.created_at).toLocaleDateString(),
+          message: req.message,
+        })));
+      }
     } catch (error) {
       console.error('Error loading direct requests:', error);
-      Alert.alert('Error', 'Failed to load direct hire requests');
+      if (checkMounted()) {
+        Alert.alert('Error', 'Failed to load direct hire requests');
+      }
     } finally {
-      setLoading(false);
+      if (checkMounted()) {
+        setLoading(false);
+      }
     }
   };
 
