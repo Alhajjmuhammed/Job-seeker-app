@@ -306,17 +306,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyIcon: {
-    fontSize: 64,
-    fontFamily: 'Poppins_400Regular',
+    fontSize: 56,
     marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,
     fontFamily: 'Poppins_600SemiBold',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Poppins_400Regular',
     textAlign: 'center',
   },

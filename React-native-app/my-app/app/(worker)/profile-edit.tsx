@@ -27,6 +27,12 @@ type Category = {
   icon: string;
 };
 
+type Skill = {
+  id: number;
+  name: string;
+  category: number;
+};
+
 export default function ProfileEditScreen() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
@@ -34,6 +40,7 @@ export default function ProfileEditScreen() {
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allSkills, setAllSkills] = useState<Skill[]>([]);
 
   // Form fields
   const [bio, setBio] = useState('');
@@ -48,7 +55,9 @@ export default function ProfileEditScreen() {
   const [experienceYears, setExperienceYears] = useState('0');
   const [hourlyRate, setHourlyRate] = useState('');
   const [availability, setAvailability] = useState('available');
+  const [workerType, setWorkerType] = useState<'professional' | 'non_academic'>('non_academic');
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<number[]>([]);
 
   // Dynamic styles using theme
   const styles = StyleSheet.create({
@@ -355,6 +364,16 @@ export default function ProfileEditScreen() {
     fetchProfileData();
   }, []);
 
+  useEffect(() => {
+    // Fetch skills when categories change
+    if (selectedCategories.length > 0) {
+      fetchSkills();
+    } else {
+      setAllSkills([]);
+      setSelectedSkills([]);
+    }
+  }, [selectedCategories]);
+
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -379,12 +398,36 @@ export default function ProfileEditScreen() {
       setExperienceYears(String(profileData.experience_years || 0));
       setHourlyRate(profileData.hourly_rate ? String(profileData.hourly_rate) : '');
       setAvailability(profileData.availability || 'available');
+      setWorkerType(profileData.worker_type || 'non_academic');
       setSelectedCategories(profileData.categories?.map((c: any) => c.id) || []);
+      setSelectedSkills(profileData.skills?.map((s: any) => s.id) || []);
+      
+      // Fetch initial skills if categories exist
+      if (profileData.categories && profileData.categories.length > 0) {
+        const categoryIds = profileData.categories.map((c: any) => c.id);
+        const skillsData = await apiService.getSkills(categoryIds);
+        setAllSkills(skillsData);
+      }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
       Alert.alert('Error', 'Failed to load profile data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSkills = async () => {
+    try {
+      const skillsData = await apiService.getSkills(selectedCategories);
+      setAllSkills(skillsData);
+      // Clear selected skills that don't belong to current categories
+      setSelectedSkills(prev => 
+        prev.filter(skillId => 
+          skillsData.some((skill: Skill) => skill.id === skillId)
+        )
+      );
+    } catch (error) {
+      console.error('Failed to fetch skills:', error);
     }
   };
 
@@ -478,6 +521,14 @@ export default function ProfileEditScreen() {
     );
   };
 
+  const toggleSkill = (skillId: number) => {
+    setSelectedSkills(prev =>
+      prev.includes(skillId)
+        ? prev.filter(id => id !== skillId)
+        : [...prev, skillId]
+    );
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -494,7 +545,9 @@ export default function ProfileEditScreen() {
         experience_years: parseInt(experienceYears) || 0,
         hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
         availability,
+        worker_type: workerType,
         category_ids: selectedCategories,
+        skill_ids: selectedSkills,
       };
 
       await apiService.updateWorkerProfile(data);
@@ -803,6 +856,25 @@ export default function ProfileEditScreen() {
               </Picker>
             </View>
           </View>
+
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Worker Type</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={workerType}
+                onValueChange={(value) => setWorkerType(value as 'professional' | 'non_academic')}
+                style={styles.picker}
+              >
+                <Picker.Item label="Professional (Can apply for jobs)" value="professional" />
+                <Picker.Item label="Non-Academic (Direct hire only)" value="non_academic" />
+              </Picker>
+            </View>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>
+              {workerType === 'professional' 
+                ? 'You can browse and apply for jobs in your field' 
+                : 'You will receive direct hire requests from clients'}
+            </Text>
+          </View>
         </View>
 
         {/* Categories */}
@@ -850,6 +922,74 @@ export default function ProfileEditScreen() {
           </View>
         </View>
 
+        {/* Skills Section - Only show if categories are selected */}
+        {selectedCategories.length > 0 && allSkills.length > 0 && (
+          <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="construct" size={24} color={theme.primary} />
+              <View style={styles.sectionTitleContainer}>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Skills</Text>
+                <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                  Select your skills ({selectedSkills.length} selected)
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.categoriesGrid}>
+              {allSkills.map((skill) => (
+                <TouchableOpacity
+                  key={skill.id}
+                  style={[
+                    styles.categoryItem,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    selectedSkills.includes(skill.id) && { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.2)' : '#F0FDF4', borderColor: theme.primary },
+                  ]}
+                  onPress={() => toggleSkill(skill.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[
+                    styles.categoryCheckbox,
+                    { borderColor: theme.primary, backgroundColor: theme.surface },
+                    selectedSkills.includes(skill.id) && { backgroundColor: theme.primary }
+                  ]}>
+                    {selectedSkills.includes(skill.id) && (
+                      <Ionicons name="checkmark" size={16} color="#FFF" />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.categoryLabel,
+                      { color: theme.text },
+                      selectedSkills.includes(skill.id) && { color: theme.primary, fontFamily: 'Poppins_600SemiBold' },
+                    ]}
+                  >
+                    {skill.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+        {/* Work Experience Note */}
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="briefcase-outline" size={24} color={theme.primary} />
+            <View style={styles.sectionTitleContainer}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Work Experience</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                Manage your work history
+              </Text>
+            </View>
+          </View>
+          
+          <TouchableOpacity 
+            style={[styles.changePhotoButton, { backgroundColor: theme.primary }]}
+            onPress={() => router.push('/experience' as any)}
+          >
+            <Ionicons name="briefcase" size={20} color="#FFF" />
+            <Text style={[styles.changePhotoText, { color: '#FFF' }]}>Manage Experience</Text>
+          </TouchableOpacity>
+        </View>
         {/* Save Button */}
         <View style={styles.actions}>
           <TouchableOpacity

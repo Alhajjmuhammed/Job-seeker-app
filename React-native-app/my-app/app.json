@@ -8,6 +8,11 @@
     "scheme": "workerconnect",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.workerconnect.app",

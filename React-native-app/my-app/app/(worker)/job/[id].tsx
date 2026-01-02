@@ -40,42 +40,28 @@ export default function JobDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<JobDetail | null>(null);
   const [applying, setApplying] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingJob, setSavingJob] = useState(false);
 
   useEffect(() => {
     loadJobDetail();
+    checkIfSaved();
   }, [id]);
 
   // Refresh when screen comes into focus (after rating changes)
   useFocusEffect(
     useCallback(() => {
       loadJobDetail();
+      checkIfSaved();
     }, [id, refreshTrigger])
   );
 
   const loadJobDetail = async () => {
     try {
       setLoading(true);
-      // TODO: Implement getJobDetail API endpoint
-      // const jobData = await apiService.getJobDetail(Number(id));
-      // setJob(jobData);
-      
-      // Mock data for now
-      setJob({
-        id: Number(id),
-        title: 'Fix Kitchen Sink Leak',
-        description: 'Need an experienced plumber to fix a leaking kitchen sink. The leak is under the sink and seems to be coming from the pipe connections. Work should be completed within 2-3 hours.',
-        category: 'Plumbing',
-        client: {
-          name: 'Ahmed Hassan',
-          rating: 4.8,
-        },
-        budget: 500,
-        location: 'Khartoum, Sudan',
-        duration: '2-3 hours',
-        postedDate: '2 hours ago',
-        applicants: 3,
-        status: 'open',
-      });
+      // Fetch real job data from API
+      const jobData = await apiService.getJobDetail(Number(id));
+      setJob(jobData);
     } catch (error) {
       console.error('Error loading job:', error);
       Alert.alert('Error', 'Failed to load job details');
@@ -84,29 +70,36 @@ export default function JobDetailScreen() {
     }
   };
 
+  const checkIfSaved = async () => {
+    try {
+      const response = await apiService.isJobSaved(Number(id));
+      setIsSaved(response.is_saved);
+    } catch (error) {
+      console.error('Error checking saved status:', error);
+    }
+  };
+
+  const handleToggleSaveJob = async () => {
+    try {
+      setSavingJob(true);
+      
+      if (isSaved) {
+        await apiService.unsaveJob(Number(id));
+        setIsSaved(false);
+      } else {
+        await apiService.saveJob(Number(id));
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error('Error toggling saved job:', error);
+      Alert.alert('Error', 'Failed to update saved status');
+    } finally {
+      setSavingJob(false);
+    }
+  };
+
   const handleApply = () => {
-    Alert.alert(
-      'Apply for Job',
-      'Would you like to apply for this job?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Apply',
-          onPress: async () => {
-            try {
-              setApplying(true);
-              await apiService.applyForJob(Number(id));
-              Alert.alert('Success', 'Application submitted successfully!');
-              router.back();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to apply for job');
-            } finally {
-              setApplying(false);
-            }
-          },
-        },
-      ]
-    );
+    router.push(`/job/${id}/apply` as any);
   };
 
   const styles = StyleSheet.create({
@@ -232,6 +225,9 @@ export default function JobDetailScreen() {
       borderRadius: 12,
       padding: 16,
       marginBottom: 20,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
       ...(isDark ? {} : {
         elevation: 2,
         shadowColor: '#000',
@@ -239,6 +235,14 @@ export default function JobDetailScreen() {
         shadowOpacity: 0.05,
         shadowRadius: 4,
       }),
+    },
+    saveButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     sectionTitle: {
       fontSize: 18,
@@ -349,12 +353,27 @@ export default function JobDetailScreen() {
       <Header title="Job Details" showBack />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Job Title */}
+        {/* Job Title with Save Button */}
         <View style={styles.titleSection}>
-          <Text style={styles.jobTitle}>{job.title}</Text>
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{job.category}</Text>
+          <View style={{ flex: 1, paddingRight: 16 }}>
+            <Text style={styles.jobTitle}>{job.title}</Text>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>{job.category}</Text>
+            </View>
           </View>
+          
+          {/* Save Button */}
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleToggleSaveJob}
+            disabled={savingJob}
+          >
+            <Ionicons 
+              name={isSaved ? "heart" : "heart-outline"} 
+              size={28} 
+              color={isSaved ? "#EF4444" : theme.textSecondary} 
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Budget Card */}

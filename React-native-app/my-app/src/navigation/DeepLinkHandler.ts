@@ -5,8 +5,10 @@
  */
 
 import { Linking, Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
+
+// Note: expo-notifications not available in Expo Go SDK 53+
+console.log('[DeepLinkHandler] Notifications disabled in Expo Go');
 
 // Deep link scheme configuration
 export const DEEP_LINK_CONFIG = {
@@ -174,7 +176,7 @@ export async function navigateToDeepLink(url: string): Promise<boolean> {
 
 // Handle notification response (when user taps notification)
 export function handleNotificationResponse(
-  response: Notifications.NotificationResponse
+  response: any
 ): void {
   const data = response.notification.request.content.data;
   
@@ -246,15 +248,11 @@ export function initializeDeepLinking(
     onDeepLink?.(url);
   });
   
-  // Handle notification taps
-  const notificationSubscription = Notifications.addNotificationResponseReceivedListener(
-    handleNotificationResponse
-  );
+  // Notification taps not available in Expo Go SDK 53+
   
   // Return cleanup function
   return () => {
     linkingSubscription.remove();
-    notificationSubscription.remove();
   };
 }
 

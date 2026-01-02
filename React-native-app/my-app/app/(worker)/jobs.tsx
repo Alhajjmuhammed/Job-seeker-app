@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
@@ -27,10 +28,14 @@ interface DirectHireRequest {
 }
 
 export default function WorkerJobsScreen() {
+  const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [directRequests, setDirectRequests] = useState<DirectHireRequest[]>([]);
+  
+  // Check if user is professional worker
+  const isProfessional = user?.workerType === 'professional';
 
   useEffect(() => {
     let mounted = true;
@@ -246,7 +251,9 @@ export default function WorkerJobsScreen() {
       <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(25, 118, 210, 0.1)' : '#E3F2FD' }]}>
         <Ionicons name="information-circle" size={20} color={theme.primary} />
         <Text style={[styles.infoText, { color: isDark ? '#90CAF9' : '#1565C0' }]}>
-          Clients will find and request you directly. Accept or reject requests below.
+          {isProfessional 
+            ? 'Receive direct hire requests from clients. You can also browse and apply for formal jobs.'
+            : 'Clients will find and request you directly. Accept or reject requests below.'}
         </Text>
       </View>
 
@@ -338,21 +345,19 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyIcon: {
-    fontSize: 64,
-    fontFamily: 'Poppins_400Regular',
+    fontSize: 56,
     marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,
     fontFamily: 'Poppins_600SemiBold',
-    color: '#374151',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Poppins_400Regular',
-    color: '#6B7280',
     textAlign: 'center',
+    color: '#6B7280',
     paddingHorizontal: 40,
   },
   requestCard: {

@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router, useFocusEffect } from 'expo-router';
@@ -25,6 +26,7 @@ export default function WorkerProfileScreen() {
   const { refreshTrigger } = useRatingRefresh();
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [stats, setStats] = useState({
     rating: 0,
@@ -86,10 +88,21 @@ export default function WorkerProfileScreen() {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadProfileData();
+    setRefreshing(false);
+  };
+
   const handleAvailabilityToggle = async (value: boolean) => {
     try {
       await apiService.updateWorkerAvailability(value);
       setIsAvailable(value);
+      Alert.alert(
+        'Success',
+        value ? 'You are now available for work' : 'You are now unavailable',
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       console.error('Error updating availability:', error);
       Alert.alert('Error', 'Failed to update availability');
@@ -120,7 +133,17 @@ export default function WorkerProfileScreen() {
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading profile...</Text>
         </View>
       ) : (
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+          />
+        }
+      >
         {/* Profile Header Card */}
         <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           {profile?.profile_image ? (
@@ -137,12 +160,92 @@ export default function WorkerProfileScreen() {
           )}
           <Text style={[styles.name, { color: theme.text }]}>{user?.firstName} {user?.lastName}</Text>
           <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
+          
+          {/* Verification Status Badge */}
+          {user?.verificationStatus && (
+            <View style={{
+              marginTop: 8,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 16,
+              backgroundColor: 
+                user.verificationStatus === 'verified' ? '#ECFDF5' :
+                user.verificationStatus === 'rejected' ? '#FEF2F2' : '#FEF3C7',
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons 
+                  name={
+                    user.verificationStatus === 'verified' ? 'checkmark-circle' :
+                    user.verificationStatus === 'rejected' ? 'close-circle' : 'time'
+                  }
+                  size={18}
+                  color={
+                    user.verificationStatus === 'verified' ? '#059669' :
+                    user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706'
+                  }
+                />
+                <Text style={{
+                  fontSize: 13,
+                  fontFamily: theme.fontSemiBold,
+                  color: 
+                    user.verificationStatus === 'verified' ? '#059669' :
+                    user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
+                }}>
+                  {user.verificationStatus === 'verified' ? 'Verified Worker' :
+                   user.verificationStatus === 'rejected' ? 'Verification Failed' : 'Verification Pending'}
+                </Text>
+              </View>
+              {user.verificationStatus !== 'verified' && (
+                <Text style={{
+                  fontSize: 11,
+                  fontFamily: theme.fontRegular,
+                  color: theme.textSecondary,
+                  marginTop: 4,
+                  textAlign: 'center',
+                }}>
+                  {user.verificationStatus === 'pending' 
+                    ? 'Your documents are under review' 
+                    : 'Please upload valid documents'}
+                </Text>
+              )}
+            </View>
+          )}
+          
           {profile && profile.categories && profile.categories.length > 0 && (
             <Text style={[styles.category, { color: theme.textTertiary }]}>
               {profile.categories.map((cat: any) => cat.name).join(' • ')}
             </Text>
           )}
         </View>
+
+        {/* Profile Completion Card */}
+        {profile && profile.profile_completion_percentage < 100 && (
+          <View style={[styles.completionCard, { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.1)' : '#F0FDF4', borderColor: theme.primary }]}>
+            <View style={styles.completionHeader}>
+              <View>
+                <Text style={[styles.completionTitle, { color: theme.text }]}>Complete Your Profile</Text>
+                <Text style={[styles.completionSubtitle, { color: theme.textSecondary }]}>
+                  {profile.profile_completion_percentage}% completed
+                </Text>
+              </View>
+              <Text style={[styles.completionPercent, { color: theme.primary }]}>
+                {profile.profile_completion_percentage}%
+              </Text>
+            </View>
+            <View style={[styles.progressBar, { backgroundColor: isDark ? theme.surface : '#E5E7EB' }]}>
+              <View 
+                style={[styles.progressFill, { width: `${profile.profile_completion_percentage}%`, backgroundColor: theme.primary }]} 
+              />
+            </View>
+            <TouchableOpacity 
+              style={[styles.completeButton, { backgroundColor: theme.primary }]}
+              onPress={() => router.push('/(worker)/profile-edit')}
+            >
+              <Text style={[styles.completeButtonText, { color: '#FFF' }]}>Complete Profile</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Stats Card */}
         <View style={[styles.statsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -223,7 +326,7 @@ export default function WorkerProfileScreen() {
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
-            onPress={() => Alert.alert('Coming Soon', 'Settings feature is coming soon!')}
+            onPress={() => router.push('/settings' as any)}
           >
             <Ionicons name="settings-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Settings</Text>
@@ -231,7 +334,7 @@ export default function WorkerProfileScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.divider }]}
-            onPress={() => Alert.alert('Help & Support', 'For assistance, please contact: support@workerconnect.com')}
+            onPress={() => router.push('/support' as any)}
           >
             <Ionicons name="help-circle-outline" size={24} color={theme.primary} />
             <Text style={[styles.menuText, { color: theme.text }]}>Help & Support</Text>
@@ -320,6 +423,53 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
+  },
+  completionCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  completionTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    marginBottom: 4,
+  },
+  completionSubtitle: {
+    fontSize: 13,
+    fontFamily: 'Poppins_400Regular',
+  },
+  completionPercent: {
+    fontSize: 24,
+    fontFamily: 'Poppins_700Bold',
+  },
+  progressBar: {
+    height: 8,
+    borderRadius: 4,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  completeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 8,
+  },
+  completeButtonText: {
+    fontSize: 14,
+    fontFamily: 'Poppins_600SemiBold',
   },
   statItem: {
     flex: 1,

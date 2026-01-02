@@ -353,6 +353,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 4,
   },
+  workerSubtitle: {
+    fontSize: 14,
+  },
   subtitle: {
     fontSize: 14,
   },

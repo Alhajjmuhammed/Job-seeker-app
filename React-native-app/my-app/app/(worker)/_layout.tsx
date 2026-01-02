@@ -63,42 +63,27 @@ export default function WorkerLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="documents"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="earnings"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile-edit"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile-setup"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="conversation/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="job/[id]"
-        options={{
-          href: null,
-        }}
-      />
+      
+      {/* Hidden screens - not shown in tab bar */}
+      <Tabs.Screen name="analytics" options={{ href: null }} />
+      <Tabs.Screen name="applications" options={{ href: null }} />
+      <Tabs.Screen name="browse-jobs" options={{ href: null }} />
+      <Tabs.Screen name="documents" options={{ href: null }} />
+      <Tabs.Screen name="earnings" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="profile-edit" options={{ href: null }} />
+      <Tabs.Screen name="profile-setup" options={{ href: null }} />
+      <Tabs.Screen name="saved-jobs" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
+      <Tabs.Screen name="support" options={{ href: null }} />
+      
+      {/* Dynamic routes */}
+      <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
+      <Tabs.Screen name="job/[id]" options={{ href: null }} />
+      <Tabs.Screen name="job/[id]/apply" options={{ href: null }} />
+      <Tabs.Screen name="experience/add" options={{ href: null }} />
+      <Tabs.Screen name="experience/index" options={{ href: null }} />
+      <Tabs.Screen name="experience/[id]/edit" options={{ href: null }} />
     </Tabs>
   );
 }

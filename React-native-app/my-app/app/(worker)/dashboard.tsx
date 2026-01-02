@@ -42,6 +42,9 @@ export default function WorkerDashboard() {
     total_applications: 0,
     accepted_applications: 0,
   });
+  
+  // Check if user is professional worker
+  const isProfessional = user?.workerType === 'professional';
 
   // Redirect if wrong user type
   useEffect(() => {
@@ -279,6 +282,66 @@ export default function WorkerDashboard() {
       color: theme.textSecondary,
       textAlign: 'center',
     },
+    infoCard: {
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    infoCardTitle: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      marginBottom: 4,
+    },
+    infoCardSubtitle: {
+      fontSize: 13,
+      fontFamily: theme.fontRegular,
+    },
+    actionButtonsContainer: {
+      gap: 12,
+      marginBottom: 20,
+    },
+    browseJobsButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    browseJobsButtonText: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: '#FFFFFF',
+    },
+    savedJobsButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+      borderRadius: 16,
+      borderWidth: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    savedJobsButtonText: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+    },
     quickActions: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -415,9 +478,20 @@ export default function WorkerDashboard() {
     );
   };
 
-  const toggleAvailability = () => {
-    setIsAvailable(!isAvailable);
-    // TODO: Update availability status on backend
+  const toggleAvailability = async () => {
+    const newValue = !isAvailable;
+    try {
+      await apiService.updateWorkerAvailability(newValue);
+      setIsAvailable(newValue);
+      Alert.alert(
+        'Success', 
+        newValue ? 'You are now available for work' : 'You are now unavailable',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error updating availability:', error);
+      Alert.alert('Error', 'Failed to update availability');
+    }
   };
 
   return (
@@ -450,8 +524,47 @@ export default function WorkerDashboard() {
       >
         {/* Greeting Section */}
         <View style={[styles.greetingSection, { backgroundColor: theme.surface }]}>
-          <Text style={[styles.greeting, { color: theme.text }]}>Welcome back! �</Text>
-          <Text style={[styles.name, { color: theme.textSecondary }]}>{user?.firstName} {user?.lastName}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.greeting, { color: theme.text }]}>Welcome back! 👋</Text>
+              <Text style={[styles.name, { color: theme.textSecondary }]}>{user?.firstName} {user?.lastName}</Text>
+            </View>
+            {/* Verification Status Badge */}
+            {user?.verificationStatus && (
+              <View style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 12,
+                backgroundColor: 
+                  user.verificationStatus === 'verified' ? '#ECFDF5' :
+                  user.verificationStatus === 'rejected' ? '#FEF2F2' : '#FEF3C7',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons 
+                    name={
+                      user.verificationStatus === 'verified' ? 'checkmark-circle' :
+                      user.verificationStatus === 'rejected' ? 'close-circle' : 'time'
+                    }
+                    size={16}
+                    color={
+                      user.verificationStatus === 'verified' ? '#059669' :
+                      user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706'
+                    }
+                  />
+                  <Text style={{
+                    fontSize: 12,
+                    fontFamily: theme.fontSemiBold,
+                    color: 
+                      user.verificationStatus === 'verified' ? '#059669' :
+                      user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
+                  }}>
+                    {user.verificationStatus === 'verified' ? 'Verified' :
+                     user.verificationStatus === 'rejected' ? 'Not Verified' : 'Pending'}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
         </View>
         {/* Availability Toggle */}
         <View style={styles.availabilityCard}>
@@ -481,6 +594,28 @@ export default function WorkerDashboard() {
           />
         </View>
 
+        {/* Browse Jobs Button - Professional Workers Only */}
+        {isProfessional && (
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={[styles.browseJobsButton, { backgroundColor: theme.primary }]}
+              onPress={() => router.push('/browse-jobs' as any)}
+            >
+              <Ionicons name="search" size={20} color="#FFFFFF" />
+              <Text style={styles.browseJobsButtonText}>Browse & Apply for Jobs</Text>
+              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
+              onPress={() => router.push('/saved-jobs' as any)}
+            >
+              <Ionicons name="heart" size={20} color={theme.primary} />
+              <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>Saved Jobs</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Stats Grid */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
@@ -491,15 +626,67 @@ export default function WorkerDashboard() {
             <Text style={styles.statValue}>{stats.active_jobs}</Text>
             <Text style={styles.statLabel}>Active Jobs</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.total_applications || 0}</Text>
-            <Text style={styles.statLabel}>Direct Requests</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.accepted_applications || 0}</Text>
-            <Text style={styles.statLabel}>Accepted Jobs</Text>
-          </View>
+          {isProfessional && (
+            <>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{stats.total_applications || 0}</Text>
+                <Text style={styles.statLabel}>Applications</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{stats.accepted_applications || 0}</Text>
+                <Text style={styles.statLabel}>Accepted</Text>
+              </View>
+            </>
+          )}
         </View>
+
+        {/* Active Jobs Section - if there are any */}
+        {stats.active_jobs > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Active Jobs ({stats.active_jobs})</Text>
+            <TouchableOpacity 
+              style={[styles.infoCard, { backgroundColor: theme.surface }]}
+              onPress={() => router.push('/(worker)/jobs')}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Ionicons name="briefcase" size={32} color={theme.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.infoCardTitle, { color: theme.text }]}>
+                    You have {stats.active_jobs} active {stats.active_jobs === 1 ? 'job' : 'jobs'}
+                  </Text>
+                  <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
+                    View and manage your ongoing work
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Job Applications Section - for professionals only */}
+        {isProfessional && stats.total_applications > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>My Applications</Text>
+            <TouchableOpacity 
+              style={[styles.infoCard, { backgroundColor: theme.surface }]}
+              onPress={() => router.push('/applications' as any)}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Ionicons name="document-text" size={32} color={theme.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.infoCardTitle, { color: theme.text }]}>
+                    {stats.total_applications} {stats.total_applications === 1 ? 'Application' : 'Applications'}
+                  </Text>
+                  <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
+                    {stats.accepted_applications} accepted • {stats.total_applications - stats.accepted_applications} pending
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Pending Requests */}
         <View style={styles.section}>
@@ -563,6 +750,20 @@ export default function WorkerDashboard() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/notifications' as any)}
+            >
+              <Ionicons name="notifications-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>Notifications</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/analytics' as any)}
+            >
+              <Ionicons name="analytics-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>Analytics</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/jobs')}

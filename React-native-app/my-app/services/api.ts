@@ -260,9 +260,10 @@ class ApiService {
     return response.data;
   }
 
-  async applyForJob(jobId: number, coverLetter?: string) {
-    const response = await this.api.post(`/jobs/${jobId}/apply/`, {
+  async applyForJob(jobId: number, coverLetter?: string, proposedRate?: number) {
+    const response = await this.api.post(`/jobs/worker/jobs/${jobId}/apply/`, {
       cover_letter: coverLetter,
+      proposed_rate: proposedRate,
     });
     return response.data;
   }
@@ -274,6 +275,90 @@ class ApiService {
 
   async getBrowseJobs(params?: { category?: string; city?: string }) {
     const response = await this.api.get('/jobs/browse/', { params });
+    return response.data;
+  }
+
+  async getSavedJobs(includeClosed: boolean = false) {
+    const response = await this.api.get('/jobs/saved/', { 
+      params: { include_closed: includeClosed } 
+    });
+    return response.data;
+  }
+
+  async saveJob(jobId: number) {
+    const response = await this.api.post(`/jobs/${jobId}/save/`);
+    return response.data;
+  }
+
+  async unsaveJob(jobId: number) {
+    const response = await this.api.delete(`/jobs/${jobId}/unsave/`);
+    return response.data;
+  }
+
+  async isJobSaved(jobId: number) {
+    const response = await this.api.get(`/jobs/${jobId}/is-saved/`);
+    return response.data;
+  }
+
+  async registerPushToken(token: string, platform: string) {
+    const response = await this.api.post('/notifications/register-token/', {
+      token,
+      platform,
+      device_type: platform === 'ios' ? 'apns' : 'fcm',
+    });
+    return response.data;
+  }
+
+  async getNotifications(unreadOnly: boolean = false) {
+    const response = await this.api.get('/notifications/', {
+      params: { unread_only: unreadOnly }
+    });
+    return response.data;
+  }
+
+  async markNotificationAsRead(notificationId: number) {
+    const response = await this.api.post(`/notifications/${notificationId}/read/`);
+    return response.data;
+  }
+
+  async markAllNotificationsAsRead() {
+    const response = await this.api.post('/notifications/mark-all-read/');
+    return response.data;
+  }
+
+  async getUnreadNotificationCount() {
+    const response = await this.api.get('/notifications/unread-count/');
+    return response.data;
+  }
+
+  async getWorkerAnalytics() {
+    const response = await this.api.get('/workers/analytics/');
+    return response.data;
+  }
+
+  async getEarningsBreakdown(groupBy: 'month' | 'week' = 'month', periods: number = 6) {
+    const response = await this.api.get('/workers/earnings/breakdown/', {
+      params: { group_by: groupBy, periods }
+    });
+    return response.data;
+  }
+
+  async getEarningsByCategory() {
+    const response = await this.api.get('/workers/earnings/by-category/');
+    return response.data;
+  }
+
+  async getTopClients(limit: number = 10) {
+    const response = await this.api.get('/workers/earnings/top-clients/', {
+      params: { limit }
+    });
+    return response.data;
+  }
+
+  async getPaymentHistory(limit: number = 50) {
+    const response = await this.api.get('/workers/earnings/payment-history/', {
+      params: { limit }
+    });
     return response.data;
   }
 
@@ -310,6 +395,34 @@ class ApiService {
 
   async getCategories() {
     const response = await this.api.get('/workers/categories/');
+    return response.data;
+  }
+
+  async getSkills(categoryIds?: number[]) {
+    const params = categoryIds && categoryIds.length > 0 
+      ? { categories: categoryIds.join(',') }
+      : {};
+    const response = await this.api.get('/workers/skills/', { params });
+    return response.data;
+  }
+
+  async getWorkExperiences() {
+    const response = await this.api.get('/workers/experiences/');
+    return response.data;
+  }
+
+  async addWorkExperience(data: any) {
+    const response = await this.api.post('/workers/experiences/', data);
+    return response.data;
+  }
+
+  async updateWorkExperience(experienceId: number, data: any) {
+    const response = await this.api.patch(`/workers/experiences/${experienceId}/`, data);
+    return response.data;
+  }
+
+  async deleteWorkExperience(experienceId: number) {
+    const response = await this.api.delete(`/workers/experiences/${experienceId}/`);
     return response.data;
   }
 
