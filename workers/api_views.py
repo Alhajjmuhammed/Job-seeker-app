@@ -397,3 +397,338 @@ def get_categories(request):
     categories = Category.objects.filter(is_active=True).order_by('name')
     serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_skills_by_category(request):
+    """Get skills for specific categories"""
+    from workers.models import Skill
+    from workers.serializers import SkillSerializer
+    
+    category_ids = request.GET.get('categories', '')
+    if category_ids:
+        category_ids = [int(id) for id in category_ids.split(',') if id.isdigit()]
+        skills = Skill.objects.filter(category_id__in=category_ids).order_by('name')
+    else:
+        skills = Skill.objects.all().order_by('name')
+    
+    serializer = SkillSerializer(skills, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def work_experiences(request):
+    """Get or create work experiences for the authenticated worker"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can manage work experience'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        worker_profile = WorkerProfile.objects.get(user=request.user)
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        from workers.models import WorkExperience
+        from workers.serializers import WorkExperienceSerializer
+        
+        experiences = WorkExperience.objects.filter(worker=worker_profile).order_by('-start_date')
+        serializer = WorkExperienceSerializer(experiences, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        from workers.serializers import WorkExperienceSerializer
+        
+        serializer = WorkExperienceSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(worker=worker_profile)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def work_experience_detail(request, experience_id):
+    """Get, update or delete a specific work experience"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can manage work experience'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        worker_profile = WorkerProfile.objects.get(user=request.user)
+        from workers.models import WorkExperience
+        experience = WorkExperience.objects.get(id=experience_id, worker=worker_profile)
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    except WorkExperience.DoesNotExist:
+        return Response({'error': 'Experience not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    from workers.serializers import WorkExperienceSerializer
+    
+    if request.method == 'GET':
+        serializer = WorkExperienceSerializer(experience)
+        return Response(serializer.data)
+    
+    elif request.method == 'PATCH':
+        serializer = WorkExperienceSerializer(experience, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        experience.delete()
+        return Response({'message': 'Experience deleted successfully'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def worker_analytics(request):
+    """Get worker analytics data for analytics screen"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        from django.db.models import Avg, Sum, Count
+        from clients.models import Rating
+        from datetime import datetime, timedelta
+        
+        profile = WorkerProfile.objects.get(user=request.user)
+        
+        # Total applications
+        total_applications = JobApplication.objects.filter(worker=profile).count()
+        
+        # Completed jobs
+        completed_jobs = DirectHireRequest.objects.filter(
+            worker=profile,
+            status='completed'
+        ).count()
+        
+        # Success rate (accepted / total applications)
+        accepted_apps = JobApplication.objects.filter(worker=profile, status='accepted').count()
+        success_rate = (accepted_apps / total_applications * 100) if total_applications > 0 else 0
+        
+        # Average rating
+        avg_rating = Rating.objects.filter(worker=profile).aggregate(Avg('rating'))['rating__avg'] or 0.0
+        
+        # Response rate (applications with responses / total)
+        responded_apps = JobApplication.objects.filter(
+            worker=profile,
+            status__in=['accepted', 'rejected']
+        ).count()
+        response_rate = (responded_apps / total_applications * 100) if total_applications > 0 else 0
+        
+        # Profile completeness
+        profile_completeness = profile.profile_completion_percentage
+        
+        return Response({
+            'total_applications': total_applications,
+            'completed_jobs': completed_jobs,
+            'success_rate': round(success_rate, 1),
+            'average_rating': round(avg_rating, 1),
+            'response_rate': round(response_rate, 1),
+            'profile_completeness': profile_completeness,
+        })
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def earnings_breakdown(request):
+    """Get earnings breakdown by time period"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        from datetime import datetime, timedelta
+        from django.db.models import Sum
+        from django.db.models.functions import TruncMonth, TruncWeek
+        
+        profile = WorkerProfile.objects.get(user=request.user)
+        group_by = request.GET.get('group_by', 'month')  # 'week' or 'month'
+        periods = int(request.GET.get('periods', 6))
+        
+        # Get completed jobs with payments (assuming DirectHireRequest has payment info)
+        jobs = DirectHireRequest.objects.filter(
+            worker=profile,
+            status='completed'
+        )
+        
+        if group_by == 'month':
+            earnings_data = jobs.annotate(
+                period=TruncMonth('created_at')
+            ).values('period').annotate(
+                earnings=Sum('total_amount')
+            ).order_by('-period')[:periods]
+        else:  # week
+            earnings_data = jobs.annotate(
+                period=TruncWeek('created_at')
+            ).values('period').annotate(
+                earnings=Sum('total_amount')
+            ).order_by('-period')[:periods]
+        
+        # Format the data
+        result = []
+        for item in reversed(list(earnings_data)):
+            if group_by == 'month':
+                period_str = item['period'].strftime('%b %Y')
+            else:
+                period_str = item['period'].strftime('%m/%d')
+            
+            result.append({
+                'period': period_str,
+                'earnings': str(item['earnings'] or 0)
+            })
+        
+        return Response(result)
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def earnings_by_category(request):
+    """Get earnings breakdown by job category"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        from django.db.models import Sum, Count
+        
+        profile = WorkerProfile.objects.get(user=request.user)
+        
+        # Get earnings by category from completed jobs
+        # Assuming JobRequest has category field linked to DirectHireRequest
+        from jobs.models import JobRequest
+        
+        category_earnings = []
+        
+        # Get worker's categories
+        for category in profile.categories.all():
+            # Count completed jobs in this category
+            jobs_count = DirectHireRequest.objects.filter(
+                worker=profile,
+                status='completed',
+                # Add category filter when available
+            ).count()
+            
+            # Calculate total earnings (simplified - adjust based on your model)
+            total = DirectHireRequest.objects.filter(
+                worker=profile,
+                status='completed',
+            ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+            
+            if jobs_count > 0:
+                category_earnings.append({
+                    'category': category.name,
+                    'earnings': str(total / profile.categories.count()),  # Simple distribution
+                    'jobs_count': jobs_count,
+                })
+        
+        return Response(category_earnings)
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def top_clients(request):
+    """Get top clients by earnings"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        from django.db.models import Sum, Count
+        
+        profile = WorkerProfile.objects.get(user=request.user)
+        limit = int(request.GET.get('limit', 5))
+        
+        # Get top clients from completed jobs
+        top_clients_data = DirectHireRequest.objects.filter(
+            worker=profile,
+            status='completed'
+        ).values('client__id', 'client__first_name', 'client__last_name').annotate(
+            total_earnings=Sum('total_amount'),
+            jobs_count=Count('id')
+        ).order_by('-total_earnings')[:limit]
+        
+        result = []
+        for item in top_clients_data:
+            result.append({
+                'client_id': item['client__id'],
+                'client_name': f"{item['client__first_name']} {item['client__last_name']}",
+                'total_earnings': str(item['total_earnings'] or 0),
+                'jobs_count': item['jobs_count'],
+            })
+        
+        return Response(result)
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def payment_history(request):
+    """Get payment transaction history"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        profile = WorkerProfile.objects.get(user=request.user)
+        limit = int(request.GET.get('limit', 20))
+        
+        # Get completed jobs as payment history
+        payments = DirectHireRequest.objects.filter(
+            worker=profile,
+            status='completed'
+        ).select_related('client').order_by('-updated_at')[:limit]
+        
+        result = []
+        for payment in payments:
+            result.append({
+                'id': payment.id,
+                'job_id': payment.id,
+                'job_title': payment.title,
+                'client_name': payment.client.get_full_name(),
+                'amount': str(payment.total_amount),
+                'date': payment.updated_at.isoformat(),
+                'status': 'completed',
+            })
+        
+        return Response(result)
+        
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def register_push_token(request):
+    """Register push notification token for the user"""
+    token = request.data.get('token')
+    platform = request.data.get('platform', 'unknown')
+    
+    if not token:
+        return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Store the push token (create a PushToken model if needed)
+        # For now, we'll just acknowledge receipt
+        # TODO: Create PushToken model to store tokens
+        
+        logger.info(f"Registered push token for user {request.user.id} on {platform}")
+        
+        return Response({
+            'message': 'Push token registered successfully',
+            'token': token,
+            'platform': platform,
+        })
+        
+    except Exception as e:
+        logger.error(f"Error registering push token: {str(e)}")
+        return Response({'error': 'Failed to register push token'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

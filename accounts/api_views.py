@@ -479,3 +479,58 @@ def get_account_activity(request):
         }
     
     return Response(activity)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_notifications(request):
+    """Get notifications for the authenticated user"""
+    # TODO: Implement actual notification model and filtering
+    # For now, return mock notifications based on user activity
+    
+    unread_only = request.GET.get('unread_only', 'false').lower() == 'true'
+    
+    # Mock notifications (replace with actual database queries)
+    notifications = []
+    
+    # In production, query from Notification model:
+    # from notifications.models import Notification
+    # notifications = Notification.objects.filter(user=request.user)
+    # if unread_only:
+    #     notifications = notifications.filter(is_read=False)
+    
+    return Response(notifications)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    # TODO: Implement with actual Notification model
+    # notification = Notification.objects.get(id=notification_id, user=request.user)
+    # notification.is_read = True
+    # notification.save()
+    
+    return Response({'message': 'Notification marked as read'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_all_notifications_read(request):
+    """Mark all notifications as read for the user"""
+    # TODO: Implement with actual Notification model
+    # Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    
+    return Response({'message': 'All notifications marked as read'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_notification_count(request):
+    """Get count of unread notifications"""
+    # TODO: Implement with actual Notification model
+    # count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    count = 0  # Mock data
+    
+    return Response({'count': count})

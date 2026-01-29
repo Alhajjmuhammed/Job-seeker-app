@@ -13,6 +13,7 @@ from .api_views import (
     accept_application,
     reject_application,
     browse_jobs,
+    job_detail,
 )
 from . import api_messages
 
@@ -43,4 +44,5 @@ urlpatterns = [
     
     # Common endpoints
     path('jobs/browse/', browse_jobs, name='api_browse_jobs'),
+    path('jobs/<int:job_id>/', job_detail, name='api_job_detail'),
 ]

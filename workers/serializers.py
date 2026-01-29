@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from workers.models import WorkerProfile, Category
+from workers.models import WorkerProfile, Category, Skill, WorkExperience
 from worker_connect.serializer_mixins import SanitizedSerializerMixin
 
 
@@ -7,6 +7,29 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'icon']
+
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = ['id', 'name', 'category']
+
+
+class WorkExperienceSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
+    """Work experience serializer with input sanitization"""
+    
+    sanitize_fields = ['job_title', 'company', 'location', 'description']
+    
+    class Meta:
+        model = WorkExperience
+        fields = ['id', 'job_title', 'company', 'location', 'start_date', 'end_date', 'is_current', 'description']
+        
+    def validate(self, data):
+        """Ensure end_date is after start_date"""
+        if data.get('end_date') and data.get('start_date'):
+            if data['end_date'] < data['start_date']:
+                raise serializers.ValidationError("End date must be after start date")
+        return data
 
 
 class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
@@ -26,6 +49,12 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
         write_only=True,
         required=False
     )
+    skills = SkillSerializer(many=True, read_only=True)
+    skill_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
     profile_image = serializers.SerializerMethodField()
     
     class Meta:
@@ -35,7 +64,7 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
             'worker_type', 'bio', 'profile_image', 'hourly_rate', 'city', 'state', 'country', 'postal_code',
             'availability', 'verification_status', 'average_rating', 'address', 'religion',
             'can_work_everywhere', 'total_jobs', 'completed_jobs', 'total_earnings', 
-            'categories', 'category_ids', 'experience_years', 'is_featured', 
+            'categories', 'category_ids', 'skills', 'skill_ids', 'experience_years', 'is_featured', 
             'created_at', 'updated_at', 'profile_completion_percentage', 
             'is_profile_complete', 'has_uploaded_national_id'
         ]
@@ -55,6 +84,7 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
     
     def update(self, instance, validated_data):
         category_ids = validated_data.pop('category_ids', None)
+        skill_ids = validated_data.pop('skill_ids', None)
         
         # Update profile fields
         for attr, value in validated_data.items():
@@ -64,5 +94,9 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
         # Update categories if provided
         if category_ids is not None:
             instance.categories.set(category_ids)
+        
+        # Update skills if provided
+        if skill_ids is not None:
+            instance.skills.set(skill_ids)
         
         return instance

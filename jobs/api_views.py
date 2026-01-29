@@ -278,3 +278,19 @@ def browse_jobs(request):
         jobs = jobs.filter(city__icontains=city)
     
     return paginate_queryset(request, jobs, JobRequestSerializer)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def job_detail(request, job_id):
+    """Get detailed information about a specific job"""
+    try:
+        job = JobRequest.objects.select_related('client', 'category') \
+            .prefetch_related('assigned_workers', 'applications') \
+            .annotate(application_count=Count('applications')) \
+            .get(id=job_id)
+        
+        serializer = JobRequestSerializer(job)
+        return Response(serializer.data)
+    except JobRequest.DoesNotExist:
+        return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
