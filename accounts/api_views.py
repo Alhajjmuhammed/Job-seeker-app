@@ -13,13 +13,13 @@ User = get_user_model()
 
 
 class LoginRateThrottle(AnonRateThrottle):
-    """Strict rate limiting for login attempts to prevent brute force"""
-    rate = '5/minute'
+    """Reasonable rate limiting for login attempts"""
+    rate = '20/minute'  # Increased from 5/minute
 
 
 class RegisterRateThrottle(AnonRateThrottle):
-    """Rate limiting for registration to prevent spam accounts"""
-    rate = '3/minute'
+    """Reasonable rate limiting for registration"""
+    rate = '10/minute'  # Increased from 3/minute
 
 
 @api_view(['POST'])
@@ -42,8 +42,8 @@ def login_view(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
     
-    # Authenticate using username
-    user = authenticate(request, username=user.username, password=password)
+    # Authenticate using email (since USERNAME_FIELD is 'email')
+    user = authenticate(request, email=email, password=password)
     
     if user is None:
         return Response(

@@ -1,0 +1,153 @@
+{% extends "workers/base_worker.html" %}
+{% load humanize %}
+
+{% block title %}Worker Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">👷 Worker Dashboard</h2>
+    
+    <!-- Alert for pending assignments -->
+    {% if pending > 0 %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>🔔 You have {{ pending }} pending assignment{{ pending|pluralize }}!</strong>
+        <a href="{% url 'service_requests_web:worker_pending' %}" class="alert-link">View now</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    <!-- Current Assignment -->
+    {% if current_assignment %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🎯 Current Assignment</h5>
+                </div>
+                <div class="card-body">
+                    <h4>{{ current_assignment.title }}</h4>
+                    <p><strong>Client:</strong> {{ current_assignment.client.get_full_name }}</p>
+                    <p><strong>Location:</strong> {{ current_assignment.location }}</p>
+                    <p><strong>Status:</strong> 
+                        {% if is_clocked_in %}
+                        <span class="badge bg-success">⏰ Clocked In - Working</span>
+                        {% else %}
+                        <span class="badge bg-warning">Ready to Start</span>
+                        {% endif %}
+                    </p>
+                    <div class="btn-group">
+                        <a href="{% url 'service_requests_web:worker_assignment_detail' current_assignment.id %}" 
+                           class="btn btn-primary">View Details</a>
+                        {% if not is_clocked_in %}
+                        <a href="{% url 'service_requests_web:worker_clock_in' current_assignment.id %}" 
+                           class="btn btn-success">⏰ Clock In</a>
+                        {% else %}
+                        <a href="{% url 'service_requests_web:worker_clock_out' current_assignment.id %}" 
+                           class="btn btn-danger">⏰ Clock Out</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_services }}</h3>
+                    <p class="card-text text-muted">Total Services</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ completed }}</h3>
+                    <p class="card-text">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ in_progress }}</h3>
+                    <p class="card-text">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning">
+                <div class="card-body">
+                    <h3 class="card-title">{{ pending }}</h3>
+                    <p class="card-text">Pending Response</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Earnings Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">💰 Total Earnings</div>
+                <div class="card-body text-center">
+                    <h2>SDG {{ total_earned|floatformat:2 }}</h2>
+                    <p class="text-muted">{{ total_hours|floatformat:1 }} hours worked</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">📊 This Week</div>
+                <div class="card-body text-center">
+                    <h2>SDG {{ week_earned|floatformat:2 }}</h2>
+                    <p class="text-muted">{{ week_hours|floatformat:1 }} hours worked</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{% url 'service_requests_web:worker_pending' %}" class="btn btn-warning btn-lg">
+                🔔 Pending Assignments ({{ pending }})
+            </a>
+            <a href="{% url 'service_requests_web:worker_assignments' %}" class="btn btn-secondary btn-lg">
+                📋 All Assignments
+            </a>
+            <a href="{% url 'service_requests_web:worker_activity' %}" class="btn btn-info btn-lg">
+                📜 Activity History
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Recent Activity</h4>
+            <div class="list-group">
+                {% for activity in recent_activity %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ activity.get_activity_type_display }}</h6>
+                        <small>{{ activity.created_at|naturaltime }}</small>
+                    </div>
+                    <p class="mb-1">{{ activity.description }}</p>
+                    {% if activity.amount_earned %}
+                    <small class="text-success">Earned: SDG {{ activity.amount_earned|floatformat:2 }}</small>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="list-group-item text-center text-muted">
+                    <p>No recent activity</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

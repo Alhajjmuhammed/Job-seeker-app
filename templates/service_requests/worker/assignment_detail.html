@@ -1,0 +1,208 @@
+{% extends "workers/base_worker.html" %}
+
+{% block title %}Assignment Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📋 Assignment Details</h2>
+        <a href="{% url 'service_requests_web:worker_assignments' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Assignments
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Main Assignment Details -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header {% if service_request.status == 'completed' %}bg-success text-white{% elif service_request.status == 'in_progress' %}bg-info text-white{% elif service_request.status == 'assigned' %}bg-warning{% else %}bg-secondary text-white{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ service_request.title }}</h5>
+                        <span class="badge bg-light text-dark">{{ service_request.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Category:</dt>
+                        <dd class="col-sm-8">{{ service_request.category.name }}</dd>
+                        
+                        <dt class="col-sm-4">Client:</dt>
+                        <dd class="col-sm-8">{{ service_request.client.get_full_name }}</dd>
+                        
+                        <dt class="col-sm-4">Location:</dt>
+                        <dd class="col-sm-8">{{ service_request.location }}, {{ service_request.city }}</dd>
+                        
+                        <dt class="col-sm-4">Urgency:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if service_request.urgency == 'emergency' %}bg-danger{% elif service_request.urgency == 'urgent' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ service_request.get_urgency_display }}
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Est. Duration:</dt>
+                        <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
+                        
+                        <dt class="col-sm-4">Hourly Rate:</dt>
+                        <dd class="col-sm-8"><strong>SDG {{ service_request.hourly_rate }}</strong></dd>
+                        
+                        {% if service_request.preferred_date %}
+                        <dt class="col-sm-4">Preferred Time:</dt>
+                        <dd class="col-sm-8">
+                            {{ service_request.preferred_date|date:"M d, Y" }}
+                            {% if service_request.preferred_time %}at {{ service_request.preferred_time|time:"h:i A" }}{% endif %}
+                        </dd>
+                        {% endif %}
+                        
+                        <dt class="col-sm-4">Assigned:</dt>
+                        <dd class="col-sm-8">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</dd>
+                        
+                        {% if service_request.work_started_at %}
+                        <dt class="col-sm-4">Work Started:</dt>
+                        <dd class="col-sm-8">{{ service_request.work_started_at|date:"M d, Y g:i A" }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.work_completed_at %}
+                        <dt class="col-sm-4">Work Completed:</dt>
+                        <dd class="col-sm-8">{{ service_request.work_completed_at|date:"M d, Y g:i A" }}</dd>
+                        {% endif %}
+                    </dl>
+                    
+                    <hr>
+                    
+                    <h6>Description:</h6>
+                    <p>{{ service_request.description|linebreaks }}</p>
+                    
+                    {% if service_request.admin_notes %}
+                    <hr>
+                    <h6>Admin Notes:</h6>
+                    <p class="text-muted"><em>{{ service_request.admin_notes }}</em></p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Time Logs -->
+            {% if time_logs %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Time Logs</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Clock In</th>
+                                    <th>Clock Out</th>
+                                    <th>Duration</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in time_logs %}
+                                <tr {% if not log.clock_out %}class="table-info"{% endif %}>
+                                    <td>{{ log.clock_in|date:"M d, Y g:i A" }}</td>
+                                    <td>
+                                        {% if log.clock_out %}
+                                        {{ log.clock_out|date:"M d, Y g:i A" }}
+                                        {% else %}
+                                        <span class="badge bg-info">Currently Clocked In</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.duration_hours %}
+                                        {{ log.duration_hours }} hours
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.notes|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="2"><strong>Total Hours Worked:</strong></td>
+                                    <td colspan="2"><strong>{{ service_request.total_hours_worked|default:"0" }} hours</strong></td>
+                                </tr>
+                                <tr class="table-light">
+                                    <td colspan="2"><strong>Total Amount:</strong></td>
+                                    <td colspan="2"><strong class="text-success">SDG {{ service_request.total_amount|default:"0" }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Action Buttons -->
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Actions</h6>
+                    
+                    {% if service_request.worker_accepted is None %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> You need to respond to this assignment.
+                    </div>
+                    <a href="{% url 'service_requests_web:worker_respond' service_request.id %}" 
+                       class="btn btn-primary btn-lg w-100 mb-2">
+                        <i class="fas fa-reply"></i> Respond to Assignment
+                    </a>
+                    
+                    {% elif service_request.worker_accepted == True %}
+                        {% if service_request.status == 'in_progress' %}
+                            {% if is_clocked_in %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-clock"></i> You are currently clocked in.
+                            </div>
+                            <a href="{% url 'service_requests_web:worker_clock_out' service_request.id %}" 
+                               class="btn btn-danger btn-lg w-100 mb-2">
+                                <i class="fas fa-clock"></i> Clock Out
+                            </a>
+                            {% else %}
+                            <a href="{% url 'service_requests_web:worker_clock_in' service_request.id %}" 
+                               class="btn btn-success btn-lg w-100 mb-2">
+                                <i class="fas fa-clock"></i> Clock In
+                            </a>
+                            {% endif %}
+                            
+                            {% if not is_clocked_in %}
+                            <hr>
+                            <a href="{% url 'service_requests_web:worker_complete' service_request.id %}" 
+                               class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-check-circle"></i> Mark Complete
+                            </a>
+                            {% endif %}
+                        {% elif service_request.status == 'completed' %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Service completed!
+                            <hr>
+                            <strong>Earned: SDG {{ service_request.total_amount }}</strong>
+                        </div>
+                        {% endif %}
+                    
+                    {% elif service_request.worker_accepted == False %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle"></i> You rejected this assignment.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Info Box -->
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-info-circle"></i> Status Guide</h6>
+                    <ul class="small mb-0">
+                        <li><strong>Assigned:</strong> Waiting for your response</li>
+                        <li><strong>In Progress:</strong> Work has started</li>
+                        <li><strong>Completed:</strong> Service finished</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,6 +18,9 @@ from .api_views import (
 from . import api_messages
 
 urlpatterns = [
+    # Root jobs API endpoint
+    path('', browse_jobs, name='api_jobs_root'),
+    
     # Messaging API
     path('messages/conversations/', api_messages.get_conversations, name='api_conversations'),
     path('messages/<int:user_id>/', api_messages.get_messages, name='api_messages'),

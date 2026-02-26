@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useRouter } from 'expo-router';
 import pushNotificationService from '../services/pushNotifications';
 import apiService from '../services/api';
+import { getToken } from '../services/secureStorage';
 
 interface NotificationContextType {
   unreadCount: number;
@@ -44,13 +45,26 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const refreshUnreadCount = async () => {
     try {
+      // Only fetch if user is authenticated
+      const token = await getToken();
+      if (!token) {
+        setUnreadCount(0);
+        return;
+      }
+      
       const response = await apiService.getUnreadNotificationCount();
       setUnreadCount(response.count || 0);
       
       // Update badge count
       await pushNotificationService.setBadgeCount(response.count || 0);
     } catch (error) {
-      console.error('Error fetching unread count:', error);
+      // If authentication fails, reset count to 0
+      if (error.response?.status === 401) {
+        setUnreadCount(0);
+        await pushNotificationService.setBadgeCount(0);
+      } else {
+        console.error('Error fetching unread count:', error);
+      }
     }
   };
 
@@ -82,6 +96,44 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
     } else if (data.type === 'direct_hire_request') {
       router.push('/(worker)/dashboard' as any);
+    } else if (data.type === 'service_request_assigned' || data.type === 'assignment_received') {
+      // Worker received new assignment
+      if (data.assignment_id) {
+        router.push(`/(worker)/assignments/respond/${data.assignment_id}` as any);
+      } else {
+        router.push('/(worker)/assignments/pending' as any);
+      }
+    } else if (data.type === 'assignment_accepted' || data.type === 'worker_accepted') {
+      // Client - worker accepted assignment
+      if (data.request_id) {
+        router.push(`/(client)/service-request/${data.request_id}` as any);
+      } else {
+        router.push('/(client)/my-requests' as any);
+      }
+    } else if (data.type === 'assignment_rejected' || data.type === 'worker_rejected') {
+      // Client - worker rejected assignment
+      if (data.request_id) {
+        router.push(`/(client)/service-request/${data.request_id}` as any);
+      } else {
+        router.push('/(client)/my-requests' as any);
+      }
+    } else if (data.type === 'worker_clocked_in' || data.type === 'worker_clocked_out') {
+      // Client - worker clocked in/out
+      if (data.request_id) {
+        router.push(`/(client)/service-request/${data.request_id}` as any);
+      } else {
+        router.push('/(client)/my-requests' as any);
+      }
+    } else if (data.type === 'service_completed') {
+      // Client - service marked complete
+      if (data.request_id) {
+        router.push(`/(client)/service-request/${data.request_id}` as any);
+      } else {
+        router.push('/(client)/my-requests' as any);
+      }
+    } else if (data.type === 'service_request_created') {
+      // Client created service request (admin notification)
+      router.push('/(client)/my-requests' as any);
     } else {
       // Default: go to notifications screen
       router.push('/(worker)/notifications' as any);

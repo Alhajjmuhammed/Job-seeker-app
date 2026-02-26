@@ -17,6 +17,111 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# SERVICE CATEGORIES (ONLY) - No direct worker access
+# ============================================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def services_list(request):
+    """Get list of available service categories"""
+    try:
+        categories = Category.objects.all()
+        services = []
+        
+        for category in categories:
+            # Count available workers in this category
+            available_workers = WorkerProfile.objects.filter(
+                categories=category,
+                availability='available',
+                status='approved'
+            ).count()
+            
+            # Get completed projects in this category
+            completed_projects = JobRequest.objects.filter(
+                category=category,
+                status='completed'
+            ).count()
+            
+            # Get average completion days
+            avg_days = JobRequest.objects.filter(
+                category=category,
+                status='completed'
+            ).aggregate(avg=Avg('duration_days'))['avg'] or 0
+            
+            services.append({
+                'id': category.id,
+                'name': category.name,
+                'description': category.description or f"Professional {category.name} services",
+                'icon': getattr(category, 'icon', 'construct'),  # Default icon
+                'available_workers': available_workers,
+                'completed_projects': completed_projects,
+                'avg_completion_days': int(avg_days),
+                'is_available': available_workers > 0,
+            })
+        
+        return Response({
+            'services': services,
+            'message': 'Select a service to request and our team will assign the best worker for you.'
+        })
+    except Exception as e:
+        logger.error(f"Error fetching services: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch services'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def request_service(request, category_id):
+    """Request a service - admin will assign worker"""
+    try:
+        category = Category.objects.get(id=category_id)
+        
+        # Validate request data
+        title = request.data.get('title')
+        description = request.data.get('description')
+        budget = request.data.get('budget')
+        location = request.data.get('location')
+        deadline = request.data.get('deadline')
+        workers_needed = int(request.data.get('workers_needed', 1))
+        
+        if not all([title, description, budget, location]):
+            return Response({
+                'error': 'Missing required fields: title, description, budget, location'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create job request
+        job_request = JobRequest.objects.create(
+            client=request.user,
+            category=category,
+            title=title,
+            description=description,
+            budget=budget,
+            location=location,
+            deadline=deadline,
+            workers_needed=workers_needed,
+            status='open'  # Will be reviewed by admin
+        )
+        
+        return Response({
+            'message': 'Service request submitted successfully! Our team will review and assign a qualified worker within 2-4 hours.',
+            'request_id': job_request.id,
+            'status': 'pending_assignment'
+        })
+        
+    except Category.DoesNotExist:
+        return Response({'error': 'Service category not found'}, status=status.HTTP_404_NOT_FOUND)
+    except ValueError as e:
+        return Response({'error': f'Invalid data: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"Error creating service request: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to create service request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# CLIENT DASHBOARD & STATISTICS
+# ============================================================================
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def client_stats(request):
@@ -33,9 +138,6 @@ def client_stats(request):
             status='completed'
         ).count()
         
-        # Get favorites count
-        favorites_count = Favorite.objects.filter(client=request.user).count()
-        
         # Get total spent (sum of completed jobs budgets)
         total_spent = JobRequest.objects.filter(
             client=request.user,
@@ -45,7 +147,6 @@ def client_stats(request):
         return Response({
             'active_jobs': active_jobs,
             'completed_jobs': completed_jobs,
-            'favorites': favorites_count,
             'total_spent': 0,  # TODO: Calculate actual spent when payment system is implemented
         })
     except Exception as e:
@@ -83,169 +184,240 @@ def update_client_profile(request):
         return Response({'error': 'Failed to update profile'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# ============================================================================
+# SERVICE-ONLY CLIENT API (No Worker Browsing)
+# ============================================================================
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def search_workers(request):
-    """Search and filter workers"""
+def services_list(request):
+    """Get available services/categories (no worker information exposed)"""
     try:
-        workers = WorkerProfile.objects.filter(verification_status='verified') \
-            .select_related('user') \
-            .prefetch_related('categories', 'skills')
+        categories = Category.objects.filter(is_active=True).order_by('name')
         
-        # Search query
-        query = request.GET.get('search', '').strip()
-        if query:
-            workers = workers.filter(
-                Q(user__first_name__icontains=query) |
-                Q(user__last_name__icontains=query) |
-                Q(bio__icontains=query) |
-                Q(city__icontains=query)
+        # Add service statistics without exposing worker details
+        services_data = []
+        for category in categories:
+            # Count available workers in this category (but don't expose who they are)
+            available_workers_count = WorkerProfile.objects.filter(
+                categories=category,
+                verification_status='verified',
+                availability='available'
+            ).count()
+            
+            # Get average completion time and rating for this category
+            # (from completed jobs, but still no worker details exposed)
+            category_stats = JobRequest.objects.filter(
+                category=category,
+                status='completed'
+            ).aggregate(
+                avg_completion_days=Avg('duration_days'),
+                avg_budget=Avg('budget'),
+                total_completed=Count('id')
             )
+            
+            services_data.append({
+                'id': category.id,
+                'name': category.name,
+                'description': category.description,
+                'icon': category.icon,
+                'available_workers': available_workers_count,
+                'avg_completion_days': int(category_stats['avg_completion_days'] or 0),
+                'avg_budget': category_stats['avg_budget'],
+                'completed_projects': category_stats['total_completed'],
+                'is_available': available_workers_count > 0
+            })
         
-        # Category filter
-        category_id = request.GET.get('category')
-        if category_id:
-            workers = workers.filter(categories__id=category_id)
-        
-        # Location filter
-        location = request.GET.get('location', '').strip()
-        if location:
-            workers = workers.filter(city__icontains=location)
-        
-        # Availability filter
-        is_available = request.GET.get('is_available')
-        if is_available and is_available.lower() == 'true':
-            workers = workers.filter(availability='available')
-        
-        # Minimum rating filter
-        min_rating = request.GET.get('min_rating')
-        if min_rating:
-            try:
-                workers = workers.filter(average_rating__gte=float(min_rating))
-            except ValueError:
-                pass
-        
-        # Sorting
-        sort_by = request.GET.get('sort', '-average_rating')
-        workers = workers.order_by(sort_by).distinct()
-        
-        return paginate_queryset(request, workers, WorkerSearchSerializer)
+        return Response({
+            'services': services_data,
+            'message': 'Select a service and our team will assign the best available worker for you.'
+        })
     except Exception as e:
-        logger.error(f"Error searching workers: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to search workers'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def worker_detail(request, worker_id):
-    """Get detailed worker profile"""
-    try:
-        worker = WorkerProfile.objects.select_related('user') \
-            .prefetch_related('categories', 'skills') \
-            .get(id=worker_id, verification_status='verified')
-        serializer = WorkerSearchSerializer(worker, context={'request': request})
-        
-        # Get worker's ratings
-        ratings = Rating.objects.filter(worker=worker).order_by('-created_at')[:10]
-        ratings_serializer = RatingSerializer(ratings, many=True)
-        
-        response_data = serializer.data
-        response_data['ratings'] = ratings_serializer.data
-        
-        return Response(response_data)
-    except WorkerProfile.DoesNotExist:
-        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        logger.error(f"Error fetching worker detail: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to fetch worker details'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching services: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch services'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def toggle_favorite(request, worker_id):
-    """Add or remove worker from favorites"""
+def request_service(request, category_id):
+    """Request a service - admin will assign worker later"""
     try:
-        worker = WorkerProfile.objects.get(id=worker_id)
-        favorite, created = Favorite.objects.get_or_create(
-            client=request.user,
-            worker=worker
-        )
+        category = Category.objects.get(id=category_id, is_active=True)
         
-        if not created:
-            # Already exists, so remove it
-            favorite.delete()
-            return Response({'is_favorite': False, 'message': 'Removed from favorites'})
+        # Create service request without any worker assignment
+        job_data = {
+            'client': request.user,
+            'category': category,
+            'title': request.data.get('title', f"{category.name} Service Request"),
+            'description': request.data.get('description', ''),
+            'location': request.data.get('location', ''),
+            'city': request.data.get('city', ''),
+            'budget': request.data.get('budget'),
+            'duration_days': request.data.get('duration_days', 1),
+            'urgency': request.data.get('urgency', 'medium'),
+            'workers_needed': request.data.get('workers_needed', 1),
+            'status': 'open'  # Admin will review and assign workers
+        }
         
-        return Response({'is_favorite': True, 'message': 'Added to favorites'})
-    except WorkerProfile.DoesNotExist:
-        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Validate required fields
+        required_fields = ['description', 'location', 'city']
+        for field in required_fields:
+            if not request.data.get(field):
+                return Response({
+                    'error': f'{field.replace("_", " ").title()} is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create the service request
+        job_request = JobRequest.objects.create(**job_data)
+        
+        # TODO: Send notification to admin about new service request
+        # notify_admin_new_service_request(job_request)
+        
+        return Response({
+            'id': job_request.id,
+            'message': f'Your {category.name} service request has been submitted successfully!',
+            'details': 'Our team will review your request and assign the most suitable worker. You will be notified once a worker is assigned.',
+            'status': 'pending_assignment',
+            'estimated_response_time': '2-4 hours'
+        }, status=status.HTTP_201_CREATED)
+        
+    except Category.DoesNotExist:
+        return Response({'error': 'Service category not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        logger.error(f"Error toggling favorite: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to update favorites'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error creating service request: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to create service request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def favorites_list(request):
-    """Get client's favorite workers"""
+def my_service_requests(request):
+    """Get client's service requests with assigned worker info (if any)"""
     try:
-        favorites = Favorite.objects.filter(client=request.user).select_related('worker')
-        return paginate_queryset(request, favorites, FavoriteSerializer)
-    except Exception as e:
-        logger.error(f"Error fetching favorites: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to fetch favorites'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def categories_list(request):
-    """Get all active categories"""
-    try:
-        categories = Category.objects.filter(is_active=True)
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        logger.error(f"Error fetching categories: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to fetch categories'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def featured_workers(request):
-    """Get featured workers for client dashboard"""
-    try:
-        workers = WorkerProfile.objects.filter(
-            is_featured=True,
-            verification_status='verified',
-            availability='available'
-        )[:6]
+        requests = JobRequest.objects.filter(client=request.user).order_by('-created_at')
         
-        serializer = WorkerSearchSerializer(
-            workers,
-            many=True,
-            context={'request': request}
-        )
-        return Response(serializer.data)
+        requests_data = []
+        for job_request in requests:
+            # Only show assigned worker basic info, not for selection
+            assigned_worker_info = None
+            if job_request.assigned_workers.exists():
+                worker = job_request.assigned_workers.first()
+                assigned_worker_info = {
+                    'name': worker.user.get_full_name(),
+                    'phone': worker.user.phone_number,
+                    # Only basic contact info, no profile browsing
+                }
+            
+            requests_data.append({
+                'id': job_request.id,
+                'service_name': job_request.category.name if job_request.category else 'General Service',
+                'title': job_request.title,
+                'description': job_request.description,
+                'status': job_request.status,
+                'status_display': job_request.get_status_display(),
+                'urgency': job_request.urgency,
+                'location': job_request.location,
+                'budget': str(job_request.budget) if job_request.budget else None,
+                'created_at': job_request.created_at.isoformat(),
+                'assigned_worker': assigned_worker_info,
+                'is_assigned': job_request.assigned_workers.exists(),
+                'can_cancel': job_request.status in ['open'],
+            })
+        
+        return Response({'requests': requests_data})
     except Exception as e:
-        logger.error(f"Error fetching featured workers: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to fetch featured workers'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching service requests: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch requests'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated]) 
+def service_request_detail(request, request_id):
+    """Get detailed info about a service request"""
+    try:
+        job_request = JobRequest.objects.get(id=request_id, client=request.user)
+        
+        # Basic request details
+        request_detail = {
+            'id': job_request.id,
+            'service_name': job_request.category.name if job_request.category else 'General Service',
+            'title': job_request.title,
+            'description': job_request.description,
+            'status': job_request.status,
+            'status_display': job_request.get_status_display(),
+            'urgency': job_request.urgency,
+            'location': job_request.location,
+            'city': job_request.city,
+            'budget': str(job_request.budget) if job_request.budget else None,
+            'duration_days': job_request.duration_days,
+            'created_at': job_request.created_at.isoformat(),
+            'updated_at': job_request.updated_at.isoformat(),
+        }
+        
+        # Add assigned worker contact info (if assigned)
+        if job_request.assigned_workers.exists():
+            worker = job_request.assigned_workers.first()
+            request_detail['assigned_worker'] = {
+                'name': worker.user.get_full_name(),
+                'phone': worker.user.phone_number,
+                'email': worker.user.email,
+                'assigned_at': job_request.updated_at.isoformat(),
+                # No detailed profile info - just contact details
+            }
+        
+        return Response(request_detail)
+    except JobRequest.DoesNotExist:
+        return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error fetching service request detail: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch request details'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_service_request(request, request_id):
+    """Cancel a service request (only if not yet assigned)"""
+    try:
+        job_request = JobRequest.objects.get(id=request_id, client=request.user)
+        
+        job_request.status = 'cancelled'
+        job_request.save()
+        
+        return Response({
+            'message': 'Service request cancelled successfully'
+        })
+    except JobRequest.DoesNotExist:
+        return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error cancelling service request: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to cancel request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# JOB MANAGEMENT (Legacy support for existing jobs)
+# ============================================================================
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def client_jobs(request):
-    """Get client's posted jobs"""
+    """Get client's jobs (legacy support)"""
     try:
-        from jobs.serializers import JobRequestSerializer
-        
         jobs = JobRequest.objects.filter(client=request.user).order_by('-created_at')
         
-        # Filter by status if provided
-        status_filter = request.GET.get('status')
-        if status_filter:
-            jobs = jobs.filter(status=status_filter)
+        jobs_data = []
+        for job in jobs:
+            jobs_data.append({
+                'id': job.id,
+                'title': job.title,
+                'status': job.status,
+                'status_display': job.get_status_display(),
+                'category': job.category.name if job.category else None,
+                'created_at': job.created_at.isoformat(),
+                'workers_count': job.assigned_workers.count(),
+                'budget': str(job.budget) if job.budget else None,
+            })
         
-        return paginate_queryset(request, jobs, JobRequestSerializer)
+        return Response({'jobs': jobs_data})
     except Exception as e:
         logger.error(f"Error fetching client jobs: {str(e)}", exc_info=True)
         return Response({'error': 'Failed to fetch jobs'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -254,12 +426,27 @@ def client_jobs(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def client_job_detail(request, job_id):
-    """Get detailed information about a specific job"""
+    """Get detailed job information (legacy support)"""
     try:
         job = JobRequest.objects.get(id=job_id, client=request.user)
-        from jobs.serializers import JobRequestSerializer
-        serializer = JobRequestSerializer(job)
-        return Response(serializer.data)
+        
+        job_detail = {
+            'id': job.id,
+            'title': job.title,
+            'description': job.description,
+            'status': job.status,
+            'status_display': job.get_status_display(),
+            'category': job.category.name if job.category else None,
+            'location': job.location,
+            'city': job.city,
+            'budget': str(job.budget) if job.budget else None,
+            'duration_days': job.duration_days,
+            'created_at': job.created_at.isoformat(),
+            'workers_needed': job.workers_needed,
+            'assigned_workers_count': job.assigned_workers.count(),
+        }
+        
+        return Response(job_detail)
     except JobRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
@@ -267,47 +454,18 @@ def client_job_detail(request, job_id):
         return Response({'error': 'Failed to fetch job details'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
+# ============================================================================
+# CATEGORIES (For Service Selection)
+# ============================================================================
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def rate_worker(request, worker_id):
-    """Rate a worker after job completion"""
+def categories_list(request):
+    """Get categories for service selection"""
     try:
-        worker = WorkerProfile.objects.get(id=worker_id)
-        rating_value = request.data.get('rating')
-        review_text = request.data.get('review', '')
-        
-        if not rating_value or rating_value < 1 or rating_value > 5:
-            return Response({'error': 'Rating must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Use atomic transaction to ensure data consistency
-        with transaction.atomic():
-            # Create or update rating
-            rating, created = Rating.objects.update_or_create(
-                client=request.user,
-                worker=worker,
-                defaults={
-                    'rating': rating_value,
-                    'review': review_text
-                }
-            )
-            
-            # Update worker's average rating
-            ratings = Rating.objects.filter(worker=worker)
-            avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
-            worker.average_rating = round(avg_rating, 2) if avg_rating else 0
-            worker.save(update_fields=['average_rating'])
-        
-        return Response({
-            'message': 'Rating submitted successfully',
-            'rating': {
-                'id': rating.id,
-                'rating': rating.rating,
-                'review': rating.review,
-                'created_at': rating.created_at.isoformat()
-            }
-        })
-    except WorkerProfile.DoesNotExist:
-        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
+        categories = Category.objects.filter(is_active=True).order_by('name')
+        serializer = CategorySerializer(categories, many=True)
+        return Response({'categories': serializer.data})
     except Exception as e:
-        logger.error(f"Error submitting rating: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to submit rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error fetching categories: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch categories'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

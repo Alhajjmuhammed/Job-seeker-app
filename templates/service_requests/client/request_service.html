@@ -1,0 +1,109 @@
+{% extends "clients/base_client.html" %}
+
+{% block title %}Request Service{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📝 Request a Service</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Service Category *</label>
+                            <select name="category" id="category" class="form-select" required>
+                                <option value="">-- Select Category --</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}">
+                                    {% if cat.icon %}{{ cat.icon }}{% endif %} {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Service Title *</label>
+                            <input type="text" name="title" id="title" class="form-control" 
+                                   placeholder="e.g., Fix kitchen sink leak" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea name="description" id="description" class="form-control" rows="4" 
+                                      placeholder="Describe what needs to be done..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="location" class="form-label">Location *</label>
+                                <input type="text" name="location" id="location" class="form-control" 
+                                       placeholder="123 Main Street, Building A" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="city" class="form-label">City *</label>
+                                <input type="text" name="city" id="city" class="form-control" 
+                                       placeholder="Khartoum" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="preferred_date" class="form-label">Preferred Date</label>
+                                <input type="date" name="preferred_date" id="preferred_date" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="preferred_time" class="form-label">Preferred Time</label>
+                                <input type="time" name="preferred_time" id="preferred_time" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="estimated_duration_hours" class="form-label">Est. Duration (hours) *</label>
+                                <input type="number" name="estimated_duration_hours" id="estimated_duration_hours" 
+                                       class="form-control" step="0.5" min="0.5" placeholder="2" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="urgency" class="form-label">Urgency</label>
+                            <select name="urgency" id="urgency" class="form-select">
+                                <option value="normal">Normal</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="emergency">Emergency</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="client_notes" class="form-label">Additional Notes</label>
+                            <textarea name="client_notes" id="client_notes" class="form-control" rows="2" 
+                                      placeholder="Any additional information..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Request</button>
+                            <a href="{% url 'service_requests_web:client_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">ℹ️ How It Works</h5>
+                    <ol>
+                        <li>Fill in the service request form</li>
+                        <li>Admin will review your request</li>
+                        <li>Admin assigns the best worker for you</li>
+                        <li>Worker contacts you and completes the work</li>
+                        <li>You receive notification when done</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

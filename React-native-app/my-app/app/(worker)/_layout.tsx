@@ -65,19 +65,31 @@ export default function WorkerLayout() {
       />
       
       {/* Hidden screens - not shown in tab bar */}
+      <Tabs.Screen name="active-service" options={{ href: null }} />
+      <Tabs.Screen name="activity" options={{ href: null }} />
       <Tabs.Screen name="analytics" options={{ href: null }} />
       <Tabs.Screen name="applications" options={{ href: null }} />
       <Tabs.Screen name="browse-jobs" options={{ href: null }} />
       <Tabs.Screen name="documents" options={{ href: null }} />
       <Tabs.Screen name="earnings" options={{ href: null }} />
+      <Tabs.Screen name="help" options={{ href: null }} />
       <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="privacy" options={{ href: null }} />
       <Tabs.Screen name="profile-edit" options={{ href: null }} />
       <Tabs.Screen name="profile-setup" options={{ href: null }} />
       <Tabs.Screen name="saved-jobs" options={{ href: null }} />
+      <Tabs.Screen name="service-assignments" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="support" options={{ href: null }} />
+      <Tabs.Screen name="terms" options={{ href: null }} />
       
-      {/* Dynamic routes */}
+      {/* Folder routes - dynamic/nested screens */}
+      <Tabs.Screen name="assignments/pending" options={{ href: null }} />
+      <Tabs.Screen name="assignments/clock/in-[id]" options={{ href: null }} />
+      <Tabs.Screen name="assignments/clock/out-[id]" options={{ href: null }} />
+      <Tabs.Screen name="assignments/complete/[id]" options={{ href: null }} />
+      <Tabs.Screen name="assignments/respond/[id]" options={{ href: null }} />
+      <Tabs.Screen name="service-assignment/[id]" options={{ href: null }} />
       <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
       <Tabs.Screen name="job/[id]" options={{ href: null }} />
       <Tabs.Screen name="job/[id]/apply" options={{ href: null }} />

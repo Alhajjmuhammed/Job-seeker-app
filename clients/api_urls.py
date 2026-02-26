@@ -1,9 +1,12 @@
 from django.urls import path
 from . import api_views
 
-app_name = 'clients_api'
+app_name = 'clients_api_v2'
 
 urlpatterns = [
+    # Root clients API endpoint
+    path('', api_views.client_profile, name='api_clients_root'),
+    
     # Client profile
     path('profile/', api_views.client_profile, name='client_profile'),
     path('profile/update/', api_views.update_client_profile, name='update_client_profile'),
@@ -15,16 +18,15 @@ urlpatterns = [
     path('jobs/', api_views.client_jobs, name='client_jobs'),
     path('jobs/<int:job_id>/', api_views.client_job_detail, name='client_job_detail'),
     
-    # Worker search and discovery
-    path('workers/search/', api_views.search_workers, name='search_workers'),
-    path('workers/featured/', api_views.featured_workers, name='featured_workers'),
-    path('workers/<int:worker_id>/', api_views.worker_detail, name='worker_detail'),
+    # Service Categories (ONLY) - No worker access
+    path('services/', api_views.services_list, name='services_list'),
+    path('services/<int:category_id>/request/', api_views.request_service, name='request_service'),
     
-    # Favorites
-    path('workers/<int:worker_id>/favorite/', api_views.toggle_favorite, name='toggle_favorite'),
-    path('workers/<int:worker_id>/rate/', api_views.rate_worker, name='rate_worker'),
-    path('favorites/', api_views.favorites_list, name='favorites_list'),
+    # Job Requests Management
+    path('requests/', api_views.my_service_requests, name='my_service_requests'),
+    path('requests/<int:request_id>/', api_views.service_request_detail, name='service_request_detail'),
+    path('requests/<int:request_id>/cancel/', api_views.cancel_service_request, name='cancel_service_request'),
     
-    # Categories
+    # Categories (for display purposes only)
     path('categories/', api_views.categories_list, name='categories_list'),
 ]

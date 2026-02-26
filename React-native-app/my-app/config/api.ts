@@ -16,8 +16,8 @@ const expoConfig = Constants.expoConfig?.extra || {};
 
 export const API_CONFIG = {
   // Get from environment/config or use default for development
-  LOCAL_IP: expoConfig.apiHost || process.env.EXPO_PUBLIC_API_HOST || '192.168.0.235',
-  LOCAL_PORT: expoConfig.apiPort || process.env.EXPO_PUBLIC_API_PORT || '8000',
+  LOCAL_IP: expoConfig.apiHost || process.env.EXPO_PUBLIC_API_HOST || '192.168.0.238',
+  LOCAL_PORT: expoConfig.apiPort || process.env.EXPO_PUBLIC_API_PORT || '8080',
   
   // Production URL from environment/config
   PRODUCTION_URL: expoConfig.apiUrl || process.env.EXPO_PUBLIC_API_URL || 'https://your-production-domain.com',

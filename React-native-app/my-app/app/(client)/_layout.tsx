@@ -73,36 +73,13 @@ export default function ClientLayout() {
         }}
       />
       {/* Hidden routes */}
-      <Tabs.Screen
-        name="conversation/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="job/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="worker/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="request-worker/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="rate-worker/[workerId]"
-        options={{
-          href: null,
-        }}
-      />
+      <Tabs.Screen name="my-requests" options={{ href: null }} />
+      <Tabs.Screen name="request-service" options={{ href: null }} />
+      <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
+      <Tabs.Screen name="job/[id]" options={{ href: null }} />
+      <Tabs.Screen name="request-service/[id]" options={{ href: null }} />
+      <Tabs.Screen name="service-request/[id]" options={{ href: null }} />
+      <Tabs.Screen name="edit-service-request/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

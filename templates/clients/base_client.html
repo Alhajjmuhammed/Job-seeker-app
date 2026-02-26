@@ -452,13 +452,13 @@
             </a>
             
             <div class="sidebar-section-title section-title">WORKERS</div>
-            <a href="{% url 'clients:search_workers' %}" class="sidebar-nav-item {% if 'search' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-search"></i> 
-                <span class="nav-text">Search Workers</span>
+            <a href="{% url 'clients:browse_services' %}" class="sidebar-nav-item {% if 'browse_services' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-tools"></i>
+                <span class="nav-text">Browse Services</span>
             </a>
-            <a href="{% url 'clients:favorites_list' %}" class="sidebar-nav-item {% if 'favorite' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-heart"></i> 
-                <span class="nav-text">Favorites</span>
+            <a href="{% url 'clients:my_service_requests' %}" class="sidebar-nav-item {% if 'service_request' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-list-alt"></i>
+                <span class="nav-text">My Requests</span>
             </a>
             
             <div class="sidebar-section-title section-title">JOBS</div>
@@ -516,7 +516,7 @@
                     <!-- Search -->
                     <div class="header-search d-none d-md-block">
                         <i class="bi bi-search"></i>
-                        <input type="text" class="form-control" placeholder="Search workers..." readonly style="cursor: pointer;" data-search-url="{% url 'clients:search_workers' %}">
+                        <input type="text" class="form-control" placeholder="Search services..." readonly style="cursor: pointer;" data-search-url="{% url 'clients:browse_services' %}">
                     </div>
                     
                     <!-- Notifications -->

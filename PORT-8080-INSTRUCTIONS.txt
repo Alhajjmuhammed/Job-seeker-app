@@ -1,0 +1,119 @@
+===============================================================================
+   LOCALHOST HTTPS REDIRECT - PERMANENT FIX INSTRUCTIONS
+===============================================================================
+
+✅ SERVER IS NOW RUNNING ON PORT 8080!
+
+Your Django server is running at:
+   👉 http://127.0.0.1:8080/
+
+===============================================================================
+
+🎯 COPY THIS URL INTO YOUR BROWSER:
+
+   http://127.0.0.1:8080/
+
+⚠️ IMPORTANT: Make sure you type "http://" at the beginning!
+
+===============================================================================
+
+🔐 LOGIN CREDENTIALS:
+
+   Admin Login:
+   Email:    admin@test.com
+   Password: test1234
+   URL:      http://127.0.0.1:8080/admin/
+
+   Client Login:
+   Email:    client@test.com
+   Password: test1234
+   URL:      http://127.0.0.1:8080/accounts/login/
+
+   Worker Login:
+   Email:    worker@test.com
+   Password: test1234
+   URL:      http://127.0.0.1:8080/accounts/login/
+
+===============================================================================
+
+📱 ALL WORKING URLS (Copy and paste these):
+
+   Main App:      http://127.0.0.1:8080/
+   Admin Panel:   http://127.0.0.1:8080/admin/
+   API Docs:      http://127.0.0.1:8080/api/docs/
+   Health Check:  http://127.0.0.1:8080/api/health/
+   Login Page:    http://127.0.0.1:8080/accounts/login/
+
+===============================================================================
+
+🔧 IF BROWSER STILL REDIRECTS TO HTTPS:
+
+SOLUTION 1: Close and reopen your browser completely
+   1. Close ALL browser windows
+   2. Open browser again
+   3. Type: http://127.0.0.1:8080/
+   4. Press Enter
+
+SOLUTION 2: Clear browser data manually
+   FOR CHROME:
+   1. Press CTRL + H (open history)
+   2. Click "Clear browsing data"
+   3. Select "Cached images and files"
+   4. Click "Clear data"
+   5. Restart Chrome
+   6. Go to: http://127.0.0.1:8080/
+
+   FOR EDGE:
+   1. Press CTRL + SHIFT + DELETE
+   2. Select "Cached images and files"
+   3. Click "Clear now"
+   4. Restart Edge
+   5. Go to: http://127.0.0.1:8080/
+
+SOLUTION 3: Use different browser
+   Try Firefox, Chrome, Edge, or Brave
+
+SOLUTION 4: Use Private/Incognito mode
+   1. Press CTRL + SHIFT + N (Chrome/Edge)
+   2. Type: http://127.0.0.1:8080/
+   3. Press Enter
+
+===============================================================================
+
+✨ WHY PORT 8080?
+
+Port 8000 may have HSTS (HTTP Strict Transport Security) cached by your
+browser from previous HTTPS attempts. Port 8080 is a fresh port without
+any HSTS policies, so it should work without redirects.
+
+===============================================================================
+
+📝 MOBILE APP (React Native)
+
+The mobile app is configured to connect to:
+   http://10.0.2.2:8000/ (Android Emulator)
+   
+To update for port 8080:
+   1. Open: React-native-app/my-app/config/api.ts
+   2. Change port 8000 to 8080
+   3. Restart Expo: npm start
+
+===============================================================================
+
+🚀 NEXT TIME - QUICK START:
+
+Just run:    run-on-8080.bat
+
+This will:
+   ✓ Clear browser caches
+   ✓ Start Django on port 8080
+   ✓ Open browser automatically
+
+===============================================================================
+
+💡 TIP: Bookmark this URL in your browser:
+   http://127.0.0.1:8080/
+
+That way you can access it quickly without typing!
+
+===============================================================================

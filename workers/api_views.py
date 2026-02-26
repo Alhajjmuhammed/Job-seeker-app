@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 from workers.models import WorkerProfile, WorkerDocument, Category
 from jobs.models import DirectHireRequest, JobApplication
 from .serializers import WorkerProfileSerializer, CategorySerializer
@@ -96,6 +96,44 @@ def update_worker_availability(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
+def featured_workers(request):
+    """Get featured workers for client dashboard"""
+    try:
+        # Get top-rated available workers
+        featured = WorkerProfile.objects.filter(
+            availability='available',
+            is_profile_complete=True,
+        ).annotate(
+            average_rating=Avg('ratings__rating'),
+            completed_jobs=Count('directhire_worker', filter=Q(directhire_worker__status='completed'))
+        ).filter(
+            average_rating__gte=4.0  # Only workers with 4+ rating
+        ).order_by('-average_rating', '-completed_jobs')[:6]
+        
+        # Serialize data
+        workers_data = []
+        for worker in featured:
+            workers_data.append({
+                'id': worker.id,
+                'name': worker.user.get_full_name(),
+                'categories': [{'name': cat.name} for cat in worker.categories.all()],
+                'average_rating': float(worker.average_rating or 0),
+                'hourly_rate': str(worker.hourly_rate or 0),
+                'completed_jobs': worker.completed_jobs,
+                'availability': worker.availability,
+                'profile_image': request.build_absolute_uri(worker.profile_image.url) if worker.profile_image else None,
+            })
+        
+        return Response(workers_data)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f'Error in featured_workers: {str(e)}')
+        return Response([], status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def worker_stats(request):
     """Get worker dashboard stats"""
@@ -103,41 +141,135 @@ def worker_stats(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
+        from jobs.models import JobRequest
         profile = WorkerProfile.objects.get(user=request.user)
         
-        # Count direct hire requests (pending)
-        pending_requests = DirectHireRequest.objects.filter(
-            worker=profile,
-            status='pending'
+        # Count assigned jobs by status (new service-request model)
+        assigned_jobs_total = JobRequest.objects.filter(
+            assigned_workers=profile
         ).count()
         
-        # Count active jobs (accepted direct hire requests)
-        active_jobs = DirectHireRequest.objects.filter(
-            worker=profile,
-            status='accepted'
+        # Count active assigned jobs (in progress)
+        active_jobs = JobRequest.objects.filter(
+            assigned_workers=profile,
+            status='in_progress'
         ).count()
         
-        # Count total applications
-        total_applications = JobApplication.objects.filter(
-            worker=profile
+        # Count completed jobs
+        completed_jobs = JobRequest.objects.filter(
+            assigned_workers=profile,
+            status='completed'
         ).count()
         
-        # Count accepted applications
-        accepted_applications = JobApplication.objects.filter(
-            worker=profile,
-            status='accepted'
+        # Count pending jobs (assigned but not started)
+        pending_jobs = JobRequest.objects.filter(
+            assigned_workers=profile,
+            status='open'
         ).count()
         
         stats = {
-            'pending_requests': pending_requests,
+            'assigned_jobs': assigned_jobs_total,
             'active_jobs': active_jobs,
-            'total_applications': total_applications,
-            'accepted_applications': accepted_applications,
+            'completed_jobs': completed_jobs,
+            'pending_jobs': pending_jobs,
         }
         
         return Response(stats)
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assigned_jobs(request):
+    """Get jobs assigned to this worker"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        from jobs.models import JobRequest
+        profile = WorkerProfile.objects.get(user=request.user)
+        
+        # Get jobs assigned to this worker
+        jobs = JobRequest.objects.filter(
+            assigned_workers=profile
+        ).select_related('client', 'category').order_by('-created_at')
+        
+        # Serialize the jobs
+        jobs_data = []
+        for job in jobs:
+            jobs_data.append({
+                'id': job.id,
+                'title': job.title,
+                'description': job.description,
+                'status': job.status,
+                'urgency': job.urgency,
+                'location': job.location,
+                'city': job.city,
+                'budget': float(job.budget) if job.budget else None,
+                'duration_days': job.duration_days,
+                'start_date': job.start_date.isoformat() if job.start_date else None,
+                'created_at': job.created_at.isoformat(),
+                'client': {
+                    'id': job.client.id,
+                    'name': job.client.get_full_name(),
+                    'email': job.client.email,
+                    'phone': job.client.phone_number,
+                },
+                'category': {
+                    'id': job.category.id if job.category else None,
+                    'name': job.category.name if job.category else None,
+                } if job.category else None,
+            })
+        
+        return Response({'jobs': jobs_data})
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_job_status(request, job_id):
+    """Update status of assigned job"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        from jobs.models import JobRequest
+        profile = WorkerProfile.objects.get(user=request.user)
+        
+        # Get the job and verify worker is assigned
+        job = JobRequest.objects.get(id=job_id)
+        if not job.assigned_workers.filter(id=profile.id).exists():
+            return Response({'error': 'You are not assigned to this job'}, status=status.HTTP_403_FORBIDDEN)
+        
+        new_status = request.data.get('status')
+        valid_statuses = ['in_progress', 'completed']
+        
+        if new_status not in valid_statuses:
+            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update job status
+        job.status = new_status
+        if new_status == 'completed':
+            from django.utils import timezone
+            job.completed_at = timezone.now()
+        job.save()
+        
+        # Send notification to client
+        from worker_connect.notifications import send_notification
+        send_notification(
+            user=job.client,
+            title='Job Status Updated',
+            message=f'Your job "{job.title}" is now {new_status.replace("_", " ").title()}',
+            notification_type='job_update'
+        )
+        
+        return Response({'message': 'Job status updated successfully', 'status': new_status})
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    except JobRequest.DoesNotExist:
+        return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])

@@ -1,0 +1,138 @@
+{% extends "clients/base_client.html" %}
+{% load humanize %}
+
+{% block title %}My Dashboard - Service Requests{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📊 My Dashboard</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_requests }}</h3>
+                    <p class="card-text text-muted">Total Requests</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ pending }}</h3>
+                    <p class="card-text">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ in_progress }}</h3>
+                    <p class="card-text">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ completed }}</h3>
+                    <p class="card-text">Completed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Spent -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4>Total Spent: <strong>${{ total_spent|floatformat:2 }}</strong></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary btn-lg">
+                ➕ Request New Service
+            </a>
+            <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-secondary btn-lg">
+                📋 View All Requests
+            </a>
+            <a href="{% url 'service_requests_web:client_history' %}" class="btn btn-info btn-lg">
+                📜 View History
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Requests -->
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Recent Service Requests</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Worker</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in recent_requests %}
+                        <tr>
+                            <td>#{{ request.id }}</td>
+                            <td>{{ request.title }}</td>
+                            <td><span class="badge bg-info">{{ request.category.name }}</span></td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif request.status == 'assigned' %}
+                                <span class="badge bg-info">Assigned</span>
+                                {% elif request.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                                {% elif request.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ request.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.assigned_worker %}
+                                {{ request.assigned_worker.user.get_full_name }}
+                                {% else %}
+                                <em>Not assigned</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ request.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'service_requests_web:client_request_detail' request.id %}" class="btn btn-sm btn-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                <p class="text-muted">No service requests yet.</p>
+                                <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary">
+                                    Request Your First Service
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

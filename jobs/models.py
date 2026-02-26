@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from accounts.models import User
 from workers.models import WorkerProfile, Category
 
+# Import new service request models
+from .service_request_models import ServiceRequest, TimeTracking, WorkerActivity
+
 
 class JobRequest(models.Model):
     """Job requests posted by clients"""

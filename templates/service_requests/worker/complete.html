@@ -1,0 +1,121 @@
+{% extends "workers/base_worker.html" %}
+
+{% block title %}Mark Service Complete{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-check-circle"></i> Mark Service as Complete</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Assignment Info -->
+                    <div class="mb-4">
+                        <h5>{{ service_request.title }}</h5>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-tag"></i> {{ service_request.category.name }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Client:</strong> {{ service_request.client.get_full_name }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Location:</strong> {{ service_request.location }}, {{ service_request.city }}
+                        </p>
+                    </div>
+                    
+                    <!-- Work Summary -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-calculator"></i> Work Summary</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-6">Total Hours Worked:</dt>
+                                <dd class="col-sm-6"><strong>{{ service_request.total_hours_worked|default:"0" }} hours</strong></dd>
+                                
+                                <dt class="col-sm-6">Hourly Rate:</dt>
+                                <dd class="col-sm-6">SDG {{ service_request.hourly_rate }}</dd>
+                                
+                                <dt class="col-sm-6">Total Earnings:</dt>
+                                <dd class="col-sm-6"><strong class="text-success fs-5">SDG {{ service_request.total_amount|default:"0" }}</strong></dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Completion Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Important Checklist:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>All work has been completed as requested</li>
+                                <li>You have clocked out from all work sessions</li>
+                                <li>The client has reviewed and approved the work (if applicable)</li>
+                                <li>Work area has been cleaned/tidied</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="completion_notes" class="form-label">
+                                Completion Notes <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="completion_notes" 
+                                      name="completion_notes" 
+                                      rows="5" 
+                                      required
+                                      placeholder="Provide a detailed summary of the work completed, any issues encountered, and any recommendations for the client..."></textarea>
+                            <small class="form-text text-muted">
+                                Required: Describe all work completed, outcomes, and any follow-up recommendations.
+                            </small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmComplete" required>
+                                <label class="form-check-label" for="confirmComplete">
+                                    I confirm that all work has been completed to the best of my ability and meets the service requirements.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>What Happens Next?</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Your earnings (SDG {{ service_request.total_amount|default:"0" }}) will be recorded</li>
+                                <li>The client will be notified that the service is complete</li>
+                                <li>The client can leave a review and rating</li>
+                                <li>Payment processing will be initiated</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Service Complete
+                            </button>
+                            <a href="{% url 'service_requests_web:worker_assignment_detail' service_request.id %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Warning Card -->
+            <div class="card border-warning mt-4">
+                <div class="card-body">
+                    <h6 class="card-title text-warning"><i class="fas fa-exclamation-triangle"></i> Before Completing</h6>
+                    <p class="small mb-0">
+                        Make sure you have clocked out from any active work session. You cannot mark a service complete 
+                        while clocked in. Also ensure all work is finished - you cannot undo this action.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

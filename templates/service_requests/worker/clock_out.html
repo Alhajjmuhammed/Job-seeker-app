@@ -1,0 +1,105 @@
+{% extends "workers/base_worker.html" %}
+
+{% block title %}Clock Out{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-clock"></i> Clock Out to End Work Session</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Assignment Info -->
+                    <div class="mb-4">
+                        <h5>{{ service_request.title }}</h5>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-tag"></i> {{ service_request.category.name }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Client:</strong> {{ service_request.client.get_full_name }}
+                        </p>
+                    </div>
+                    
+                    <!-- Current Session Info -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Current Work Session</h6>
+                        <p class="mb-1"><strong>Clock In Time:</strong> {{ active_log.clock_in|date:"M d, Y g:i A" }}</p>
+                        <p class="mb-1"><strong>Location:</strong> {{ active_log.clock_in_location|default:"Not specified" }}</p>
+                        <p class="mb-0"><strong>Hourly Rate:</strong> SDG {{ service_request.hourly_rate }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Clock Out Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Current Location (Optional)</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="location" 
+                                   name="location" 
+                                   placeholder="Enter your current location or address">
+                            <small class="form-text text-muted">
+                                You can manually enter your location. For mobile app, GPS is used automatically.
+                            </small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">Work Summary / Notes</label>
+                            <textarea class="form-control" 
+                                      id="notes" 
+                                      name="notes" 
+                                      rows="4" 
+                                      placeholder="Describe the work you completed in this session..."></textarea>
+                            <small class="form-text text-muted">
+                                Optional: Summarize what you accomplished during this work session.
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> 
+                            Once you clock out, the system will calculate the hours worked and update your earnings. 
+                            You can clock in again later if needed.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-stop"></i> End Work Session - Clock Out
+                            </button>
+                            <a href="{% url 'service_requests_web:worker_assignment_detail' service_request.id %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Earnings Preview -->
+            <div class="card bg-light mt-4">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-calculator"></i> Current Job Summary</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">Total Hours Worked So Far:</dt>
+                        <dd class="col-sm-6">{{ service_request.total_hours_worked|default:"0" }} hours</dd>
+                        
+                        <dt class="col-sm-6">Hourly Rate:</dt>
+                        <dd class="col-sm-6">SDG {{ service_request.hourly_rate }}</dd>
+                        
+                        <dt class="col-sm-6">Estimated Earnings:</dt>
+                        <dd class="col-sm-6"><strong class="text-success">SDG {{ service_request.total_amount|default:"0" }}</strong></dd>
+                    </dl>
+                    <hr>
+                    <p class="small text-muted mb-0">
+                        <i class="fas fa-info-circle"></i> This session's hours will be added after you clock out.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

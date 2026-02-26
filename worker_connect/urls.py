@@ -10,6 +10,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from .health_views import health_check, health_check_detailed, readiness_check, liveness_check
+from jobs.service_request_urls import admin_urlpatterns, worker_urlpatterns, client_urlpatterns
 
 # API Documentation Schema
 schema_view = get_schema_view(
@@ -46,7 +47,7 @@ Authorization: Token <your-token>
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    path('', TemplateView.as_view(template_name='http_landing.html'), name='home'),
     
     # Health Check Endpoints (for monitoring and load balancers)
     path('api/health/', health_check, name='health_check'),
@@ -59,70 +60,72 @@ urlpatterns = [
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/docs.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     
-    # API v1 endpoints (current version)
-    path('api/v1/', include('accounts.api_urls')),
-    path('api/v1/', include('jobs.api_urls')),
-    path('api/v1/client/', include('clients.api_urls')),
-    path('api/v1/workers/', include('workers.api_urls')),
+    # API v1 endpoints (current version) - each app gets unique path
+    path('api/v1/accounts/', include('accounts.api_urls')),
+    path('api/v1/jobs/', include('jobs.api_urls')),
+    path('api/v1/clients/', include(('clients.api_urls', 'clients'), namespace='clients_api_v1')),
+    path('api/v1/workers/', include(('workers.api_urls', 'workers'), namespace='workers_api_v1')),
     path('api/v1/admin/', include('admin_panel.api_urls')),
     
     # Backward compatibility - support /api/ without version (mobile app)
-    path('api/', include('accounts.api_urls')),
-    path('api/', include('jobs.api_urls')),
-    path('api/client/', include('clients.api_urls')),
-    path('api/workers/', include('workers.api_urls')),
+    path('api/accounts/', include('accounts.api_urls')),
+    path('api/', include('accounts.api_urls')),  # Direct routes for mobile (includes auth/ and notifications/)
+    path('api/jobs/', include('jobs.api_urls')),
+    path('api/clients/', include('clients.api_urls')),  # Uses original namespace clients_api_v2
+    path('api/workers/', include('workers.api_urls')),  # Uses original namespace workers_api_v2
     
-    # Search endpoints
-    path('api/v1/search/jobs/', include('jobs.search_urls'))
-,
+    # Search endpoints (consolidated)
+    path('api/v1/search/', include('worker_connect.search_urls')),
+    path('api/v1/search/jobs/', include(('jobs.search_urls', 'jobs'), namespace='job_search_v1')),
+    path('api/jobs/search/', include(('jobs.search_urls', 'jobs'), namespace='job_search_mobile')),  # Mobile compatibility
+    path('api/search/', include(('worker_connect.search_urls', 'wc'), namespace='wc_search_mobile')),  # Mobile compatibility
     
-    # Messaging and reports
-    path('api/v1/messaging/', include('jobs.messaging_urls')),
+    # Messaging and chat (consolidated)
+    path('api/messages/', include('jobs.messaging_urls')),  # Mobile and web compatibility
+    path('api/v1/chat/', include('worker_connect.chat_urls')),
     
-    # Worker availability
-    path('api/v1/workers/', include('workers.availability_urls')),
+    # Worker-related endpoints (consolidated)
+    path('api/v1/worker-availability/', include('workers.availability_urls')),
+    path('api/v1/worker-earnings/', include('workers.earnings_urls')),
+    path('api/v1/worker-badges/', include('workers.badge_urls')),
+    path('api/v1/worker-portfolio/', include('workers.portfolio_urls')),
     
-    # Worker earnings
-    path('api/v1/earnings/', include('workers.earnings_urls')),
+    # Job-related endpoints (consolidated)
+    path('api/v1/job-recommendations/', include('jobs.recommendation_urls')),
+    path('api/v1/job-skills/', include('jobs.skills_urls')),
+    path('api/v1/job-completion/', include('jobs.completion_urls')),
+    path('api/v1/job-reviews/', include('jobs.review_urls')),
+    path('api/v1/job-categories/', include('jobs.category_urls')),
+    path('api/v1/job-invoices/', include('jobs.invoice_urls')),
+    path('api/v1/job-activity/', include('jobs.activity_urls')),
     
-    # Job recommendations
-    path('api/v1/jobs/', include('jobs.recommendation_urls')),
+    # =========================================================================
+    # NEW: Service Request System (Admin-Mediated Workflow)
+    # =========================================================================
+    path('api/v1/admin/', include(admin_urlpatterns)),
+    path('api/v1/worker/', include(worker_urlpatterns)),
+    path('api/v1/client/', include(client_urlpatterns)),
     
-    # Skills matching
-    path('api/v1/skills/', include('jobs.skills_urls')),
+    # Payment system endpoints
+    path('api/v1/payments/', include('worker_connect.payment_urls')),
     
-    # Job completion workflow
-    path('api/v1/jobs/', include('jobs.completion_urls')),
-    
-    # GDPR endpoints
+    # Core system endpoints
     path('api/v1/gdpr/', include('accounts.gdpr_urls')),
+    path('api/v1/notification-preferences/', include('accounts.notification_urls')),
+    path('api/v1/admin-performance/', include('worker_connect.performance_urls')),
     
-    # Notification preferences
-    path('api/v1/notifications/preferences/', include('accounts.notification_urls')),
+    # Core feature endpoints with mobile compatibility
+    path('api/v1/config/', include(('worker_connect.config_urls', 'config'), namespace='wc_config_v1')),
+    path('api/config/', include('worker_connect.config_urls')),  # Mobile compatibility - original namespace
     
-    # Performance monitoring (admin)
-    path('api/v1/admin/performance/', include('worker_connect.performance_urls')),
+    path('api/v1/support/', include(('worker_connect.support_urls', 'support'), namespace='wc_support_v1')),
+    path('api/support/', include('worker_connect.support_urls')),  # Mobile compatibility - original namespace
     
-    # App configuration endpoints
-    path('api/v1/config/', include('worker_connect.config_urls')),
+    path('api/v1/notifications/', include(('worker_connect.notification_urls', 'notifications'), namespace='wc_notifications_v1')),
+    path('api/notifications/', include('worker_connect.notification_urls')),  # Mobile compatibility - original namespace
     
-    # Review and rating system
-    path('api/v1/reviews/', include('jobs.review_urls')),
-    
-    # Worker badges and verification
-    path('api/v1/badges/', include('workers.badge_urls')),
-    
-    # Job categories
-    path('api/v1/categories/', include('jobs.category_urls')),
-    
-    # Worker portfolio
-    path('api/v1/portfolio/', include('workers.portfolio_urls')),
-    
-    # Invoice management
-    path('api/v1/invoices/', include('jobs.invoice_urls')),
-    
-    # Activity feed
-    path('api/v1/activity/', include('jobs.activity_urls')),
+    # Document verification (admin)
+    # path('verification/', include('worker_connect.verification_urls')),
     
     # Web views
     path('accounts/', include('accounts.urls')),
@@ -130,6 +133,9 @@ urlpatterns = [
     path('clients/', include('clients.urls')),
     path('jobs/', include('jobs.urls')),
     path('dashboard/', include('admin_panel.urls')),
+    
+    # Service Request Web Interface (NEW)
+    path('services/', include('jobs.service_request_web_urls')),
 ]
 
 # Serve media files in development

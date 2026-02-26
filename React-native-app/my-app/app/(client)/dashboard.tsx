@@ -38,6 +38,15 @@ interface Job {
   postedDate: string;
 }
 
+interface ServiceRequest {
+  id: number;
+  category_name: string;
+  status: string;
+  urgency: string;
+  created_at: string;
+  worker_name?: string;
+}
+
 export default function ClientDashboard() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
@@ -47,6 +56,7 @@ export default function ClientDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [featuredWorkers, setFeaturedWorkers] = useState<Worker[]>([]);
   const [myJobs, setMyJobs] = useState<Job[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [stats, setStats] = useState({
     activeJobs: 0,
     completedJobs: 0,
@@ -102,6 +112,7 @@ export default function ClientDashboard() {
       await Promise.all([
         fetchClientStats(),
         fetchFeaturedWorkers(),
+        fetchServiceRequests(),
         fetchMyJobs(),
       ]);
     } catch (error) {
@@ -161,6 +172,19 @@ export default function ClientDashboard() {
     }
   };
 
+  const fetchServiceRequests = async () => {
+    try {
+      const data = await apiService.getMyServiceRequests();
+      const results = data.results || data || [];
+      const requests = results
+        .filter((req: any) => req.status !== 'cancelled' && req.status !== 'completed')
+        .slice(0, 3);
+      setServiceRequests(requests);
+    } catch (error) {
+      console.error('Error fetching service requests:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadDashboardData();
@@ -181,6 +205,30 @@ export default function ClientDashboard() {
 
   const handleViewWorkerProfile = (workerId: number) => {
     router.push(`/(client)/worker/${workerId}`);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return '#F59E0B';
+      case 'assigned': return '#3B82F6';
+      case 'accepted': return '#10B981';
+      case 'in_progress': return '#8B5CF6';
+      case 'completed': return '#22C55E';
+      case 'cancelled': return '#EF4444';
+      default: return '#6B7280';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return 'time-outline';
+      case 'assigned': return 'person-add-outline';
+      case 'accepted': return 'checkmark-circle-outline';
+      case 'in_progress': return 'play-circle-outline';
+      case 'completed': return 'checkmark-done-circle-outline';
+      case 'cancelled': return 'close-circle-outline';
+      default: return 'help-circle-outline';
+    }
   };
 
   return (
@@ -244,22 +292,98 @@ export default function ClientDashboard() {
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
-              onPress={() => router.push('/(client)/post-job' as any)}
+              onPress={() => router.push('/(client)/request-service')}
             >
-              <Ionicons name="create-outline" size={36} color={theme.primary} />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Post a Job</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Get multiple bids</Text>
+              <Ionicons name="add-circle-outline" size={36} color={theme.primary} />
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Request Service</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Create new request</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/search')}
             >
               <Ionicons name="search-outline" size={36} color={theme.primary} />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Find Workers</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Browse & hire now</Text>
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Browse Workers</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Find workers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: theme.card }]}
+              onPress={() => router.push('/(client)/my-requests')}
+            >
+              <Ionicons name="list-outline" size={36} color={theme.primary} />
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Requests</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Track services</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* My Service Requests */}
+        {serviceRequests.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>My Service Requests</Text>
+              <TouchableOpacity onPress={() => router.push('/(client)/my-requests')}>
+                <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
+              </TouchableOpacity>
+            </View>
+
+            {serviceRequests.map((request) => (
+              <TouchableOpacity
+                key={request.id}
+                style={[styles.serviceCard, { backgroundColor: theme.card }]}
+                onPress={() => router.push(`/(client)/service-request/${request.id}` as any)}
+              >
+                <View style={styles.serviceHeader}>
+                  <Text style={[styles.serviceCategory, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
+                    {request.category_name}
+                  </Text>
+                  <View style={[styles.serviceStatusBadge, { backgroundColor: getStatusColor(request.status) + '20' }]}>
+                    <Ionicons
+                      name={getStatusIcon(request.status) as any}
+                      size={14}
+                      color={getStatusColor(request.status)}
+                    />
+                    <Text style={[styles.serviceStatusText, { color: getStatusColor(request.status), fontFamily: 'Poppins_600SemiBold' }]}>
+                      {request.status.replace('_', ' ').charAt(0).toUpperCase() + request.status.slice(1).replace('_', ' ')}
+                    </Text>
+                  </View>
+                </View>
+                
+                {request.worker_name && (
+                  <View style={styles.workerInfo}>
+                    <Ionicons name="person" size={16} color={theme.textSecondary} />
+                    <Text style={[styles.assignedWorkerText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+                      Assigned to {request.worker_name}
+                    </Text>
+                  </View>
+                )}
+                
+                <Text style={[styles.serviceDate, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
+                  Requested {new Date(request.created_at).toLocaleDateString()}
+                </Text>
+                
+                {request.urgency && (
+                  <View style={[styles.urgencyBadge, { 
+                    backgroundColor: 
+                      request.urgency === 'emergency' ? '#FEE2E2' : 
+                      request.urgency === 'urgent' ? '#FEF3C7' : 
+                      '#DBEAFE' 
+                  }]}>
+                    <Text style={[styles.urgencyText, { 
+                      color: 
+                        request.urgency === 'emergency' ? '#DC2626' : 
+                        request.urgency === 'urgent' ? '#D97706' : 
+                        '#2563EB',
+                      fontFamily: 'Poppins_600SemiBold' 
+                    }]}>
+                      {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Featured Available Workers */}
         <View style={styles.section}>
@@ -656,6 +780,55 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
+  },
+  serviceCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  serviceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  serviceCategory: {
+    fontSize: 16,
+    flex: 1,
+  },
+  serviceStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  serviceStatusText: {
+    fontSize: 12,
+  },
+  assignedWorkerText: {
+    fontSize: 13,
+    marginLeft: 4,
+  },
+  serviceDate: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  urgencyBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  urgencyText: {
+    fontSize: 11,
   },
   loadingContainer: {
     flex: 1,

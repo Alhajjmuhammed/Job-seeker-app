@@ -1,0 +1,133 @@
+{% extends 'clients/base_client.html' %}
+{% load static %}
+
+{% block title %}Request {{ category.name }} Service - Worker Connect{% endblock %}
+{% block page_title %}Request Service{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle"></i>
+                        Request {{ category.name }} Service
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Service Info -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-3"></i>
+                            <div>
+                                <strong>{{ category.name }}</strong><br>
+                                <small>{{ category.description }}</small>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-users"></i>
+                                    {{ available_workers }} workers available
+                                </small>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-check-circle"></i>
+                                    {{ completed_projects }} projects completed
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Request Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Service Title *</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="title" 
+                                   name="title" 
+                                   required
+                                   placeholder="Brief description of what you need">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Detailed Description *</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="4" 
+                                      required
+                                      placeholder="Provide detailed information about your {{ category.name|lower }} needs..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="budget" class="form-label">Budget (SDG) *</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="budget" 
+                                       name="budget" 
+                                       required
+                                       min="1"
+                                       placeholder="e.g. 500">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="workers_needed" class="form-label">Workers Needed *</label>
+                                <select class="form-select" id="workers_needed" name="workers_needed" required>
+                                    <option value="1" selected>1 Worker</option>
+                                    <option value="2">2 Workers</option>
+                                    <option value="3">3 Workers</option>
+                                    <option value="4">4+ Workers</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Service Location *</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="location" 
+                                   name="location" 
+                                   required
+                                   placeholder="Where should the service be performed?">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="urgency" class="form-label">Urgency Level</label>
+                            <select class="form-select" id="urgency" name="urgency">
+                                <option value="normal" selected>Normal (Within 1 week)</option>
+                                <option value="urgent">Urgent (Within 2-3 days)</option>
+                                <option value="emergency">Emergency (Same day)</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-warning mb-4">
+                            <small>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Note:</strong> After submission, our team will review your request and assign a qualified worker. 
+                                You'll be notified within 2-4 hours with the assigned worker's contact details.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i>
+                                Submit Service Request
+                            </button>
+                            <a href="{% url 'clients:browse_services' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Services
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

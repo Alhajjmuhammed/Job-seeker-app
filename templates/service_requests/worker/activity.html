@@ -1,0 +1,193 @@
+{% extends "workers/base_worker.html" %}
+
+{% block title %}My Activity History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 My Activity History</h2>
+        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Activity Type Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group flex-wrap" role="group" aria-label="Activity type filter">
+                <a href="{% url 'service_requests_web:worker_activity' %}" 
+                   class="btn {% if not activity_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    All Activities
+                </a>
+                <a href="?type=accepted" 
+                   class="btn {% if activity_type == 'accepted' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="fas fa-check"></i> Accepted
+                </a>
+                <a href="?type=rejected" 
+                   class="btn {% if activity_type == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    <i class="fas fa-times"></i> Rejected
+                </a>
+                <a href="?type=started" 
+                   class="btn {% if activity_type == 'started' %}btn-info{% else %}btn-outline-info{% endif %}">
+                    <i class="fas fa-play"></i> Started
+                </a>
+                <a href="?type=paused" 
+                   class="btn {% if activity_type == 'paused' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+                    <i class="fas fa-pause"></i> Paused
+                </a>
+                <a href="?type=completed" 
+                   class="btn {% if activity_type == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="fas fa-check-circle"></i> Completed
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Timeline -->
+    {% if activities %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="timeline">
+                {% for activity in activities %}
+                <div class="timeline-item mb-4 pb-4 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="row">
+                        <div class="col-auto">
+                            <div class="timeline-icon 
+                                {% if activity.activity_type == 'accepted' %}bg-success
+                                {% elif activity.activity_type == 'rejected' %}bg-danger
+                                {% elif activity.activity_type == 'started' %}bg-info
+                                {% elif activity.activity_type == 'paused' %}bg-warning
+                                {% elif activity.activity_type == 'completed' %}bg-success
+                                {% else %}bg-secondary
+                                {% endif %} text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                style="width: 50px; height: 50px;">
+                                {% if activity.activity_type == 'accepted' %}
+                                <i class="fas fa-check fa-lg"></i>
+                                {% elif activity.activity_type == 'rejected' %}
+                                <i class="fas fa-times fa-lg"></i>
+                                {% elif activity.activity_type == 'started' %}
+                                <i class="fas fa-play fa-lg"></i>
+                                {% elif activity.activity_type == 'paused' %}
+                                <i class="fas fa-pause fa-lg"></i>
+                                {% elif activity.activity_type == 'completed' %}
+                                <i class="fas fa-check-circle fa-lg"></i>
+                                {% else %}
+                                <i class="fas fa-circle fa-lg"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0">
+                                    <span class="badge 
+                                        {% if activity.activity_type == 'accepted' %}bg-success
+                                        {% elif activity.activity_type == 'rejected' %}bg-danger
+                                        {% elif activity.activity_type == 'started' %}bg-info
+                                        {% elif activity.activity_type == 'paused' %}bg-warning text-dark
+                                        {% elif activity.activity_type == 'completed' %}bg-success
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ activity.get_activity_type_display }}
+                                    </span>
+                                </h6>
+                                <small class="text-muted">{{ activity.created_at|date:"M d, Y g:i A" }}</small>
+                            </div>
+                            
+                            <p class="mb-2">{{ activity.description }}</p>
+                            
+                            {% if activity.service_request %}
+                            <p class="mb-1">
+                                <strong>Service:</strong> 
+                                <a href="{% url 'service_requests_web:worker_assignment_detail' activity.service_request.id %}">
+                                    {{ activity.service_request.title }}
+                                </a>
+                            </p>
+                            {% endif %}
+                            
+                            {% if activity.location %}
+                            <p class="mb-1 text-muted small">
+                                <i class="fas fa-map-marker-alt"></i> {{ activity.location }}
+                            </p>
+                            {% endif %}
+                            
+                            {% if activity.duration %}
+                            <p class="mb-1 text-muted small">
+                                <i class="fas fa-clock"></i> Duration: {{ activity.duration }}
+                            </p>
+                            {% endif %}
+                            
+                            {% if activity.amount_earned %}
+                            <p class="mb-1">
+                                <i class="fas fa-money-bill-wave"></i> 
+                                <strong class="text-success">Earned: SDG {{ activity.amount_earned }}</strong>
+                            </p>
+                            {% endif %}
+                            
+                            <small class="text-muted">
+                                <i class="fas fa-history"></i> {{ activity.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if activities.has_other_pages %}
+    <nav aria-label="Activity pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if activities.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ activities.previous_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in activities.paginator.page_range %}
+            {% if activities.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > activities.number|add:'-3' and num < activities.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if activities.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ activities.next_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="alert alert-info text-center">
+        <h4 class="alert-heading">No Activity Found</h4>
+        <p>
+            {% if activity_type %}
+            No activities of type "{{ activity_type }}" found.
+            {% else %}
+            You don't have any activity history yet. Start accepting assignments to see your activity timeline!
+            {% endif %}
+        </p>
+        <hr>
+        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">Go to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.timeline-icon {
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}

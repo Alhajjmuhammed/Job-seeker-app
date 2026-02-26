@@ -1,7 +1,7 @@
 from django.urls import path
 from . import messaging, reports
 
-app_name = 'messaging'
+app_name = 'jobs_messaging'
 
 urlpatterns = [
     # Messaging

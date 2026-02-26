@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,33 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Image,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useRatingRefresh } from '../../contexts/RatingContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
-import { useEffect } from 'react';
 
-interface Worker {
+interface Service {
   id: number;
   name: string;
-  category: string;
-  rating: number;
-  hourlyRate: number;
-  completedJobs: number;
-  isAvailable: boolean;
-  location: string;
-  profileImage?: string | null;
+  description: string;
+  icon: string;
+  available_workers: number;
+  avg_completion_days: number;
+  avg_budget: number | null;
+  completed_projects: number;
+  is_available: boolean;
 }
 
-export default function ClientSearchScreen() {
+export default function ClientServicesScreen() {
   const { theme } = useTheme();
   const { refresh } = useLocalSearchParams();
-  const { refreshTrigger } = useRatingRefresh();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [categories, setCategories] = useState<string[]>(['All']);
-  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   
   // Debounce search query to avoid excessive API calls
@@ -44,87 +40,127 @@ export default function ClientSearchScreen() {
 
   useEffect(() => {
     let mounted = true;
-    const loadInitial = async () => {
+    const loadServices = async () => {
       try {
         setLoading(true);
-        const cats = await apiService.getCategories();
-        const catsList = Array.isArray(cats) ? cats : (cats.results || cats);
-        if (mounted) setCategories(['All', ...catsList.map((c: any) => c.name || c)]);
-
-        // Load workers: prefer search endpoint to get all verified workers
-        const featured = await apiService.searchWorkers();
-        const list = Array.isArray(featured) ? featured : (featured.results || []);
+        const response = await apiService.getServices();
         if (mounted) {
-          setWorkers(list.map((w: any) => ({
-            id: w.id,
-            name: w.name || (w.user?.first_name || '') + ' ' + (w.user?.last_name || ''),
-            category: w.categories?.[0]?.name || 'General',
-            rating: w.average_rating || 0,
-            hourlyRate: w.hourly_rate || 0,
-            completedJobs: w.completed_jobs_count || 0,
-            isAvailable: w.availability === 'available',
-            location: w.city || '',
-            profileImage: w.profile_image || null,
-          })));
+          setServices(response.services || []);
         }
       } catch (error) {
-        console.error('Error loading search data:', error);
+        console.error('Error loading services:', error);
+        if (mounted) {
+          Alert.alert('Error', 'Failed to load available services');
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
-    loadInitial();
+
+    loadServices();
     return () => { mounted = false; };
-  }, [refresh, refreshTrigger]);
+  }, [refresh]);
 
-  // Additional immediate refresh when rating changes
-  useEffect(() => {
-    if (refreshTrigger > 0) {
-      let mounted = true;
-      const quickRefresh = async () => {
-        try {
-          const featured = await apiService.searchWorkers();
-          const list = Array.isArray(featured) ? featured : (featured.results || []);
-          if (mounted) {
-            setWorkers(list.map((w: any) => ({
-              id: w.id,
-              name: w.name || 'Unknown',
-              category: w.categories?.[0]?.name || 'General',
-              rating: w.average_rating || 0,
-              hourlyRate: parseFloat(w.hourly_rate || '0'),
-              completedJobs: w.completed_jobs || 0,
-              isAvailable: w.availability === 'available',
-              location: w.city || '',
-              profileImage: w.profile_image || null,
-            })));
-          }
-        } catch (error) {
-          console.error('Error refreshing workers:', error);
-        }
-      };
-      quickRefresh();
-      return () => { mounted = false; };
+  // Filter services based on search query
+  const filteredServices = services.filter(service =>
+    service.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+    service.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+  );
+
+  const handleRequestService = (service: Service) => {
+    if (!service.is_available) {
+      Alert.alert(
+        'Service Unavailable',
+        'This service is currently unavailable. Please try again later or contact support.',
+        [{ text: 'OK' }]
+      );
+      return;
     }
-  }, [refreshTrigger]);
 
-  const filteredWorkers = workers.filter((worker) => {
-    const matchesSearch = worker.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-                         worker.category.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || worker.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    router.push(`/(client)/request-service/${service.id}`);
+  };
+
+  const renderServiceCard = (service: Service) => (
+    <TouchableOpacity
+      key={service.id}
+      style={[styles.serviceCard, { backgroundColor: theme.card }]}
+      onPress={() => handleRequestService(service)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.serviceHeader}>
+        <View style={styles.serviceIconContainer}>
+          <Ionicons 
+            name={service.icon as any || 'construct'} 
+            size={32} 
+            color={service.is_available ? theme.primary : theme.textSecondary} 
+          />
+        </View>
+        <View style={styles.serviceInfo}>
+          <Text style={[styles.serviceName, { color: theme.text }]}>{service.name}</Text>
+          <Text style={[styles.serviceDescription, { color: theme.textSecondary }]} numberOfLines={2}>
+            {service.description}
+          </Text>
+        </View>
+        {service.is_available ? (
+          <View style={[styles.availableBadge, { backgroundColor: '#D1FAE5' }]}>
+            <Text style={styles.availableBadgeText}>Available</Text>
+          </View>
+        ) : (
+          <View style={[styles.unavailableBadge, { backgroundColor: '#FEE2E2' }]}>
+            <Text style={styles.unavailableBadgeText}>Unavailable</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.serviceStats}>
+        <View style={styles.statItem}>
+          <Ionicons name="people" size={16} color={theme.textSecondary} />
+          <Text style={[styles.statText, { color: theme.textSecondary }]}>
+            {service.available_workers} workers available
+          </Text>
+        </View>
+        
+        {service.completed_projects > 0 && (
+          <View style={styles.statItem}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={[styles.statText, { color: theme.textSecondary }]}>
+              {service.completed_projects} completed
+            </Text>
+          </View>
+        )}
+        
+        {service.avg_completion_days > 0 && (
+          <View style={styles.statItem}>
+            <Ionicons name="time" size={16} color={theme.textSecondary} />
+            <Text style={[styles.statText, { color: theme.textSecondary }]}>
+              ~{service.avg_completion_days} days
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.serviceFooter}>
+        <Text style={[styles.requestButtonText, { color: theme.primary }]}>
+          {service.is_available ? 'Request This Service' : 'Currently Unavailable'}
+        </Text>
+        <Ionicons name="arrow-forward" size={16} color={theme.primary} />
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Find Workers" showBack={false} />
+      <Header title="Request Services" showBack={false} />
 
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <View style={[styles.searchInputContainer, { backgroundColor: theme.background }]}>
           <Ionicons name="search" size={20} color={theme.textSecondary} />
           <TextInput
-            style={[styles.searchInput, { color: theme.text, fontFamily: 'Poppins_400Regular' }]}
-            placeholder="Search by name or category..."
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search services..."
             placeholderTextColor={theme.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -132,101 +168,33 @@ export default function ClientSearchScreen() {
         </View>
       </View>
 
-      {/* Category Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={[styles.filtersContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
-        contentContainerStyle={styles.filtersContent}
-      >
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.filterButton,
-                { backgroundColor: theme.background, borderColor: theme.border },
-                selectedCategory === category && { backgroundColor: theme.primary, borderColor: theme.primary },
-              ]}
-              onPress={() => setSelectedCategory(category)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.filterText,
-                  { color: theme.textSecondary, fontFamily: 'Poppins_500Medium' },
-                  selectedCategory === category && { color: theme.textLight },
-                ]}
-                numberOfLines={1}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.resultsText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-          {filteredWorkers.length} worker{filteredWorkers.length !== 1 ? 's' : ''} found
-        </Text>
-
-        {filteredWorkers.map((worker) => (
-          <View key={worker.id} style={[styles.workerCard, { backgroundColor: theme.card }]}>
-            <View style={styles.workerInfo}>
-              {worker.profileImage ? (
-                <Image source={{ uri: worker.profileImage }} style={[styles.workerAvatar, { borderRadius: 30 }]} />
-              ) : (
-                <View style={[styles.workerAvatar, { backgroundColor: theme.primary }]}>
-                  <Text style={[styles.workerAvatarText, { color: theme.textLight, fontFamily: 'Poppins_700Bold' }]}>
-                    {(worker.name || '').split(' ').map(n => n?.[0] || '').join('')}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.workerDetails}>
-                <View style={styles.workerNameRow}>
-                  <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{worker.name}</Text>
-                  {worker.isAvailable && (
-                    <View style={styles.availableBadge}>
-                      <Text style={[styles.availableBadgeText, { fontFamily: 'Poppins_600SemiBold' }]}>Available</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[styles.workerCategory, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{worker.category}</Text>
-                <View style={styles.workerLocationRow}>
-                  <Ionicons name="location" size={13} color={theme.textSecondary} />
-                  <Text style={[styles.workerLocation, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}> {worker.location}</Text>
-                </View>
-                <View style={styles.workerStats}>
-                  <Ionicons name="star" size={13} color="#F59E0B" />
-                  <Text style={[styles.workerRating, { fontFamily: 'Poppins_600SemiBold' }]}> {worker.rating}</Text>
-                  <Text style={[styles.workerJobs, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• {worker.completedJobs} jobs</Text>
-                  <Text style={[styles.workerRate, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• SDG {worker.hourlyRate}/hr</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.workerActions}>
-              <TouchableOpacity
-                style={[styles.viewProfileButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-                onPress={() => router.push(`/(client)/worker/${worker.id}`)}
-              >
-                <Text style={[styles.viewProfileButtonText, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>View Profile</Text>
-              </TouchableOpacity>
-              {worker.isAvailable && (
-                <TouchableOpacity
-                  style={[styles.requestButton, { backgroundColor: theme.primary }]}
-                  onPress={() => router.push(`/(client)/request-worker/${worker.id}` as any)}
-                >
-                  <Text style={[styles.requestButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Request Now</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+              Loading available services...
+            </Text>
           </View>
-        ))}
+        ) : (
+          <>
+            <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
+              <Ionicons name="information-circle" size={24} color={theme.primary} />
+              <Text style={[styles.infoText, { color: theme.textSecondary }]}>
+                Select a service below and our team will assign the most qualified worker to handle your request.
+              </Text>
+            </View>
+
+            <Text style={[styles.resultsText, { color: theme.textSecondary }]}>
+              {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} available
+            </Text>
+
+            {filteredServices.map(renderServiceCard)}
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -253,136 +221,118 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
   },
-  filtersContainer: {
-    borderBottomWidth: 0,
-    maxHeight: 40,
-  },
-  filtersContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    gap: 6,
-  },
-  filterButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 0,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+  },
+  infoCard: {
+    flexDirection: 'row',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  infoText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 14,
+    lineHeight: 20,
   },
   resultsText: {
     fontSize: 14,
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  workerCard: {
-    borderRadius: 12,
+  serviceCard: {
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  workerInfo: {
+  serviceHeader: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  workerAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  serviceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F3F4F6',
     marginRight: 12,
   },
-  workerAvatarText: {
-    fontSize: 20,
-  },
-  workerDetails: {
+  serviceInfo: {
     flex: 1,
   },
-  workerNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  serviceName: {
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 4,
   },
-  workerName: {
-    fontSize: 16,
-    marginRight: 8,
+  serviceDescription: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   availableBadge: {
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   availableBadgeText: {
-    fontSize: 10,
+    fontSize: 12,
+    fontWeight: '600',
     color: '#065F46',
   },
-  workerCategory: {
-    fontSize: 14,
-    marginBottom: 4,
+  unavailableBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  workerLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
+  unavailableBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#DC2626',
   },
-  workerLocation: {
-    fontSize: 13,
-  },
-  workerStats: {
+  serviceStats: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
   },
-  workerRating: {
-    fontSize: 13,
-    color: '#F59E0B',
-  },
-  workerJobs: {
-    fontSize: 13,
-    marginLeft: 4,
-  },
-  workerRate: {
-    fontSize: 13,
-    marginLeft: 4,
-  },
-  workerActions: {
+  statItem: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  viewProfileButton: {
-    flex: 1,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
   },
-  viewProfileButtonText: {
+  statText: {
+    marginLeft: 6,
     fontSize: 13,
   },
-  requestButton: {
-    flex: 1,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
+  serviceFooter: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
   requestButtonText: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

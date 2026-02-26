@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'drf_yasg',  # API documentation
     
     # Local apps
+    'worker_connect',
     'accounts',
     'workers',
     'clients',
@@ -72,6 +73,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'worker_connect.https_middleware.DevelopmentHTTPSWarningMiddleware',  # Handle HTTPS in dev (must be first)
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -230,18 +232,19 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 
 # Security Settings
-# HTTPS and Security Headers (Enable in production with HTTPS)
-SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
-SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False, cast=bool)
-SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=False, cast=bool)
+# HTTPS and Security Headers (DISABLED in development)
+# Force disable SSL redirect in development
+SECURE_SSL_REDIRECT = False  # Never redirect to HTTPS in development
+SECURE_HSTS_SECONDS = 0  # No HSTS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 
-# Secure Cookies (Enable in production with HTTPS)
-SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
+# Secure Cookies (DISABLED in development)
+SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP in development
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
 
-CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+CSRF_COOKIE_SECURE = False  # Allow CSRF cookie over HTTP in development
 CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
 CSRF_COOKIE_SAMESITE = 'Lax'
 
@@ -471,3 +474,15 @@ if config('REDIS_URL', default=None):
 
 # Custom Exception Handler for standardized error responses
 REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'worker_connect.error_codes.custom_exception_handler'
+
+# Production Security Settings
+if not DEBUG:
+    # Security settings for production
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True

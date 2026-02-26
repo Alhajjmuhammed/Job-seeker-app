@@ -16,15 +16,18 @@ import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 
-interface DirectHireRequest {
+interface AssignedJob {
   id: number;
-  clientName: string;
-  durationType: string;
-  offeredRate: number;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
-  message?: string;
+  service_needed: string;
+  description: string;
+  budget: number;
+  client_name: string;
+  client_email: string;
+  status: 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+  created_at: string;
+  assigned_at: string;
+  due_date: string;
+  location?: string;
 }
 
 export default function WorkerJobsScreen() {
@@ -32,10 +35,8 @@ export default function WorkerJobsScreen() {
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [directRequests, setDirectRequests] = useState<DirectHireRequest[]>([]);
-  
-  // Check if user is professional worker
-  const isProfessional = user?.workerType === 'professional';
+  const [assignedJobs, setAssignedJobs] = useState<AssignedJob[]>([]);
+  const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'active' | 'completed'>('all');
 
   useEffect(() => {
     let mounted = true;
@@ -43,24 +44,15 @@ export default function WorkerJobsScreen() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const requests = await apiService.getDirectHireRequests();
+        const response = await apiService.getAssignedJobs();
         
         if (mounted) {
-          setDirectRequests(requests.map((req: any) => ({
-            id: req.id,
-            clientName: req.client_name || 'Client',
-            durationType: req.duration_type || 'hourly',
-            offeredRate: parseFloat(req.offered_rate || '0'),
-            totalAmount: parseFloat(req.total_amount || '0'),
-            status: req.status,
-            createdAt: new Date(req.created_at).toLocaleDateString(),
-            message: req.message,
-          })));
+          setAssignedJobs(response.jobs || []);
         }
       } catch (error) {
-        console.error('Error loading direct requests:', error);
+        console.error('Error loading assigned jobs:', error);
         if (mounted) {
-          Alert.alert('Error', 'Failed to load direct hire requests');
+          Alert.alert('Error', 'Failed to load assigned jobs. Please try again.');
         }
       } finally {
         if (mounted) {
@@ -68,404 +60,426 @@ export default function WorkerJobsScreen() {
         }
       }
     };
-    
+
     loadData();
-    
+
     return () => {
       mounted = false;
     };
   }, []);
 
-  const loadDirectRequests = async (checkMounted = () => true) => {
+  const onRefresh = async () => {
+    setRefreshing(true);
     try {
-      setLoading(true);
-      const requests = await apiService.getDirectHireRequests();
-      
-      if (checkMounted()) {
-        setDirectRequests(requests.map((req: any) => ({
-          id: req.id,
-          clientName: req.client_name || 'Client',
-          durationType: req.duration_type || 'hourly',
-          offeredRate: parseFloat(req.offered_rate || '0'),
-          totalAmount: parseFloat(req.total_amount || '0'),
-          status: req.status,
-          createdAt: new Date(req.created_at).toLocaleDateString(),
-          message: req.message,
-        })));
-      }
+      const response = await apiService.getAssignedJobs();
+      setAssignedJobs(response.jobs || []);
     } catch (error) {
-      console.error('Error loading direct requests:', error);
-      if (checkMounted()) {
-        Alert.alert('Error', 'Failed to load direct hire requests');
-      }
+      console.error('Error refreshing assigned jobs:', error);
+      Alert.alert('Error', 'Failed to refresh assigned jobs.');
     } finally {
-      if (checkMounted()) {
-        setLoading(false);
-      }
+      setRefreshing(false);
     }
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadDirectRequests();
-    setRefreshing(false);
+  const handleUpdateJobStatus = async (jobId: number, newStatus: 'in_progress' | 'completed') => {
+    try {
+      await apiService.updateJobStatus(jobId, newStatus);
+      
+      // Update local state
+      setAssignedJobs(prevJobs => 
+        prevJobs.map(job => 
+          job.id === jobId ? { ...job, status: newStatus } : job
+        )
+      );
+      
+      Alert.alert('Success', `Job status updated to ${newStatus.replace('_', ' ')}`);
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      Alert.alert('Error', 'Failed to update job status. Please try again.');
+    }
   };
 
-  const handleAcceptRequest = async (requestId: number) => {
+  const confirmStatusUpdate = (job: AssignedJob, newStatus: 'in_progress' | 'completed') => {
+    const statusText = newStatus === 'in_progress' ? 'In Progress' : 'Completed';
     Alert.alert(
-      'Accept Request',
-      'Are you sure you want to accept this job request?',
+      'Confirm Status Update',
+      `Are you sure you want to mark "${job.service_needed}" as ${statusText}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Accept',
-          onPress: async () => {
-            try {
-              await apiService.acceptDirectHireRequest(requestId);
-              Alert.alert('Success', 'Request accepted! Client will be notified.');
-              loadDirectRequests();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to accept request');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleRejectRequest = async (requestId: number) => {
-    Alert.alert(
-      'Reject Request',
-      'Are you sure you want to reject this job request?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reject',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiService.rejectDirectHireRequest(requestId);
-              Alert.alert('Success', 'Request rejected.');
-              loadDirectRequests();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to reject request');
-            }
-          },
-        },
+        { text: 'Confirm', onPress: () => handleUpdateJobStatus(job.id, newStatus) },
       ]
     );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'accepted': return '#4CAF50';
-      case 'rejected': return '#F44336';
-      case 'pending': return '#FF9800';
-      default: return '#666';
+      case 'assigned': return '#FFA500';
+      case 'in_progress': return '#2196F3';
+      case 'completed': return '#4CAF50';
+      case 'cancelled': return '#FF6B6B';
+      default: return theme.textSecondary;
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusText = (status: string) => {
     switch (status) {
-      case 'accepted': return 'checkmark-circle';
-      case 'rejected': return 'close-circle';
-      case 'pending': return 'time';
-      default: return 'help-circle';
+      case 'assigned': return 'NEW';
+      case 'in_progress': return 'ACTIVE';
+      case 'completed': return 'DONE';
+      case 'cancelled': return 'CANCELLED';
+      default: return status.toUpperCase();
     }
   };
 
-  const renderRequestCard = (request: DirectHireRequest) => (
-    <View key={request.id} style={[styles.requestCard, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
-      <View style={styles.requestHeader}>
-        <View>
-          <Text style={[styles.clientName, { color: theme.text }]}>
-            <Ionicons name="person" size={18} color={theme.primary} /> {request.clientName}
-          </Text>
-          <Text style={[styles.requestDate, { color: theme.textSecondary }]}>{request.createdAt}</Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
-          <Ionicons name={getStatusIcon(request.status) as any} size={16} color="#FFF" />
-          <Text style={styles.statusText}>{request.status.toUpperCase()}</Text>
-        </View>
-      </View>
+  const filteredJobs = assignedJobs.filter(job => {
+    switch (selectedTab) {
+      case 'pending': return job.status === 'assigned';
+      case 'active': return job.status === 'in_progress';
+      case 'completed': return job.status === 'completed';
+      case 'all':
+      default: return true;
+    }
+  });
 
-      {request.message && (
-        <View style={[styles.messageContainer, { backgroundColor: isDark ? theme.border : '#F9FAFB' }]}>
-          <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
-          <Text style={[styles.messageText, { color: theme.textSecondary }]}>{request.message}</Text>
-        </View>
-      )}
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    content: {
+      flex: 1,
+    },
+    tabsContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderRadius: 8,
+      marginHorizontal: 4,
+    },
+    activeTab: {
+      backgroundColor: theme.primary,
+    },
+    tabText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: theme.textSecondary,
+    },
+    activeTabText: {
+      color: '#FFFFFF',
+    },
+    scrollContent: {
+      padding: 16,
+    },
+    jobCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    jobHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      minWidth: 50,
+      alignItems: 'center',
+    },
+    statusText: {
+      fontSize: 10,
+      fontFamily: theme.fontBold,
+      color: '#FFFFFF',
+    },
+    jobTitle: {
+      fontSize: 18,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginBottom: 8,
+      flex: 1,
+      marginRight: 12,
+    },
+    jobDescription: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+      marginBottom: 16,
+    },
+    jobDetails: {
+      marginBottom: 16,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    detailLabel: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+    },
+    detailValue: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+    },
+    clientInfo: {
+      backgroundColor: isDark ? theme.primaryDark : '#F8FAFC',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 16,
+    },
+    clientName: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginBottom: 4,
+    },
+    clientEmail: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+    },
+    jobActions: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      height: 44,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 8,
+    },
+    startButton: {
+      backgroundColor: theme.primary,
+    },
+    completeButton: {
+      backgroundColor: '#4CAF50',
+    },
+    disabledButton: {
+      backgroundColor: theme.textTertiary,
+    },
+    actionButtonText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: '#FFFFFF',
+    },
+    emptyState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 32,
+    },
+    emptyIcon: {
+      marginBottom: 16,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    emptySubtitle: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+    },
+  });
 
-      <View style={styles.requestDetails}>
-        <View style={styles.detailRow}>
-          <Ionicons name="time-outline" size={18} color={theme.textSecondary} />
-          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Duration:</Text>
-          <Text style={[styles.detailValue, { color: theme.text }]}>{request.durationType}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="cash-outline" size={18} color={isDark ? '#81C784' : '#2E7D32'} />
-          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Offered Rate:</Text>
-          <Text style={[styles.detailValue, styles.rateText, { color: isDark ? '#81C784' : '#2E7D32' }]}>${request.offeredRate}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="card-outline" size={18} color={isDark ? '#81C784' : '#2E7D32'} />
-          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Total:</Text>
-          <Text style={[styles.detailValue, styles.totalAmount, { color: isDark ? '#81C784' : '#2E7D32' }]}>${request.totalAmount}</Text>
-        </View>
-      </View>
-
-      {request.status === 'pending' && (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.rejectButton]}
-            onPress={() => handleRejectRequest(request.id)}
-          >
-            <Ionicons name="close-circle" size={20} color="#FFF" />
-            <Text style={styles.actionButtonText}>Reject</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.acceptButton]}
-            onPress={() => handleAcceptRequest(request.id)}
-          >
-            <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-            <Text style={styles.actionButtonText}>Accept</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar style={theme.statusBar} />
-      
-      {/* Header Component */}
-      <Header 
-        showNotifications 
-        showSearch 
-        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
-        onSearchPress={() => Alert.alert('Search', 'Search coming soon')}
-      />
-
-      {/* Info Banner */}
-      <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(25, 118, 210, 0.1)' : '#E3F2FD' }]}>
-        <Ionicons name="information-circle" size={20} color={theme.primary} />
-        <Text style={[styles.infoText, { color: isDark ? '#90CAF9' : '#1565C0' }]}>
-          {isProfessional 
-            ? 'Receive direct hire requests from clients. You can also browse and apply for formal jobs.'
-            : 'Clients will find and request you directly. Accept or reject requests below.'}
-        </Text>
-      </View>
-
-      {loading ? (
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header title="My Jobs" showBack />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</Text>
+          <Text style={styles.loadingText}>Loading your jobs...</Text>
         </View>
-      ) : (
-      <ScrollView 
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header title="My Jobs" showBack />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'all' && styles.activeTab]}
+          onPress={() => setSelectedTab('all')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'all' && styles.activeTabText]}>
+            All ({assignedJobs.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'pending' && styles.activeTab]}
+          onPress={() => setSelectedTab('pending')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'pending' && styles.activeTabText]}>
+            Pending ({assignedJobs.filter(j => j.status === 'assigned').length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'active' && styles.activeTab]}
+          onPress={() => setSelectedTab('active')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'active' && styles.activeTabText]}>
+            Active ({assignedJobs.filter(j => j.status === 'in_progress').length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'completed' && styles.activeTab]}
+          onPress={() => setSelectedTab('completed')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'completed' && styles.activeTabText]}>
+            Done ({assignedJobs.filter(j => j.status === 'completed').length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.content}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-            {/* Direct Hire Requests */}
-            {directRequests.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
-                <Text style={[styles.emptyText, { color: theme.text }]}>No hire requests yet</Text>
-                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Keep your profile updated and wait for clients to find you!</Text>
+        {filteredJobs.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons
+              name="briefcase-outline"
+              size={64}
+              color={theme.textSecondary}
+              style={styles.emptyIcon}
+            />
+            <Text style={styles.emptyTitle}>
+              {selectedTab === 'all' 
+                ? 'No jobs assigned yet' 
+                : `No ${selectedTab} jobs`}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {selectedTab === 'all'
+                ? 'Jobs assigned to you will appear here'
+                : `Your ${selectedTab} jobs will appear here`}
+            </Text>
+          </View>
+        ) : (
+          filteredJobs.map((job) => (
+            <View key={job.id} style={styles.jobCard}>
+              <View style={styles.jobHeader}>
+                <Text style={styles.jobTitle}>{job.service_needed}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
+                  <Text style={styles.statusText}>{getStatusText(job.status)}</Text>
+                </View>
               </View>
-            ) : (
-              directRequests.map(renderRequestCard)
-            )}
+
+              {job.description && (
+                <Text style={styles.jobDescription}>{job.description}</Text>
+              )}
+
+              <View style={styles.clientInfo}>
+                <Text style={styles.clientName}>{job.client_name}</Text>
+                <Text style={styles.clientEmail}>{job.client_email}</Text>
+              </View>
+
+              <View style={styles.jobDetails}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Budget:</Text>
+                  <Text style={styles.detailValue}>
+                    ${job.budget || 'Not specified'}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Assigned:</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(job.assigned_at).toLocaleDateString()}
+                  </Text>
+                </View>
+                {job.due_date && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Due Date:</Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(job.due_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+                {job.location && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Location:</Text>
+                    <Text style={styles.detailValue}>{job.location}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Action buttons based on job status */}
+              <View style={styles.jobActions}>
+                {job.status === 'assigned' && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.startButton]}
+                    onPress={() => confirmStatusUpdate(job, 'in_progress')}
+                  >
+                    <Ionicons name="play" size={16} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Start Job</Text>
+                  </TouchableOpacity>
+                )}
+                
+                {job.status === 'in_progress' && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.completeButton]}
+                    onPress={() => confirmStatusUpdate(job, 'completed')}
+                  >
+                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Mark Complete</Text>
+                  </TouchableOpacity>
+                )}
+                
+                {job.status === 'completed' && (
+                  <View style={[styles.actionButton, styles.disabledButton]}>
+                    <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Completed</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          ))
+        )}
       </ScrollView>
-      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    backgroundColor: '#0F766E',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontFamily: 'Poppins_700Bold',
-    color: '#FFFFFF',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Poppins_400Regular',
-    color: '#FFFFFF',
-    marginTop: 4,
-    opacity: 0.9,
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    padding: 16,
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 8,
-    gap: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Poppins_400Regular',
-    color: '#1565C0',
-    lineHeight: 20,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontFamily: 'Poppins_400Regular',
-    color: '#6B7280',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    fontSize: 56,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontFamily: 'Poppins_600SemiBold',
-    marginBottom: 6,
-  },
-  emptySubtext: {
-    fontSize: 15,
-    fontFamily: 'Poppins_400Regular',
-    textAlign: 'center',
-    color: '#6B7280',
-    paddingHorizontal: 40,
-  },
-  requestCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  requestHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  clientName: {
-    fontSize: 18,
-    fontFamily: 'Poppins_700Bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  requestDate: {
-    fontSize: 12,
-    fontFamily: 'Poppins_400Regular',
-    color: '#9CA3AF',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 4,
-  },
-  statusText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    gap: 8,
-  },
-  messageText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Poppins_400Regular',
-    color: '#4B5563',
-    lineHeight: 20,
-  },
-  requestDetails: {
-    gap: 12,
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  detailLabel: {
-    fontSize: 14,
-    fontFamily: 'Poppins_500Medium',
-    color: '#6B7280',
-  },
-  detailValue: {
-    fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
-    color: '#1F2937',
-  },
-  rateText: {
-    color: '#2E7D32',
-  },
-  totalAmount: {
-    fontSize: 16,
-    fontFamily: 'Poppins_400Regular',
-    color: '#2E7D32',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 6,
-  },
-  acceptButton: {
-    backgroundColor: '#4CAF50',
-  },
-  rejectButton: {
-    backgroundColor: '#F44336',
-  },
-  actionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-});

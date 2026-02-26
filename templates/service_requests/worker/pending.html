@@ -1,0 +1,62 @@
+{% extends "workers/base_worker.html" %}
+
+{% block title %}Pending Assignments{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">🔔 Pending Assignments</h2>
+    
+    {% if pending_assignments %}
+    <p class="lead">You have {{ pending_assignments.count }} assignment{{ pending_assignments.count|pluralize }} waiting for your response.</p>
+    
+    <div class="row">
+        {% for assignment in pending_assignments %}
+        <div class="col-md-6 mb-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">{{ assignment.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Category:</strong> {{ assignment.category.name }}</p>
+                    <p><strong>Client:</strong> {{ assignment.client.get_full_name }}</p>
+                    <p><strong>Location:</strong> {{ assignment.location }}, {{ assignment.city }}</p>
+                    <p><strong>Urgency:</strong> 
+                        <span class="badge {% if assignment.urgency == 'emergency' %}bg-danger{% elif assignment.urgency == 'urgent' %}bg-warning{% else %}bg-secondary{% endif %}">
+                            {{ assignment.get_urgency_display }}
+                        </span>
+                    </p>
+                    <p><strong>Estimated Duration:</strong> {{ assignment.estimated_duration_hours }} hours</p>
+                    {% if assignment.preferred_date %}
+                    <p><strong>Preferred Date:</strong> {{ assignment.preferred_date|date:"M d, Y" }} 
+                       {% if assignment.preferred_time %}at {{ assignment.preferred_time|time:"h:i A" }}{% endif %}</p>
+                    {% endif %}
+                    <p><strong>Description:</strong><br>{{ assignment.description }}</p>
+                    {% if assignment.admin_notes %}
+                    <p><strong>Admin Notes:</strong><br><em>{{ assignment.admin_notes }}</em></p>
+                    {% endif %}
+                    <p><small class="text-muted">Assigned {{ assignment.assigned_at|timesince }} ago</small></p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'service_requests_web:worker_respond' assignment.id %}" 
+                           class="btn btn-primary btn-lg">
+                            Respond to Assignment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    <div class="alert alert-info">
+        <h4 class="alert-heading">✅ All Caught Up!</h4>
+        <p>You have no pending assignments at the moment.</p>
+        <hr>
+        <p class="mb-0">
+            <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">Return to Dashboard</a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

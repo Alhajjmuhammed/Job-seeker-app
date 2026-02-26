@@ -273,6 +273,16 @@ class ApiService {
     return response.data;
   }
 
+  async getAssignedJobs() {
+    const response = await this.api.get('/workers/assigned-jobs/');
+    return response.data;
+  }
+
+  async updateJobStatus(jobId: number, status: string) {
+    const response = await this.api.patch(`/workers/assigned-jobs/${jobId}/status/`, { status });
+    return response.data;
+  }
+
   async getBrowseJobs(params?: { category?: string; city?: string }) {
     const response = await this.api.get('/jobs/browse/', { params });
     return response.data;
@@ -428,71 +438,174 @@ class ApiService {
 
   // ============ Client Methods ============
   async getClientProfile() {
-    const response = await this.api.get('/client/profile/');
+    const response = await this.api.get('/clients/profile/');
     return response.data;
   }
 
   async updateClientProfile(data: any) {
-    const response = await this.api.patch('/client/profile/update/', data);
+    const response = await this.api.patch('/clients/profile/update/', data);
     return response.data;
   }
 
   async getClientStats() {
-    const response = await this.api.get('/client/stats/');
+    const response = await this.api.get('/clients/stats/');
     return response.data;
   }
 
+  // ============ SERVICE-BASED METHODS (No worker browsing) ============
+  async getServices() {
+    const response = await this.api.get('/clients/services/');
+    return response.data;
+  }
+
+  // Get featured workers for client dashboard
   async getFeaturedWorkers() {
-    const response = await this.api.get('/client/workers/featured/');
+    const response = await this.api.get('/workers/featured/');
     return response.data;
   }
 
-  async searchWorkers(params?: {
-    category?: string;
-    location?: string;
-    min_rating?: number;
-    is_available?: boolean;
-    search?: string;
+  async requestService(categoryId: number, data: {
+    title: string;
+    description: string;
+    location: string;
+    city: string;
+    preferred_date?: string;
+    preferred_time?: string;
+    estimated_duration_hours: number;
+    urgency?: string;
+    client_notes?: string;
   }) {
-    const response = await this.api.get('/client/workers/search/', { params });
-    return response.data;
-  }
-
-  async getWorkerDetail(workerId: number) {
-    const response = await this.api.get(`/client/workers/${workerId}/`);
-    return response.data;
-  }
-
-  async toggleFavoriteWorker(workerId: number) {
-    const response = await this.api.post(`/client/workers/${workerId}/favorite/`);
-    return response.data;
-  }
-
-  async getFavoriteWorkers() {
-    const response = await this.api.get('/client/favorites/');
-    return response.data;
-  }
-
-  async requestWorkerDirectly(workerId: number, data: {
-    durationType: string;
-    offeredRate: number;
-  }) {
-    const response = await this.api.post('/jobs/direct-hire-request/', {
-      worker: workerId,
-      duration_type: data.durationType,
-      offered_rate: data.offeredRate,
+    const response = await this.api.post(`/v1/client/service-requests/create/`, {
+      ...data,
+      category: categoryId,
     });
     return response.data;
   }
 
+  async getMyServiceRequests(page: number = 1, category?: string, fromDate?: string, toDate?: string) {
+    const params: any = { page };
+    if (category) params.category = category;
+    if (fromDate) params.from_date = fromDate;
+    if (toDate) params.to_date = toDate;
+    
+    const response = await this.api.get('/v1/client/service-requests/', { params });
+    return response.data;
+  }
+
+  async getServiceRequestDetail(requestId: number) {
+    const response = await this.api.get(`/v1/client/service-requests/${requestId}/`);
+    return response.data;
+  }
+
+  async cancelServiceRequest(requestId: number) {
+    const response = await this.api.post(`/v1/client/service-requests/${requestId}/cancel/`);
+    return response.data;
+  }
+
+  async updateServiceRequest(requestId: number, data: {
+    title?: string;
+    description?: string;
+    location?: string;
+    city?: string;
+    preferred_date?: string;
+    preferred_time?: string;
+    estimated_duration_hours?: number;
+    urgency?: string;
+    client_notes?: string;
+  }) {
+    const response = await this.api.put(`/v1/client/service-requests/${requestId}/update/`, data);
+    return response.data;
+  }
+
+  async getClientStatistics() {
+    const response = await this.api.get('/v1/client/statistics/');
+    return response.data;
+  }
+
+  async getClientCategories() {
+    const response = await this.api.get('/v1/client/categories/');
+    return response.data;
+  }
+
+  // ============ WORKER SERVICE REQUEST API ============
+  async getWorkerAssignments(status?: string) {
+    const params = status ? { status } : {};
+    const response = await this.api.get('/v1/worker/service-requests/', { params });
+    return response.data;
+  }
+
+  async getPendingAssignments() {
+    const response = await this.api.get('/workers/assigned-jobs/');
+    return response.data;
+  }
+
+  async getCurrentAssignment() {
+    const response = await this.api.get('/workers/assigned-jobs/');
+    return response.data;
+  }
+
+  async acceptAssignment(assignmentId: number, notes?: string) {
+    const response = await this.api.post(
+      `/v1/worker/service-requests/${assignmentId}/respond/`,
+      { accepted: true, notes }
+    );
+    return response.data;
+  }
+
+  async rejectAssignment(assignmentId: number, reason: string) {
+    const response = await this.api.post(
+      `/v1/worker/service-requests/${assignmentId}/respond/`,
+      { accepted: false, rejection_reason: reason }
+    );
+    return response.data;
+  }
+
+  async clockIn(assignmentId: number, location?: { latitude: number; longitude: number }) {
+    const response = await this.api.post(
+      `/v1/worker/service-requests/${assignmentId}/clock-in/`,
+      { location: location ? `${location.latitude},${location.longitude}` : undefined }
+    );
+    return response.data;
+  }
+
+  async clockOut(assignmentId: number, location?: { latitude: number; longitude: number }, notes?: string) {
+    const response = await this.api.post(
+      `/v1/worker/service-requests/${assignmentId}/clock-out/`,
+      { 
+        location: location ? `${location.latitude},${location.longitude}` : undefined,
+        notes 
+      }
+    );
+    return response.data;
+  }
+
+  async completeService(assignmentId: number, completionNotes: string) {
+    const response = await this.api.post(
+      `/v1/worker/service-requests/${assignmentId}/complete/`,
+      { completion_notes: completionNotes }
+    );
+    return response.data;
+  }
+
+  async getWorkerActivity() {
+    const response = await this.api.get('/v1/worker/activity/');
+    return response.data;
+  }
+
+  async getWorkerStatistics() {
+    const response = await this.api.get('/api/v1/worker/statistics/');
+    return response.data;
+  }
+
+  // ============ JOB MANAGEMENT ============
   async getClientJobs(status?: string) {
     const params = status ? { status } : {};
-    const response = await this.api.get('/client/jobs/', { params });
+    const response = await this.api.get('/clients/jobs/', { params });
     return response.data;
   }
 
   async getClientJobDetail(jobId: number) {
-    const response = await this.api.get(`/client/jobs/${jobId}/`);
+    const response = await this.api.get(`/clients/jobs/${jobId}/`);
     return response.data;
   }
 
@@ -512,17 +625,17 @@ class ApiService {
     workers_needed?: number;
     urgency?: string;
   }) {
-    const response = await this.api.post('/client/jobs/', jobData);
+    const response = await this.api.post('/clients/jobs/', jobData);
     return response.data;
   }
 
   async updateJob(jobId: number, jobData: any) {
-    const response = await this.api.patch(`/client/jobs/${jobId}/`, jobData);
+    const response = await this.api.patch(`/clients/jobs/${jobId}/`, jobData);
     return response.data;
   }
 
   async deleteJob(jobId: number) {
-    const response = await this.api.delete(`/client/jobs/${jobId}/`);
+    const response = await this.api.delete(`/clients/jobs/${jobId}/`);
     return response.data;
   }
 
@@ -535,7 +648,7 @@ class ApiService {
     category: string;
     startDate?: string;
   }) {
-    const response = await this.api.post('/client/jobs/', {
+    const response = await this.api.post('/clients/jobs/', {
       title: jobData.title,
       description: jobData.description,
       budget: parseFloat(jobData.budget),
@@ -548,17 +661,17 @@ class ApiService {
   }
 
   async getJobApplications(jobId: number) {
-    const response = await this.api.get(`/client/jobs/${jobId}/applications/`);
+    const response = await this.api.get(`/clients/jobs/${jobId}/applications/`);
     return response.data;
   }
 
   async acceptJobApplication(applicationId: number) {
-    const response = await this.api.post(`/client/applications/${applicationId}/accept/`);
+    const response = await this.api.post(`/clients/applications/${applicationId}/accept/`);
     return response.data;
   }
 
   async rejectJobApplication(applicationId: number) {
-    const response = await this.api.post(`/client/applications/${applicationId}/reject/`);
+    const response = await this.api.post(`/clients/applications/${applicationId}/reject/`);
     return response.data;
   }
 
@@ -566,7 +679,7 @@ class ApiService {
     rating: number;
     review?: string;
   }) {
-    const response = await this.api.post(`/client/workers/${workerId}/rate/`, ratingData);
+    const response = await this.api.post(`/clients/workers/${workerId}/rate/`, ratingData);
     
     // Clear any cached data after rating submission to ensure fresh data
     this.clearCache();
@@ -634,6 +747,32 @@ class ApiService {
     const params: any = { q: query };
     if (userType) params.type = userType;
     const response = await this.api.get('/messages/search-users/', { params });
+    return response.data;
+  }
+
+  // ============== CONFIG API ==============
+  
+  // Get privacy policy
+  async getPrivacyPolicy() {
+    const response = await this.api.get('/config/privacy/');
+    return response.data;
+  }
+
+  // Get terms of service
+  async getTermsOfService() {
+    const response = await this.api.get('/config/terms/');
+    return response.data;
+  }
+
+  // Get contact info
+  async getContactInfo() {
+    const response = await this.api.get('/config/contact-info/');
+    return response.data;
+  }
+
+  // Get FAQ
+  async getFAQ() {
+    const response = await this.api.get('/support/faq/');
     return response.data;
   }
 }

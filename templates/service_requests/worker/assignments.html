@@ -1,0 +1,123 @@
+{% extends "workers/base_worker.html" %}
+
+{% block title %}My Assignments{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📋 My Assignments</h2>
+        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Status Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group" aria-label="Status filter">
+                <a href="{% url 'service_requests_web:worker_assignments' %}" 
+                   class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    All
+                </a>
+                <a href="?status=assigned" 
+                   class="btn {% if status_filter == 'assigned' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+                    Assigned
+                </a>
+                <a href="?status=in_progress" 
+                   class="btn {% if status_filter == 'in_progress' %}btn-info{% else %}btn-outline-info{% endif %}">
+                    In Progress
+                </a>
+                <a href="?status=completed" 
+                   class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    Completed
+                </a>
+                <a href="?status=cancelled" 
+                   class="btn {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    Cancelled
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assignments List -->
+    {% if assignments %}
+    <div class="row">
+        {% for assignment in assignments %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header {% if assignment.status == 'completed' %}bg-success text-white{% elif assignment.status == 'in_progress' %}bg-info text-white{% elif assignment.status == 'assigned' %}bg-warning{% else %}bg-secondary text-white{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ assignment.title }}</h5>
+                        <span class="badge bg-light text-dark">{{ assignment.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p><strong>Category:</strong> {{ assignment.category.name }}</p>
+                    <p><strong>Client:</strong> {{ assignment.client.get_full_name }}</p>
+                    <p><strong>Location:</strong> {{ assignment.location }}, {{ assignment.city }}</p>
+                    
+                    {% if assignment.status == 'assigned' and assignment.worker_accepted is None %}
+                    <div class="alert alert-warning mb-2">
+                        <i class="fas fa-exclamation-triangle"></i> Awaiting your response
+                    </div>
+                    {% endif %}
+                    
+                    {% if assignment.status == 'in_progress' %}
+                    <p><strong>Hours Worked:</strong> {{ assignment.total_hours_worked|default:"0" }} hours</p>
+                    {% endif %}
+                    
+                    {% if assignment.status == 'completed' %}
+                    <p><strong>Earned:</strong> <span class="text-success">SDG {{ assignment.total_amount|default:"0" }}</span></p>
+                    <p><strong>Completed:</strong> {{ assignment.work_completed_at|date:"M d, Y" }}</p>
+                    {% endif %}
+                    
+                    <p class="text-muted small">
+                        <i class="fas fa-calendar"></i> Assigned {{ assignment.assigned_at|timesince }} ago
+                    </p>
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
+                       class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if assignments.has_other_pages %}
+    <nav aria-label="Assignments pagination">
+        <ul class="pagination justify-content-center">
+            {% if assignments.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ assignments.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in assignments.paginator.page_range %}
+            <li class="page-item {% if assignments.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if assignments.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ assignments.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="alert alert-info text-center">
+        <h4 class="alert-heading">No Assignments Found</h4>
+        <p>{% if status_filter %}No assignments with status "{{ status_filter }}".{% else %}You don't have any assignments yet.{% endif %}</p>
+        <hr>
+        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">Return to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

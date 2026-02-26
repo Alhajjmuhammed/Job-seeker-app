@@ -29,6 +29,39 @@ interface DirectHireRequest {
   message?: string;
 }
 
+interface AssignedJob {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  urgency: string;
+  location: string;
+  city: string;
+  budget: number | null;
+  duration_days: number;
+  start_date: string | null;
+  created_at: string;
+  client: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+  };
+  category: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+interface PendingAssignment {
+  id: number;
+  category_name: string;
+  urgency: string;
+  status: string;
+  created_at: string;
+  client_name: string;
+}
+
 export default function WorkerDashboard() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
@@ -36,11 +69,13 @@ export default function WorkerDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<DirectHireRequest[]>([]);
+  const [assignedJobs, setAssignedJobs] = useState<AssignedJob[]>([]);
+  const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
   const [stats, setStats] = useState({
-    pending_requests: 0,
+    assigned_jobs: 0,
     active_jobs: 0,
-    total_applications: 0,
-    accepted_applications: 0,
+    completed_jobs: 0,
+    pending_jobs: 0,
   });
   
   // Check if user is professional worker
@@ -380,6 +415,106 @@ export default function WorkerDashboard() {
       fontSize: 16,
       fontFamily: theme.fontRegular,
     },
+    pendingAlert: {
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    alertContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    alertIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#FEF3C7',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    alertText: {
+      flex: 1,
+    },
+    alertTitle: {
+      fontSize: 15,
+      fontFamily: theme.fontSemiBold,
+      color: '#92400E',
+      marginBottom: 2,
+    },
+    alertSubtitle: {
+      fontSize: 13,
+      fontFamily: theme.fontRegular,
+      color: '#78350F',
+    },
+    quickActionsContainer: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 20,
+    },
+    quickActionCard: {
+      flex: 1,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      position: 'relative',
+    },
+    quickActionTitle: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      marginTop: 8,
+    },
+    badge: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      backgroundColor: '#EF4444',
+      borderRadius: 12,
+      minWidth: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 6,
+    },
+    badgeText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontFamily: theme.fontBold,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      minWidth: 50,
+      alignItems: 'center',
+    },
+    statusText: {
+      fontSize: 10,
+      fontFamily: theme.fontBold,
+      color: '#FFFFFF',
+    },
+    viewAllButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 10,
+      alignItems: 'center',
+      marginTop: 12,
+    },
+    viewAllText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: '#FFFFFF',
+    },
   });
 
   useEffect(() => {
@@ -389,30 +524,35 @@ export default function WorkerDashboard() {
   const fetchDashboardData = async (isMounted = () => true) => {
     try {
       setLoading(true);
-      const [requestsData, statsData] = await Promise.all([
-        apiService.getDirectHireRequests().catch(err => {
-          console.error('Error fetching requests:', err);
-          return [];
+      const [assignedJobsData, statsData, pendingAssignmentsData] = await Promise.all([
+        apiService.getAssignedJobs().catch(err => {
+          console.error('Error fetching assigned jobs:', err);
+          return { jobs: [] };
         }),
         apiService.getWorkerStats().catch(err => {
           console.error('Error fetching stats:', err);
           return {
-            pending_requests: 0,
+            assigned_jobs: 0,
             active_jobs: 0,
-            total_applications: 0,
-            accepted_applications: 0,
+            completed_jobs: 0,
+            pending_jobs: 0,
           };
+        }),
+        apiService.getPendingAssignments().catch(err => {
+          console.error('Error fetching pending assignments:', err);
+          return { results: [] };
         }),
       ]);
       
       // Only update state if component is still mounted
       if (isMounted()) {
-        setPendingRequests(requestsData || []);
+        setAssignedJobs(assignedJobsData?.jobs || []);
+        setPendingAssignments(pendingAssignmentsData?.results || pendingAssignmentsData || []);
         setStats(statsData || {
-          pending_requests: 0,
+          assigned_jobs: 0,
           active_jobs: 0,
-          total_applications: 0,
-          accepted_applications: 0,
+          completed_jobs: 0,
+          pending_jobs: 0,
         });
       }
     } catch (error: any) {
@@ -594,6 +734,29 @@ export default function WorkerDashboard() {
           />
         </View>
 
+        {/* Pending Assignments Alert */}
+        {pendingAssignments.length > 0 && (
+          <TouchableOpacity
+            style={[styles.pendingAlert, { backgroundColor: '#FEF3C7' }]}
+            onPress={() => router.push('/(worker)/assignments/pending')}
+          >
+            <View style={styles.alertContent}>
+              <View style={styles.alertIcon}>
+                <Ionicons name="alert-circle" size={24} color="#D97706" />
+              </View>
+              <View style={styles.alertText}>
+                <Text style={styles.alertTitle}>
+                  {pendingAssignments.length} Assignment{pendingAssignments.length > 1 ? 's' : ''} Awaiting Response
+                </Text>
+                <Text style={styles.alertSubtitle}>
+                  Tap to review and respond
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#D97706" />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Browse Jobs Button - Professional Workers Only */}
         {isProfessional && (
           <View style={styles.actionButtonsContainer}>
@@ -616,51 +779,104 @@ export default function WorkerDashboard() {
           </View>
         )}
 
+        {/* Quick Actions for Service Requests */}
+        <View style={styles.quickActionsContainer}>
+          <TouchableOpacity
+            style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
+            onPress={() => router.push('/(worker)/assignments/pending')}
+          >
+            <Ionicons name="clipboard-outline" size={28} color={theme.primary} />
+            <Text style={[styles.quickActionTitle, { color: theme.text }]}>Assignments</Text>
+            {pendingAssignments.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{pendingAssignments.length}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
+            onPress={() => router.push('/(worker)/activity')}
+          >
+            <Ionicons name="time-outline" size={28} color={theme.primary} />
+            <Text style={[styles.quickActionTitle, { color: theme.text }]}>Activity</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Stats Grid */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.pending_requests}</Text>
-            <Text style={styles.statLabel}>Pending Requests</Text>
+            <Text style={styles.statValue}>{stats.assigned_jobs}</Text>
+            <Text style={styles.statLabel}>Assigned Jobs</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.active_jobs}</Text>
-            <Text style={styles.statLabel}>Active Jobs</Text>
+            <Text style={styles.statLabel}>Active</Text>
           </View>
-          {isProfessional && (
-            <>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{stats.total_applications || 0}</Text>
-                <Text style={styles.statLabel}>Applications</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{stats.accepted_applications || 0}</Text>
-                <Text style={styles.statLabel}>Accepted</Text>
-              </View>
-            </>
-          )}
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.completed_jobs}</Text>
+            <Text style={styles.statLabel}>Completed</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.pending_jobs}</Text>
+            <Text style={styles.statLabel}>Pending</Text>
+          </View>
         </View>
 
-        {/* Active Jobs Section - if there are any */}
-        {stats.active_jobs > 0 && (
+        {/* Assigned Jobs Section */}
+        {assignedJobs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Active Jobs ({stats.active_jobs})</Text>
-            <TouchableOpacity 
-              style={[styles.infoCard, { backgroundColor: theme.surface }]}
-              onPress={() => router.push('/(worker)/jobs')}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Ionicons name="briefcase" size={32} color={theme.primary} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.infoCardTitle, { color: theme.text }]}>
-                    You have {stats.active_jobs} active {stats.active_jobs === 1 ? 'job' : 'jobs'}
-                  </Text>
-                  <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
-                    View and manage your ongoing work
-                  </Text>
+            <Text style={styles.sectionTitle}>Your Assigned Jobs ({assignedJobs.length})</Text>
+            {assignedJobs.slice(0, 3).map((job) => (
+              <TouchableOpacity 
+                key={job.id}
+                style={[styles.infoCard, { backgroundColor: theme.surface }]}
+                onPress={() => {
+                  // Navigate to job details or job management screen
+                  router.push(`/(worker)/jobs/${job.id}` as any);
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={[
+                    styles.statusBadge, 
+                    { 
+                      backgroundColor: 
+                        job.status === 'pending' ? '#FFA500' :
+                        job.status === 'in_progress' ? '#2196F3' :
+                        job.status === 'completed' ? '#4CAF50' : '#FF6B6B'
+                    }
+                  ]}>
+                    <Text style={styles.statusText}>
+                      {job.status === 'pending' ? 'NEW' : 
+                       job.status === 'in_progress' ? 'ACTIVE' : 
+                       job.status === 'completed' ? 'DONE' : 'ASSIGNED'}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.infoCardTitle, { color: theme.text }]}>
+                      {job.service_needed}
+                    </Text>
+                    <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
+                      Client: {job.client_name}
+                    </Text>
+                    <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
+                      Budget: ${job.budget || 'Not specified'}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
                 </View>
-                <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+            {assignedJobs.length > 3 && (
+              <TouchableOpacity 
+                style={[styles.viewAllButton, { backgroundColor: theme.primary }]}
+                onPress={() => router.push('/(worker)/jobs')}
+              >
+                <Text style={styles.viewAllText}>
+                  View All {assignedJobs.length} Jobs
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
