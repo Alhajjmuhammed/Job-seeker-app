@@ -300,19 +300,29 @@ export default function ClientDashboard() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
+              onPress={() => router.push('/(client)/my-requests')}
+            >
+              <Ionicons name="list-circle-outline" size={36} color="#10B981" />
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Requests</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Track services</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.quickActions}>
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/search')}
             >
-              <Ionicons name="search-outline" size={36} color={theme.primary} />
+              <Ionicons name="search-outline" size={36} color="#8B5CF6" />
               <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Browse Workers</Text>
               <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Find workers</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
-              onPress={() => router.push('/(client)/my-requests')}
+              onPress={() => router.push('/(client)/jobs')}
             >
-              <Ionicons name="list-outline" size={36} color={theme.primary} />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Requests</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Track services</Text>
+              <Ionicons name="briefcase-outline" size={36} color="#F59E0B" />
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Jobs</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Posted jobs</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -554,13 +564,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   statCard: {
     flex: 1,
     minWidth: '22%',
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -577,13 +587,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -594,6 +604,7 @@ const styles = StyleSheet.create({
   quickActions: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 12,
   },
   actionCard: {
     flex: 1,
@@ -616,8 +627,8 @@ const styles = StyleSheet.create({
   },
   workerCard: {
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 18,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -783,8 +794,8 @@ const styles = StyleSheet.create({
   },
   serviceCard: {
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 18,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -795,7 +806,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   serviceCategory: {
     fontSize: 16,

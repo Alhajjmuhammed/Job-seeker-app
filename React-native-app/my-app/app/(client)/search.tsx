@@ -30,10 +30,20 @@ interface Service {
 
 export default function ClientServicesScreen() {
   const { theme } = useTheme();
-  const { refresh } = useLocalSearchParams();
+  const { refresh, category } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // Initialize search query with category if provided, or clear if no category
+  useEffect(() => {
+    if (category && typeof category === 'string') {
+      setSearchQuery(category);
+    } else if (category === undefined) {
+      // Clear search when navigating without category (e.g., from Browse Workers)
+      setSearchQuery('');
+    }
+  }, [category]);
   
   // Debounce search query to avoid excessive API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500);

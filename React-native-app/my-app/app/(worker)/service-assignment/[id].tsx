@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -33,12 +34,10 @@ interface ServiceAssignmentDetail {
   client_notes: string | null;
   worker_notes: string | null;
   rejection_reason: string | null;
-  client: {
-    id: number;
-    name: string;
-    phone: string;
-    email: string;
-  };
+  client_name: string;
+  client_phone: string;
+  client_email?: string;
+  worker_accepted: boolean | null;
   started_at: string | null;
   completed_at: string | null;
   clock_in_time: string | null;
@@ -101,7 +100,8 @@ export default function ServiceAssignmentDetail() {
               ]);
             } catch (error: any) {
               console.error('Error accepting assignment:', error);
-              Alert.alert('Error', error.response?.data?.error || 'Failed to accept assignment');
+              const errorMessage = error.response?.data?.error || 'Failed to accept assignment';
+              Alert.alert('Error', errorMessage);
             } finally {
               setSubmitting(false);
             }
@@ -136,7 +136,8 @@ export default function ServiceAssignmentDetail() {
               ]);
             } catch (error: any) {
               console.error('Error rejecting assignment:', error);
-              Alert.alert('Error', error.response?.data?.error || 'Failed to reject assignment');
+              const errorMessage = error.response?.data?.error || 'Failed to reject assignment';
+              Alert.alert('Error', errorMessage);
             } finally {
               setSubmitting(false);
             }
@@ -173,7 +174,21 @@ export default function ServiceAssignmentDetail() {
       </View>
     );
   };
+  const handleCallClient = () => {
+    if (assignment?.client_phone) {
+      Linking.openURL(`tel:${assignment.client_phone}`);
+    } else {
+      Alert.alert('No Phone', 'Client phone number not available');
+    }
+  };
 
+  const handleEmailClient = () => {
+    if (assignment?.client_email) {
+      Linking.openURL(`mailto:${assignment.client_email}`);
+    } else {
+      Alert.alert('No Email', 'Client email not available');
+    }
+  };
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -191,7 +206,8 @@ export default function ServiceAssignmentDetail() {
   }
 
   const urgencyConfig = getUrgencyConfig(assignment.urgency);
-  const canRespond = assignment.status === 'pending' || assignment.status === 'assigned';
+  // Can only respond if status is pending/assigned AND worker hasn't responded yet
+  const canRespond = (assignment.status === 'pending' || assignment.status === 'assigned') && assignment.worker_accepted === null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -231,7 +247,7 @@ export default function ServiceAssignmentDetail() {
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Name</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
-                {assignment.client.name}
+                {assignment.client_name || 'N/A'}
               </Text>
             </View>
           </View>
@@ -241,7 +257,7 @@ export default function ServiceAssignmentDetail() {
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Phone</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
-                {assignment.client.phone}
+                {assignment.client_phone || 'N/A'}
               </Text>
             </View>
           </View>
@@ -251,10 +267,34 @@ export default function ServiceAssignmentDetail() {
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Email</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
-                {assignment.client.email}
+                {assignment.client_email || 'N/A'}
               </Text>
             </View>
           </View>
+
+          {/* Contact Actions */}
+          {(assignment.client_phone || assignment.client_email) && (
+            <View style={styles.contactButtons}>
+              {assignment.client_phone && (
+                <TouchableOpacity
+                  style={[styles.contactButton, { backgroundColor: theme.primary }]}
+                  onPress={handleCallClient}
+                >
+                  <Ionicons name="call" size={20} color="#FFFFFF" />
+                  <Text style={styles.contactButtonText}>Call Client</Text>
+                </TouchableOpacity>
+              )}
+              {assignment.client_email && (
+                <TouchableOpacity
+                  style={[styles.contactButton, { backgroundColor: theme.primary, opacity: 0.8 }]}
+                  onPress={handleEmailClient}
+                >
+                  <Ionicons name="mail" size={20} color="#FFFFFF" />
+                  <Text style={styles.contactButtonText}>Email Client</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Service Details */}
@@ -567,6 +607,29 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 16,
+  },
+  contactButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  contactButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  contactButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
   description: {
     fontSize: 15,

@@ -31,6 +31,7 @@ interface ServiceAssignment {
   client_name: string;
   client_phone: string;
   estimated_duration_hours: number;
+  worker_accepted: boolean | null;
 }
 
 export default function ServiceAssignments() {

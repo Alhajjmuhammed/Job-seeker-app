@@ -93,9 +93,12 @@ export default function WorkerMessagesScreen() {
     router.push(`/(worker)/conversation/${userId}?name=${encodeURIComponent(name)}` as any);
   };
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter(conv => {
+    // Add null/undefined checks
+    const name = conv.name || '';
+    const query = searchQuery || '';
+    return name.toLowerCase().includes(query.toLowerCase());
+  });
 
   const formatTime = (timestamp: string | null) => {
     if (!timestamp) return '';
@@ -164,15 +167,19 @@ export default function WorkerMessagesScreen() {
                   elevation: 2,
                 }
               ]}
-              onPress={() => handleConversationPress(conv.id, conv.name)}
+              onPress={() => handleConversationPress(conv.id, conv.name || 'Unknown')}
             >
             <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-              <Text style={styles.avatarText}>{conv.name.substring(0, 2).toUpperCase()}</Text>
+              <Text style={styles.avatarText}>
+                {(conv.name || 'UN').substring(0, 2).toUpperCase()}
+              </Text>
             </View>
             <View style={styles.messageContent}>
               <View style={styles.messageHeader}>
                 <View style={styles.nameContainer}>
-                  <Text style={[styles.name, { color: theme.text }]}>{conv.name}</Text>
+                  <Text style={[styles.name, { color: theme.text }]}>
+                    {conv.name || 'Unknown User'}
+                  </Text>
                   {conv.user_type && (
                     <View style={[styles.badge, { backgroundColor: conv.user_type === 'admin' ? theme.error : theme.primary + '20' }]}>
                       <Text style={[styles.badgeText, { color: conv.user_type === 'admin' ? theme.error : theme.primary }]}>

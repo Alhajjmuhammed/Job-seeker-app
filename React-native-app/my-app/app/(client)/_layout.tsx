@@ -46,15 +46,6 @@ export default function ClientLayout() {
         }}
       />
       <Tabs.Screen
-        name="jobs"
-        options={{
-          title: 'My Jobs',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="clipboard" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',
@@ -74,6 +65,7 @@ export default function ClientLayout() {
       />
       {/* Hidden routes */}
       <Tabs.Screen name="my-requests" options={{ href: null }} />
+      <Tabs.Screen name="jobs" options={{ href: null }} />
       <Tabs.Screen name="request-service" options={{ href: null }} />
       <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
       <Tabs.Screen name="job/[id]" options={{ href: null }} />

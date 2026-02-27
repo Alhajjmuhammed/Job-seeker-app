@@ -737,22 +737,22 @@ export default function WorkerDashboard() {
         {/* Pending Assignments Alert */}
         {pendingAssignments.length > 0 && (
           <TouchableOpacity
-            style={[styles.pendingAlert, { backgroundColor: '#FEF3C7' }]}
-            onPress={() => router.push('/(worker)/assignments/pending')}
+            style={[styles.pendingAlert, { backgroundColor: '#FEF3C7', borderWidth: 2, borderColor: '#F59E0B' }]}
+            onPress={() => router.push('/(worker)/service-assignments')}
           >
             <View style={styles.alertContent}>
               <View style={styles.alertIcon}>
-                <Ionicons name="alert-circle" size={24} color="#D97706" />
+                <Ionicons name="alert-circle" size={28} color="#D97706" />
               </View>
               <View style={styles.alertText}>
-                <Text style={styles.alertTitle}>
-                  {pendingAssignments.length} Assignment{pendingAssignments.length > 1 ? 's' : ''} Awaiting Response
+                <Text style={[styles.alertTitle, { fontSize: 16 }]}>
+                  🔔 {pendingAssignments.length} Pending Assignment{pendingAssignments.length > 1 ? 's' : ''}
                 </Text>
                 <Text style={styles.alertSubtitle}>
-                  Tap to review and respond
+                  You have service requests waiting for your response
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color="#D97706" />
+              <Ionicons name="chevron-forward" size={28} color="#D97706" />
             </View>
           </TouchableOpacity>
         )}
@@ -778,30 +778,6 @@ export default function WorkerDashboard() {
             </TouchableOpacity>
           </View>
         )}
-
-        {/* Quick Actions for Service Requests */}
-        <View style={styles.quickActionsContainer}>
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
-            onPress={() => router.push('/(worker)/assignments/pending')}
-          >
-            <Ionicons name="clipboard-outline" size={28} color={theme.primary} />
-            <Text style={[styles.quickActionTitle, { color: theme.text }]}>Assignments</Text>
-            {pendingAssignments.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{pendingAssignments.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: theme.surface }]}
-            onPress={() => router.push('/(worker)/activity')}
-          >
-            <Ionicons name="time-outline" size={28} color={theme.primary} />
-            <Text style={[styles.quickActionTitle, { color: theme.text }]}>Activity</Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Stats Grid */}
         <View style={styles.statsContainer}>
@@ -979,13 +955,6 @@ export default function WorkerDashboard() {
             >
               <Ionicons name="analytics-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
               <Text style={styles.actionText}>Analytics</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/(worker)/jobs')}
-            >
-              <Ionicons name="briefcase-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={styles.actionText}>View Requests</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}

@@ -16,6 +16,12 @@ urlpatterns = [
     path('jobs/', views.job_management, name='job_management'),
     path('jobs/<int:job_id>/assign/', views.assign_worker, name='assign_worker'),
     
+    # Service Request management URLs (NEW)
+    path('service-requests/', views.service_request_list, name='service_request_list'),
+    path('service-requests/<int:request_id>/', views.service_request_detail, name='service_request_detail'),
+    path('service-requests/<int:request_id>/workers/', views.view_request_workers, name='view_request_workers'),
+    path('service-requests/<int:request_id>/assign/', views.assign_worker_to_request, name='assign_worker_to_request'),
+    
     # Export URLs
     path('reports/export/csv/', views.export_reports_csv, name='export_reports_csv'),
     path('reports/export/excel/', views.export_reports_excel, name='export_reports_excel'),

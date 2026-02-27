@@ -13,6 +13,7 @@ from accounts.models import User
 from workers.models import WorkerProfile, WorkerDocument, Category, Skill
 from clients.models import ClientProfile, Rating
 from jobs.models import JobRequest, Message
+from jobs.service_request_models import ServiceRequest
 
 
 @staff_member_required
@@ -1507,3 +1508,174 @@ def assign_worker(request, job_id):
     }
     
     return render(request, 'admin_panel/assign_worker.html', context)
+
+
+@staff_member_required
+def service_request_list(request):
+    """List all service requests with filters"""
+    
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    urgency_filter = request.GET.get('urgency', '')
+    category_filter = request.GET.get('category', '')
+    search_query = request.GET.get('search', '')
+    
+    # Base queryset
+    requests = ServiceRequest.objects.select_related(
+        'client', 'category', 'assigned_worker', 'assigned_worker__user'
+    ).order_by('-created_at')
+    
+    # Apply filters
+    if status_filter:
+        requests = requests.filter(status=status_filter)
+    if urgency_filter:
+        requests = requests.filter(urgency=urgency_filter)
+    if category_filter:
+        requests = requests.filter(category_id=category_filter)
+    if search_query:
+        requests = requests.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(client__first_name__icontains=search_query) |
+            Q(client__last_name__icontains=search_query)
+        )
+    
+    # Statistics
+    stats = {
+        'total': ServiceRequest.objects.count(),
+        'pending': ServiceRequest.objects.filter(status='pending').count(),
+        'assigned': ServiceRequest.objects.filter(status='assigned').count(),
+        'in_progress': ServiceRequest.objects.filter(status='in_progress').count(),
+        'completed': ServiceRequest.objects.filter(status='completed').count(),
+        'urgent': ServiceRequest.objects.filter(urgency='urgent').count(),
+        'emergency': ServiceRequest.objects.filter(urgency='emergency').count(),
+    }
+    
+    # Pagination
+    paginator = Paginator(requests, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get categories for filter
+    categories = Category.objects.filter(is_active=True)
+    
+    context = {
+        'page_obj': page_obj,
+        'stats': stats,
+        'categories': categories,
+        'status_filter': status_filter,
+        'urgency_filter': urgency_filter,
+        'category_filter': category_filter,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin_panel/service_request_list.html', context)
+
+
+@staff_member_required
+def service_request_detail(request, request_id):
+    """View service request details"""
+    
+    service_request = get_object_or_404(
+        ServiceRequest.objects.select_related(
+            'client', 'category', 'assigned_worker', 'assigned_worker__user', 'assigned_by'
+        ),
+        id=request_id
+    )
+    
+    # Get time logs
+    time_logs = service_request.time_logs.all().order_by('-clock_in')
+    
+    # Get available workers for this category
+    if service_request.category:
+        available_workers = WorkerProfile.objects.filter(
+            categories=service_request.category,
+            verification_status='verified'
+        ).exclude(
+            availability='offline'
+        ).select_related('user').order_by('-average_rating')[:15]
+    else:
+        available_workers = WorkerProfile.objects.filter(
+            verification_status='verified'
+        ).exclude(
+            availability='offline'
+        ).select_related('user').order_by('-average_rating')[:15]
+    
+    context = {
+        'service_request': service_request,
+        'time_logs': time_logs,
+        'available_workers': available_workers,
+    }
+    
+    return render(request, 'admin_panel/service_request_detail.html', context)
+
+
+@staff_member_required
+def view_request_workers(request, request_id):
+    """View all workers available for a service request"""
+    
+    service_request = get_object_or_404(
+        ServiceRequest.objects.select_related(
+            'client', 'category', 'assigned_worker', 'assigned_worker__user'
+        ),
+        id=request_id
+    )
+    
+    # Get all verified workers for this category (no limit)
+    if service_request.category:
+        available_workers = WorkerProfile.objects.filter(
+            categories=service_request.category,
+            verification_status='verified'
+        ).select_related('user').prefetch_related('categories').order_by('-average_rating')
+    else:
+        # If no category, show all verified workers
+        available_workers = WorkerProfile.objects.filter(
+            verification_status='verified'
+        ).select_related('user').prefetch_related('categories').order_by('-average_rating')
+    
+    context = {
+        'service_request': service_request,
+        'available_workers': available_workers,
+        'workers_count': available_workers.count(),
+    }
+    
+    return render(request, 'admin_panel/view_request_workers.html', context)
+
+
+@staff_member_required
+def assign_worker_to_request(request, request_id):
+    """Assign a worker to a service request"""
+    
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+    
+    if request.method == 'POST':
+        worker_id = request.POST.get('worker_id')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        if not worker_id:
+            messages.error(request, 'Please select a worker')
+            return redirect('admin_panel:service_request_detail', request_id=request_id)
+        
+        try:
+            worker = WorkerProfile.objects.get(id=worker_id)
+            
+            # Check if worker has the required category
+            if service_request.category and not worker.categories.filter(id=service_request.category.id).exists():
+                messages.warning(request, f'{worker.user.get_full_name()} does not have the required category')
+            
+            # Assign the worker
+            service_request.assign_worker(worker, request.user, admin_notes)
+            
+            messages.success(
+                request,
+                f'Successfully assigned {worker.user.get_full_name()} to "{service_request.title}"'
+            )
+            
+            # Notify worker (the assign_worker method already handles this)
+            
+        except WorkerProfile.DoesNotExist:
+            messages.error(request, 'Worker not found')
+        except Exception as e:
+            messages.error(request, f'Error assigning worker: {str(e)}')
+    
+    return redirect('admin_panel:service_request_detail', request_id=request_id)

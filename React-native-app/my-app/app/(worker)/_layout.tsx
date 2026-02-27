@@ -36,11 +36,20 @@ export default function WorkerLayout() {
         }}
       />
       <Tabs.Screen
+        name="service-assignments"
+        options={{
+          title: 'Assignments',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="clipboard" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="jobs"
         options={{
-          title: 'Requests',
+          title: 'Jobs',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="mail" size={size} color={color} />
+            <Ionicons name="briefcase" size={size} color={color} />
           ),
         }}
       />
@@ -51,7 +60,6 @@ export default function WorkerLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           ),
-          tabBarBadge: 3,
         }}
       />
       <Tabs.Screen
@@ -78,7 +86,6 @@ export default function WorkerLayout() {
       <Tabs.Screen name="profile-edit" options={{ href: null }} />
       <Tabs.Screen name="profile-setup" options={{ href: null }} />
       <Tabs.Screen name="saved-jobs" options={{ href: null }} />
-      <Tabs.Screen name="service-assignments" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="support" options={{ href: null }} />
       <Tabs.Screen name="terms" options={{ href: null }} />

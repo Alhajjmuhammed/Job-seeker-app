@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Linking,
   RefreshControl,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
@@ -30,9 +30,6 @@ interface ServiceRequestDetail {
   estimated_duration_hours: number;
   client_notes?: string;
   created_at: string;
-  budget?: number;
-  duration_days?: number;
-  workers_needed?: number;
   assigned_worker?: {
     id: number;
     full_name: string;
@@ -61,11 +58,7 @@ export default function ServiceRequestDetailScreen() {
   const [request, setRequest] = useState<ServiceRequestDetail | null>(null);
   const [canceling, setCanceling] = useState(false);
 
-  useEffect(() => {
-    loadRequestDetail();
-  }, [id]);
-
-  const loadRequestDetail = async () => {
+  const loadRequestDetail = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiService.getServiceRequestDetail(Number(id));
@@ -77,7 +70,14 @@ export default function ServiceRequestDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  // Load data when screen is focused (including after editing)
+  useFocusEffect(
+    useCallback(() => {
+      loadRequestDetail();
+    }, [loadRequestDetail])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -167,14 +167,6 @@ export default function ServiceRequestDetailScreen() {
   const calculateTotalHours = () => {
     if (!request?.time_logs) return 0;
     return request.time_logs.reduce((sum, log) => sum + (log.duration_hours || 0), 0);
-  };
-
-  const calculateTotalCost = () => {
-    const hours = calculateTotalHours();
-    const hourlyRate = request?.budget && request?.duration_days 
-      ? request.budget / (request.duration_days * 8) 
-      : 0;
-    return hours * hourlyRate;
   };
 
   if (loading) {
@@ -268,26 +260,32 @@ export default function ServiceRequestDetailScreen() {
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
+            <Ionicons name="time-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.detailText, { color: theme.text }]}>
-              Duration: {request.duration_days} days
+              Estimated Duration: {request.estimated_duration_hours} hours
             </Text>
           </View>
 
-          <View style={styles.detailRow}>
-            <Ionicons name="people-outline" size={20} color={theme.textSecondary} />
-            <Text style={[styles.detailText, { color: theme.text }]}>
-              Workers needed: {request.workers_needed}
-            </Text>
-          </View>
-
-          {request.budget && (
+          {request.preferred_date && (
             <View style={styles.detailRow}>
-              <Ionicons name="cash-outline" size={20} color={theme.primary} />
-              <Text style={[styles.budgetText, { color: theme.primary }]}>
-                Budget: ${request.budget.toFixed(2)}
+              <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
+              <Text style={[styles.detailText, { color: theme.text }]}>
+                Preferred Date: {new Date(request.preferred_date).toLocaleDateString()}
+                {request.preferred_time && ` at ${request.preferred_time}`}
               </Text>
             </View>
+          )}
+
+          {request.client_notes && (
+            <View style={styles.detailRow}>
+              <Ionicons name="chatbox-ellipses-outline" size={20} color={theme.textSecondary} />
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Client Notes:</Text>
+            </View>
+          )}
+          {request.client_notes && (
+            <Text style={[styles.description, { color: theme.text, marginLeft: 28 }]}>
+              {request.client_notes}
+            </Text>
           )}
 
           <View style={styles.detailRow}>
@@ -298,7 +296,7 @@ export default function ServiceRequestDetailScreen() {
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={20} color={theme.textSecondary} />
+            <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.detailText, { color: theme.textSecondary }]}>
               Requested: {formatDateTime(request.created_at)}
             </Text>
@@ -316,14 +314,14 @@ export default function ServiceRequestDetailScreen() {
               <View style={styles.workerHeader}>
                 <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
                   <Text style={styles.avatarText}>
-                    {request.assigned_worker.full_name.charAt(0)}
+                    {request.assigned_worker.full_name?.charAt(0) || 'W'}
                   </Text>
                 </View>
                 <View style={styles.workerInfo}>
                   <Text style={[styles.workerName, { color: theme.text }]}>
-                    {request.assigned_worker.full_name}
+                    {request.assigned_worker.full_name || 'Worker'}
                   </Text>
-                  {request.assigned_worker.rating > 0 && (
+                  {request.assigned_worker.rating && request.assigned_worker.rating > 0 && (
                     <View style={styles.ratingRow}>
                       <Ionicons name="star" size={16} color="#FFA500" />
                       <Text style={[styles.ratingText, { color: theme.textSecondary }]}>
@@ -396,17 +394,6 @@ export default function ServiceRequestDetailScreen() {
                 {calculateTotalHours().toFixed(2)} hrs
               </Text>
             </View>
-
-            {request.budget && (
-              <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                  Estimated Cost:
-                </Text>
-                <Text style={[styles.summaryValue, { color: theme.primary }]}>
-                  ${calculateTotalCost().toFixed(2)}
-                </Text>
-              </View>
-            )}
 
             <View style={styles.timeLogsList}>
               {request.time_logs.map((log) => (

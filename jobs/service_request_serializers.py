@@ -36,6 +36,8 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     """Full service request serializer"""
     category_name = serializers.CharField(source='category.name', read_only=True)
     client_name = serializers.CharField(source='client.get_full_name', read_only=True)
+    client_phone = serializers.CharField(source='client.phone_number', read_only=True)
+    client_email = serializers.CharField(source='client.email', read_only=True)
     worker_name = serializers.CharField(source='assigned_worker.user.get_full_name', read_only=True, allow_null=True)
     assigned_by_name = serializers.CharField(source='assigned_by.get_full_name', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -44,7 +46,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceRequest
         fields = [
-            'id', 'client', 'client_name', 'category', 'category_name',
+            'id', 'client', 'client_name', 'client_phone', 'client_email', 'category', 'category_name',
             'title', 'description', 'location', 'city',
             'preferred_date', 'preferred_time', 'estimated_duration_hours',
             'status', 'status_display', 'urgency', 'urgency_display',
@@ -83,15 +85,16 @@ class ServiceRequestListSerializer(serializers.ModelSerializer):
     """Simplified serializer for list views"""
     category_name = serializers.CharField(source='category.name', read_only=True)
     client_name = serializers.CharField(source='client.get_full_name', read_only=True)
+    client_phone = serializers.CharField(source='client.phone_number', read_only=True)
     worker_name = serializers.CharField(source='assigned_worker.user.get_full_name', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
         model = ServiceRequest
         fields = [
-            'id', 'title', 'category_name', 'client_name', 'worker_name',
+            'id', 'title', 'category_name', 'client_name', 'client_phone', 'worker_name',
             'location', 'city', 'status', 'status_display', 'urgency',
-            'preferred_date', 'preferred_time', 'created_at'
+            'preferred_date', 'preferred_time', 'created_at', 'worker_accepted'
         ]
 
 

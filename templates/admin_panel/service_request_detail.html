@@ -1,0 +1,472 @@
+{% extends "admin_panel/base_admin.html" %}
+{% load static %}
+
+{% block title %}Service Request #{{ service_request.id }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:service_request_list' %}">Service Requests</a></li>
+                    <li class="breadcrumb-item active">Request #{{ service_request.id }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">{{ service_request.title }}</h1>
+        </div>
+        <a href="{% url 'admin_panel:service_request_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Request Details -->
+        <div class="col-lg-8">
+            <!-- Status and Urgency -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Status</h6>
+                            {% if service_request.status == 'pending' %}
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                <i class="bi bi-clock-history me-1"></i> Pending Assignment
+                            </span>
+                            {% elif service_request.status == 'assigned' %}
+                            <span class="badge bg-info text-dark fs-6 px-3 py-2">
+                                <i class="bi bi-person-check me-1"></i> Worker Assigned
+                            </span>
+                            {% elif service_request.status == 'in_progress' %}
+                            <span class="badge bg-primary fs-6 px-3 py-2">
+                                <i class="bi bi-hourglass-split me-1"></i> In Progress
+                            </span>
+                            {% elif service_request.status == 'completed' %}
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                <i class="bi bi-check-circle me-1"></i> Completed
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary fs-6 px-3 py-2">{{ service_request.status|title }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Urgency Level</h6>
+                            {% if service_request.urgency == 'emergency' %}
+                            <span class="badge bg-danger fs-6 px-3 py-2">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Emergency
+                            </span>
+                            {% elif service_request.urgency == 'urgent' %}
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                <i class="bi bi-exclamation-circle me-1"></i> Urgent
+                            </span>
+                            {% else %}
+                            <span class="badge bg-info text-dark fs-6 px-3 py-2">
+                                <i class="bi bi-info-circle me-1"></i> Normal
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Request Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Category</label>
+                            <p class="mb-0">
+                                {% if service_request.category %}
+                                <span class="badge bg-secondary">{{ service_request.category.name }}</span>
+                                {% else %}
+                                <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Estimated Duration</label>
+                            <p class="mb-0"><strong>{{ service_request.estimated_duration_hours }} hours</strong></p>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small">Description</label>
+                            <p class="mb-0">{{ service_request.description }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Location</label>
+                            <p class="mb-0">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                {{ service_request.location }}, {{ service_request.city }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Preferred Date & Time</label>
+                            <p class="mb-0">
+                                <i class="bi bi-calendar me-1"></i>
+                                {% if service_request.preferred_date %}
+                                {{ service_request.preferred_date|date:"M d, Y" }}
+                                {% endif %}
+                                {% if service_request.preferred_time %}
+                                at {{ service_request.preferred_time|time:"g:i A" }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if service_request.client_notes %}
+                        <div class="col-12">
+                            <label class="text-muted small">Client Notes</label>
+                            <div class="alert alert-light mb-0">
+                                <i class="bi bi-chat-quote me-1"></i>
+                                {{ service_request.client_notes }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-person me-2"></i>Client Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Name</label>
+                            <p class="mb-0"><strong>{{ service_request.client.get_full_name }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Email</label>
+                            <p class="mb-0">{{ service_request.client.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Phone</label>
+                            <p class="mb-0">{{ service_request.client.phone_number|default:"Not provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Created</label>
+                            <p class="mb-0">{{ service_request.created_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Worker Assignment Info (if assigned) -->
+            {% if service_request.assigned_worker %}
+            <div class="card border-0 shadow-sm mb-4 border-start border-success border-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-person-check me-2 text-success"></i>Assigned Worker</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Worker Name</label>
+                            <p class="mb-0"><strong>{{ service_request.assigned_worker.user.get_full_name }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Phone</label>
+                            <p class="mb-0">{{ service_request.assigned_worker.user.phone_number|default:"Not provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Assigned By</label>
+                            <p class="mb-0">{{ service_request.assigned_by.get_full_name|default:"System" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Assigned At</label>
+                            <p class="mb-0">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                        {% if service_request.admin_notes %}
+                        <div class="col-12">
+                            <label class="text-muted small">Admin Notes</label>
+                            <div class="alert alert-info mb-0">{{ service_request.admin_notes }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Time Logs -->
+            {% if time_logs %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Time Logs</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Clock In</th>
+                                    <th>Clock Out</th>
+                                    <th>Duration</th>
+                                    <th>Location</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in time_logs %}
+                                <tr>
+                                    <td>{{ log.clock_in|date:"M d, Y g:i A" }}</td>
+                                    <td>
+                                        {% if log.clock_out %}
+                                        {{ log.clock_out|date:"M d, Y g:i A" }}
+                                        {% else %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.duration_hours %}
+                                        {{ log.duration_hours }} hrs
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.location|truncatewords:5 }}</td>
+                                    <td>{{ log.notes|truncatewords:10|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Worker Assignment -->
+        <div class="col-lg-4">
+            {% if service_request.status == 'pending' or service_request.status == 'assigned' %}
+            <div class="card border-0 shadow-sm sticky-top" style="top: 90px;">
+                <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-plus me-2"></i>
+                        {% if service_request.assigned_worker %}Reassign Worker{% else %}Assign Worker{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if available_workers %}
+                    <div class="alert alert-info m-3 mb-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {{ available_workers|length }} worker{{ available_workers|length|pluralize }} available in {{ service_request.category.name|default:"this category" }}
+                    </div>
+                    
+                    <!-- Worker Cards List -->
+                    <div class="list-group list-group-flush" id="workersList" style="max-height: 60vh; overflow-y: auto;">
+                        {% for worker in available_workers %}
+                        <div class="list-group-item p-0 worker-card" data-worker-id="{{ worker.id }}">
+                            <!-- Compact Overview (Always Visible) -->
+                            <div class="worker-overview p-3 {% if service_request.assigned_worker and service_request.assigned_worker.id == worker.id %}bg-light border-start border-4 border-success{% endif %} worker-toggle" style="cursor: pointer;" data-worker-id="{{ worker.id }}">
+                                <div class="d-flex align-items-center">
+                                    <!-- Profile Picture -->
+                                    <div class="me-3">
+                                        {% if worker.user.profile_picture %}
+                                        <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 
+                                             class="rounded-circle" width="50" height="50" style="object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
+                                            {{ worker.user.first_name|first }}{{ worker.user.last_name|first }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Worker Basic Info -->
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            {{ worker.user.get_full_name }}
+                                            {% if service_request.assigned_worker and service_request.assigned_worker.id == worker.id %}
+                                            <span class="badge bg-success ms-1">Currently Assigned</span>
+                                            {% endif %}
+                                        </h6>
+                                        <div class="small text-muted">
+                                            <span class="me-3">
+                                                {% if worker.average_rating %}
+                                                <i class="bi bi-star-fill text-warning"></i> {{ worker.average_rating|floatformat:1 }}
+                                                {% else %}
+                                                <i class="bi bi-star text-muted"></i> No ratings
+                                                {% endif %}
+                                            </span>
+                                            <span class="text-success fw-bold">${{ worker.hourly_rate|default:"0.00" }}/hr</span>
+                                        </div>
+                                        {% if worker.categories.all %}
+                                        <div class="mt-1">
+                                            {% for category in worker.categories.all|slice:":2" %}
+                                            <span class="badge bg-secondary small">{{ category.name }}</span>
+                                            {% endfor %}
+                                            {% if worker.categories.all|length > 2 %}
+                                            <span class="badge bg-light text-dark small">+{{ worker.categories.all|length|add:"-2" }} more</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Expand Icon -->
+                                    <div class="ms-2">
+                                        <i class="bi bi-chevron-down worker-expand-icon" id="expand-icon-{{ worker.id }}"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Full Details (Hidden by default) -->
+                            <div class="worker-details p-3 pt-2 border-top" id="details-{{ worker.id }}" style="display: none; background-color: #f8f9fa;">
+                                <form method="post" action="{% url 'admin_panel:assign_worker_to_request' service_request.id %}" id="form-{{ worker.id }}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="worker_id" value="{{ worker.id }}">
+                                    
+                                    <!-- Contact Info -->
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block mb-1"><strong>Contact</strong></small>
+                                        <div class="small"><i class="bi bi-telephone me-1"></i>{{ worker.user.phone_number|default:"No phone" }}</div>
+                                    </div>
+                                    
+                                    <!-- Location & Experience -->
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block mb-1"><strong>Location</strong></small>
+                                            <span class="small"><i class="bi bi-geo-alt me-1"></i>{{ worker.city|default:"Not specified" }}</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block mb-1"><strong>Experience</strong></small>
+                                            <span class="small">{{ worker.experience_years|default:"0" }} years</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- All Categories -->
+                                    {% if worker.categories.all %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block mb-1"><strong>All Categories</strong></small>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for category in worker.categories.all %}
+                                            <span class="badge bg-secondary small">{{ category.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Full Bio -->
+                                    {% if worker.bio %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block mb-1"><strong>About</strong></small>
+                                        <p class="small mb-0">{{ worker.bio }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Admin Notes Textarea -->
+                                    <div class="mb-2 mt-3">
+                                        <label class="form-label small mb-1"><strong>Admin Notes (Optional)</strong></label>
+                                        <textarea name="admin_notes" class="form-control form-control-sm" rows="2" placeholder="Special instructions...">{% if service_request.assigned_worker.id == worker.id and service_request.admin_notes %}{{ service_request.admin_notes }}{% endif %}</textarea>
+                                    </div>
+                                    
+                                    <!-- Assign Button -->
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        {% if service_request.assigned_worker and service_request.assigned_worker.id == worker.id %}
+                                        Update Assignment
+                                        {% else %}
+                                        Assign This Worker
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- View All Workers Button -->
+                    <div class="text-center p-3 border-top bg-light">
+                        <a href="{% url 'admin_panel:view_request_workers' service_request.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-people-fill me-2"></i>
+                            View More Workers
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                        <p class="small text-muted mb-0 mt-2">See all workers for {{ service_request.category.name|default:"this request" }}</p>
+                    </div>
+                    
+                    {% else %}
+                    <div class="alert alert-warning m-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        No workers available for this category
+                    </div>
+                    <div class="text-center p-3">
+                        <a href="{% url 'admin_panel:view_request_workers' service_request.id %}" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>
+                            Browse All Available Workers
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                        <p class="small text-muted mb-0 mt-2">View all workers to assign from other categories</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-lock fs-1 text-muted mb-3 d-block"></i>
+                    <p class="text-muted">
+                        Worker assignment is only available for pending or assigned requests.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.worker-overview {
+    transition: background-color 0.2s ease;
+}
+
+.worker-overview:hover {
+    background-color: #f8f9fa !important;
+}
+
+.worker-expand-icon {
+    transition: transform 0.2s ease;
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+.worker-card {
+    transition: box-shadow 0.2s ease;
+}
+
+.worker-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<script>
+// Toggle individual worker details
+function toggleWorkerDetails(workerId) {
+    const detailsDiv = document.getElementById('details-' + workerId);
+    const expandIcon = document.getElementById('expand-icon-' + workerId);
+    
+    if (detailsDiv.style.display === 'none' || detailsDiv.style.display === '') {
+        // Show details
+        detailsDiv.style.display = 'block';
+        expandIcon.classList.remove('bi-chevron-down');
+        expandIcon.classList.add('bi-chevron-up');
+    } else {
+        // Hide details
+        detailsDiv.style.display = 'none';
+        expandIcon.classList.remove('bi-chevron-up');
+        expandIcon.classList.add('bi-chevron-down');
+    }
+}
+
+// Add click event listeners to all worker toggle elements
+document.addEventListener('DOMContentLoaded', function() {
+    const workerToggles = document.querySelectorAll('.worker-toggle');
+    workerToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function() {
+            const workerId = this.getAttribute('data-worker-id');
+            toggleWorkerDetails(workerId);
+        });
+    });
+});
+</script>
+{% endblock %}

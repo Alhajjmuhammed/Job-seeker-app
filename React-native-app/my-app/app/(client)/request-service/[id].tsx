@@ -35,10 +35,9 @@ export default function RequestServiceScreen() {
     description: '',
     location: '',
     city: '',
-    budget: '',
-    duration_days: '1',
-    urgency: 'medium',
-    workers_needed: '1',
+    estimated_duration_hours: '1',
+    urgency: 'normal',
+    client_notes: '',
   });
 
   useEffect(() => {
@@ -91,10 +90,13 @@ export default function RequestServiceScreen() {
     try {
       setSubmitting(true);
       const submitData = {
-        ...formData,
-        duration_days: parseInt(formData.duration_days),
-        workers_needed: parseInt(formData.workers_needed),
-        budget: formData.budget ? parseFloat(formData.budget) : undefined,
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        city: formData.city,
+        estimated_duration_hours: parseFloat(formData.estimated_duration_hours),
+        urgency: formData.urgency,
+        client_notes: formData.client_notes || undefined,
       };
 
       const response = await apiService.requestService(parseInt(categoryId as string), submitData);
@@ -209,36 +211,22 @@ export default function RequestServiceScreen() {
             />
           </View>
 
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.flex1, styles.marginRight]}>
-              <Text style={[styles.label, { color: theme.text }]}>Budget (Optional)</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-                value={formData.budget}
-                onChangeText={(value) => handleInputChange('budget', value)}
-                placeholder="0.00"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={[styles.inputGroup, styles.flex1]}>
-              <Text style={[styles.label, { color: theme.text }]}>Duration (Days)</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-                value={formData.duration_days}
-                onChangeText={(value) => handleInputChange('duration_days', value)}
-                placeholder="1"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="numeric"
-              />
-            </View>
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Estimated Duration (Hours)</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+              value={formData.estimated_duration_hours}
+              onChangeText={(value) => handleInputChange('estimated_duration_hours', value)}
+              placeholder="1"
+              placeholderTextColor={theme.textSecondary}
+              keyboardType="numeric"
+            />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: theme.text }]}>Urgency</Text>
             <View style={styles.urgencyButtons}>
-              {['low', 'medium', 'high', 'urgent'].map((urgency) => (
+              {['normal', 'urgent', 'emergency'].map((urgency) => (
                 <TouchableOpacity
                   key={urgency}
                   style={[
@@ -259,6 +247,20 @@ export default function RequestServiceScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Additional Notes (Optional)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+              value={formData.client_notes}
+              onChangeText={(value) => handleInputChange('client_notes', value)}
+              placeholder="Any special requirements or additional information..."
+              placeholderTextColor={theme.textSecondary}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
           </View>
         </View>
 

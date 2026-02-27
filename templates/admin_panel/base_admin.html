@@ -466,6 +466,13 @@
                 <i class="bi bi-briefcase"></i> 
                 <span class="nav-text">Manage Jobs</span>
             </a>
+            <a href="{% url 'admin_panel:service_request_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'service_request_list' or request.resolver_match.url_name == 'service_request_detail' %}active{% endif %}">
+                <i class="bi bi-clipboard-check"></i> 
+                <span class="nav-text">Service Requests</span>
+                {% if pending_service_requests_count > 0 %}
+                <span class="stat-badge">{{ pending_service_requests_count }}</span>
+                {% endif %}
+            </a>
             <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' or request.resolver_match.url_name == 'conversation' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> 
                 <span class="nav-text">Messages</span>

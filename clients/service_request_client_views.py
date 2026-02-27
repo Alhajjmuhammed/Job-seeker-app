@@ -57,6 +57,8 @@ def client_create_service_request(request):
     
     serializer = ServiceRequestCreateSerializer(data=request.data)
     if not serializer.is_valid():
+        print(f"Validation errors: {serializer.errors}")
+        print(f"Request data: {request.data}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     # Create service request
