@@ -480,16 +480,16 @@ export const ActivityAPI = {
  * Messaging API
  */
 export const MessagingAPI = {
-  getConversations: () => api.get<any[]>('/messaging/conversations/'),
+  getConversations: () => api.get<any[]>('/messages/conversations/'),
   
   getMessages: (conversationId: number) =>
-    api.get<any[]>(`/messaging/conversations/${conversationId}/messages/`),
+    api.get<any[]>(`/messages/conversations/${conversationId}/`),
   
   sendMessage: (conversationId: number, content: string) =>
-    api.post<any>(`/messaging/conversations/${conversationId}/messages/`, { content }),
+    api.post<any>(`/messages/conversations/${conversationId}/send/`, { content }),
   
   createConversation: (recipientId: number, initialMessage?: string) =>
-    api.post<any>('/messaging/conversations/', {
+    api.post<any>('/messages/conversations/', {
       recipient_id: recipientId,
       message: initialMessage,
     }),

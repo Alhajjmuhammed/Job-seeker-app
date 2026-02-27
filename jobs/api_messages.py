@@ -96,7 +96,6 @@ def get_messages(request, user_id):
             'message': msg.message,
             'subject': msg.subject,
             'is_read': msg.is_read,
-                'created_at': msg.created_at.isoformat(),
             'created_at': msg.created_at.isoformat(),
             'is_sent_by_me': msg.sender.id == user.id,
         })

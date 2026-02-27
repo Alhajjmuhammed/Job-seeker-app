@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, Keyboard } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -103,10 +103,11 @@ export default function ClientConversationScreen() {
         }}
       />
       <KeyboardAvoidingView 
-        style={[styles.container, { backgroundColor: theme.background }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        style={{ flex: 1 }}
+        behavior='padding'
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
       >
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
@@ -118,6 +119,8 @@ export default function ClientConversationScreen() {
               ref={scrollViewRef}
               style={styles.messagesContainer}
               contentContainerStyle={styles.messagesContent}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />
               }
@@ -187,6 +190,7 @@ export default function ClientConversationScreen() {
                 placeholderTextColor={theme.textSecondary}
                 value={newMessage}
                 onChangeText={setNewMessage}
+                onFocus={() => setTimeout(() => scrollToBottom(), 100)}
                 multiline
                 maxLength={1000}
               />
@@ -207,6 +211,7 @@ export default function ClientConversationScreen() {
             </View>
           </>
         )}
+        </View>
       </KeyboardAvoidingView>
     </>
   );

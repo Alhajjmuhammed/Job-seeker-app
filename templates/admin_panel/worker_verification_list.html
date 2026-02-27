@@ -76,7 +76,12 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
-                                {% if worker.user.profile_picture %}
+                                {% if worker.profile_image %}
+                                <img src="{{ worker.profile_image.url }}" 
+                                     alt="{{ worker.user.get_full_name }}" 
+                                     class="rounded-circle me-3" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                {% elif worker.user.profile_picture %}
                                 <img src="{{ worker.user.profile_picture.url }}" 
                                      alt="{{ worker.user.get_full_name }}" 
                                      class="rounded-circle me-3" 
