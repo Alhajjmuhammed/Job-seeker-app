@@ -126,6 +126,18 @@
                                         data-bs-target="#viewModal{{ worker.id }}" title="View Details">
                                     <i class="bi bi-eye"></i>
                                 </button>
+                                
+                                <!-- Rating Actions -->
+                                <a href="{% url 'admin_panel:worker_ratings' worker.id %}" 
+                                   class="btn btn-outline-secondary" title="View Ratings">
+                                    <i class="bi bi-star"></i>
+                                </a>
+                                <a href="{% url 'admin_panel:rate_worker' worker.id %}" 
+                                   class="btn btn-outline-warning" title="Rate Worker">
+                                    <i class="bi bi-star-fill"></i>
+                                </a>
+                                
+                                <!-- Verification Actions -->
                                 {% if worker.verification_status != 'verified' %}
                                 <form method="post" action="{% url 'admin_panel:verify_worker' worker.id %}" class="d-inline">
                                     {% csrf_token %}
@@ -400,6 +412,16 @@
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                         <i class="bi bi-x-lg"></i> Close
                                     </button>
+                                    
+                                    <!-- Rating Actions -->
+                                    <a href="{% url 'admin_panel:worker_ratings' worker.id %}" class="btn btn-info">
+                                        <i class="bi bi-star-fill"></i> View Ratings
+                                    </a>
+                                    <a href="{% url 'admin_panel:rate_worker' worker.id %}" class="btn btn-warning">
+                                        <i class="bi bi-star-half"></i> Rate Worker
+                                    </a>
+                                    
+                                    <!-- Verification Actions -->
                                     {% if worker.verification_status != 'verified' %}
                                     <form method="post" action="{% url 'admin_panel:verify_worker' worker.id %}" class="d-inline">
                                         {% csrf_token %}

@@ -1,0 +1,236 @@
+{% extends "admin_panel/base_admin.html" %}
+{% load static %}
+
+{% block title %}Rate {{ worker.user.get_full_name }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header with Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_verification_list' %}">Workers</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_ratings' worker.id %}">{{ worker.user.get_full_name }}</a></li>
+                    <li class="breadcrumb-item active">Rate Worker</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">Rate Worker</h1>
+        </div>
+        <div>
+            <a href="{% url 'admin_panel:worker_ratings' worker.id %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-eye me-1"></i> View All Ratings
+            </a>
+            <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Workers
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <!-- Worker Header -->
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            {% if worker.profile_image %}
+                            <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" 
+                                 class="rounded-circle" width="60" height="60" style="object-fit: cover;">
+                            {% elif worker.user.profile_picture %}
+                            <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 
+                                 class="rounded-circle" width="60" height="60" style="object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                 style="width: 60px; height: 60px; font-size: 24px; font-weight: bold;">
+                                {{ worker.user.first_name|first }}{{ worker.user.last_name|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ worker.user.get_full_name }}</h5>
+                            <p class="text-muted mb-0">{{ worker.user.email }}</p>
+                            {% if worker.average_rating %}
+                            <div class="text-warning small">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= worker.average_rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="text-muted ms-1">{{ worker.average_rating|floatformat:1 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Form -->
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <h6 class="mb-3">Provide Your Rating</h6>
+                        
+                        <!-- Error Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.tags == 'error' %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Rating Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Rating *</label>
+                            <div class="rating-input">
+                                {% for i in "12345" %}
+                                <input type="radio" name="rating" value="{{ forloop.counter }}" 
+                                       id="star{{ forloop.counter }}" class="d-none" required>
+                                <label for="star{{ forloop.counter }}" class="star-label">
+                                    <i class="bi bi-star-fill"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text">Click on the stars to rate from 1 (poor) to 5 (excellent)</div>
+                        </div>
+                        
+                        <!-- Review Text -->
+                        <div class="mb-4">
+                            <label for="review" class="form-label fw-semibold">Review (Optional)</label>
+                            <textarea class="form-control" id="review" name="review" rows="4" 
+                                      placeholder="Share your experience with this worker. What did they do well? Any areas for improvement?"></textarea>
+                            <div class="form-text">Your review will help other admins and provide feedback to the worker.</div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="card-footer bg-light border-0">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'admin_panel:worker_ratings' worker.id %}" class="btn btn-secondary">
+                                <i class="bi bi-x-lg me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-star-fill me-1"></i> Submit Rating
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Previous Admin Rating (if exists) -->
+            {% if existing_rating %}
+            <div class="alert alert-info mt-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <div>
+                        <strong>You previously rated this worker:</strong>
+                        <div class="text-warning mt-1">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= existing_rating.rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-dark ms-2">{{ existing_rating.rating }}/5</span>
+                        </div>
+                        {% if existing_rating.review %}
+                        <div class="mt-2">
+                            <small><strong>Your review:</strong> "{{ existing_rating.review }}"</small>
+                        </div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">Rated on {{ existing_rating.created_at|date:"M d, Y \a\t g:i A" }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input {
+    display: flex;
+    gap: 8px;
+    font-size: 2rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.star-label {
+    color: #dee2e6;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    transform-origin: center;
+}
+
+.star-label:hover {
+    color: #ffc107;
+    transform: scale(1.1);
+}
+
+.rating-input input[type="radio"]:checked + .star-label {
+    color: #ffc107;
+}
+
+/* Highlight stars up to selected rating */
+.rating-input input[type="radio"]:checked ~ input[type="radio"] + .star-label {
+    color: #dee2e6;
+}
+
+/* On hover, highlight stars up to hovered position */
+.star-label:hover ~ .star-label {
+    color: #dee2e6;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const starInputs = document.querySelectorAll('input[name="rating"]');
+    const starLabels = document.querySelectorAll('.star-label');
+    
+    // Handle star hovering
+    starLabels.forEach((label, index) => {
+        label.addEventListener('mouseover', function() {
+            highlightStars(index + 1);
+        });
+        
+        label.addEventListener('click', function() {
+            starInputs[index].checked = true;
+            highlightStars(index + 1);
+        });
+    });
+    
+    // Reset to selected rating when mouse leaves
+    document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+        const checkedInput = document.querySelector('input[name="rating"]:checked');
+        if (checkedInput) {
+            highlightStars(parseInt(checkedInput.value));
+        } else {
+            highlightStars(0);
+        }
+    });
+    
+    function highlightStars(count) {
+        starLabels.forEach((label, index) => {
+            if (index < count) {
+                label.style.color = '#ffc107';
+            } else {
+                label.style.color = '#dee2e6';
+            }
+        });
+    }
+    
+    // Set initial state based on any pre-selected rating
+    const checkedInput = document.querySelector('input[name="rating"]:checked');
+    if (checkedInput) {
+        highlightStars(parseInt(checkedInput.value));
+    }
+});
+</script>
+{% endblock %}

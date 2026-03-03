@@ -1,0 +1,320 @@
+{% extends "admin_panel/base_admin.html" %}
+{% load static %}
+
+{% block title %}{{ worker.user.get_full_name }} - Ratings - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header with Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_verification_list' %}">Workers</a></li>
+                    <li class="breadcrumb-item active">{{ worker.user.get_full_name }} - Ratings</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">Worker Ratings & Reviews</h1>
+        </div>
+        <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Workers
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Worker Summary -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <!-- Profile Picture -->
+                    <div class="mb-3">
+                        {% if worker.profile_image %}
+                        <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" 
+                             class="rounded-circle" width="80" height="80" style="object-fit: cover;">
+                        {% elif worker.user.profile_picture %}
+                        <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 
+                             class="rounded-circle" width="80" height="80" style="object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" 
+                             style="width: 80px; height: 80px; font-size: 32px; font-weight: bold;">
+                            {{ worker.user.first_name|first }}{{ worker.user.last_name|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="card-title">{{ worker.user.get_full_name }}</h4>
+                    <p class="text-muted mb-3">{{ worker.user.email }}</p>
+                    
+                    {% if worker.average_rating %}
+                    <div class="mb-3">
+                        <div class="display-6 text-warning fw-bold">{{ worker.average_rating|floatformat:1 }}</div>
+                        <div class="text-warning mb-1">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= worker.average_rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">Average Rating</small>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <div class="text-muted">
+                            <i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
+                        </div>
+                        <small class="text-muted">No ratings yet</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#rateWorkerModal">
+                            <i class="bi bi-star-fill me-1"></i> Rate This Worker
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rating Statistics -->
+            {% if rating_stats.total > 0 %}
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Rating Breakdown</h5>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="me-2">5 <i class="bi bi-star-fill text-warning"></i></span>
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-warning rating-bar-5" data-width="{{ rating_percentages.five_star_pct|floatformat:0 }}"></div>
+                            </div>
+                            <span class="text-muted small">{{ rating_stats.five_star }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="me-2">4 <i class="bi bi-star-fill text-warning"></i></span>
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-warning rating-bar-4" data-width="{{ rating_percentages.four_star_pct|floatformat:0 }}"></div>
+                            </div>
+                            <span class="text-muted small">{{ rating_stats.four_star }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="me-2">3 <i class="bi bi-star-fill text-warning"></i></span>
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-warning rating-bar-3" data-width="{{ rating_percentages.three_star_pct|floatformat:0 }}"></div>
+                            </div>
+                            <span class="text-muted small">{{ rating_stats.three_star }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="me-2">2 <i class="bi bi-star-fill text-warning"></i></span>
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-warning rating-bar-2" data-width="{{ rating_percentages.two_star_pct|floatformat:0 }}"></div>
+                            </div>
+                            <span class="text-muted small">{{ rating_stats.two_star }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">1 <i class="bi bi-star-fill text-warning"></i></span>
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-warning rating-bar-1" data-width="{{ rating_percentages.one_star_pct|floatformat:0 }}"></div>
+                            </div>
+                            <span class="text-muted small">{{ rating_stats.one_star }}</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="text-center">
+                        <strong>{{ rating_stats.total }}</strong> Total Rating{{ rating_stats.total|pluralize }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Ratings List -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">All Ratings & Reviews</h5>
+                </div>
+                <div class="card-body">
+                    {% if ratings %}
+                        {% for rating in ratings %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    {% if rating.client.profile_picture %}
+                                    <img src="{{ rating.client.profile_picture.url }}" alt="{{ rating.client.get_full_name }}" 
+                                         class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px; font-size: 16px; font-weight: bold;">
+                                        {{ rating.client.first_name|first }}{{ rating.client.last_name|first }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <strong class="me-2">{{ rating.client.get_full_name }}</strong>
+                                        {% if rating.client.is_staff %}
+                                        <span class="badge bg-primary small">Admin</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary small">{{ rating.client.user_type|title }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="text-warning">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= rating.rating %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-muted">{{ rating.created_at|timesince }} ago</small>
+                                    </div>
+                                    
+                                    {% if rating.review %}
+                                    <p class="mb-0 text-muted">{{ rating.review }}</p>
+                                    {% else %}
+                                    <p class="mb-0 text-muted fst-italic">No review provided</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-star display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">No ratings yet</h5>
+                            <p class="text-muted">This worker hasn't received any ratings.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rate Worker Modal -->
+<div class="modal fade" id="rateWorkerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'admin_panel:rate_worker' worker.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Rate {{ worker.user.get_full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-input">
+                            {% for i in "12345" %}
+                            <input type="radio" name="rating" value="{{ forloop.counter }}" id="star{{ forloop.counter }}" class="d-none">
+                            <label for="star{{ forloop.counter }}" class="star-label">
+                                <i class="bi bi-star-fill"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="review" class="form-label">Review (Optional)</label>
+                        <textarea class="form-control" id="review" name="review" rows="3" 
+                                  placeholder="Share your experience working with this professional..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Rating</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input {
+    display: flex;
+    gap: 5px;
+    font-size: 1.5rem;
+}
+
+.star-label {
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star-label:hover,
+.star-label:hover ~ .star-label {
+    color: #ffc107;
+}
+
+input[type="radio"]:checked ~ .star-label,
+input[type="radio"]:checked ~ .star-label ~ .star-label {
+    color: #ddd;
+}
+
+input[type="radio"]:checked + .star-label {
+    color: #ffc107;
+}
+
+/* Reverse the flow for proper highlighting */
+.rating-input {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-label:hover ~ .star-label {
+    color: #ffc107;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set rating bar widths from data attributes
+    const ratingBars = document.querySelectorAll('.progress-bar[data-width]');
+    ratingBars.forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+    
+    const starInputs = document.querySelectorAll('input[name="rating"]');
+    const starLabels = document.querySelectorAll('.star-label');
+    
+    starLabels.forEach((label, index) => {
+        label.addEventListener('mouseover', function() {
+            highlightStars(starLabels.length - index);
+        });
+        
+        label.addEventListener('click', function() {
+            const rating = starLabels.length - index;
+            starInputs[rating - 1].checked = true;
+            highlightStars(rating);
+        });
+    });
+    
+    document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+        const checkedInput = document.querySelector('input[name="rating"]:checked');
+        if (checkedInput) {
+            highlightStars(parseInt(checkedInput.value));
+        } else {
+            highlightStars(0);
+        }
+    });
+    
+    function highlightStars(count) {
+        starLabels.forEach((label, index) => {
+            if (starLabels.length - index <= count) {
+                label.style.color = '#ffc107';
+            } else {
+                label.style.color = '#ddd';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

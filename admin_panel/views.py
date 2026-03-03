@@ -1679,3 +1679,115 @@ def assign_worker_to_request(request, request_id):
             messages.error(request, f'Error assigning worker: {str(e)}')
     
     return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+
+@staff_member_required
+def rate_worker(request, worker_id):
+    """Admin rate a worker"""
+    from clients.models import Rating
+    from django.db import models
+    
+    worker = get_object_or_404(WorkerProfile, id=worker_id)
+    
+    # Get existing admin rating if exists
+    existing_rating = Rating.objects.filter(
+        client=request.user,
+        worker=worker
+    ).first()
+    
+    if request.method == 'POST':
+        rating_value = request.POST.get('rating')
+        review_text = request.POST.get('review', '').strip()
+        
+        if not rating_value:
+            messages.error(request, 'Please select a rating')
+            return render(request, 'admin_panel/rate_worker.html', {
+                'worker': worker,
+                'existing_rating': existing_rating
+            })
+        
+        try:
+            rating_value = int(rating_value)
+            if rating_value < 1 or rating_value > 5:
+                messages.error(request, 'Rating must be between 1 and 5 stars')
+                return render(request, 'admin_panel/rate_worker.html', {
+                    'worker': worker,
+                    'existing_rating': existing_rating
+                })
+            
+            if existing_rating:
+                # Update existing rating
+                existing_rating.rating = rating_value
+                existing_rating.review = review_text
+                existing_rating.save()
+                messages.success(request, f'Successfully updated your rating for {worker.user.get_full_name()}')
+            else:
+                # Create new rating
+                Rating.objects.create(
+                    client=request.user,
+                    worker=worker,
+                    rating=rating_value,
+                    review=review_text
+                )
+                messages.success(request, f'Successfully rated {worker.user.get_full_name()} with {rating_value} stars')
+            
+            # Update worker's average rating
+            worker_ratings = Rating.objects.filter(worker=worker)
+            if worker_ratings.exists():
+                avg_rating = worker_ratings.aggregate(models.Avg('rating'))['rating__avg']
+                worker.average_rating = round(avg_rating, 2)
+                worker.save()
+                
+            # Redirect to worker ratings page to see the result
+            return redirect('admin_panel:worker_ratings', worker_id=worker_id)
+            
+        except ValueError:
+            messages.error(request, 'Invalid rating value')
+        except Exception as e:
+            messages.error(request, f'Error saving rating: {str(e)}')
+    
+    # GET request - show the rating form
+    context = {
+        'worker': worker,
+        'existing_rating': existing_rating
+    }
+    return render(request, 'admin_panel/rate_worker.html', context)
+
+
+@staff_member_required  
+def worker_ratings(request, worker_id):
+    """View all ratings for a specific worker"""
+    from clients.models import Rating
+    
+    worker = get_object_or_404(WorkerProfile, id=worker_id)
+    ratings = Rating.objects.filter(worker=worker).select_related('client').order_by('-created_at')
+    
+    # Get rating statistics
+    rating_stats = ratings.aggregate(
+        total=models.Count('id'),
+        average=models.Avg('rating'),
+        five_star=models.Count('id', filter=models.Q(rating=5)),
+        four_star=models.Count('id', filter=models.Q(rating=4)),
+        three_star=models.Count('id', filter=models.Q(rating=3)),
+        two_star=models.Count('id', filter=models.Q(rating=2)),
+        one_star=models.Count('id', filter=models.Q(rating=1)),
+    )
+    
+    # Calculate percentages for CSS width values
+    total_ratings = rating_stats['total'] or 1  # Avoid division by zero
+    rating_percentages = {
+        'five_star_pct': (rating_stats['five_star'] / total_ratings) * 100,
+        'four_star_pct': (rating_stats['four_star'] / total_ratings) * 100,
+        'three_star_pct': (rating_stats['three_star'] / total_ratings) * 100,
+        'two_star_pct': (rating_stats['two_star'] / total_ratings) * 100,
+        'one_star_pct': (rating_stats['one_star'] / total_ratings) * 100,
+    }
+    
+    context = {
+        'worker': worker,
+        'ratings': ratings,
+        'rating_stats': rating_stats,
+        'rating_percentages': rating_percentages,
+    }
+    
+    return render(request, 'admin_panel/worker_ratings.html', context)
