@@ -30,6 +30,22 @@ class ServiceRequest(models.Model):
         ('emergency', 'Emergency'),
     )
     
+    DURATION_TYPE_CHOICES = (
+        ('daily', 'Daily'),
+        ('monthly', 'Monthly'),
+        ('3_months', '3 Months'),
+        ('6_months', '6 Months'),
+        ('yearly', 'Yearly'),
+        ('custom', 'Custom Date Range'),
+    )
+    
+    PAYMENT_STATUS_CHOICES = (
+        ('pending', 'Pending Payment'),
+        ('paid', 'Paid'),
+        ('failed', 'Payment Failed'),
+        ('refunded', 'Refunded'),
+    )
+    
     # Request info
     client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='service_requests')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='service_requests')
@@ -44,11 +60,63 @@ class ServiceRequest(models.Model):
     # Scheduling
     preferred_date = models.DateField(null=True, blank=True, help_text="Preferred date for service")
     preferred_time = models.TimeField(null=True, blank=True, help_text="Preferred time for service")
+    
+    # Duration & Pricing (NEW SYSTEM)
+    duration_type = models.CharField(
+        max_length=20,
+        choices=DURATION_TYPE_CHOICES,
+        default='daily',
+        help_text="Service duration type"
+    )
+    duration_days = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        help_text="Total number of days for service"
+    )
+    service_start_date = models.DateField(null=True, blank=True, help_text="Service start date (for custom range)")
+    service_end_date = models.DateField(null=True, blank=True, help_text="Service end date (for custom range)")
+    
+    # Pricing
+    daily_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Daily rate at time of booking"
+    )
+    total_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Total price (daily_rate × duration_days)"
+    )
+    
+    # Payment
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='pending',
+        help_text="Payment status"
+    )
+    payment_method = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Payment method used (fake for demo)"
+    )
+    paid_at = models.DateTimeField(null=True, blank=True, help_text="When payment was completed")
+    payment_transaction_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Payment transaction ID (fake for demo)"
+    )
+    
+    # Legacy field (keep for backward compatibility)
     estimated_duration_hours = models.DecimalField(
         max_digits=5, 
-        decimal_places=2, 
+        decimal_places=2,
+        null=True,
+        blank=True,
         validators=[MinValueValidator(0.5)],
-        help_text="Estimated duration in hours"
+        help_text="DEPRECATED: Use duration_days instead"
     )
     
     # Status
@@ -126,8 +194,38 @@ class ServiceRequest(models.Model):
     def __str__(self):
         return f"Service Request #{self.id} - {self.title} ({self.get_status_display()})"
     
+    def calculate_duration_days(self):
+        """Calculate duration in days based on duration type"""
+        duration_map = {
+            'daily': 1,
+            'monthly': 30,
+            '3_months': 90,
+            '6_months': 180,
+            'yearly': 365,
+        }
+        
+        if self.duration_type == 'custom':
+            if self.service_start_date and self.service_end_date:
+                delta = self.service_end_date - self.service_start_date
+                return max(1, delta.days + 1)  # +1 to include both start and end days
+            return 1
+        
+        return duration_map.get(self.duration_type, 1)
+    
+    def calculate_total_price(self):
+        """Calculate total price based on daily rate and duration"""
+        if self.duration_type == 'custom':
+            self.duration_days = self.calculate_duration_days()
+        else:
+            self.duration_days = self.calculate_duration_days()
+        
+        if self.daily_rate and self.duration_days:
+            self.total_price = self.daily_rate * Decimal(str(self.duration_days))
+            return self.total_price
+        return Decimal('0.00')
+    
     def calculate_total_amount(self):
-        """Calculate total based on hours worked and hourly rate"""
+        """Calculate total based on hours worked and hourly rate (legacy)"""
         if self.hourly_rate and self.total_hours_worked:
             self.total_amount = self.hourly_rate * self.total_hours_worked
             return self.total_amount

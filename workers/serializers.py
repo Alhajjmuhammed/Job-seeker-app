@@ -6,7 +6,7 @@ from worker_connect.serializer_mixins import SanitizedSerializerMixin
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'icon']
+        fields = ['id', 'name', 'description', 'icon', 'daily_rate']
 
 
 class SkillSerializer(serializers.ModelSerializer):

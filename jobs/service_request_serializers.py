@@ -42,13 +42,21 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     assigned_by_name = serializers.CharField(source='assigned_by.get_full_name', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     urgency_display = serializers.CharField(source='get_urgency_display', read_only=True)
+    duration_type_display = serializers.CharField(source='get_duration_type_display', read_only=True)
     
     class Meta:
         model = ServiceRequest
         fields = [
             'id', 'client', 'client_name', 'client_phone', 'client_email', 'category', 'category_name',
             'title', 'description', 'location', 'city',
-            'preferred_date', 'preferred_time', 'estimated_duration_hours',
+            'preferred_date', 'preferred_time',
+            # NEW: Duration & Pricing fields
+            'duration_type', 'duration_type_display', 'duration_days',
+            'service_start_date', 'service_end_date',
+            'daily_rate', 'total_price',
+            'payment_status', 'payment_method', 'paid_at', 'payment_transaction_id',
+            # Legacy field
+            'estimated_duration_hours',
             'status', 'status_display', 'urgency', 'urgency_display',
             'assigned_worker', 'worker_name', 'assigned_by', 'assigned_by_name', 'assigned_at',
             'worker_accepted', 'worker_response_at', 'worker_rejection_reason',
@@ -60,18 +68,21 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'client', 'assigned_by', 'assigned_at', 'worker_response_at',
             'work_started_at', 'work_completed_at', 'completed_by_worker_at',
-            'total_hours_worked', 'total_amount', 'created_at', 'updated_at'
+            'total_hours_worked', 'total_amount', 'created_at', 'updated_at',
+            'daily_rate', 'total_price', 'duration_days', 'paid_at'
         ]
 
 
 class ServiceRequestCreateSerializer(serializers.ModelSerializer):
-    """Serializer for client creating service request"""
+    """Serializer for client creating service request WITH PRICING"""
     
     class Meta:
         model = ServiceRequest
         fields = [
             'category', 'title', 'description', 'location', 'city',
-            'preferred_date', 'preferred_time', 'estimated_duration_hours',
+            'preferred_date', 'preferred_time',
+            # NEW: Duration fields
+            'duration_type', 'service_start_date', 'service_end_date',
             'urgency', 'client_notes'
         ]
     
@@ -79,6 +90,19 @@ class ServiceRequestCreateSerializer(serializers.ModelSerializer):
         if not value.is_active:
             raise serializers.ValidationError("This category is not currently available.")
         return value
+    
+    def validate(self, data):
+        """Validate custom date range if duration_type is custom"""
+        if data.get('duration_type') == 'custom':
+            if not data.get('service_start_date') or not data.get('service_end_date'):
+                raise serializers.ValidationError({
+                    'duration_type': 'service_start_date and service_end_date are required for custom duration'
+                })
+            if data['service_end_date'] < data['service_start_date']:
+                raise serializers.ValidationError({
+                    'service_end_date': 'End date must be after start date'
+                })
+        return data
 
 
 class ServiceRequestListSerializer(serializers.ModelSerializer):

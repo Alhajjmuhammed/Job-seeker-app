@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -27,10 +27,32 @@ interface ServiceRequestDetail {
   city: string;
   preferred_date?: string;
   preferred_time?: string;
+  duration_type?: string;
+  duration_days?: number;
+  daily_rate?: number;
+  total_price?: number;
+  service_start_date?: string;
+  service_end_date?: string;
   estimated_duration_hours: number;
   urgency: string;
   client_notes?: string;
   status: string;
+}
+
+interface PriceCalculation {
+  duration_days: number;
+  daily_rate: number;
+  total_price: number;
+  duration_type_display: string;
+}
+
+// Helper function to format dates
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export default function EditServiceRequestScreen() {
@@ -51,7 +73,16 @@ export default function EditServiceRequestScreen() {
   const [preferredTime, setPreferredTime] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [estimatedHours, setEstimatedHours] = useState('1');
+  
+  // Duration & Pricing state
+  const [durationType, setDurationType] = useState<'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom'>('daily');
+  const [serviceStartDate, setServiceStartDate] = useState<Date>(new Date());
+  const [serviceEndDate, setServiceEndDate] = useState<Date>(new Date());
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [priceCalculation, setPriceCalculation] = useState<PriceCalculation | null>(null);
+  const [calculatingPrice, setCalculatingPrice] = useState(false);
+  
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
 
@@ -80,7 +111,7 @@ export default function EditServiceRequestScreen() {
       setDescription(requestData.description);
       setLocation(requestData.location);
       setCity(requestData.city);
-      setEstimatedHours(requestData.estimated_duration_hours?.toString() || '1');
+      setDurationType(requestData.duration_type || 'daily');
       setUrgency(requestData.urgency || 'normal');
       setClientNotes(requestData.client_notes || '');
       
@@ -93,6 +124,12 @@ export default function EditServiceRequestScreen() {
         timeDate.setHours(parseInt(hours), parseInt(minutes));
         setPreferredTime(timeDate);
       }
+      
+      // Load custom date range if exists
+      if (requestData.duration_type === 'custom' && requestData.service_start_date && requestData.service_end_date) {
+        setServiceStartDate(new Date(requestData.service_start_date));
+        setServiceEndDate(new Date(requestData.service_end_date));
+      }
     } catch (error: any) {
       console.error('Error loading request:', error);
       Alert.alert('Error', 'Failed to load request details');
@@ -101,6 +138,37 @@ export default function EditServiceRequestScreen() {
       setLoading(false);
     }
   };
+
+  const calculatePrice = useCallback(async () => {
+    if (!selectedCategory) return;
+
+    try {
+      setCalculatingPrice(true);
+      const data: any = {
+        category_id: selectedCategory,
+        duration_type: durationType,
+      };
+
+      if (durationType === 'custom') {
+        data.start_date = serviceStartDate.toISOString().split('T')[0];
+        data.end_date = serviceEndDate.toISOString().split('T')[0];
+      }
+
+      const response = await apiService.calculatePrice(data);
+      setPriceCalculation(response);
+    } catch (error: any) {
+      console.error('Error calculating price:', error);
+      setPriceCalculation(null);
+    } finally {
+      setCalculatingPrice(false);
+    }
+  }, [selectedCategory, durationType, serviceStartDate, serviceEndDate]);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      calculatePrice();
+    }
+  }, [selectedCategory, calculatePrice]);
 
   const validateForm = (): boolean => {
     if (!selectedCategory) {
@@ -123,9 +191,12 @@ export default function EditServiceRequestScreen() {
       Alert.alert('Validation Error', 'Please enter a city');
       return false;
     }
-    const hours = parseFloat(estimatedHours);
-    if (isNaN(hours) || hours <= 0) {
-      Alert.alert('Validation Error', 'Please enter valid estimated hours');
+    if (!priceCalculation) {
+      Alert.alert('Error', 'Price calculation is required');
+      return false;
+    }
+    if (durationType === 'custom' && serviceEndDate <= serviceStartDate) {
+      Alert.alert('Validation Error', 'End date must be after start date');
       return false;
     }
     return true;
@@ -137,7 +208,7 @@ export default function EditServiceRequestScreen() {
     try {
       setSubmitting(true);
       
-      const updateData = {
+      const updateData: any = {
         category: selectedCategory,
         title: title.trim(),
         description: description.trim(),
@@ -145,10 +216,17 @@ export default function EditServiceRequestScreen() {
         city: city.trim(),
         preferred_date: preferredDate.toISOString().split('T')[0],
         preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
-        estimated_duration_hours: parseFloat(estimatedHours),
+        duration_type: durationType,
         urgency: urgency,
         client_notes: clientNotes.trim() || undefined,
+        payment_method: 'pending',
+        payment_transaction_id: `PENDING-${Date.now()}`
       };
+
+      if (durationType === 'custom') {
+        updateData.service_start_date = serviceStartDate.toISOString().split('T')[0];
+        updateData.service_end_date = serviceEndDate.toISOString().split('T')[0];
+      }
 
       await apiService.updateServiceRequest(Number(id), updateData);
       
@@ -372,17 +450,131 @@ export default function EditServiceRequestScreen() {
         {/* Estimated Hours */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Estimated Duration (hours) <Text style={styles.required}>*</Text>
+            Service Duration <Text style={styles.required}>*</Text>
           </Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="E.g., 2"
-            placeholderTextColor={theme.textSecondary}
-            value={estimatedHours}
-            onChangeText={setEstimatedHours}
-            keyboardType="decimal-pad"
-          />
+          <View style={styles.durationButtons}>
+            {[
+              { value: 'daily', label: 'Daily' },
+              { value: 'monthly', label: 'Monthly' },
+              { value: '3_months', label: '3 Months' },
+              { value: '6_months', label: '6 Months' },
+              { value: 'yearly', label: 'Yearly' },
+              { value: 'custom', label: 'Custom' },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.durationButton,
+                  {
+                    backgroundColor: durationType === option.value ? theme.primary : theme.card,
+                    borderColor: durationType === option.value ? theme.primary : theme.border,
+                  },
+                ]}
+                onPress={() => setDurationType(option.value as any)}
+              >
+                <Text
+                  style={[
+                    styles.durationButtonText,
+                    { color: durationType === option.value ? '#FFFFFF' : theme.text },
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
+
+        {/* Custom Date Range */}
+        {durationType === 'custom' && (
+          <>
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: theme.text }]}>
+                Start Date <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(serviceStartDate)}</Text>
+              </TouchableOpacity>
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={serviceStartDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={new Date()}
+                  onChange={(event, selectedDate) => {
+                    setShowStartDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setServiceStartDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
+
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: theme.text }]}>
+                End Date <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(serviceEndDate)}</Text>
+              </TouchableOpacity>
+              {showEndDatePicker && (
+                <DateTimePicker
+                  value={serviceEndDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={serviceStartDate}
+                  onChange={(event, selectedDate) => {
+                    setShowEndDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setServiceEndDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Price Display */}
+        {priceCalculation && (
+          <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
+            <View style={styles.priceRow}>
+              <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                {priceCalculation.duration_days} days
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Ionicons name="cash-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                ${priceCalculation.daily_rate}
+              </Text>
+            </View>
+            <View style={[styles.priceRow, styles.totalPriceRow]}>
+              <Ionicons name="wallet-outline" size={24} color={theme.primary} />
+              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
+              <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
+                ${priceCalculation.total_price}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {calculatingPrice && (
+          <View style={styles.calculatingContainer}>
+            <ActivityIndicator size="small" color={theme.primary} />
+            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>
+              Calculating price...
+            </Text>
+          </View>
+        )}
 
         {/* Urgency */}
         <View style={styles.section}>
@@ -570,6 +762,70 @@ const styles = StyleSheet.create({
   urgencyButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  durationButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  durationButton: {
+    flex: 1,
+    minWidth: '30%',
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  durationButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  priceCard: {
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 12,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  priceLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  priceValue: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  totalPriceRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  totalPriceLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    flex: 1,
+  },
+  totalPriceValue: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  calculatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  calculatingText: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
   categoryScroll: {
     maxHeight: 100,

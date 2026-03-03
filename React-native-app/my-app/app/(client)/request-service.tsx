@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,14 @@ interface Category {
   id: number;
   name: string;
   description: string;
+  daily_rate?: number;
+}
+
+interface PriceCalculation {
+  duration_days: number;
+  daily_rate: number;
+  total_price: number;
+  duration_type_display: string;
 }
 
 export default function RequestServiceScreen() {
@@ -39,7 +47,16 @@ export default function RequestServiceScreen() {
   const [preferredTime, setPreferredTime] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [estimatedHours, setEstimatedHours] = useState('1');
+  
+  // NEW: Duration & Pricing state
+  const [durationType, setDurationType] = useState<'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom'>('daily');
+  const [serviceStartDate, setServiceStartDate] = useState<Date>(new Date());
+  const [serviceEndDate, setServiceEndDate] = useState<Date>(new Date());
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [priceCalculation, setPriceCalculation] = useState<PriceCalculation | null>(null);
+  const [calculatingPrice, setCalculatingPrice] = useState(false);
+  
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
 
@@ -50,7 +67,7 @@ export default function RequestServiceScreen() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getClientCategories();
+      const response = await apiService.getCategoryPricing();
       setCategories(response.categories || []);
     } catch (error: any) {
       console.error('Error loading categories:', error);
@@ -60,7 +77,93 @@ export default function RequestServiceScreen() {
     }
   };
 
-  const validateForm = (): boolean => {
+  const calculatePrice = useCallback(async () => {
+    if (!selectedCategory) return;
+
+    try {
+      setCalculatingPrice(true);
+      const data: any = {
+        category_id: selectedCategory,
+        duration_type: durationType,
+      };
+
+      if (durationType === 'custom') {
+        data.start_date = serviceStartDate.toISOString().split('T')[0];
+        data.end_date = serviceEndDate.toISOString().split('T')[0];
+      }
+
+      const response = await apiService.calculatePrice(data);
+      setPriceCalculation(response);
+    } catch (error: any) {
+      console.error('Error calculating price:', error);
+      setPriceCalculation(null);
+    } finally {
+      setCalculatingPrice(false);
+    }
+  }, [selectedCategory, durationType, serviceStartDate, serviceEndDate]);
+
+  // NEW: Calculate price when duration or category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      calculatePrice();
+    }
+  }, [selectedCategory, calculatePrice]);
+
+  const handlePayAndSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      setSubmitting(true);
+
+      // Submit service request
+      const requestData: any = {
+        category: selectedCategory!,
+        title: title.trim(),
+        description: description.trim(),
+        location: location.trim(),
+        city: city.trim(),
+        preferred_date: preferredDate.toISOString().split('T')[0],
+        preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
+        duration_type: durationType,
+        urgency: urgency,
+        client_notes: clientNotes.trim() || undefined,
+        payment_method: 'pending',
+        payment_transaction_id: `PENDING-${Date.now()}`
+      };
+
+      if (durationType === 'custom') {
+        requestData.service_start_date = serviceStartDate.toISOString().split('T')[0];
+        requestData.service_end_date = serviceEndDate.toISOString().split('T')[0];
+      }
+
+      await apiService.requestService(selectedCategory!, requestData);
+      
+      Alert.alert(
+        'Success!',
+        `Your service request for $${priceCalculation!.total_price} has been submitted! Our admin will assign a qualified worker soon.`,
+        [
+          {
+            text: 'View My Requests',
+            onPress: () => router.replace('/(client)/my-requests'),
+          },
+          {
+            text: 'OK',
+            onPress: () => router.back(),
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Error:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          'Failed to process request. Please try again.';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  function validateForm(): boolean {
     if (!selectedCategory) {
       Alert.alert('Validation Error', 'Please select a service category');
       return false;
@@ -81,55 +184,18 @@ export default function RequestServiceScreen() {
       Alert.alert('Validation Error', 'Please enter a city');
       return false;
     }
-    const hours = parseFloat(estimatedHours);
-    if (isNaN(hours) || hours <= 0) {
-      Alert.alert('Validation Error', 'Please enter valid estimated hours');
+    if (!priceCalculation) {
+      Alert.alert('Error', 'Price calculation is required');
+      return false;
+    }
+    if (durationType === 'custom' && serviceEndDate <= serviceStartDate) {
+      Alert.alert('Validation Error', 'End date must be after start date');
       return false;
     }
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
 
-    try {
-      setSubmitting(true);
-      
-      const requestData = {
-        category: selectedCategory!,
-        title: title.trim(),
-        description: description.trim(),
-        location: location.trim(),
-        city: city.trim(),
-        preferred_date: preferredDate.toISOString().split('T')[0],
-        preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
-        estimated_duration_hours: parseFloat(estimatedHours),
-        urgency: urgency,
-        client_notes: clientNotes.trim() || undefined,
-      };
-
-      await apiService.requestService(selectedCategory!, requestData);
-      
-      Alert.alert(
-        'Success',
-        'Your service request has been submitted successfully!',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
-    } catch (error: any) {
-      console.error('Error creating service request:', error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.message || 
-                          'Failed to create service request';
-      Alert.alert('Error', errorMessage);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -311,17 +377,131 @@ export default function RequestServiceScreen() {
         {/* Estimated Hours */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Estimated Duration (hours) <Text style={styles.required}>*</Text>
+            Service Duration <Text style={styles.required}>*</Text>
           </Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="E.g., 2"
-            placeholderTextColor={theme.textSecondary}
-            value={estimatedHours}
-            onChangeText={setEstimatedHours}
-            keyboardType="decimal-pad"
-          />
+          <View style={styles.durationButtons}>
+            {[
+              { value: 'daily', label: 'Daily' },
+              { value: 'monthly', label: 'Monthly' },
+              { value: '3_months', label: '3 Months' },
+              { value: '6_months', label: '6 Months' },
+              { value: 'yearly', label: 'Yearly' },
+              { value: 'custom', label: 'Custom' },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.durationButton,
+                  {
+                    backgroundColor: durationType === option.value ? theme.primary : theme.card,
+                    borderColor: durationType === option.value ? theme.primary : theme.border,
+                  },
+                ]}
+                onPress={() => setDurationType(option.value as any)}
+              >
+                <Text
+                  style={[
+                    styles.durationButtonText,
+                    { color: durationType === option.value ? '#FFFFFF' : theme.text },
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
+
+        {/* Custom Date Range */}
+        {durationType === 'custom' && (
+          <>
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: theme.text }]}>
+                Start Date <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(serviceStartDate)}</Text>
+              </TouchableOpacity>
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={serviceStartDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={new Date()}
+                  onChange={(event, selectedDate) => {
+                    setShowStartDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setServiceStartDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
+
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: theme.text }]}>
+                End Date <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(serviceEndDate)}</Text>
+              </TouchableOpacity>
+              {showEndDatePicker && (
+                <DateTimePicker
+                  value={serviceEndDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={serviceStartDate}
+                  onChange={(event, selectedDate) => {
+                    setShowEndDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setServiceEndDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Price Calculation Display */}
+        {priceCalculation && (
+          <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
+            <View style={styles.priceRow}>
+              <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                {priceCalculation.duration_days} days
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Ionicons name="cash-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                ${priceCalculation.daily_rate}
+              </Text>
+            </View>
+            <View style={[styles.priceRow, styles.totalPriceRow]}>
+              <Ionicons name="wallet-outline" size={24} color={theme.primary} />
+              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
+              <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
+                ${priceCalculation.total_price}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {calculatingPrice && (
+          <View style={styles.calculatingContainer}>
+            <ActivityIndicator size="small" color={theme.primary} />
+            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>
+              Calculating price...
+            </Text>
+          </View>
+        )}
 
         {/* Urgency */}
         <View style={styles.section}>
@@ -372,21 +552,23 @@ export default function RequestServiceScreen() {
           />
         </View>
 
-        {/* Submit Button */}
+        {/* Single Submit Button */}
         <TouchableOpacity
           style={[
             styles.submitButton,
-            { backgroundColor: submitting ? theme.textSecondary : theme.primary },
+            { backgroundColor: submitting ? theme.textSecondary : '#4CAF50' },
           ]}
-          onPress={handleSubmit}
-          disabled={submitting}
+          onPress={handlePayAndSubmit}
+          disabled={submitting || !priceCalculation}
         >
           {submitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <>
-              <Ionicons name="checkmark-circle-outline" size={24} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Submit Request</Text>
+              <Ionicons name="card-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.submitButtonText}>
+                Pay ${priceCalculation?.total_price || '0'} to Get Service
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -483,6 +665,103 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     flex: 1,
+  },
+  durationButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  durationButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: '30%',
+    alignItems: 'center',
+  },
+  durationButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  priceCard: {
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  priceLabel: {
+    fontSize: 14,
+    flex: 1,
+  },
+  priceValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  totalPriceRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  totalPriceLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+  },
+  totalPriceValue: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  calculatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    gap: 8,
+  },
+  calculatingText: {
+    fontSize: 14,
+  },
+  paymentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 8,
+  },
+  paymentButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  demoNote: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  paymentSuccess: {
+    alignItems: 'center',
+    padding: 24,
+    borderRadius: 12,
+    gap: 8,
+  },
+  paymentSuccessText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#4CAF50',
+  },
+  transactionId: {
+    fontSize: 12,
+    color: '#666',
   },
   urgencyButtons: {
     flexDirection: 'row',

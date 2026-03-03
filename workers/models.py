@@ -12,6 +12,13 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, blank=True, help_text="Bootstrap icon class")
     is_active = models.BooleanField(default=True)
+    daily_rate = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=25.00,
+        validators=[MinValueValidator(0)],
+        help_text="Daily rate in USD for this service category"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

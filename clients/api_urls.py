@@ -1,5 +1,5 @@
 from django.urls import path
-from . import api_views
+from . import api_views, pricing_api
 
 app_name = 'clients_api_v2'
 
@@ -29,4 +29,9 @@ urlpatterns = [
     
     # Categories (for display purposes only)
     path('categories/', api_views.categories_list, name='categories_list'),
+    
+    # Pricing & Payment (NEW)
+    path('calculate-price/', pricing_api.calculate_price, name='calculate_price'),
+    path('process-payment/', pricing_api.process_fake_payment, name='process_payment'),
+    path('category-pricing/', pricing_api.get_category_pricing, name='category_pricing'),
 ]

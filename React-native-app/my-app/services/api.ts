@@ -464,6 +464,33 @@ class ApiService {
     return response.data;
   }
 
+  // NEW: Calculate service price based on duration
+  async calculatePrice(data: {
+    category_id: number;
+    duration_type: 'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom';
+    service_start_date?: string;
+    service_end_date?: string;
+  }) {
+    const response = await this.api.post('/v1/client/calculate-price/', data);
+    return response.data;
+  }
+
+  // NEW: Process fake payment
+  async processFakePayment(data: {
+    amount: number;
+    card_holder_name: string;
+    card_last_four: string;
+  }) {
+    const response = await this.api.post('/v1/client/process-payment/', data);
+    return response.data;
+  }
+
+  // NEW: Get category pricing
+  async getCategoryPricing() {
+    const response = await this.api.get('/v1/client/category-pricing/');
+    return response.data;
+  }
+
   async requestService(categoryId: number, data: {
     title: string;
     description: string;
@@ -471,9 +498,13 @@ class ApiService {
     city: string;
     preferred_date?: string;
     preferred_time?: string;
-    estimated_duration_hours: number;
+    duration_type: 'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom';
+    service_start_date?: string;
+    service_end_date?: string;
     urgency?: string;
     client_notes?: string;
+    payment_transaction_id?: string;
+    payment_method?: string;
   }) {
     const response = await this.api.post(`/v1/client/service-requests/create/`, {
       ...data,

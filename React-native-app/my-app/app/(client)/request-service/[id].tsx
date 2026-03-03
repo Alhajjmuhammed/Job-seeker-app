@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,37 +8,58 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface ServiceCategory {
   id: number;
   name: string;
   description: string;
   icon: string;
+  daily_rate: number;
+}
+
+interface PriceCalculation {
+  duration_days: number;
+  daily_rate: number;
+  total_price: number;
+  duration_type_display: string;
 }
 
 export default function RequestServiceScreen() {
   const { id: categoryId } = useLocalSearchParams();
   const { theme } = useTheme();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [category, setCategory] = useState<ServiceCategory | null>(null);
   
   // Form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    location: '',
-    city: '',
-    estimated_duration_hours: '1',
-    urgency: 'normal',
-    client_notes: '',
-  });
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [city, setCity] = useState('');
+  const [preferredDate, setPreferredDate] = useState<Date>(new Date());
+  const [preferredTime, setPreferredTime] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  
+  // Duration & Pricing state
+  const [durationType, setDurationType] = useState<'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom'>('daily');
+  const [serviceStartDate, setServiceStartDate] = useState<Date>(new Date());
+  const [serviceEndDate, setServiceEndDate] = useState<Date>(new Date());
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [priceCalculation, setPriceCalculation] = useState<PriceCalculation | null>(null);
+  const [calculatingPrice, setCalculatingPrice] = useState(false);
+  
+  const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
+  const [clientNotes, setClientNotes] = useState('');
 
   useEffect(() => {
     loadCategoryDetails();
@@ -47,14 +68,15 @@ export default function RequestServiceScreen() {
   const loadCategoryDetails = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getServices();
-      const foundCategory = response.services.find((s: any) => s.id === parseInt(categoryId as string));
-      setCategory(foundCategory);
+      const response = await apiService.getCategoryPricing();
+      const foundCategory = response.categories.find((c: any) => c.id === parseInt(categoryId as string));
+      
       if (foundCategory) {
-        setFormData(prev => ({
-          ...prev,
-          title: `${foundCategory.name} Service Request`
-        }));
+        setCategory(foundCategory);
+        setTitle(`${foundCategory.name} Service Request`);
+      } else {
+        Alert.alert('Error', 'Category not found');
+        router.back();
       }
     } catch (error) {
       console.error('Error loading category:', error);
@@ -64,46 +86,97 @@ export default function RequestServiceScreen() {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const calculatePrice = useCallback(async () => {
+    if (!categoryId) return;
 
-  const validateForm = () => {
-    if (!formData.description.trim()) {
-      Alert.alert('Validation Error', 'Please provide a detailed description of your service needs');
+    try {
+      setCalculatingPrice(true);
+      const data: any = {
+        category_id: parseInt(categoryId as string),
+        duration_type: durationType,
+      };
+
+      if (durationType === 'custom') {
+        data.start_date = serviceStartDate.toISOString().split('T')[0];
+        data.end_date = serviceEndDate.toISOString().split('T')[0];
+      }
+
+      const response = await apiService.calculatePrice(data);
+      setPriceCalculation(response);
+    } catch (error: any) {
+      console.error('Error calculating price:', error);
+      setPriceCalculation(null);
+    } finally {
+      setCalculatingPrice(false);
+    }
+  }, [categoryId, durationType, serviceStartDate, serviceEndDate]);
+
+  useEffect(() => {
+    if (categoryId) {
+      calculatePrice();
+    }
+  }, [categoryId, calculatePrice]);
+
+  function validateForm(): boolean {
+    if (!title.trim()) {
+      Alert.alert('Validation Error', 'Please enter a title');
       return false;
     }
-    if (!formData.location.trim()) {
-      Alert.alert('Validation Error', 'Please specify the location for the service');
+    if (!description.trim()) {
+      Alert.alert('Validation Error', 'Please enter a description');
       return false;
     }
-    if (!formData.city.trim()) {
-      Alert.alert('Validation Error', 'Please specify the city');
+    if (!location.trim()) {
+      Alert.alert('Validation Error', 'Please enter a location');
+      return false;
+    }
+    if (!city.trim()) {
+      Alert.alert('Validation Error', 'Please enter a city');
+      return false;
+    }
+    if (!priceCalculation) {
+      Alert.alert('Error', 'Price calculation is required');
+      return false;
+    }
+    if (durationType === 'custom' && serviceEndDate <= serviceStartDate) {
+      Alert.alert('Validation Error', 'End date must be after start date');
       return false;
     }
     return true;
-  };
+  }
 
-  const handleSubmit = async () => {
+  const handlePayAndSubmit = async () => {
     if (!validateForm()) return;
 
     try {
       setSubmitting(true);
-      const submitData = {
-        title: formData.title,
-        description: formData.description,
-        location: formData.location,
-        city: formData.city,
-        estimated_duration_hours: parseFloat(formData.estimated_duration_hours),
-        urgency: formData.urgency,
-        client_notes: formData.client_notes || undefined,
+
+      // Submit service request
+      const requestData: any = {
+        category: parseInt(categoryId as string),
+        title: title.trim(),
+        description: description.trim(),
+        location: location.trim(),
+        city: city.trim(),
+        preferred_date: preferredDate.toISOString().split('T')[0],
+        preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
+        duration_type: durationType,
+        urgency: urgency,
+        client_notes: clientNotes.trim() || undefined,
+        payment_method: 'pending',
+        payment_transaction_id: `PENDING-${Date.now()}`
       };
 
-      const response = await apiService.requestService(parseInt(categoryId as string), submitData);
+      if (durationType === 'custom') {
+        requestData.service_start_date = serviceStartDate.toISOString().split('T')[0];
+        requestData.service_end_date = serviceEndDate.toISOString().split('T')[0];
+      }
+
+      await apiService.requestService(parseInt(categoryId as string), requestData);
       
       Alert.alert(
-        'Request Submitted!',
-        'Your service request has been submitted successfully. Our admin will assign a qualified worker soon.',
+        'Success!',
+        `Your service request for $${priceCalculation!.total_price} has been submitted! Our admin will assign a qualified worker soon.`,
         [
           {
             text: 'View My Requests',
@@ -116,14 +189,29 @@ export default function RequestServiceScreen() {
         ]
       );
     } catch (error: any) {
-      console.error('Error submitting request:', error);
-      Alert.alert(
-        'Submission Failed',
-        error.response?.data?.error || 'Failed to submit service request. Please try again.'
-      );
+      console.error('Error:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          'Failed to process request. Please try again.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   if (loading) {
@@ -132,7 +220,7 @@ export default function RequestServiceScreen() {
         <Header title="Request Service" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>Loading service details...</Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>Loading...</Text>
         </View>
       </View>
     );
@@ -143,272 +231,528 @@ export default function RequestServiceScreen() {
       <Header title={`Request ${category?.name || 'Service'}`} showBack />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Category Info */}
         {category && (
-          <View style={[styles.serviceCard, { backgroundColor: theme.card }]}>
-            <Text style={[styles.serviceName, { color: theme.text }]}>
+          <View style={[styles.categoryCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.categoryName, { color: theme.text }]}>
               {category.name}
             </Text>
-            <Text style={[styles.serviceDescription, { color: theme.textSecondary }]}>
+            <Text style={[styles.categoryDescription, { color: theme.textSecondary }]}>
               {category.description}
+            </Text>
+            <View style={styles.rateRow}>
+              <Ionicons name="cash-outline" size={16} color={theme.primary} />
+              <Text style={[styles.rateText, { color: theme.primary }]}>
+                ${category.daily_rate}/day
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Title */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Title <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            placeholder="E.g., Fix leaking kitchen faucet"
+            placeholderTextColor={theme.textSecondary}
+            value={title}
+            onChangeText={setTitle}
+            maxLength={200}
+          />
+        </View>
+
+        {/* Description */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Description <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            placeholder="Describe what you need help with..."
+            placeholderTextColor={theme.textSecondary}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            maxLength={1000}
+          />
+        </View>
+
+        {/* Location */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Location <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            placeholder="Street address or area"
+            placeholderTextColor={theme.textSecondary}
+            value={location}
+            onChangeText={setLocation}
+            maxLength={200}
+          />
+        </View>
+
+        {/* City */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            City <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            placeholder="City name"
+            placeholderTextColor={theme.textSecondary}
+            value={city}
+            onChangeText={setCity}
+            maxLength={100}
+          />
+        </View>
+
+        {/* Preferred Date */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>Preferred Date</Text>
+          <TouchableOpacity
+            style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+            <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(preferredDate)}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={preferredDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              minimumDate={new Date()}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(Platform.OS === 'ios');
+                if (selectedDate) setPreferredDate(selectedDate);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Preferred Time */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>Preferred Time</Text>
+          <TouchableOpacity
+            style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+            onPress={() => setShowTimePicker(true)}
+          >
+            <Ionicons name="time-outline" size={20} color={theme.primary} />
+            <Text style={[styles.dateText, { color: theme.text }]}>{formatTime(preferredTime)}</Text>
+          </TouchableOpacity>
+          {showTimePicker && (
+            <DateTimePicker
+              value={preferredTime}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedTime) => {
+                setShowTimePicker(Platform.OS === 'ios');
+                if (selectedTime) setPreferredTime(selectedTime);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Duration Selector */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Service Duration <Text style={styles.required}>*</Text>
+          </Text>
+          <View style={styles.durationButtons}>
+            {[
+              { value: 'daily', label: 'Daily' },
+              { value: 'monthly', label: 'Monthly' },
+              { value: '3_months', label: '3 Months' },
+              { value: '6_months', label: '6 Months' },
+              { value: 'yearly', label: 'Yearly' },
+              { value: 'custom', label: 'Custom' },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.durationButton,
+                  {
+                    backgroundColor: durationType === option.value ? theme.primary : theme.card,
+                    borderColor: durationType === option.value ? theme.primary : theme.border,
+                  },
+                ]}
+                onPress={() => setDurationType(option.value as any)}
+              >
+                <Text
+                  style={[
+                    styles.durationButtonText,
+                    { color: durationType === option.value ? '#FFFFFF' : theme.text },
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Custom Date Range */}
+        {durationType === 'custom' && (
+          <>
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: theme.text }]}>
+                Start Date <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(serviceStartDate)}</Text>
+              </TouchableOpacity>
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={serviceStartDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={new Date()}
+                  onChange={(event, selectedDate) => {
+                    setShowStartDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setServiceStartDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
+
+            <View style={styles.section}>
+              <Text style={[styles.label, { color: theme.text }]}>
+                End Date <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(serviceEndDate)}</Text>
+              </TouchableOpacity>
+              {showEndDatePicker && (
+                <DateTimePicker
+                  value={serviceEndDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={serviceStartDate}
+                  onChange={(event, selectedDate) => {
+                    setShowEndDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setServiceEndDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Price Display */}
+        {priceCalculation && (
+          <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
+            <View style={styles.priceRow}>
+              <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                {priceCalculation.duration_days} days
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Ionicons name="cash-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                ${priceCalculation.daily_rate}
+              </Text>
+            </View>
+            <View style={[styles.priceRow, styles.totalPriceRow]}>
+              <Ionicons name="wallet-outline" size={24} color={theme.primary} />
+              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
+              <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
+                ${priceCalculation.total_price}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {calculatingPrice && (
+          <View style={styles.calculatingContainer}>
+            <ActivityIndicator size="small" color={theme.primary} />
+            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>
+              Calculating price...
             </Text>
           </View>
         )}
 
-        <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-          Fill out the details below and our team will assign the most suitable worker for your needs.
-        </Text>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Service Title</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-              value={formData.title}
-              onChangeText={(value) => handleInputChange('title', value)}
-              placeholder="Brief title for your service request"
-              placeholderTextColor={theme.textSecondary}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              Description <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={[styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-              value={formData.description}
-              onChangeText={(value) => handleInputChange('description', value)}
-              placeholder="Provide detailed description of what you need..."
-              placeholderTextColor={theme.textSecondary}
-              multiline
-              numberOfLines={4}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              Location <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-              value={formData.location}
-              onChangeText={(value) => handleInputChange('location', value)}
-              placeholder="Full address or area where service is needed"
-              placeholderTextColor={theme.textSecondary}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              City <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-              value={formData.city}
-              onChangeText={(value) => handleInputChange('city', value)}
-              placeholder="City name"
-              placeholderTextColor={theme.textSecondary}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Estimated Duration (Hours)</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-              value={formData.estimated_duration_hours}
-              onChangeText={(value) => handleInputChange('estimated_duration_hours', value)}
-              placeholder="1"
-              placeholderTextColor={theme.textSecondary}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Urgency</Text>
-            <View style={styles.urgencyButtons}>
-              {['normal', 'urgent', 'emergency'].map((urgency) => (
-                <TouchableOpacity
-                  key={urgency}
+        {/* Urgency */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>Urgency Level</Text>
+          <View style={styles.urgencyButtons}>
+            {(['normal', 'urgent', 'emergency'] as const).map((level) => (
+              <TouchableOpacity
+                key={level}
+                style={[
+                  styles.urgencyButton,
+                  {
+                    backgroundColor: urgency === level ? getUrgencyColor(level) : theme.card,
+                    borderColor: urgency === level ? getUrgencyColor(level) : theme.border,
+                  },
+                ]}
+                onPress={() => setUrgency(level)}
+              >
+                <Text
                   style={[
-                    styles.urgencyButton,
-                    { borderColor: theme.border },
-                    formData.urgency === urgency && { backgroundColor: theme.primary }
+                    styles.urgencyButtonText,
+                    { color: urgency === level ? '#FFFFFF' : theme.text },
                   ]}
-                  onPress={() => handleInputChange('urgency', urgency)}
                 >
-                  <Text
-                    style={[
-                      styles.urgencyText,
-                      { color: formData.urgency === urgency ? '#FFFFFF' : theme.text }
-                    ]}
-                  >
-                    {urgency.charAt(0).toUpperCase() + urgency.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Additional Notes (Optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-              value={formData.client_notes}
-              onChangeText={(value) => handleInputChange('client_notes', value)}
-              placeholder="Any special requirements or additional information..."
-              placeholderTextColor={theme.textSecondary}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
+        {/* Additional Notes */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>Additional Notes</Text>
+          <TextInput
+            style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+            placeholder="Any additional information..."
+            placeholderTextColor={theme.textSecondary}
+            value={clientNotes}
+            onChangeText={setClientNotes}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+            maxLength={500}
+          />
+        </View>
+
+        {/* Single Submit Button */}
         <TouchableOpacity
           style={[
             styles.submitButton,
-            { backgroundColor: theme.primary },
-            submitting && styles.submitButtonDisabled
+            { backgroundColor: submitting ? theme.textSecondary : '#4CAF50' },
           ]}
-          onPress={handleSubmit}
-          disabled={submitting}
+          onPress={handlePayAndSubmit}
+          disabled={submitting || !priceCalculation}
         >
           {submitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <>
-              <Ionicons name="send" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Submit Service Request</Text>
+              <Ionicons name="card-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.submitButtonText}>
+                Pay ${priceCalculation?.total_price || '0'} to Get Service
+              </Text>
             </>
           )}
         </TouchableOpacity>
 
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-            After submission, our team will review your request and assign a qualified worker. 
-            You'll be notified within 2-4 hours with the assigned worker's contact details.
-          </Text>
-        </View>
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
   );
+}
+
+function getUrgencyColor(urgency: string): string {
+  switch (urgency) {
+    case 'normal':
+      return '#4CAF50';
+    case 'urgent':
+      return '#FFA500';
+    case 'emergency':
+      return '#F44336';
+    default:
+      return '#757575';
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
   },
   loadingText: {
+    marginTop: 12,
     fontSize: 16,
   },
-  serviceCard: {
-    padding: 20,
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  categoryCard: {
+    padding: 16,
     borderRadius: 12,
     marginBottom: 16,
   },
-  serviceName: {
+  categoryName: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: 8,
   },
-  serviceDescription: {
+  categoryDescription: {
     fontSize: 14,
-    lineHeight: 20,
+    marginBottom: 8,
   },
-  infoText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 16,
+  rateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  form: {
-    gap: 20,
+  rateText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
-  inputGroup: {
-    gap: 8,
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
+    marginBottom: 8,
   },
   required: {
-    color: '#FF3B30',
+    color: '#F44336',
   },
   input: {
     borderWidth: 1,
     borderRadius: 8,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     fontSize: 16,
   },
   textArea: {
+    minHeight: 100,
+    paddingTop: 12,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderRadius: 8,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  dateText: {
     fontSize: 16,
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  flex1: {
     flex: 1,
   },
-  marginRight: {
-    marginRight: 6,
+  durationButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  durationButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: '30%',
+    alignItems: 'center',
+  },
+  durationButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  priceCard: {
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  priceLabel: {
+    fontSize: 14,
+    flex: 1,
+  },
+  priceValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  totalPriceRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  totalPriceLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+  },
+  totalPriceValue: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  calculatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    gap: 8,
+  },
+  calculatingText: {
+    fontSize: 14,
+  },
+  demoNote: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   urgencyButtons: {
     flexDirection: 'row',
     gap: 8,
+    flexWrap: 'wrap',
   },
   urgencyButton: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
+    minWidth: '22%',
+    paddingVertical: 10,
     borderRadius: 8,
+    borderWidth: 1,
     alignItems: 'center',
   },
-  urgencyText: {
+  urgencyButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   submitButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 32,
-  },
-  submitButtonDisabled: {
-    opacity: 0.6,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 8,
   },
   submitButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
   },
-  footer: {
-    marginTop: 24,
-    padding: 16,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
+  bottomSpacer: {
+    height: 40,
   },
 });

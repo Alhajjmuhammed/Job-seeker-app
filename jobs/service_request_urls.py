@@ -6,6 +6,7 @@ from django.urls import path
 from admin_panel import service_request_views as admin_views
 from workers import service_request_worker_views as worker_views
 from clients import service_request_client_views as client_views
+from clients import pricing_api
 
 # Admin URLs - prefix: /api/v1/admin/
 admin_urlpatterns = [
@@ -33,6 +34,13 @@ worker_urlpatterns = [
 # Client URLs - prefix: /api/v1/client/
 client_urlpatterns = [
     path('categories/', client_views.client_categories, name='client_categories'),
+    
+    # Pricing & Payment APIs
+    path('calculate-price/', pricing_api.calculate_price, name='calculate_price'),
+    path('process-payment/', pricing_api.process_fake_payment, name='process_payment'),
+    path('category-pricing/', pricing_api.get_category_pricing, name='category_pricing'),
+    
+    # Service Requests
     path('service-requests/create/', client_views.client_create_service_request, name='client_create_service'),
     path('service-requests/', client_views.client_service_requests, name='client_service_requests'),
     path('service-requests/<int:pk>/', client_views.client_service_request_detail, name='client_service_detail'),

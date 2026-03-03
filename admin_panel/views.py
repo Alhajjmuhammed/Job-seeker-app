@@ -6,6 +6,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
+from decimal import Decimal
 import csv
 import json
 
@@ -208,18 +209,25 @@ def category_list(request):
             name = request.POST.get('name', '').strip()
             description = request.POST.get('description', '').strip()
             icon = request.POST.get('icon', '').strip()
+            daily_rate = request.POST.get('daily_rate', '25.00')
             
             if name:
+                try:
+                    daily_rate_decimal = Decimal(daily_rate)
+                except (ValueError, TypeError):
+                    daily_rate_decimal = Decimal('25.00')
+                    
                 category, created = Category.objects.get_or_create(
                     name=name,
                     defaults={
                         'description': description,
                         'icon': icon,
-                        'is_active': True
+                        'is_active': True,
+                        'daily_rate': daily_rate_decimal
                     }
                 )
                 if created:
-                    messages.success(request, f'Category "{name}" created successfully!')
+                    messages.success(request, f'Category "{name}" created successfully with daily rate ${daily_rate_decimal}!')
                 else:
                     messages.warning(request, f'Category "{name}" already exists.')
             else:
@@ -233,6 +241,15 @@ def category_list(request):
                     category.name = request.POST.get('name', category.name)
                     category.description = request.POST.get('description', '')
                     category.icon = request.POST.get('icon', '')
+                    
+                    # Update daily rate
+                    daily_rate = request.POST.get('daily_rate')
+                    if daily_rate:
+                        try:
+                            category.daily_rate = Decimal(daily_rate)
+                        except (ValueError, TypeError):
+                            pass  # Keep existing rate if invalid
+                    
                     category.save()
                     messages.success(request, f'Category "{category.name}" updated successfully!')
                 except Category.DoesNotExist:

@@ -37,7 +37,7 @@ def client_categories(request):
 @permission_classes([IsAuthenticated])
 def client_create_service_request(request):
     """
-    Client creates a new service request
+    Client creates a new service request WITH PAYMENT
     POST /api/client/service-requests/create/
     Body: {
         "category": 1,
@@ -47,13 +47,26 @@ def client_create_service_request(request):
         "city": "Khartoum",
         "preferred_date": "2026-02-10",
         "preferred_time": "10:00",
-        "estimated_duration_hours": 2,
+        "duration_type": "monthly",  # daily, monthly, 3_months, 6_months, yearly, custom
+        "service_start_date": "2026-03-01",  # required for custom
+        "service_end_date": "2026-03-15",    # required for custom
         "urgency": "normal",
-        "client_notes": "Please bring tools"
+        "client_notes": "Please bring tools",
+        "payment_method": "credit_card",
+        "payment_transaction_id": "DEMO-ABC123"
     }
     """
     if request.user.user_type != 'client':
         return Response({'error': 'Only clients can create service requests'}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Validate payment info
+    payment_transaction_id = request.data.get('payment_transaction_id')
+    payment_method = request.data.get('payment_method')
+    
+    if not payment_transaction_id or not payment_method:
+        return Response({
+            'error': 'Payment information required (payment_transaction_id and payment_method)'
+        }, status=status.HTTP_400_BAD_REQUEST)
     
     serializer = ServiceRequestCreateSerializer(data=request.data)
     if not serializer.is_valid():
@@ -61,13 +74,33 @@ def client_create_service_request(request):
         print(f"Request data: {request.data}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    # Create service request
-    service_request = serializer.save(client=request.user, status='pending')
+    # Get category to fetch daily rate
+    category_id = request.data.get('category')
+    try:
+        category = Category.objects.get(id=category_id)
+    except Category.DoesNotExist:
+        return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Create service request with pricing
+    service_request = serializer.save(
+        client=request.user, 
+        status='pending',
+        daily_rate=category.daily_rate,
+        payment_status='paid',
+        payment_method=payment_method,
+        payment_transaction_id=payment_transaction_id,
+        paid_at=datetime.now()
+    )
+    
+    # Calculate and save total price
+    service_request.calculate_total_price()
+    service_request.save()
     
     # Update client profile
     if hasattr(request.user, 'client_profile'):
         profile = request.user.client_profile
         profile.total_jobs_posted += 1
+        profile.total_spent += service_request.total_price
         profile.save()
     
     # Notify admin about new request
@@ -76,8 +109,13 @@ def client_create_service_request(request):
     
     response_serializer = ServiceRequestSerializer(service_request)
     return Response({
-        'message': 'Service request created successfully. Admin will assign a worker soon.',
-        'service_request': response_serializer.data
+        'message': 'Service request created and payment processed successfully. Admin will assign a worker soon.',
+        'service_request': response_serializer.data,
+        'payment': {
+            'status': 'paid',
+            'amount': float(service_request.total_price),
+            'transaction_id': payment_transaction_id
+        }
     }, status=status.HTTP_201_CREATED)
 
 
