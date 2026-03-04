@@ -453,12 +453,26 @@
             
             <div class="sidebar-section-title section-title">WORKERS</div>
             <a href="{% url 'clients:browse_services' %}" class="sidebar-nav-item {% if 'browse_services' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="fas fa-tools"></i>
+                <i class="bi bi-search"></i>
                 <span class="nav-text">Browse Services</span>
             </a>
-            <a href="{% url 'clients:my_service_requests' %}" class="sidebar-nav-item {% if 'service_request' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="fas fa-list-alt"></i>
+            
+            <div class="sidebar-section-title section-title">SERVICE REQUESTS</div>
+            <a href="{% url 'service_requests_web:client_dashboard' %}" class="sidebar-nav-item">
+                <i class="bi bi-speedometer2"></i>
+                <span class="nav-text">SR Dashboard</span>
+            </a>
+            <a href="{% url 'service_requests_web:client_request_service' %}" class="sidebar-nav-item">
+                <i class="bi bi-plus-circle"></i>
+                <span class="nav-text">Request Service</span>
+            </a>
+            <a href="{% url 'service_requests_web:client_my_requests' %}" class="sidebar-nav-item {% if 'service_request' in request.resolver_match.url_name or 'my_requests' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-list-check"></i>
                 <span class="nav-text">My Requests</span>
+            </a>
+            <a href="{% url 'service_requests_web:client_history' %}" class="sidebar-nav-item">
+                <i class="bi bi-clock-history"></i>
+                <span class="nav-text">Request History</span>
             </a>
             
             <div class="sidebar-section-title section-title">JOBS</div>

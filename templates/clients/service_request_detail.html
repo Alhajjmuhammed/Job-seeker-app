@@ -4,6 +4,26 @@
 {% block title %}Service Request Details - Worker Connect{% endblock %}
 {% block page_title %}Service Request Details{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .text-primary { color: #14b8a6 !important; }
+    .card-header { background-color: #f3f4f6; }
+    
+    /* Success - green */
+    .bg-success { background-color: #10b981 !important; }
+    .text-success { color: #10b981 !important; }
+    
+    /* Info - lighter teal */
+    .bg-info { background-color: #06b6d4 !important; }
+    .text-info { color: #06b6d4 !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">

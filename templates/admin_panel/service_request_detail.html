@@ -3,6 +3,28 @@
 
 {% block title %}Service Request #{{ service_request.id }} - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .bg-primary { background-color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .text-primary { color: #14b8a6 !important; }
+    
+    /* Info state - lighter teal */
+    .text-info { color: #06b6d4 !important; }
+    .bg-info { background-color: #06b6d4 !important; }
+    
+    /* Success - green */
+    .text-success { color: #10b981 !important; }
+    .bg-success { background-color: #10b981 !important; }
+    .btn-success { background-color: #10b981; border-color: #10b981; }
+    .btn-success:hover { background-color: #059669; border-color: #059669; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">

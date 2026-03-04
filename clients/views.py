@@ -2,10 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Avg, Count
+from django.utils import timezone
+from datetime import datetime, timedelta
 from workers.models import WorkerProfile, Category
 from .models import ClientProfile
 from .forms import ClientProfileForm
 from jobs.models import JobRequest
+from jobs.service_request_models import ServiceRequest
 
 
 @login_required
@@ -77,7 +80,7 @@ def browse_services(request):
             category=category,
             status='completed'
         ).aggregate(
-            avg_days=Avg('completion_days')
+            avg_days=Avg('duration_days')
         )['avg_days'] or 0
         
         services.append({
@@ -106,24 +109,74 @@ def request_service(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_active=True)
     
     if request.method == 'POST':
-        # Create service request
-        job_request = JobRequest.objects.create(
-            client=request.user,
-            category=category,
-            title=request.POST.get('title'),
-            description=request.POST.get('description'),
-            budget=request.POST.get('budget'),
-            location=request.POST.get('location'),
-            urgency=request.POST.get('urgency', 'normal'),
-            workers_needed=int(request.POST.get('workers_needed', 1)),
-            status='pending'
-        )
-        
-        messages.success(request, 
-            f'Your {category.name} service request has been submitted! '
-            'Our team will assign a qualified worker and notify you within 2-4 hours.'
-        )
-        return redirect('clients:service_request_detail', request_id=job_request.id)
+        try:
+            # Get form data
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            location = request.POST.get('location', '').strip()
+            city = request.POST.get('city', '').strip()
+            duration_type = request.POST.get('duration_type')
+            urgency = request.POST.get('urgency', 'normal')
+            client_notes = request.POST.get('client_notes', '').strip()
+            
+            # Parse dates
+            preferred_date = request.POST.get('preferred_date')
+            preferred_time = request.POST.get('preferred_time')
+            service_start_date = request.POST.get('service_start_date')
+            service_end_date = request.POST.get('service_end_date')
+            
+            # Calculate duration and pricing
+            daily_rate = float(category.daily_rate)  # Use category-specific daily rate
+            duration_days = 1
+            
+            if duration_type == 'daily':
+                duration_days = 1
+            elif duration_type == 'monthly':
+                duration_days = 30
+            elif duration_type == '3_months':
+                duration_days = 90
+            elif duration_type == '6_months':
+                duration_days = 180
+            elif duration_type == 'yearly':
+                duration_days = 365
+            elif duration_type == 'custom' and service_start_date and service_end_date:
+                start_date = datetime.strptime(service_start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(service_end_date, '%Y-%m-%d').date()
+                duration_days = (end_date - start_date).days + 1
+            
+            total_price = duration_days * daily_rate
+            
+            # Create service request
+            service_request = ServiceRequest.objects.create(
+                client=request.user,
+                category=category,
+                title=title,
+                description=description,
+                location=location,
+                city=city,
+                urgency=urgency,
+                duration_type=duration_type,
+                duration_days=duration_days,
+                daily_rate=daily_rate,
+                total_price=total_price,
+                preferred_date=preferred_date if preferred_date else None,
+                preferred_time=preferred_time if preferred_time else None,
+                service_start_date=service_start_date if service_start_date else None,
+                service_end_date=service_end_date if service_end_date else None,
+                client_notes=client_notes if client_notes else None,
+                status='pending',
+                payment_status='pending'
+            )
+            
+            messages.success(request, 
+                f'Your {category.name} service request has been submitted! '
+                f'Total price: ${total_price:.2f}. '
+                'Our team will assign a qualified worker and notify you within 2-4 hours.'
+            )
+            return redirect('service_requests_web:client_request_detail', pk=service_request.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error creating service request: {str(e)}')
     
     # Get service statistics
     available_workers = WorkerProfile.objects.filter(
@@ -132,7 +185,7 @@ def request_service(request, category_id):
         availability='available'
     ).count()
     
-    completed_projects = JobRequest.objects.filter(
+    completed_projects = ServiceRequest.objects.filter(
         category=category,
         status='completed'
     ).count()
@@ -141,6 +194,7 @@ def request_service(request, category_id):
         'category': category,
         'available_workers': available_workers,
         'completed_projects': completed_projects,
+        'daily_rate': category.daily_rate,
     }
     return render(request, 'clients/request_service.html', context)
 

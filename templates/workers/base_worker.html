@@ -433,6 +433,24 @@
                 <span class="nav-text">My Applications</span>
             </a>
             
+            <div class="sidebar-section-title section-title">SERVICE REQUESTS</div>
+            <a href="{% url 'service_requests_web:worker_dashboard' %}" class="sidebar-nav-item">
+                <i class="bi bi-speedometer2"></i> 
+                <span class="nav-text">SR Dashboard</span>
+            </a>
+            <a href="{% url 'service_requests_web:worker_pending' %}" class="sidebar-nav-item">
+                <i class="bi bi-bell"></i> 
+                <span class="nav-text">Pending Assignments</span>
+            </a>
+            <a href="{% url 'service_requests_web:worker_assignments' %}" class="sidebar-nav-item">
+                <i class="bi bi-list-check"></i> 
+                <span class="nav-text">My Assignments</span>
+            </a>
+            <a href="{% url 'service_requests_web:worker_activity' %}" class="sidebar-nav-item">
+                <i class="bi bi-activity"></i> 
+                <span class="nav-text">Activity History</span>
+            </a>
+            
             <div class="sidebar-section-title section-title">PROFILE</div>
             <a href="{% url 'workers:profile_edit' %}" class="sidebar-nav-item">
                 <i class="bi bi-person-circle"></i> 

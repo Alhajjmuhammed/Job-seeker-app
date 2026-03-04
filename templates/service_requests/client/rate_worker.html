@@ -1,0 +1,190 @@
+{% extends "clients/base_client.html" %}
+{% load humanize %}
+
+{% block title %}Rate Worker - Service Request #{{ service_request.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .text-primary { color: #14b8a6 !important; }
+    .text-success { color: #10b981 !important; }
+    
+    /* Star Rating */
+    .star-rating {
+        display: flex;
+        gap: 0.5rem;
+        font-size: 2.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .star {
+        cursor: pointer;
+        color: #d1d5db;
+        transition: all 0.2s;
+    }
+    
+    .star:hover,
+    .star.active {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+    
+    .star.filled {
+        color: #fbbf24;
+    }
+    
+    .rating-label {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">
+                        <i class="bi bi-star"></i> Rate Your Service Experience
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Service Info -->
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">{{ service_request.title }}</h5>
+                        <hr>
+                        <p class="mb-1"><strong>Worker:</strong> {{ service_request.assigned_worker.user.get_full_name }}</p>
+                        <p class="mb-1"><strong>Category:</strong> {{ service_request.category.name }}</p>
+                        <p class="mb-1"><strong>Completed:</strong> {{ service_request.work_completed_at|date:"M d, Y g:i A" }}</p>
+                        <p class="mb-0"><strong>Total Cost:</strong> <span class="text-success">SDG {{ service_request.total_amount|default:"0"|floatformat:2 }}</span></p>
+                    </div>
+                    
+                    <!-- Rating Form -->
+                    <form method="post" id="ratingForm">
+                        {% csrf_token %}
+                        
+                        <div class="text-center">
+                            <label class="form-label"><strong>How would you rate this service?</strong></label>
+                            <div class="star-rating justify-content-center" id="starRating" role="radiogroup" aria-label="Service rating from 1 to 5 stars">
+                                <span class="star" data-rating="1" role="radio" aria-label="1 star">★</span>
+                                <span class="star" data-rating="2" role="radio" aria-label="2 stars">★</span>
+                                <span class="star" data-rating="3" role="radio" aria-label="3 stars">★</span>
+                                <span class="star" data-rating="4" role="radio" aria-label="4 stars">★</span>
+                                <span class="star" data-rating="5" role="radio" aria-label="5 stars">★</span>
+                            </div>
+                            <div class="rating-label" id="ratingLabel">Select a rating</div>
+                            <input type="hidden" name="rating" id="ratingInput" required>
+                        </div>
+                        
+                        <div class="mb-3 mt-4">
+                            <label for="review" class="form-label">
+                                <strong>Write a Review</strong> <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea name="review" 
+                                      id="review" 
+                                      class="form-control" 
+                                      rows="5"
+                                      placeholder="Tell us about your experience with this worker..."></textarea>
+                            <small class="form-text text-muted">
+                                Your review will help other clients choose qualified workers and help workers improve their services.
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled aria-label="Submit rating and review">
+                                <i class="bi bi-check-circle"></i> Submit Rating
+                            </button>
+                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" 
+                               class="btn btn-outline-secondary" aria-label="Cancel and go back to request details">
+                                <i class="bi bi-arrow-left"></i> Back to Request
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Rating Guidelines -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Rating Guidelines</h6>
+                    <ul class="mb-0">
+                        <li><strong>5 Stars:</strong> Exceptional service, exceeded expectations</li>
+                        <li><strong>4 Stars:</strong> Good service, met expectations</li>
+                        <li><strong>3 Stars:</strong> Average service, acceptable</li>
+                        <li><strong>2 Stars:</strong> Below expectations, needs improvement</li>
+                        <li><strong>1 Star:</strong> Poor service, not satisfied</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('ratingInput');
+    const ratingLabel = document.getElementById('ratingLabel');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    const labels = {
+        1: 'Poor - Not Satisfied',
+        2: 'Below Average - Needs Improvement',
+        3: 'Average - Acceptable',
+        4: 'Good - Met Expectations',
+        5: 'Excellent - Exceeded Expectations'
+    };
+    
+    let selectedRating = 0;
+    
+    stars.forEach(star => {
+        // Hover effect
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            highlightStars(rating);
+            ratingLabel.textContent = labels[rating];
+        });
+        
+        // Click to select
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            ratingInput.value = selectedRating;
+            highlightStars(selectedRating);
+            ratingLabel.textContent = labels[selectedRating];
+            submitBtn.disabled = false;
+            
+            // Mark as filled
+            stars.forEach(s => s.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Reset on mouse leave
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        if (selectedRating > 0) {
+            highlightStars(selectedRating);
+            ratingLabel.textContent = labels[selectedRating];
+        } else {
+            highlightStars(0);
+            ratingLabel.textContent = 'Select a rating';
+        }
+    });
+    
+    function highlightStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('filled');
+            } else {
+                star.classList.remove('filled');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

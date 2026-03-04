@@ -151,6 +151,10 @@ class ServiceRequest(models.Model):
     work_completed_at = models.DateTimeField(null=True, blank=True)
     completed_by_worker_at = models.DateTimeField(null=True, blank=True, help_text="When worker confirmed completion")
     
+    # Cancellation
+    cancelled_at = models.DateTimeField(null=True, blank=True, help_text="When request was cancelled")
+    cancellation_reason = models.TextField(blank=True, help_text="Reason for cancellation")
+    
     # Billing
     hourly_rate = models.DecimalField(
         max_digits=10, 
@@ -177,6 +181,10 @@ class ServiceRequest(models.Model):
     client_notes = models.TextField(blank=True, help_text="Additional notes from client")
     completion_notes = models.TextField(blank=True, help_text="Worker's completion notes")
     
+    # Ratings
+    client_rating = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Client's rating of worker (1-5 stars)")
+    client_review = models.TextField(blank=True, help_text="Client's review of the service")
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -193,6 +201,11 @@ class ServiceRequest(models.Model):
     
     def __str__(self):
         return f"Service Request #{self.id} - {self.title} ({self.get_status_display()})"
+    
+    @property
+    def duration_type_display(self):
+        """Get human-readable duration type"""
+        return dict(self.DURATION_TYPE_CHOICES).get(self.duration_type, self.duration_type)
     
     def calculate_duration_days(self):
         """Calculate duration in days based on duration type"""

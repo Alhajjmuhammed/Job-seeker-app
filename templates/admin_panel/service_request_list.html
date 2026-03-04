@@ -3,10 +3,33 @@
 
 {% block title %}Service Requests - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .text-primary { color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    
+    /* Info state - lighter teal */
+    .text-info { color: #06b6d4 !important; }
+    .bg-info { background-color: #06b6d4 !important; }
+    
+    /* Success - green */
+    .text-success { color: #10b981 !important; }
+    .bg-success { background-color: #10b981 !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Service Requests</h1>
+        <a href="?export=yes{% if status_filter %}&status={{ status_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+           class="btn btn-success">
+            <i class="bi bi-download me-1"></i> Export CSV
+        </a>
     </div>
 
     <!-- Statistics Cards -->
@@ -113,10 +136,17 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" class="btn btn-primary w-100 mb-0 me-2">
                         <i class="bi bi-funnel me-1"></i> Filter
                     </button>
                 </div>
+                {% if status_filter or urgency_filter or category_filter or search_query %}
+                <div class="col-md-2 d-flex align-items-end">
+                    <a href="{% url 'admin_panel:service_request_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x-circle me-1"></i> Clear
+                    </a>
+                </div>
+                {% endif %}
             </form>
         </div>
     </div>

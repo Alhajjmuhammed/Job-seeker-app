@@ -1536,6 +1536,7 @@ def service_request_list(request):
     urgency_filter = request.GET.get('urgency', '')
     category_filter = request.GET.get('category', '')
     search_query = request.GET.get('search', '')
+    export_csv = request.GET.get('export', '')
     
     # Base queryset
     requests = ServiceRequest.objects.select_related(
@@ -1556,6 +1557,40 @@ def service_request_list(request):
             Q(client__first_name__icontains=search_query) |
             Q(client__last_name__icontains=search_query)
         )
+    
+    # CSV Export
+    if export_csv == 'yes':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="service_requests.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'ID', 'Title', 'Client', 'Category', 'Status', 'Urgency',
+            'Location', 'City', 'Duration (hrs)', 'Hourly Rate', 'Total Amount',
+            'Worker', 'Created', 'Assigned', 'Completed', 'Rating'
+        ])
+        
+        for req in requests:
+            writer.writerow([
+                req.id,
+                req.title,
+                req.client.get_full_name(),
+                req.category.name if req.category else '',
+                req.get_status_display(),
+                req.get_urgency_display(),
+                req.location,
+                req.city,
+                req.estimated_duration_hours or 0,
+                req.hourly_rate or 0,
+                req.total_amount or 0,
+                req.assigned_worker.user.get_full_name() if req.assigned_worker else 'Unassigned',
+                req.created_at.strftime('%Y-%m-%d %H:%M'),
+                req.assigned_at.strftime('%Y-%m-%d %H:%M') if req.assigned_at else '',
+                req.work_completed_at.strftime('%Y-%m-%d %H:%M') if req.work_completed_at else '',
+                req.client_rating or ''
+            ])
+        
+        return response
     
     # Statistics
     stats = {

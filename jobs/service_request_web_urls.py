@@ -17,6 +17,7 @@ urlpatterns = [
     path('client/my-requests/', client_web.client_web_my_requests, name='client_my_requests'),
     path('client/request/<int:pk>/', client_web.client_web_request_detail, name='client_request_detail'),
     path('client/request/<int:pk>/cancel/', client_web.client_web_cancel_request, name='client_cancel_request'),
+    path('client/request/<int:pk>/rate/', client_web.client_web_rate_worker, name='client_rate_worker'),
     path('client/history/', client_web.client_web_history, name='client_history'),
     
     # =========================================================================

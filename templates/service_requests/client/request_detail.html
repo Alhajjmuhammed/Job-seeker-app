@@ -1,0 +1,473 @@
+{% extends "clients/base_client.html" %}
+{% load humanize %}
+
+{% block title %}Request #{{ service_request.id }} - {{ service_request.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .btn-primary {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+    }
+    .btn-primary:hover {
+        background-color: #0f766e;
+        border-color: #0f766e;
+    }
+    .btn-outline-primary {
+        color: #14b8a6;
+        border-color: #14b8a6;
+    }
+    .btn-outline-primary:hover {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+        color: white;
+    }
+    .btn-warning {
+        background-color: #fbbf24;
+        border-color: #fbbf24;
+    }
+    .btn-warning:hover {
+        background-color: #f59e0b;
+        border-color: #f59e0b;
+    }
+    .badge.bg-success, .bg-success {
+        background-color: #14b8a6 !important;
+    }
+    .card-header.bg-success {
+        background-color: #14b8a6 !important;
+    }
+    .card-header.bg-info {
+        background-color: #0f766e !important;
+    }
+    .badge.bg-info {
+        background-color: #0f766e !important;
+    }
+    .badge.bg-primary, .bg-primary {
+        background-color: #14b8a6 !important;
+    }
+    .text-success {
+        color: #14b8a6 !important;
+    }
+    .text-primary {
+        color: #14b8a6 !important;
+    }
+    .card-header.bg-secondary {
+        background-color: #0f766e !important;
+    }
+    .border-info {
+        border-color: #14b8a6 !important;
+    }
+    .text-info {
+        color: #14b8a6 !important;
+    }
+    .btn-outline-info {
+        color: #14b8a6;
+        border-color: #14b8a6;
+    }
+    .btn-outline-info:hover {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📄 Request Details</h2>
+        <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to My Requests
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Main Request Details -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ service_request.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if service_request.status == 'pending' %}bg-warning text-dark{% elif service_request.status == 'assigned' %}bg-info{% elif service_request.status == 'in_progress' %}bg-primary{% elif service_request.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %} fs-6">
+                                {{ service_request.get_status_display }}
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Category:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-info fs-6">{{ service_request.category.name }}</span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Urgency:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if service_request.urgency == 'emergency' %}bg-danger{% elif service_request.urgency == 'urgent' %}bg-warning text-dark{% else %}bg-secondary{% endif %} fs-6">
+                                {{ service_request.get_urgency_display }}
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Location:</dt>
+                        <dd class="col-sm-8">
+                            <i class="bi bi-geo-alt"></i> {{ service_request.location }}, {{ service_request.city }}
+                        </dd>
+                        
+                        {% if service_request.duration_type %}
+                        <dt class="col-sm-4">Duration Type:</dt>
+                        <dd class="col-sm-8">{{ service_request.duration_type_display }}</dd>
+                        
+                        <dt class="col-sm-4">Duration:</dt>
+                        <dd class="col-sm-8">{{ service_request.duration_days }} days</dd>
+                        
+                        <dt class="col-sm-4">Daily Rate:</dt>
+                        <dd class="col-sm-8"><strong>${{ service_request.daily_rate|floatformat:2 }}</strong></dd>
+                        
+                        <dt class="col-sm-4">Total Price:</dt>
+                        <dd class="col-sm-8"><strong class="text-success fs-5">${{ service_request.total_price|floatformat:2 }}</strong></dd>
+                        {% elif service_request.estimated_duration_hours %}
+                        <dt class="col-sm-4">Est. Duration:</dt>
+                        <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
+                        
+                        {% if service_request.hourly_rate %}
+                        <dt class="col-sm-4">Hourly Rate:</dt>
+                        <dd class="col-sm-8"><strong>SDG {{ service_request.hourly_rate|floatformat:2 }}</strong></dd>
+                        {% endif %}
+                        {% endif %}
+                        
+                        {% if service_request.service_start_date %}
+                        <dt class="col-sm-4">Start Date:</dt>
+                        <dd class="col-sm-8">{{ service_request.service_start_date|date:"M d, Y" }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.service_end_date %}
+                        <dt class="col-sm-4">End Date:</dt>
+                        <dd class="col-sm-8">{{ service_request.service_end_date|date:"M d, Y" }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.preferred_date %}
+                        <dt class="col-sm-4">Preferred Time:</dt>
+                        <dd class="col-sm-8">
+                            {{ service_request.preferred_date|date:"M d, Y" }}
+                            {% if service_request.preferred_time %}at {{ service_request.preferred_time|time:"h:i A" }}{% endif %}
+                        </dd>
+                        {% endif %}
+                        
+                        <dt class="col-sm-4">Created:</dt>
+                        <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }} ({{ service_request.created_at|naturaltime }})</dd>
+                        
+                        {% if service_request.assigned_at %}
+                        <dt class="col-sm-4">Assigned:</dt>
+                        <dd class="col-sm-8">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.work_started_at %}
+                        <dt class="col-sm-4">Work Started:</dt>
+                        <dd class="col-sm-8">{{ service_request.work_started_at|date:"M d, Y g:i A" }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.work_completed_at %}
+                        <dt class="col-sm-4">Work Completed:</dt>
+                        <dd class="col-sm-8">{{ service_request.work_completed_at|date:"M d, Y g:i A" }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.cancelled_at %}
+                        <dt class="col-sm-4">Cancelled:</dt>
+                        <dd class="col-sm-8 text-danger">{{ service_request.cancelled_at|date:"M d, Y g:i A" }}</dd>
+                        {% endif %}
+                    </dl>
+                    
+                    <hr>
+                    
+                    <h6><i class="bi bi-file-text"></i> Description:</h6>
+                    <p class="ms-3">{{ service_request.description|linebreaks }}</p>
+                    
+                    {% if service_request.client_notes %}
+                    <hr>
+                    <h6><i class="bi bi-sticky"></i> Additional Notes:</h6>
+                    <p class="ms-3 text-muted">{{ service_request.client_notes|linebreaks }}</p>
+                    {% endif %}
+                    
+                    {% if service_request.admin_notes %}
+                    <hr>
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Admin Notes:</h6>
+                        <p class="mb-0">{{ service_request.admin_notes|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if service_request.cancellation_reason %}
+                    <hr>
+                    <div class="alert alert-danger">
+                        <h6><i class="bi bi-exclamation-triangle"></i> Cancellation Reason:</h6>
+                        <p class="mb-0">{{ service_request.cancellation_reason|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if service_request.client_rating %}
+                    <hr>
+                    <div class="alert alert-success">
+                        <h6><i class="bi bi-star-fill"></i> Your Rating:</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <div style="color: #fbbf24; font-size: 1.5rem;">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= service_request.client_rating %}
+                                        ★
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="ms-2 fw-bold">{{ service_request.client_rating }}/5</span>
+                        </div>
+                        {% if service_request.client_review %}
+                        <p class="mb-0"><em>"{{ service_request.client_review }}"</em></p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Worker Information -->
+            {% if service_request.assigned_worker %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Assigned Worker</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>{{ service_request.assigned_worker.user.get_full_name }}</h5>
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-envelope"></i> {{ service_request.assigned_worker.user.email }}
+                            </p>
+                            {% if service_request.assigned_worker.phone_number %}
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-telephone"></i> {{ service_request.assigned_worker.phone_number }}
+                            </p>
+                            {% endif %}
+                            {% if service_request.assigned_worker.bio %}
+                            <p class="mb-2">{{ service_request.assigned_worker.bio|truncatewords:30 }}</p>
+                            {% endif %}
+                            
+                            {% if service_request.worker_accepted == True %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Accepted Assignment
+                            </span>
+                            {% elif service_request.worker_accepted == False %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle"></i> Rejected Assignment
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-clock"></i> Awaiting Response
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-center">
+                            {% if service_request.assigned_worker.average_rating %}
+                            <div class="mb-2">
+                                <div style="font-size: 2rem; color: #ffc107;">
+                                    ★ {{ service_request.assigned_worker.average_rating|floatformat:1 }}
+                                </div>
+                                <small class="text-muted">Average Rating</small>
+                            </div>
+                            {% endif %}
+                            <a href="{% url 'workers:public_profile' service_request.assigned_worker.user.id %}" 
+                               class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="bi bi-box-arrow-up-right"></i> View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Time Logs -->
+            {% if time_logs %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Time Tracking</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Clock In</th>
+                                    <th>Clock Out</th>
+                                    <th>Duration</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in time_logs %}
+                                <tr {% if not log.clock_out %}class="table-info"{% endif %}>
+                                    <td>{{ log.clock_in|date:"M d, Y g:i A" }}</td>
+                                    <td>
+                                        {% if log.clock_out %}
+                                        {{ log.clock_out|date:"M d, Y g:i A" }}
+                                        {% else %}
+                                        <span class="badge bg-info">Currently Working</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.duration_hours %}
+                                        <strong>{{ log.duration_hours|floatformat:2 }} hours</strong>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.notes|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="2"><strong><i class="bi bi-clock"></i> Total Hours Worked:</strong></td>
+                                    <td colspan="2"><strong class="text-primary">{{ service_request.total_hours_worked|default:"0"|floatformat:2 }} hours</strong></td>
+                                </tr>
+                                {% if service_request.total_amount %}
+                                <tr>
+                                    <td colspan="2"><strong><i class="bi bi-currency-dollar"></i> Total Amount:</strong></td>
+                                    <td colspan="2"><strong class="text-success fs-5">SDG {{ service_request.total_amount|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Payment Information -->
+            {% if service_request.payment_method or service_request.payment_transaction_id %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-credit-card"></i> Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        {% if service_request.payment_method %}
+                        <dt class="col-sm-4">Payment Method:</dt>
+                        <dd class="col-sm-8">{{ service_request.payment_method }}</dd>
+                        {% endif %}
+                        
+                        {% if service_request.payment_transaction_id %}
+                        <dt class="col-sm-4">Transaction ID:</dt>
+                        <dd class="col-sm-8"><code>{{ service_request.payment_transaction_id }}</code></dd>
+                        {% endif %}
+                        
+                        {% if service_request.payment_status %}
+                        <dt class="col-sm-4">Payment Status:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if service_request.payment_status == 'completed' %}bg-success{% elif service_request.payment_status == 'pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ service_request.payment_status|title }}
+                            </span>
+                        </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Quick Actions -->
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Quick Actions</h6>
+                    
+                    {% if service_request.status == 'pending' or service_request.status == 'assigned' %}
+                    <a href="{% url 'service_requests_web:client_cancel_request' service_request.id %}" 
+                       class="btn btn-danger w-100 mb-2">
+                        <i class="bi bi-x-circle"></i> Cancel Request
+                    </a>
+                    {% endif %}
+                    
+                    {% if service_request.status == 'completed' and not service_request.client_rating and service_request.assigned_worker %}
+                    <a href="{% url 'service_requests_web:client_rate_worker' service_request.id %}" 
+                       class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-star"></i> Rate Worker
+                    </a>
+                    {% endif %}
+                    
+                    {% if service_request.assigned_worker %}
+                    <a href="{% url 'jobs:conversation' service_request.assigned_worker.user.id %}" 
+                       class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-chat-dots"></i> Message Worker
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'service_requests_web:client_my_requests' %}" 
+                       class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Status Timeline -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> Status Timeline</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <strong>Created</strong>
+                            <br>
+                            <small class="text-muted ms-4">{{ service_request.created_at|date:"M d, Y g:i A" }}</small>
+                        </li>
+                        {% if service_request.assigned_at %}
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <strong>Assigned to Worker</strong>
+                            <br>
+                            <small class="text-muted ms-4">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</small>
+                        </li>
+                        {% endif %}
+                        {% if service_request.work_started_at %}
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <strong>Work Started</strong>
+                            <br>
+                            <small class="text-muted ms-4">{{ service_request.work_started_at|date:"M d, Y g:i A" }}</small>
+                        </li>
+                        {% endif %}
+                        {% if service_request.work_completed_at %}
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <strong>Work Completed</strong>
+                            <br>
+                            <small class="text-muted ms-4">{{ service_request.work_completed_at|date:"M d, Y g:i A" }}</small>
+                        </li>
+                        {% endif %}
+                        {% if service_request.cancelled_at %}
+                        <li class="mb-3">
+                            <i class="bi bi-x-circle-fill text-danger"></i>
+                            <strong>Cancelled</strong>
+                            <br>
+                            <small class="text-muted ms-4">{{ service_request.cancelled_at|date:"M d, Y g:i A" }}</small>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Help Card -->
+            <div class="card border-info">
+                <div class="card-body">
+                    <h6 class="card-title text-info">
+                        <i class="bi bi-question-circle"></i> Need Help?
+                    </h6>
+                    <p class="card-text small">If you have questions or concerns about this service request, please contact our support team.</p>
+                    <!-- Contact support link removed - no contact URL available -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

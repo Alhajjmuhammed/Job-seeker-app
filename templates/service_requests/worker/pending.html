@@ -2,6 +2,19 @@
 
 {% block title %}Pending Assignments{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .bg-primary { background-color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .text-primary { color: #14b8a6 !important; }
+    .alert-link { color: #0f766e !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">🔔 Pending Assignments</h2>

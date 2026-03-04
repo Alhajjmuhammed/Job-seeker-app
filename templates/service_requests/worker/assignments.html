@@ -2,6 +2,29 @@
 
 {% block title %}My Assignments{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .bg-primary { background-color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .text-primary { color: #14b8a6 !important; }
+    
+    /* Success - green */
+    .bg-success { background-color: #10b981 !important; }
+    
+    /* Info - lighter teal */
+    .bg-info { background-color: #06b6d4 !important; }
+    .btn-outline-info { color: #06b6d4; border-color: #06b6d4; }
+    .btn-outline-info:hover { background-color: #06b6d4; border-color: #06b6d4; color: white; }
+    
+    /* Success outline button */
+    .btn-outline-success:hover { background-color: #10b981; border-color: #10b981; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">

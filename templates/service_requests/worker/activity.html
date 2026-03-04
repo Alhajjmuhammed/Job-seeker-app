@@ -2,6 +2,32 @@
 
 {% block title %}My Activity History{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .bg-primary { background-color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .text-primary { color: #14b8a6 !important; }
+    
+    /* Success - green */
+    .bg-success { background-color: #10b981 !important; }
+    .btn-success { background-color: #10b981; border-color: #10b981; }
+    .btn-success:hover { background-color: #059669; border-color: #059669; }
+    .btn-outline-success { color: #10b981; border-color: #10b981; }
+    .btn-outline-success:hover { background-color: #10b981; border-color: #10b981; color: white; }
+    
+    /* Info - lighter teal */
+    .bg-info { background-color: #06b6d4 !important; }
+    .btn-info { background-color: #06b6d4; border-color: #06b6d4; }
+    .btn-info:hover { background-color: #0891b2; border-color: #0891b2; }
+    .btn-outline-info { color: #06b6d4; border-color: #06b6d4; }
+    .btn-outline-info:hover { background-color: #06b6d4; border-color: #06b6d4; color: white; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">

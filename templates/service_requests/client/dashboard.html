@@ -3,6 +3,19 @@
 
 {% block title %}My Dashboard - Service Requests{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .bg-primary { background-color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .text-primary { color: #14b8a6 !important; }
+    .bg-success { background-color: #10b981 !important; }
+    .text-success { color: #10b981 !important; }
+    .bg-info { background-color: #06b6d4 !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">📊 My Dashboard</h2>

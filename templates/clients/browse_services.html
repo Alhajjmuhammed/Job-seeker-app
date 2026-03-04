@@ -4,6 +4,42 @@
 {% block title %}Available Services - Worker Connect{% endblock %}
 {% block page_title %}Available Services{% endblock %}
 
+{% block extra_css %}
+<style>
+    .btn-primary {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+    }
+    .btn-primary:hover {
+        background-color: #0f766e;
+        border-color: #0f766e;
+    }
+    .badge.bg-success {
+        background-color: #14b8a6 !important;
+    }
+    .card-header.bg-primary {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%) !important;
+        border: none;
+    }
+    .service-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e3e6f0;
+    }
+    .service-card:not(.disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(20, 184, 166, 0.2);
+        border-color: #14b8a6;
+    }
+    .service-card.disabled {
+        opacity: 0.6;
+        background-color: #f8f9fa;
+    }
+    .service-stats {
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">
@@ -11,7 +47,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-tools"></i> 
+                        <i class="bi bi-tools"></i> 
                         Request Professional Services
                     </h5>
                     <small>Select a service below and our team will assign a qualified worker</small>
@@ -36,17 +72,17 @@
                                     <div class="service-stats mb-3">
                                         <div class="d-flex justify-content-between small text-muted">
                                             <span>
-                                                <i class="fas fa-users"></i>
+                                                <i class="bi bi-people"></i>
                                                 {{ service.available_workers }} workers
                                             </span>
                                             <span>
-                                                <i class="fas fa-check-circle"></i>
+                                                <i class="bi bi-check-circle"></i>
                                                 {{ service.completed_projects }} completed
                                             </span>
                                         </div>
                                         {% if service.avg_completion_days > 0 %}
                                         <div class="mt-1 small text-muted">
-                                            <i class="fas fa-clock"></i>
+                                            <i class="bi bi-clock"></i>
                                             Avg completion: ~{{ service.avg_completion_days }} days
                                         </div>
                                         {% endif %}
@@ -56,7 +92,7 @@
                                     {% if service.is_available %}
                                     <a href="{% url 'clients:request_service' service.id %}" 
                                        class="btn btn-primary w-100">
-                                        <i class="fas fa-plus"></i> Request This Service
+                                        <i class="bi bi-plus-circle"></i> Request This Service
                                     </a>
                                     {% else %}
                                     <button class="btn btn-secondary w-100" disabled>
@@ -69,7 +105,7 @@
                         {% empty %}
                         <div class="col-12 text-center py-5">
                             <div class="text-muted">
-                                <i class="fas fa-tools fa-3x mb-3"></i>
+                                <i class="bi bi-tools" style="font-size: 3rem;"></i>
                                 <h4>No Services Available</h4>
                                 <p>Please check back later for available services.</p>
                             </div>
@@ -82,24 +118,4 @@
     </div>
 </div>
 
-<style>
-.service-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #e3e6f0;
-}
-
-.service-card:not(.disabled):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.service-card.disabled {
-    opacity: 0.6;
-    background-color: #f8f9fa;
-}
-
-.service-stats {
-    font-size: 0.875rem;
-}
-</style>
 {% endblock %}

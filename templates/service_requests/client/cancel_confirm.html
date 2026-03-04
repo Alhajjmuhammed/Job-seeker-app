@@ -1,0 +1,220 @@
+{% extends "clients/base_client.html" %}
+{% load humanize %}
+
+{% block title %}Cancel Request #{{ service_request.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .text-primary { color: #14b8a6 !important; }
+    .text-success { color: #10b981 !important; }
+    .bg-info { background-color: #06b6d4 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Cancel Service Request
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Warning Message -->
+                    <div class="alert alert-warning" role="alert">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> Are you sure you want to cancel this request?
+                        </h5>
+                        <p class="mb-0">This action cannot be undone. Please review the details below before confirming.</p>
+                    </div>
+                    
+                    <!-- Request Summary -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Request Details</h5>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Request ID:</dt>
+                                <dd class="col-sm-8">#{{ service_request.id }}</dd>
+                                
+                                <dt class="col-sm-4">Title:</dt>
+                                <dd class="col-sm-8">{{ service_request.title }}</dd>
+                                
+                                <dt class="col-sm-4">Category:</dt>
+                                <dd class="col-sm-8">{{ service_request.category.name }}</dd>
+                                
+                                <dt class="col-sm-4">Status:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge {% if service_request.status == 'pending' %}bg-warning text-dark{% elif service_request.status == 'assigned' %}bg-info{% else %}bg-primary{% endif %}">
+                                        {{ service_request.get_status_display }}
+                                    </span>
+                                </dd>
+                                
+                                {% if service_request.assigned_worker %}
+                                <dt class="col-sm-4">Assigned Worker:</dt>
+                                <dd class="col-sm-8">
+                                    {{ service_request.assigned_worker.user.get_full_name }}
+                                </dd>
+                                {% endif %}
+                                
+                                {% if service_request.total_price %}
+                                <dt class="col-sm-4">Total Price:</dt>
+                                <dd class="col-sm-8">
+                                    <strong class="text-success">${{ service_request.total_price|floatformat:2 }}</strong>
+                                </dd>
+                                {% endif %}
+                                
+                                <dt class="col-sm-4">Created:</dt>
+                                <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <!-- Cancellation Policy -->
+                    <div class="card mb-4 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-file-text"></i> Cancellation Policy
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                {% if service_request.status == 'pending' %}
+                                <li>Your request is still <strong>pending</strong> assignment. You can cancel without penalty.</li>
+                                <li>No charges will be applied.</li>
+                                {% elif service_request.status == 'assigned' and not service_request.work_started_at %}
+                                <li>A worker has been <strong>assigned</strong> but work hasn't started yet.</li>
+                                <li>The worker will be notified of the cancellation.</li>
+                                <li>No cancellation fees apply at this stage.</li>
+                                {% elif service_request.status == 'assigned' or service_request.status == 'in_progress' %}
+                                <li class="text-warning"><strong>Work has already started</strong> on this request.</li>
+                                <li>Cancelling now may incur charges for work already completed.</li>
+                                <li>The worker will be compensated for time already worked.</li>
+                                <li>You may be charged for {{ service_request.total_hours_worked|default:"0" }} hours of work.</li>
+                                {% endif %}
+                                <li>Once cancelled, you will need to create a new request if you change your mind.</li>
+                                <li>Our team may contact you to understand the reason for cancellation.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Cancellation Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="cancellation_reason" class="form-label">
+                                <strong>Reason for Cancellation</strong> <span class="text-danger">*</span>
+                            </label>
+                            <select name="cancellation_reason_type" id="cancellation_reason_type" class="form-select mb-2" required>
+                                <option value="">-- Select a reason --</option>
+                                <option value="no_longer_needed">No longer needed</option>
+                                <option value="found_alternative">Found alternative solution</option>
+                                <option value="timing_issues">Timing/scheduling issues</option>
+                                <option value="budget_constraints">Budget constraints</option>
+                                <option value="worker_concerns">Concerns about assigned worker</option>
+                                <option value="service_quality">Service quality concerns</option>
+                                <option value="personal_reasons">Personal reasons</option>
+                                <option value="emergency">Emergency situation</option>
+                                <option value="other">Other</option>
+                            </select>
+                            
+                            <textarea 
+                                name="cancellation_reason" 
+                                id="cancellation_reason" 
+                                class="form-control" 
+                                rows="4" 
+                                placeholder="Please provide more details about why you're cancelling this request. This helps us improve our service."
+                                required
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                Please be specific. This information helps us improve our services and may be shared with the assigned worker.
+                            </small>
+                        </div>
+                        
+                        {% if service_request.status == 'in_progress' or service_request.work_started_at %}
+                        <div class="alert alert-danger">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="acknowledge_charges" name="acknowledge_charges" required>
+                                <label class="form-check-label" for="acknowledge_charges">
+                                    <strong>I understand that I may be charged for work already completed</strong>
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirm_cancellation" name="confirm_cancellation" required>
+                            <label class="form-check-label" for="confirm_cancellation">
+                                I confirm that I want to cancel this service request and understand that this action cannot be undone.
+                            </label>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger flex-grow-1" aria-label="Confirm cancellation of service request">
+                                <i class="bi bi-x-circle"></i> Yes, Cancel Request
+                            </button>
+                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary flex-grow-1" aria-label="Go back to request details without cancelling">
+                                <i class="bi bi-arrow-left"></i> No, Go Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Additional Information -->
+            <div class="card mt-4 border-primary">
+                <div class="card-body">
+                    <h6 class="text-primary">
+                        <i class="bi bi-lightbulb"></i> Need to make changes instead?
+                    </h6>
+                    <p class="mb-2">If you need to modify your request rather than cancel it, consider these options:</p>
+                    <ul class="mb-3">
+                        <li>Contact the assigned worker to discuss adjustments</li>
+                        <li>Reach out to our support team for assistance</li>
+                        <li>Check if rescheduling is possible</li>
+                    </ul>
+                    <a href="{% url 'workers:contact' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-headset"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-expand "Other" details when selected
+document.getElementById('cancellation_reason_type').addEventListener('change', function() {
+    const textarea = document.getElementById('cancellation_reason');
+    if (this.value === 'other') {
+        textarea.focus();
+    }
+});
+
+// Confirm before submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const confirmed = document.getElementById('confirm_cancellation').checked;
+    if (!confirmed) {
+        e.preventDefault();
+        alert('Please confirm that you want to cancel this request by checking the confirmation box.');
+        return false;
+    }
+    
+    const reason = document.getElementById('cancellation_reason').value.trim();
+    if (reason.length < 10) {
+        e.preventDefault();
+        alert('Please provide a more detailed reason for cancellation (at least 10 characters).');
+        document.getElementById('cancellation_reason').focus();
+        return false;
+    }
+    
+    return confirm('Are you absolutely sure you want to cancel this service request? This action cannot be undone.');
+});
+</script>
+{% endblock %}
