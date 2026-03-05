@@ -554,14 +554,14 @@ export default function EditServiceRequestScreen() {
               <Ionicons name="cash-outline" size={20} color={theme.primary} />
               <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
-                ${priceCalculation.daily_rate}
+                SDG {priceCalculation.daily_rate}
               </Text>
             </View>
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
               <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
-                ${priceCalculation.total_price}
+                SDG {priceCalculation.total_price}
               </Text>
             </View>
           </View>

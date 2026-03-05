@@ -15,13 +15,14 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class WorkerBasicSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
-    user_email = serializers.EmailField(source='user.email', read_only=True)
-    phone = serializers.CharField(source='user.phone_number', read_only=True)
+    full_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    phone_number = serializers.CharField(source='user.phone_number', read_only=True)
+    rating = serializers.DecimalField(source='average_rating', max_digits=3, decimal_places=2, read_only=True)
     
     class Meta:
         model = WorkerProfile
-        fields = ['id', 'user_name', 'user_email', 'phone', 'hourly_rate', 'availability']
+        fields = ['id', 'full_name', 'email', 'phone_number', 'profile_image', 'rating', 'availability']
 
 
 class ClientBasicSerializer(serializers.ModelSerializer):
@@ -43,6 +44,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     urgency_display = serializers.CharField(source='get_urgency_display', read_only=True)
     duration_type_display = serializers.CharField(source='get_duration_type_display', read_only=True)
+    assigned_worker = WorkerBasicSerializer(read_only=True)
     
     class Meta:
         model = ServiceRequest
@@ -63,6 +65,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
             'work_started_at', 'work_completed_at', 'completed_by_worker_at',
             'hourly_rate', 'total_hours_worked', 'total_amount',
             'admin_notes', 'client_notes', 'completion_notes',
+            'client_rating', 'client_review',
             'created_at', 'updated_at'
         ]
         read_only_fields = [
@@ -118,7 +121,9 @@ class ServiceRequestListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'category_name', 'client_name', 'client_phone', 'worker_name',
             'location', 'city', 'status', 'status_display', 'urgency',
-            'preferred_date', 'preferred_time', 'created_at', 'worker_accepted'
+            'preferred_date', 'preferred_time', 'created_at', 'worker_accepted',
+            'client_rating', 'client_review',
+            'total_price', 'duration_days', 'duration_type', 'estimated_duration_hours',
         ]
 
 
@@ -209,4 +214,4 @@ class ClientStatsSerializer(serializers.Serializer):
     pending_requests = serializers.IntegerField()
     in_progress_requests = serializers.IntegerField()
     completed_requests = serializers.IntegerField()
-    total_spent = serializers.DecimalField(max_digits=10, decimal_places=2)
+    total_spent = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=0)

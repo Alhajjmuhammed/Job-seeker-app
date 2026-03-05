@@ -24,7 +24,7 @@ interface Assignment {
   location: string;
   city: string;
   client_name: string;
-  budget?: number;
+  total_price?: number;
 }
 
 export default function CompleteServiceScreen() {
@@ -43,8 +43,8 @@ export default function CompleteServiceScreen() {
     try {
       setLoading(true);
       const response = await apiService.getCurrentAssignment();
-      if (response.assignment && response.assignment.id === Number(id)) {
-        setAssignment(response.assignment);
+      if (response.service_request && response.service_request.id === Number(id)) {
+        setAssignment(response.service_request);
       }
     } catch (error: any) {
       console.error('Error loading assignment:', error);
@@ -182,11 +182,11 @@ export default function CompleteServiceScreen() {
             </Text>
           </View>
 
-          {assignment.budget && (
+          {assignment.total_price && (
             <View style={styles.infoRow}>
               <Ionicons name="cash-outline" size={18} color={theme.primary} />
               <Text style={[styles.budgetText, { color: theme.primary }]}>
-                ${assignment.budget.toFixed(2)}
+                SDG {assignment.total_price.toFixed(2)}
               </Text>
             </View>
           )}

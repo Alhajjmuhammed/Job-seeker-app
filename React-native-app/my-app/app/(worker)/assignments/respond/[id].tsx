@@ -23,9 +23,8 @@ interface AssignmentDetail {
   urgency: string;
   location: string;
   city: string;
-  budget?: number;
+  total_price?: number;
   duration_days: number;
-  workers_needed: number;
   created_at: string;
   assigned_at: string;
   client_name: string;
@@ -243,14 +242,14 @@ export default function RespondAssignmentScreen() {
               </Text>
             </View>
 
-            {assignment.budget && (
+            {assignment.total_price && (
               <View style={styles.detailItem}>
                 <Ionicons name="cash-outline" size={20} color={theme.primary} />
                 <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                  Budget
+                  Total Price
                 </Text>
                 <Text style={[styles.budgetValue, { color: theme.primary }]}>
-                  ${assignment.budget.toFixed(2)}
+                  SDG {assignment.total_price.toFixed(2)}
                 </Text>
               </View>
             )}

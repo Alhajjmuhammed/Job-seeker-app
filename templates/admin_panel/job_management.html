@@ -334,7 +334,8 @@
                     <label for="status">Status</label>
                     <select name="status" id="status" class="form-control">
                         <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
-                        <option value="open" {% if current_status == 'open' %}selected{% endif %}>Open</option>
+                        <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="assigned" {% if current_status == 'assigned' %}selected{% endif %}>Assigned</option>
                         <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
                         <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
                         <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
@@ -388,14 +389,14 @@
                         </span>
                         <span class="job-meta-item">
                             <i class="bi bi-currency-dollar"></i>
-                            ${{ job.budget|floatformat:0 }}
+                            SDG {{ job.total_price|floatformat:0 }}
                         </span>
                         <span class="job-meta-item worker-need-info">
-                            <i class="bi bi-people"></i>
-                            {% if job.is_fully_staffed %}
-                                <span class="completed-staff">All workers assigned</span>
+                            <i class="bi bi-person-check"></i>
+                            {% if job.assigned_worker %}
+                                <span class="completed-staff">Worker assigned</span>
                             {% else %}
-                                {{ job.workers_remaining }} needed
+                                Needs assignment
                             {% endif %}
                         </span>
                         <span class="job-meta-item">
@@ -405,8 +406,10 @@
                     </div>
                 </div>
                 <div>
-                    {% if job.status == 'open' %}
-                    <span class="badge badge-open">Open</span>
+                    {% if job.status == 'pending' %}
+                    <span class="badge badge-open">Pending</span>
+                {% elif job.status == 'assigned' %}
+                    <span class="badge badge-in-progress">Assigned</span>
                     {% elif job.status == 'in_progress' %}
                     <span class="badge badge-in-progress">In Progress</span>
                     {% elif job.status == 'completed' %}
@@ -421,63 +424,33 @@
                 {{ job.description|truncatewords:30 }}
             </p>
             
-            {% if job.assigned_workers.exists %}
+            {% if job.assigned_worker %}
             <div class="workers-inline">
-                <strong class="workers-count">{{ job.assigned_workers.count }}/{{ job.workers_needed }}</strong>
-                {% for worker in job.assigned_workers.all|slice:":4" %}
-                <span class="worker-mini" title="{{ worker.user.get_full_name }} - {{ worker.average_rating|floatformat:1 }}★">
-                    {{ worker.user.first_name.0 }}{{ worker.user.last_name.0 }}
+                <strong class="workers-count">Assigned Worker</strong>
+                <span class="worker-mini" title="{{ job.assigned_worker.user.get_full_name }} - {{ job.assigned_worker.average_rating|floatformat:1 }}★">
+                    {{ job.assigned_worker.user.first_name.0 }}{{ job.assigned_worker.user.last_name.0 }}
                 </span>
-                {% endfor %}
-                {% if job.assigned_workers.count > 4 %}
-                <span class="worker-mini more">+{{ job.assigned_workers.count|add:-4 }}</span>
-                {% endif %}
-                <button type="button" class="expand-workers" data-bs-toggle="collapse" 
-                        data-bs-target="#workers-{{ job.id }}" title="Manage Workers">
-                    <i class="bi bi-three-dots"></i>
-                </button>
-                <div class="collapse" id="workers-{{ job.id }}">
-                    <div class="workers-manage">
-                        {% for worker in job.assigned_workers.all %}
-                        <div class="worker-row">
-                            <span>{{ worker.user.get_full_name }}</span>
-                            <span class="rating">{{ worker.average_rating|floatformat:1 }}★</span>
-                            <form method="post" action="{% url 'admin_panel:assign_worker' job.id %}" style="display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="unassign">
-                                <input type="hidden" name="worker_id" value="{{ worker.id }}">
-                                <button type="submit" class="remove-btn" title="Remove Worker">×</button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    </div>
+                <div class="workers-manage" style="display:inline-block; margin-left:8px;">
+                    <span>{{ job.assigned_worker.user.get_full_name }}</span>
+                    <span class="rating">{{ job.assigned_worker.average_rating|floatformat:1 }}★</span>
                 </div>
             </div>
             {% endif %}
             
             <div class="job-actions">
-                <a href="{% url 'jobs:job_detail' job.id %}" class="btn-secondary">
+                <a href="{% url 'admin_panel:service_request_detail' job.id %}" class="btn-secondary">
                     <i class="bi bi-eye"></i> View Details
                 </a>
                 
-                {% if not job.is_fully_staffed %}
-                <a href="{% url 'admin_panel:assign_worker' job.id %}" class="btn-primary">
-                    <i class="bi bi-person-plus"></i> 
-                    {% if job.assigned_workers.count == 0 %}
-                        Assign Worker ({{ job.workers_needed }} needed)
-                    {% else %}
-                        Assign {{ job.workers_remaining }} More
-                    {% endif %}
+                {% if not job.assigned_worker %}
+                <a href="{% url 'admin_panel:assign_worker_to_request' job.id %}" class="btn-primary">
+                    <i class="bi bi-person-plus"></i> Assign Worker
                 </a>
                 {% else %}
                 <span class="btn-secondary disabled">
-                    <i class="bi bi-check-circle"></i> Fully Staffed
+                    <i class="bi bi-check-circle"></i> Worker Assigned
                 </span>
                 {% endif %}
-                
-                <a href="{% url 'jobs:conversation' job.client.id %}" class="btn-secondary">
-                    <i class="bi bi-chat-dots"></i> Message Client
-                </a>
             </div>
         </div>
         {% empty %}

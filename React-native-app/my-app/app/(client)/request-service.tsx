@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import PaymentModal from '../../components/PaymentModal';
 import apiService from '../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -37,6 +38,9 @@ export default function RequestServiceScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  
   // Form state
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [title, setTitle] = useState('');
@@ -59,6 +63,22 @@ export default function RequestServiceScreen() {
   
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
+
+  const resetForm = () => {
+    setSelectedCategory(null);
+    setTitle('');
+    setDescription('');
+    setLocation('');
+    setCity('');
+    setPreferredDate(new Date());
+    setPreferredTime(new Date());
+    setDurationType('daily');
+    setServiceStartDate(new Date());
+    setServiceEndDate(new Date());
+    setUrgency('normal');
+    setClientNotes('');
+    setPriceCalculation(null);
+  };
 
   useEffect(() => {
     loadCategories();
@@ -111,11 +131,17 @@ export default function RequestServiceScreen() {
 
   const handlePayAndSubmit = async () => {
     if (!validateForm()) return;
+    
+    // Show payment modal instead of submitting directly
+    setShowPaymentModal(true);
+  };
 
+  const handlePaymentSuccess = async (paymentData: any) => {
     try {
       setSubmitting(true);
+      setShowPaymentModal(false);
 
-      // Submit service request
+      // Submit service request with actual payment data
       const requestData: any = {
         category: selectedCategory!,
         title: title.trim(),
@@ -127,8 +153,8 @@ export default function RequestServiceScreen() {
         duration_type: durationType,
         urgency: urgency,
         client_notes: clientNotes.trim() || undefined,
-        payment_method: 'pending',
-        payment_transaction_id: `PENDING-${Date.now()}`
+        payment_method: paymentData.payment_method,
+        payment_transaction_id: paymentData.transaction_id
       };
 
       if (durationType === 'custom') {
@@ -138,9 +164,12 @@ export default function RequestServiceScreen() {
 
       await apiService.requestService(selectedCategory!, requestData);
       
+      // Reset form fields
+      resetForm();
+      
       Alert.alert(
         'Success!',
-        `Your service request for $${priceCalculation!.total_price} has been submitted! Our admin will assign a qualified worker soon.`,
+        `Your service request has been submitted and payment of SDG ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will assign a qualified worker soon.`,
         [
           {
             text: 'View My Requests',
@@ -156,7 +185,7 @@ export default function RequestServiceScreen() {
       console.error('Error:', error);
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
-                          'Failed to process request. Please try again.';
+                          'Failed to submit request. Please try again.';
       Alert.alert('Error', errorMessage);
     } finally {
       setSubmitting(false);
@@ -481,14 +510,14 @@ export default function RequestServiceScreen() {
               <Ionicons name="cash-outline" size={20} color={theme.primary} />
               <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
-                ${priceCalculation.daily_rate}
+                SDG {priceCalculation.daily_rate}
               </Text>
             </View>
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
               <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
-                ${priceCalculation.total_price}
+                SDG {priceCalculation.total_price}
               </Text>
             </View>
           </View>
@@ -567,7 +596,7 @@ export default function RequestServiceScreen() {
             <>
               <Ionicons name="card-outline" size={24} color="#FFFFFF" />
               <Text style={styles.submitButtonText}>
-                Pay ${priceCalculation?.total_price || '0'} to Get Service
+                Pay SDG {priceCalculation?.total_price || '0'} to Get Service
               </Text>
             </>
           )}
@@ -575,6 +604,16 @@ export default function RequestServiceScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={showPaymentModal}
+        amount={priceCalculation?.total_price || 0}
+        currency="SDG"
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        processPayment={apiService.processPayment.bind(apiService)}
+      />
     </View>
   );
 }

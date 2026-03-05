@@ -78,7 +78,7 @@ export default function EarningsScreen() {
   const handleWithdraw = () => {
     Alert.alert(
       'Withdraw Funds',
-      `Available balance: $${(Number(pendingAmount) || 0).toFixed(2)}`,
+      `Available balance: SDG ${(Number(pendingAmount) || 0).toFixed(2)}`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Withdraw', onPress: () => Alert.alert('Coming Soon', 'Withdrawal feature coming soon!') },
@@ -148,7 +148,7 @@ export default function EarningsScreen() {
               <Ionicons name="wallet" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
               <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Total Earnings</Text>
               <Text style={[styles.balanceAmount, { color: theme.primary }]}>
-                ${(Number(totalEarnings) || 0).toFixed(2)}
+                SDG {(Number(totalEarnings) || 0).toFixed(2)}
               </Text>
             </View>
 
@@ -157,14 +157,14 @@ export default function EarningsScreen() {
                 <Ionicons name="cash" size={24} color="#10B981" style={{ marginBottom: 4 }} />
                 <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Available</Text>
                 <Text style={[styles.smallCardAmount, { color: theme.text }]}>
-                  ${(Number(pendingAmount) || 0).toFixed(2)}
+                  SDG {(Number(pendingAmount) || 0).toFixed(2)}
                 </Text>
               </View>
               <View style={[styles.smallCard, { backgroundColor: theme.surface }]}>
                 <Ionicons name="card" size={24} color="#3B82F6" style={{ marginBottom: 4 }} />
                 <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Withdrawn</Text>
                 <Text style={[styles.smallCardAmount, { color: theme.text }]}>
-                  ${(Number(withdrawnAmount) || 0).toFixed(2)}
+                  SDG {(Number(withdrawnAmount) || 0).toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -215,7 +215,7 @@ export default function EarningsScreen() {
                     </View>
                   </View>
                   <Text style={[styles.clientEarnings, { color: theme.primary }]}>
-                    ${parseFloat(client.total_earnings || 0).toFixed(0)}
+                    SDG {parseFloat(client.total_earnings || 0).toFixed(0)}
                   </Text>
                 </View>
               ))}
@@ -253,7 +253,7 @@ export default function EarningsScreen() {
                   </View>
                   <View style={styles.transactionRight}>
                     <Text style={[styles.transactionAmount, { color: '#10B981' }]}>
-                      +${parseFloat(String(txn.amount || 0)).toFixed(2)}
+                      +SDG {parseFloat(String(txn.amount || 0)).toFixed(2)}
                     </Text>
                     <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
                   </View>

@@ -45,8 +45,8 @@ export default function ClockOutScreen() {
     try {
       setLoading(true);
       const response = await apiService.getCurrentAssignment();
-      if (response.assignment && response.assignment.id === Number(id)) {
-        setAssignment(response.assignment);
+      if (response.service_request && response.service_request.id === Number(id)) {
+        setAssignment(response.service_request);
       }
     } catch (error: any) {
       console.error('Error loading assignment:', error);

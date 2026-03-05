@@ -17,6 +17,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface ServiceRequest {
   id: number;
@@ -29,7 +30,8 @@ interface ServiceRequest {
   created_at: string;
   worker_name?: string;
   worker_accepted?: boolean;
-  budget?: number;
+  total_price?: string;
+  client_rating?: number;
 }
 
 export default function MyRequestsScreen() {
@@ -47,6 +49,8 @@ export default function MyRequestsScreen() {
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,7 +63,7 @@ export default function MyRequestsScreen() {
   useEffect(() => {
     setCurrentPage(1);
     loadRequests(1);
-  }, [selectedCategory, fromDate, toDate]);
+  }, [selectedCategory, fromDate, toDate, debouncedSearchQuery]);
 
   const loadCategories = async () => {
     try {
@@ -82,7 +86,8 @@ export default function MyRequestsScreen() {
         page,
         selectedCategory,
         fromDate?.toISOString().split('T')[0],
-        toDate?.toISOString().split('T')[0]
+        toDate?.toISOString().split('T')[0],
+        debouncedSearchQuery
       );
       const data = response.results || response;
       
@@ -214,6 +219,25 @@ export default function MyRequestsScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="My Service Requests" showBack />
       
+      {/* Search Bar */}
+      <View style={[styles.searchContainer, { backgroundColor: theme.card }]}>
+        <View style={[styles.searchInputContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <Ionicons name="search" size={20} color={theme.textSecondary} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search by title, description, location..."
+            placeholderTextColor={theme.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      
       {/* Advanced Filters Button */}
       <View style={[styles.filtersHeader, { backgroundColor: theme.card }]}>
         <TouchableOpacity
@@ -224,22 +248,23 @@ export default function MyRequestsScreen() {
           <Text style={[styles.advancedFiltersText, { color: theme.primary }]}>
             Filters
           </Text>
-          {(selectedCategory || fromDate || toDate) && (
+          {(selectedCategory || fromDate || toDate || searchQuery) && (
             <View style={[styles.filterBadge, { backgroundColor: theme.primary }]}>
               <Text style={styles.filterBadgeText}>
-                {[selectedCategory, fromDate, toDate].filter(Boolean).length}
+                {[selectedCategory, fromDate, toDate, searchQuery].filter(Boolean).length}
               </Text>
             </View>
           )}
         </TouchableOpacity>
         
-        {(selectedCategory || fromDate || toDate) && (
+        {(selectedCategory || fromDate || toDate || searchQuery) && (
           <TouchableOpacity
             style={styles.clearFiltersButton}
             onPress={() => {
               setSelectedCategory('');
               setFromDate(null);
               setToDate(null);
+              setSearchQuery('');
             }}
           >
             <Text style={[styles.clearFiltersText, { color: theme.error }]}>Clear</Text>
@@ -458,12 +483,12 @@ export default function MyRequestsScreen() {
                   </View>
                 )}
 
-                {/* Budget */}
-                {request.budget && (
+                {/* Price */}
+                {request.total_price && (
                   <View style={styles.budgetRow}>
                     <Ionicons name="cash-outline" size={16} color={theme.primary} />
                     <Text style={[styles.budgetText, { color: theme.primary }]}>
-                      ${request.budget.toFixed(2)}
+                      SDG {request.total_price}
                     </Text>
                   </View>
                 )}
@@ -696,6 +721,26 @@ const styles = StyleSheet.create({
   },
   pageInfo: {
     fontSize: 12,
+  },
+  searchContainer: {
+    padding: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    padding: 0,
   },
   filtersHeader: {
     flexDirection: 'row',

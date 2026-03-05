@@ -108,21 +108,29 @@ def calculate_price(request):
 @permission_classes([IsAuthenticated])
 def process_fake_payment(request):
     """
-    Process fake payment for demo purposes
+    Process fake payment for demo purposes (Card or M-Pesa)
     
-    POST /api/clients/process-payment/
-    Body: {
+    POST /api/v1/client/process-payment/
+    Body for Card: {
         "amount": 750.00,
-        "payment_method": "credit_card",  # credit_card, debit_card, paypal
-        "card_number": "4242424242424242",  # fake
+        "payment_type": "card",  # card or mpesa
+        "card_number": "4242424242424242",
         "card_holder": "John Doe",
         "card_expiry": "12/28",
         "card_cvv": "123"
     }
+    
+    Body for M-Pesa: {
+        "amount": 750.00,
+        "payment_type": "mpesa",
+        "phone_number": "+249123456789"
+    }
+    
+    DEMO MODE: Any card number starting with 4242, and any phone number starting with +249 will succeed
     """
     try:
         amount = request.data.get('amount')
-        payment_method = request.data.get('payment_method', 'credit_card')
+        payment_type = request.data.get('payment_type', 'card')  # card or mpesa
         
         if not amount:
             return Response({
@@ -140,32 +148,76 @@ def process_fake_payment(request):
                 'error': 'Invalid amount format'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        # Validate based on payment type
+        if payment_type == 'card':
+            card_number = request.data.get('card_number', '').replace(' ', '')
+            card_holder = request.data.get('card_holder', '')
+            card_expiry = request.data.get('card_expiry', '')
+            card_cvv = request.data.get('card_cvv', '')
+            
+            if not all([card_number, card_holder, card_expiry, card_cvv]):
+                return Response({
+                    'error': 'Card details are incomplete'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Demo validation: Accept test card 4242...
+            if not card_number.startswith('4242'):
+                return Response({
+                    'success': False,
+                    'error': 'Card declined. Use demo card: 4242 4242 4242 4242'
+                }, status=status.HTTP_402_PAYMENT_REQUIRED)
+                
+            payment_method = 'Virtual Card'
+            
+        elif payment_type == 'mpesa':
+            phone_number = request.data.get('phone_number', '')
+            
+            if not phone_number:
+                return Response({
+                    'error': 'Phone number is required for M-Pesa'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Demo validation: Accept numbers starting with +249
+            if not phone_number.startswith('+249'):
+                return Response({
+                    'success': False,
+                    'error': 'Invalid M-Pesa number. Use demo number: +249123456789'
+                }, status=status.HTTP_402_PAYMENT_REQUIRED)
+            
+            payment_method = 'M-Pesa'
+        else:
+            return Response({
+                'error': 'Invalid payment type. Use "card" or "mpesa"'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         # Simulate payment processing delay
         import time
-        time.sleep(1)  # Simulate network delay
+        time.sleep(2)  # Simulate network delay 
         
         # Generate fake transaction ID
-        transaction_id = f"DEMO-{uuid.uuid4().hex[:12].upper()}"
+        prefix = 'CARD' if payment_type == 'card' else 'MPESA'
+        transaction_id = f"DEMO-{prefix}-{uuid.uuid4().hex[:12].upper()}"
         
-        # 95% success rate for demo
+        # 98% success rate for demo (using valid test credentials)
         import random
-        success = random.random() < 0.95
+        success = random.random() < 0.98
         
         if success:
             return Response({
                 'success': True,
                 'transaction_id': transaction_id,
                 'amount': float(amount),
-                'currency': 'USD',
+                'currency': 'SDG',
                 'payment_method': payment_method,
+                'payment_type': payment_type,
                 'status': 'paid',
                 'paid_at': django_timezone.now().isoformat(),
-                'message': 'Payment processed successfully (DEMO MODE)'
+                'message': f'Payment processed successfully via {payment_method} (DEMO MODE)'
             })
         else:
             return Response({
                 'success': False,
-                'error': 'Payment failed. Please try again. (DEMO MODE)',
+                'error': f'{payment_method} payment failed. Please try again. (DEMO MODE)',
                 'status': 'failed'
             }, status=status.HTTP_402_PAYMENT_REQUIRED)
         

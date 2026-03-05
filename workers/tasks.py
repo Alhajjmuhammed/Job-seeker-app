@@ -96,23 +96,23 @@ def update_worker_stats(self, worker_id):
     """
     try:
         from workers.models import WorkerProfile
-        from jobs.models import JobRequest
+        from jobs.service_request_models import ServiceRequest
         from jobs.reviews import Review
         from django.db.models import Sum, Count
         
         worker = WorkerProfile.objects.get(id=worker_id)
         
         # Count completed jobs
-        completed_jobs = JobRequest.objects.filter(
-            assigned_workers=worker,
+        completed_jobs = ServiceRequest.objects.filter(
+            assigned_worker=worker,
             status='completed'
         ).count()
         
         # Calculate total earnings
-        earnings = JobRequest.objects.filter(
-            assigned_workers=worker,
+        earnings = ServiceRequest.objects.filter(
+            assigned_worker=worker,
             status='completed'
-        ).aggregate(total=Sum('budget'))['total'] or 0
+        ).aggregate(total=Sum('total_price'))['total'] or 0
         
         # Get review stats
         reviews = Review.objects.filter(

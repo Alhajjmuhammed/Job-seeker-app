@@ -286,7 +286,7 @@ export default function AnalyticsScreen() {
                     </Text>
                     <View style={styles.categoryStats}>
                       <Text style={[styles.categoryEarnings, { color: theme.primary }]}>
-                        ${parseFloat(item.earnings || 0).toFixed(0)}
+                        SDG {parseFloat(item.earnings || 0).toFixed(0)}
                       </Text>
                       <Text style={[styles.categoryJobs, { color: theme.textSecondary }]}>
                         {item.jobs_count} jobs

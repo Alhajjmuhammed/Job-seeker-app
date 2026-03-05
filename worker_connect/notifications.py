@@ -54,6 +54,7 @@ def notify_admins_new_job(job):
     """
     try:
         subject = f'New Job Posted: {job.title}'
+        price = getattr(job, 'total_price', None) or getattr(job, 'budget', None) or 'Not specified'
         message = f"""
 A new job has been posted on Worker Connect:
 
@@ -61,7 +62,7 @@ Title: {job.title}
 Client: {job.client.email}
 Category: {job.category.name if job.category else 'Not specified'}
 City: {job.city}
-Budget: ${job.budget or 'Not specified'}
+Price: SDG {price}
 Duration: {job.duration_days} days
 Urgency: {job.urgency}
 

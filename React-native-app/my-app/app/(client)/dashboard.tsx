@@ -126,7 +126,12 @@ export default function ClientDashboard() {
   const fetchClientStats = async () => {
     try {
       const data = await apiService.getClientStats();
-      setStats(data);
+      setStats({
+        activeJobs: data.active_jobs ?? data.activeJobs ?? 0,
+        completedJobs: data.completed_jobs ?? data.completedJobs ?? 0,
+        totalSpent: data.total_spent ?? data.totalSpent ?? 0,
+        favorites: data.favorites ?? 0,
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -152,19 +157,18 @@ export default function ClientDashboard() {
 
   const fetchMyJobs = async () => {
     try {
-      const data = await apiService.getClientJobs();
-      // Handle paginated response
-      const jobsList = Array.isArray(data) ? data : (data.results || []);
+      const data = await apiService.getMyServiceRequests();
+      const jobsList = data.results || data || [];
       const jobs = jobsList
-        .filter((job: any) => job.status === 'open' || job.status === 'in_progress')
+        .filter((req: any) => req.status === 'pending' || req.status === 'assigned' || req.status === 'in_progress')
         .slice(0, 3)
-        .map((job: any) => ({
-          id: job.id,
-          title: job.title,
-          category: job.category_name || 'General',
-          status: job.status === 'open' ? 'active' : job.status,
-          applicants: job.application_count || 0,
-          postedDate: new Date(job.created_at).toLocaleDateString(),
+        .map((req: any) => ({
+          id: req.id,
+          title: req.title,
+          category: req.category_name || 'General',
+          status: req.status === 'pending' ? 'active' : req.status,
+          applicants: 0,
+          postedDate: new Date(req.created_at).toLocaleDateString(),
         }));
       setMyJobs(jobs);
     } catch (error) {
@@ -318,7 +322,7 @@ export default function ClientDashboard() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
-              onPress={() => router.push('/(client)/jobs')}
+              onPress={() => router.push('/(client)/my-requests' as any)}
             >
               <Ionicons name="briefcase-outline" size={36} color="#F59E0B" />
               <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Jobs</Text>
@@ -455,7 +459,7 @@ export default function ClientDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>My Jobs</Text>
-            <TouchableOpacity onPress={() => router.push('/(client)/jobs')}>
+            <TouchableOpacity onPress={() => router.push('/(client)/my-requests' as any)}>
               <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
             </TouchableOpacity>
           </View>
@@ -464,7 +468,7 @@ export default function ClientDashboard() {
             <TouchableOpacity
               key={job.id}
               style={[styles.jobCard, { backgroundColor: theme.card }]}
-              onPress={() => router.push(`/(client)/job/${job.id}` as any)}
+              onPress={() => router.push(`/(client)/service-request/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
                 <Text style={[styles.jobTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{job.title}</Text>

@@ -7,9 +7,26 @@ from workers.models import WorkerProfile, Category
 # Import new service request models
 from .service_request_models import ServiceRequest, TimeTracking, WorkerActivity
 
+# ============================================================================
+# DEPRECATED MODELS - LEGACY CODE
+# ============================================================================
+# These models are kept for backward compatibility and migrations only.
+# DO NOT USE IN NEW CODE!
+# Use ServiceRequest from service_request_models.py instead.
+# ============================================================================
+
 
 class JobRequest(models.Model):
-    """Job requests posted by clients"""
+    """
+    DEPRECATED: Use ServiceRequest from service_request_models.py instead.
+    
+    This model is kept only for:
+    - Backward compatibility with legacy views
+    - Database migrations
+    - Old data that hasn't been migrated
+    
+    DO NOT USE IN NEW CODE!
+    """
     
     STATUS_CHOICES = (
         ('open', 'Open'),
@@ -132,7 +149,12 @@ class JobRequest(models.Model):
 
 
 class JobApplication(models.Model):
-    """Applications from workers for jobs"""
+    """
+    DEPRECATED: Applications from workers for jobs (linked to deprecated JobRequest).
+    
+    This model is kept only for backward compatibility and migrations.
+    DO NOT USE IN NEW CODE!
+    """
     
     STATUS_CHOICES = (
         ('pending', 'Pending'),
@@ -342,7 +364,12 @@ class Report(models.Model):
 
 
 class SavedJob(models.Model):
-    """Jobs saved by workers for later viewing"""
+    """
+    DEPRECATED: Jobs saved by workers (linked to deprecated JobRequest).
+    
+    This model is kept only for backward compatibility and migrations.
+    DO NOT USE IN NEW CODE!
+    """
     
     worker = models.ForeignKey(
         'workers.WorkerProfile',

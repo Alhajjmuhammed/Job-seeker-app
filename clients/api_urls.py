@@ -26,6 +26,7 @@ urlpatterns = [
     path('requests/', api_views.my_service_requests, name='my_service_requests'),
     path('requests/<int:request_id>/', api_views.service_request_detail, name='service_request_detail'),
     path('requests/<int:request_id>/cancel/', api_views.cancel_service_request, name='cancel_service_request'),
+    path('requests/<int:request_id>/complete/', api_views.complete_service_request, name='complete_service_request'),
     
     # Categories (for display purposes only)
     path('categories/', api_views.categories_list, name='categories_list'),

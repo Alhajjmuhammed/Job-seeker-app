@@ -5,10 +5,10 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q, Avg, Count, F, Value, Case, When, Min, Max
 from django.db.models.functions import Coalesce
 import math
-from jobs.models import JobRequest
+from jobs.service_request_models import ServiceRequest
 from workers.models import WorkerProfile, Category
 from clients.models import ClientProfile
-from jobs.serializers import JobRequestSerializer
+from jobs.service_request_serializers import ServiceRequestListSerializer
 from workers.serializers import WorkerProfileSerializer
 
 class SearchPagination(PageNumberPagination):
@@ -40,7 +40,7 @@ def general_search(request):
     """
     try:
         # Get basic statistics
-        job_count = JobRequest.objects.filter(status='open').count()
+        job_count = ServiceRequest.objects.filter(status__in=['pending', 'assigned']).count()
         worker_count = WorkerProfile.objects.filter(user__is_active=True).count()
         category_count = Category.objects.count()
         
@@ -84,8 +84,8 @@ def search_jobs(request):
         radius = request.GET.get('radius', '50')  # Default 50km
         sort_by = request.GET.get('sort_by', 'created_at')
         
-        # Start with all active jobs
-        jobs = JobRequest.objects.filter(status='open')
+        # Start with all active service requests
+        jobs = ServiceRequest.objects.filter(status__in=['pending', 'assigned'])
         
         # Text search
         if query:
@@ -99,11 +99,11 @@ def search_jobs(request):
         if category:
             jobs = jobs.filter(category__name__iexact=category)
         
-        # Budget filter
+        # Price filter
         if min_budget:
-            jobs = jobs.filter(budget__gte=float(min_budget))
+            jobs = jobs.filter(total_price__gte=float(min_budget))
         if max_budget:
-            jobs = jobs.filter(budget__lte=float(max_budget))
+            jobs = jobs.filter(total_price__lte=float(max_budget))
         
         # Location filter (city)
         if city:
@@ -142,14 +142,13 @@ def search_jobs(request):
         # Convert back to queryset for sorting
         if jobs_list != list(jobs):
             job_ids = [job.id for job in jobs_list]
-            jobs = JobRequest.objects.filter(id__in=job_ids)
+            jobs = ServiceRequest.objects.filter(id__in=job_ids)
         
         # Sorting
         sort_options = {
             'created_at': '-created_at',
-            'budget': '-budget',
+            'budget': '-total_price',
             'title': 'title',
-            'deadline': 'deadline',
         }
         
         if sort_by in sort_options:
@@ -162,7 +161,7 @@ def search_jobs(request):
         page = paginator.paginate_queryset(jobs, request)
         
         if page is not None:
-            serializer = JobRequestSerializer(page, many=True, context={'request': request})
+            serializer = ServiceRequestListSerializer(page, many=True, context={'request': request})
             return paginator.get_paginated_response({
                 'jobs': serializer.data,
                 'total_count': jobs.count(),
@@ -176,7 +175,7 @@ def search_jobs(request):
                 }
             })
         
-        serializer = JobRequestSerializer(jobs, many=True, context={'request': request})
+        serializer = ServiceRequestListSerializer(jobs, many=True, context={'request': request})
         return Response({
             'success': True,
             'jobs': serializer.data,
@@ -330,14 +329,14 @@ def search_filters(request):
         # Get categories
         categories = Category.objects.filter(is_active=True).values('id', 'name')
         
-        # Get budget ranges from existing jobs
-        budget_stats = JobRequest.objects.filter(
-            status='open',
-            budget__isnull=False
+        # Get price ranges from existing service requests
+        budget_stats = ServiceRequest.objects.filter(
+            status__in=['pending', 'assigned', 'in_progress'],
+            total_price__isnull=False
         ).aggregate(
-            min_budget=Min('budget'),
-            max_budget=Max('budget'),
-            avg_budget=Avg('budget')
+            min_budget=Min('total_price'),
+            max_budget=Max('total_price'),
+            avg_budget=Avg('total_price')
         )
         
         # Get rating ranges

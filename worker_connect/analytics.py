@@ -336,16 +336,17 @@ class BusinessMetrics:
     @staticmethod
     def get_job_metrics() -> Dict[str, Any]:
         """Get job-related metrics."""
-        from jobs.models import JobRequest, JobApplication
+        from jobs.service_request_models import ServiceRequest
+        from jobs.models import JobApplication
         
         now = timezone.now()
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        jobs = JobRequest.objects.all()
+        jobs = ServiceRequest.objects.all()
         
         return {
             'total_jobs': jobs.count(),
-            'open_jobs': jobs.filter(status='open').count(),
+            'pending_jobs': jobs.filter(status='pending').count(),
             'in_progress_jobs': jobs.filter(status='in_progress').count(),
             'completed_jobs': jobs.filter(status='completed').count(),
             'jobs_posted_today': jobs.filter(created_at__gte=today).count(),

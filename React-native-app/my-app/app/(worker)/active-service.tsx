@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  TextInput,
+  Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -27,56 +27,28 @@ interface CurrentAssignment {
   location: string;
   city: string;
   estimated_duration_hours: number;
-  client: {
-    name: string;
-    phone: string;
-  };
-  clock_in_time: string | null;
-  clock_out_time: string | null;
-  started_at: string | null;
+  client_name: string;
+  client_phone: string;
+  work_started_at: string | null;
 }
 
 export default function ActiveService() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [assignment, setAssignment] = useState<CurrentAssignment | null>(null);
-  const [completionNotes, setCompletionNotes] = useState('');
-  const [clockOutNotes, setClockOutNotes] = useState('');
-  const [elapsedTime, setElapsedTime] = useState('00:00:00');
 
   useEffect(() => {
     loadCurrentAssignment();
   }, []);
-
-  useEffect(() => {
-    if (assignment?.clock_in_time && !assignment.clock_out_time) {
-      const interval = setInterval(() => {
-        const clockIn = new Date(assignment.clock_in_time!);
-        const now = new Date();
-        const diff = now.getTime() - clockIn.getTime();
-        
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        setElapsedTime(
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        );
-      }, 1000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [assignment]);
 
   const loadCurrentAssignment = async () => {
     try {
       setLoading(true);
       const response = await apiService.getCurrentAssignment();
       
-      if (response.assignment || response.current_assignment) {
-        setAssignment(response.assignment || response.current_assignment);
+      if (response.service_request) {
+        setAssignment(response.service_request);
       } else {
         Alert.alert('No Active Service', 'You don\'t have any active service assignment', [
           { text: 'OK', onPress: () => router.back() }
@@ -96,95 +68,14 @@ export default function ActiveService() {
     }
   };
 
-  const handleClockIn = async () => {
-    if (!assignment) return;
-
-    Alert.alert(
-      'Clock In',
-      'Are you ready to start working on this service?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clock In',
-          onPress: async () => {
-            try {
-              setSubmitting(true);
-              await apiService.clockIn(assignment.id);
-              await loadCurrentAssignment();
-              Alert.alert('Success', 'You have clocked in successfully');
-            } catch (error: any) {
-              console.error('Error clocking in:', error);
-              Alert.alert('Error', error.response?.data?.error || 'Failed to clock in');
-            } finally {
-              setSubmitting(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleClockOut = async () => {
-    if (!assignment) return;
-
-    Alert.alert(
-      'Clock Out',
-      'Are you done working on this service for now?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clock Out',
-          onPress: async () => {
-            try {
-              setSubmitting(true);
-              await apiService.clockOut(assignment.id, undefined, clockOutNotes || undefined);
-              await loadCurrentAssignment();
-              Alert.alert('Success', 'You have clocked out successfully');
-              setClockOutNotes('');
-            } catch (error: any) {
-              console.error('Error clocking out:', error);
-              Alert.alert('Error', error.response?.data?.error || 'Failed to clock out');
-            } finally {
-              setSubmitting(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleComplete = async () => {
-    if (!assignment) return;
-
-    if (!completionNotes.trim()) {
-      Alert.alert('Required', 'Please provide completion notes describing the work done');
-      return;
+  const handleCallClient = () => {
+    if (assignment?.client_phone) {
+      Linking.openURL(`tel:${assignment.client_phone}`);
     }
+  };
 
-    Alert.alert(
-      'Complete Service',
-      'Mark this service as completed? The client will be notified.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Complete',
-          onPress: async () => {
-            try {
-              setSubmitting(true);
-              await apiService.completeService(assignment.id, completionNotes);
-              Alert.alert('Success', 'Service marked as completed', [
-                { text: 'OK', onPress: () => router.replace('/(worker)/service-assignments' as any) }
-              ]);
-            } catch (error: any) {
-              console.error('Error completing service:', error);
-              Alert.alert('Error', error.response?.data?.error || 'Failed to complete service');
-            } finally {
-              setSubmitting(false);
-            }
-          },
-        },
-      ]
-    );
+  const handleMessageClient = () => {
+    Alert.alert('Coming Soon', 'Messaging feature will be available soon');
   };
 
   const getUrgencyConfig = (urgency: string) => {
@@ -213,7 +104,6 @@ export default function ActiveService() {
   }
 
   const urgencyConfig = getUrgencyConfig(assignment.urgency);
-  const isClockedIn = !!assignment.clock_in_time && !assignment.clock_out_time;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -224,16 +114,16 @@ export default function ActiveService() {
         <View style={[styles.statusCard, { backgroundColor: theme.card }]}>
           <View style={styles.statusHeader}>
             <Ionicons 
-              name={isClockedIn ? 'time' : 'pause-circle'} 
+              name="briefcase"
               size={32} 
-              color={isClockedIn ? theme.primary : theme.textSecondary} 
+              color={theme.primary}
             />
             <View style={styles.statusContent}>
               <Text style={[styles.statusTitle, { color: theme.text }]}>
-                {isClockedIn ? 'Working' : 'Not Clocked In'}
+                Active Service
               </Text>
               <Text style={[styles.statusSubtitle, { color: theme.textSecondary }]}>
-                {isClockedIn ? `Elapsed: ${elapsedTime}` : 'Clock in to start working'}
+                You are currently working on this service
               </Text>
             </View>
           </View>
@@ -268,14 +158,14 @@ export default function ActiveService() {
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.infoText, { color: theme.text }]}>
-              {assignment.client.name}
+              {assignment.client_name}
             </Text>
           </View>
 
           <View style={styles.infoRow}>
             <Ionicons name="call-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.infoText, { color: theme.text }]}>
-              {assignment.client.phone}
+              {assignment.client_phone}
             </Text>
           </View>
 
@@ -294,109 +184,46 @@ export default function ActiveService() {
           </View>
         </View>
 
-        {/* Time Tracking Actions */}
-        {!isClockedIn ? (
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: theme.primary }]}
-            onPress={handleClockIn}
-            disabled={submitting}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="play-circle" size={24} color="#fff" />
-                <Text style={styles.primaryButtonText}>Clock In</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Clock Out Notes (Optional)
-            </Text>
-            <TextInput
-              style={[
-                styles.textArea,
-                {
-                  backgroundColor: theme.background,
-                  color: theme.text,
-                  borderColor: theme.border,
-                },
-              ]}
-              placeholder="Add notes about today's work..."
-              placeholderTextColor={theme.textSecondary}
-              value={clockOutNotes}
-              onChangeText={setClockOutNotes}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-
-            <TouchableOpacity
-              style={[styles.secondaryButton, { borderColor: theme.primary }]}
-              onPress={handleClockOut}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <ActivityIndicator color={theme.primary} />
-              ) : (
-                <>
-                  <Ionicons name="pause-circle" size={24} color={theme.primary} />
-                  <Text style={[styles.secondaryButtonText, { color: theme.primary }]}>
-                    Clock Out
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Complete Service */}
+        {/* Contact Client Actions */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Complete Service
+            Client Contact
           </Text>
           
-          <Text style={[styles.label, { color: theme.textSecondary }]}>
-            Completion Notes *
+          <Text style={[styles.infoText, { color: theme.textSecondary, marginBottom: 16 }]}>
+            Need to reach the client? Use the buttons below to call or message them.
           </Text>
-          <TextInput
-            style={[
-              styles.textArea,
-              {
-                backgroundColor: theme.background,
-                color: theme.text,
-                borderColor: theme.border,
-              },
-            ]}
-            placeholder="Describe the work completed, materials used, etc..."
-            placeholderTextColor={theme.textSecondary}
-            value={completionNotes}
-            onChangeText={setCompletionNotes}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
 
-          <TouchableOpacity
-            style={[
-              styles.completeButton,
-              { backgroundColor: '#2e7d32' },
-              (!completionNotes.trim() || submitting) && styles.disabledButton,
-            ]}
-            onPress={handleComplete}
-            disabled={!completionNotes.trim() || submitting}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="checkmark-circle" size={24} color="#fff" />
-                <Text style={styles.completeButtonText}>Mark as Completed</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <View style={styles.contactButtonsRow}>
+            <TouchableOpacity
+              style={[styles.contactButton, { backgroundColor: theme.primary }]}
+              onPress={handleCallClient}
+            >
+              <Ionicons name="call" size={20} color="#fff" />
+              <Text style={styles.contactButtonText}>Call Client</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.contactButton, { backgroundColor: theme.primary }]}
+              onPress={handleMessageClient}
+            >
+              <Ionicons name="chatbubble" size={20} color="#fff" />
+              <Text style={styles.contactButtonText}>Message</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Important Info */}
+        <View style={[styles.infoCard, { backgroundColor: theme.primary + '15' }]}>
+          <Ionicons name="information-circle" size={24} color={theme.primary} />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={[styles.infoCardTitle, { color: theme.primary }]}>
+              Work in Progress
+            </Text>
+            <Text style={[styles.infoCardText, { color: theme.text }]}>
+              Continue working on this service. The client will mark it as finished when they are satisfied with the work completed.
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -557,4 +384,36 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.5,
   },
-});
+  contactButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  contactButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 10,
+    gap: 8,
+  },
+  contactButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  infoCard: {
+    flexDirection: 'row',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  infoCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  infoCardText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },});

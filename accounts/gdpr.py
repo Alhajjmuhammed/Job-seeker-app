@@ -85,16 +85,16 @@ class GDPRService:
                 'created_at': profile.created_at.isoformat() if hasattr(profile, 'created_at') else None,
             }
             
-            # Jobs posted
-            from jobs.models import JobRequest
-            jobs = JobRequest.objects.filter(client=profile)
+            # Service requests posted
+            from jobs.service_request_models import ServiceRequest
+            jobs = ServiceRequest.objects.filter(client=user)
             for job in jobs:
                 data['jobs'].append({
                     'id': job.id,
                     'title': job.title,
                     'description': job.description,
                     'status': job.status,
-                    'budget': str(job.budget) if hasattr(job, 'budget') and job.budget else None,
+                    'total_price': str(job.total_price) if job.total_price else None,
                     'location': getattr(job, 'location', ''),
                     'created_at': job.created_at.isoformat(),
                 })
@@ -149,10 +149,10 @@ class GDPRService:
             ).count()
         
         if hasattr(user, 'client_profile') and user.client_profile:
-            from jobs.models import JobRequest
+            from jobs.service_request_models import ServiceRequest
             preview['profiles']['client'] = True
-            preview['jobs_count'] = JobRequest.objects.filter(
-                client=user.client_profile
+            preview['jobs_count'] = ServiceRequest.objects.filter(
+                client=user
             ).count()
         
         from jobs.models import Message
@@ -252,10 +252,10 @@ class GDPRService:
                     user.worker_profile.delete()
                 
                 if hasattr(user, 'client_profile') and user.client_profile:
-                    from jobs.models import JobRequest
-                    # Cascade deletes applications
-                    JobRequest.objects.filter(
-                        client=user.client_profile
+                    from jobs.service_request_models import ServiceRequest
+                    # Delete service requests for this client
+                    ServiceRequest.objects.filter(
+                        client=user
                     ).delete()
                     user.client_profile.delete()
                 

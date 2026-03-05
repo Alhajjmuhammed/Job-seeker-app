@@ -72,6 +72,7 @@ export default function ClientLayout() {
       <Tabs.Screen name="request-service/[id]" options={{ href: null }} />
       <Tabs.Screen name="service-request/[id]" options={{ href: null }} />
       <Tabs.Screen name="edit-service-request/[id]" options={{ href: null }} />
+      <Tabs.Screen name="rate-worker/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

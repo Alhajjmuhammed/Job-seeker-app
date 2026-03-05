@@ -14,11 +14,10 @@ urlpatterns = [
     path('categories/', views.category_list, name='category_list'),
     path('reports/', views.reports, name='reports'),
     
-    # Job management URLs
+    # Job management URLs (legacy view for stats only)
     path('jobs/', views.job_management, name='job_management'),
-    path('jobs/<int:job_id>/assign/', views.assign_worker, name='assign_worker'),
     
-    # Service Request management URLs (NEW)
+    # Service Request management URLs
     path('service-requests/', views.service_request_list, name='service_request_list'),
     path('service-requests/<int:request_id>/', views.service_request_detail, name='service_request_detail'),
     path('service-requests/<int:request_id>/workers/', views.view_request_workers, name='view_request_workers'),

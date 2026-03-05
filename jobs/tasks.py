@@ -29,39 +29,39 @@ def check_overdue_invoices(self):
 @shared_task(bind=True, max_retries=3)
 def send_job_reminders(self):
     """
-    Send reminders for upcoming jobs.
+    Send reminders for upcoming service requests.
     """
     try:
-        from jobs.models import JobRequest
+        from jobs.service_request_models import ServiceRequest
         from datetime import timedelta
         
         tomorrow = timezone.now().date() + timedelta(days=1)
         
-        # Find jobs starting tomorrow
-        upcoming_jobs = JobRequest.objects.filter(
+        # Find service requests starting tomorrow
+        upcoming_jobs = ServiceRequest.objects.filter(
             status='assigned',
             scheduled_date=tomorrow
-        ).select_related('client__user', 'assigned_workers')
+        ).select_related('client', 'assigned_worker__user')
         
         for job in upcoming_jobs:
             # Send reminder to client
             send_job_reminder_email.delay(
-                job.client.user.email,
+                job.client.email,
                 job.title,
                 str(job.scheduled_date),
                 'client'
             )
             
-            # Send reminder to assigned workers
-            for worker in job.assigned_workers.all():
+            # Send reminder to assigned worker (if exists)
+            if job.assigned_worker:
                 send_job_reminder_email.delay(
-                    worker.user.email,
+                    job.assigned_worker.user.email,
                     job.title,
                     str(job.scheduled_date),
                     'worker'
                 )
         
-        logger.info(f"Sent reminders for {upcoming_jobs.count()} jobs")
+        logger.info(f"Sent reminders for {upcoming_jobs.count()} service requests")
     except Exception as e:
         logger.error(f"Error sending job reminders: {e}")
         raise self.retry(exc=e)

@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from workers.models import WorkerProfile, Category
 from .models import ClientProfile
 from .forms import ClientProfileForm
-from jobs.models import JobRequest
 from jobs.service_request_models import ServiceRequest
 
 
@@ -29,7 +28,7 @@ def client_dashboard(request):
             availability='available'
         ).count()
         
-        completed_projects = JobRequest.objects.filter(
+        completed_projects = ServiceRequest.objects.filter(
             category=category,
             status='completed'
         ).count()
@@ -41,9 +40,9 @@ def client_dashboard(request):
         })
     
     # Get recent service requests
-    recent_requests = JobRequest.objects.filter(
+    recent_requests = ServiceRequest.objects.filter(
         client=request.user
-    ).select_related('category', 'assigned_worker').order_by('-created_at')[:5]
+    ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
     
     context = {
         'profile': profile,
@@ -71,12 +70,12 @@ def browse_services(request):
             availability='available'
         ).count()
         
-        completed_projects = JobRequest.objects.filter(
+        completed_projects = ServiceRequest.objects.filter(
             category=category,
             status='completed'
         ).count()
         
-        avg_completion_days = JobRequest.objects.filter(
+        avg_completion_days = ServiceRequest.objects.filter(
             category=category,
             status='completed'
         ).aggregate(
@@ -170,7 +169,7 @@ def request_service(request, category_id):
             
             messages.success(request, 
                 f'Your {category.name} service request has been submitted! '
-                f'Total price: ${total_price:.2f}. '
+                f'Total price: SDG {total_price:.2f}. '
                 'Our team will assign a qualified worker and notify you within 2-4 hours.'
             )
             return redirect('service_requests_web:client_request_detail', pk=service_request.id)
@@ -208,13 +207,13 @@ def my_service_requests(request):
     
     status_filter = request.GET.get('status', 'all')
     
-    requests = JobRequest.objects.filter(client=request.user)
+    requests = ServiceRequest.objects.filter(client=request.user)
     
     if status_filter != 'all':
         requests = requests.filter(status=status_filter)
     
     requests = requests.select_related(
-        'category', 'assigned_worker'
+        'category', 'assigned_worker', 'assigned_worker__user'
     ).order_by('-created_at')
     
     context = {
@@ -240,7 +239,7 @@ def service_request_detail(request, request_id):
         return redirect('home')
     
     service_request = get_object_or_404(
-        JobRequest, 
+        ServiceRequest, 
         id=request_id, 
         client=request.user
     )
@@ -292,15 +291,15 @@ def profile_view(request):
     profile, created = ClientProfile.objects.get_or_create(user=request.user)
     
     # Get statistics
-    total_requests = JobRequest.objects.filter(client=request.user).count()
-    pending_requests = JobRequest.objects.filter(client=request.user, status='pending').count()
-    in_progress_requests = JobRequest.objects.filter(client=request.user, status='in_progress').count()
-    completed_requests = JobRequest.objects.filter(client=request.user, status='completed').count()
+    total_requests = ServiceRequest.objects.filter(client=request.user).count()
+    pending_requests = ServiceRequest.objects.filter(client=request.user, status='pending').count()
+    in_progress_requests = ServiceRequest.objects.filter(client=request.user, status='in_progress').count()
+    completed_requests = ServiceRequest.objects.filter(client=request.user, status='completed').count()
     
     # Recent service requests
-    recent_requests = JobRequest.objects.filter(
+    recent_requests = ServiceRequest.objects.filter(
         client=request.user
-    ).select_related('category', 'assigned_worker').order_by('-created_at')[:5]
+    ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
     
     context = {
         'profile': profile,
@@ -322,7 +321,7 @@ def cancel_service_request(request, request_id):
     
     if request.method == 'POST':
         service_request = get_object_or_404(
-            JobRequest, 
+            ServiceRequest, 
             id=request_id, 
             client=request.user,
             status='pending'  # Only pending requests can be cancelled

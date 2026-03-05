@@ -217,7 +217,7 @@
                             </td>
                             <td>
                                 {% if request.total_price %}
-                                <span class="price-display">${{ request.total_price|floatformat:2 }}</span>
+                                <span class="price-display">SDG {{ request.total_price|floatformat:2 }}</span>
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}

@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,15 +19,15 @@ import apiService from '../../services/api';
 
 interface AssignedJob {
   id: number;
-  service_needed: string;
-  description: string;
-  budget: number;
+  title: string;
+  description?: string;
+  total_price?: number;
   client_name: string;
-  client_email: string;
-  status: 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+  category_name?: string;
+  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
   created_at: string;
-  assigned_at: string;
-  due_date: string;
+  preferred_date?: string;
+  city?: string;
   location?: string;
 }
 
@@ -44,10 +45,10 @@ export default function WorkerJobsScreen() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const response = await apiService.getAssignedJobs();
+        const response = await apiService.getWorkerAssignments();
         
         if (mounted) {
-          setAssignedJobs(response.jobs || []);
+          setAssignedJobs(response.results || []);
         }
       } catch (error) {
         console.error('Error loading assigned jobs:', error);
@@ -71,8 +72,8 @@ export default function WorkerJobsScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      const response = await apiService.getAssignedJobs();
-      setAssignedJobs(response.jobs || []);
+      const response = await apiService.getWorkerAssignments();
+      setAssignedJobs(response.results || []);
     } catch (error) {
       console.error('Error refreshing assigned jobs:', error);
       Alert.alert('Error', 'Failed to refresh assigned jobs.');
@@ -81,34 +82,12 @@ export default function WorkerJobsScreen() {
     }
   };
 
-  const handleUpdateJobStatus = async (jobId: number, newStatus: 'in_progress' | 'completed') => {
-    try {
-      await apiService.updateJobStatus(jobId, newStatus);
-      
-      // Update local state
-      setAssignedJobs(prevJobs => 
-        prevJobs.map(job => 
-          job.id === jobId ? { ...job, status: newStatus } : job
-        )
-      );
-      
-      Alert.alert('Success', `Job status updated to ${newStatus.replace('_', ' ')}`);
-    } catch (error) {
-      console.error('Error updating job status:', error);
-      Alert.alert('Error', 'Failed to update job status. Please try again.');
+  const navigateToJob = (job: AssignedJob) => {
+    if (job.status === 'in_progress') {
+      router.push('/(worker)/active-service' as any);
+    } else {
+      router.push(`/(worker)/service-assignment/${job.id}` as any);
     }
-  };
-
-  const confirmStatusUpdate = (job: AssignedJob, newStatus: 'in_progress' | 'completed') => {
-    const statusText = newStatus === 'in_progress' ? 'In Progress' : 'Completed';
-    Alert.alert(
-      'Confirm Status Update',
-      `Are you sure you want to mark "${job.service_needed}" as ${statusText}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Confirm', onPress: () => handleUpdateJobStatus(job.id, newStatus) },
-      ]
-    );
   };
 
   const getStatusColor = (status: string) => {
@@ -403,7 +382,7 @@ export default function WorkerJobsScreen() {
           filteredJobs.map((job) => (
             <View key={job.id} style={styles.jobCard}>
               <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle}>{job.service_needed}</Text>
+                <Text style={styles.jobTitle}>{job.title}</Text>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
                   <Text style={styles.statusText}>{getStatusText(job.status)}</Text>
                 </View>
@@ -415,60 +394,55 @@ export default function WorkerJobsScreen() {
 
               <View style={styles.clientInfo}>
                 <Text style={styles.clientName}>{job.client_name}</Text>
-                <Text style={styles.clientEmail}>{job.client_email}</Text>
+                {job.category_name && (
+                  <Text style={styles.clientEmail}>{job.category_name}</Text>
+                )}
               </View>
 
               <View style={styles.jobDetails}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Budget:</Text>
-                  <Text style={styles.detailValue}>
-                    ${job.budget || 'Not specified'}
-                  </Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Assigned:</Text>
-                  <Text style={styles.detailValue}>
-                    {new Date(job.assigned_at).toLocaleDateString()}
-                  </Text>
-                </View>
-                {job.due_date && (
+                {job.total_price && (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Due Date:</Text>
+                    <Text style={styles.detailLabel}>Price:</Text>
                     <Text style={styles.detailValue}>
-                      {new Date(job.due_date).toLocaleDateString()}
+                      SDG {job.total_price}
                     </Text>
                   </View>
                 )}
-                {job.location && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Posted:</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(job.created_at).toLocaleDateString()}
+                  </Text>
+                </View>
+                {job.preferred_date && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Preferred Date:</Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(job.preferred_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+                {(job.city || job.location) && (
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Location:</Text>
-                    <Text style={styles.detailValue}>{job.location}</Text>
+                    <Text style={styles.detailValue}>{job.city || job.location}</Text>
                   </View>
                 )}
               </View>
 
-              {/* Action buttons based on job status */}
+              {/* Action button */}
               <View style={styles.jobActions}>
-                {job.status === 'assigned' && (
+                {job.status !== 'completed' && job.status !== 'cancelled' && (
                   <TouchableOpacity
-                    style={[styles.actionButton, styles.startButton]}
-                    onPress={() => confirmStatusUpdate(job, 'in_progress')}
+                    style={[styles.actionButton, job.status === 'in_progress' ? styles.completeButton : styles.startButton]}
+                    onPress={() => navigateToJob(job)}
                   >
-                    <Ionicons name="play" size={16} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Start Job</Text>
+                    <Ionicons name={job.status === 'in_progress' ? 'time' : 'arrow-forward'} size={16} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>
+                      {job.status === 'in_progress' ? 'Active Session' : 'View Assignment'}
+                    </Text>
                   </TouchableOpacity>
                 )}
-                
-                {job.status === 'in_progress' && (
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.completeButton]}
-                    onPress={() => confirmStatusUpdate(job, 'completed')}
-                  >
-                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Mark Complete</Text>
-                  </TouchableOpacity>
-                )}
-                
                 {job.status === 'completed' && (
                   <View style={[styles.actionButton, styles.disabledButton]}>
                     <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />

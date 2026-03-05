@@ -37,20 +37,20 @@ export default function ClientJobsScreen() {
     const loadJobs = async () => {
       try {
         setLoading(true);
-        const data = await apiService.getClientJobs();
-        const list = Array.isArray(data) ? data : (data.results || []);
+        const data = await apiService.getMyServiceRequests();
+        const list = data.results || data || [];
 
         const active = list
-          .filter((j: any) => j.status === 'open' || j.status === 'in_progress')
+          .filter((j: any) => j.status === 'pending' || j.status === 'assigned' || j.status === 'in_progress')
           .map((job: any) => ({
             id: job.id,
             title: job.title,
-            category: job.category_name || job.category || 'General',
-            status: job.status === 'open' ? 'active' : job.status,
-            applicants: job.application_count || 0,
-            workerName: job.assigned_worker_name || job.assigned_workers?.[0]?.user?.first_name || undefined,
+            category: job.category_name || 'General',
+            status: job.status === 'pending' ? 'active' : job.status,
+            applicants: 0,
+            workerName: job.worker_name || undefined,
             postedDate: new Date(job.created_at).toLocaleDateString(),
-            budget: job.budget,
+            budget: job.total_price,
           }));
 
         const completed = list
@@ -58,11 +58,11 @@ export default function ClientJobsScreen() {
           .map((job: any) => ({
             id: job.id,
             title: job.title,
-            category: job.category_name || job.category || 'General',
+            category: job.category_name || 'General',
             status: job.status,
-            workerName: job.assigned_worker_name || job.assigned_workers?.[0]?.user?.first_name || undefined,
-            postedDate: new Date(job.completed_at || job.created_at).toLocaleDateString(),
-            budget: job.budget,
+            workerName: job.worker_name || undefined,
+            postedDate: new Date(job.updated_at || job.created_at).toLocaleDateString(),
+            budget: job.total_price,
           }));
 
         if (mounted) {
@@ -177,7 +177,7 @@ export default function ClientJobsScreen() {
             <TouchableOpacity
               key={job.id}
               style={[styles.jobCard, { backgroundColor: theme.card }]}
-              onPress={() => router.push(`/(client)/job/${job.id}` as any)}
+              onPress={() => router.push(`/(client)/service-request/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
                 <Text style={[styles.jobTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{job.title}</Text>
@@ -232,7 +232,7 @@ export default function ClientJobsScreen() {
             <TouchableOpacity
               key={job.id}
               style={[styles.jobCard, { backgroundColor: theme.card }]}
-              onPress={() => router.push(`/(client)/job/${job.id}` as any)}
+              onPress={() => router.push(`/(client)/service-request/${job.id}` as any)}
             >
               <View style={styles.jobHeader}>
                 <Text style={[styles.jobTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{job.title}</Text>

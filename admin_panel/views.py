@@ -13,7 +13,7 @@ import json
 from accounts.models import User
 from workers.models import WorkerProfile, WorkerDocument, Category, Skill
 from clients.models import ClientProfile, Rating
-from jobs.models import JobRequest, Message
+from jobs.models import Message
 from jobs.service_request_models import ServiceRequest
 
 
@@ -31,14 +31,14 @@ def dashboard(request):
     pending_verification = WorkerProfile.objects.filter(verification_status='pending').count()
     available_workers = WorkerProfile.objects.filter(availability='available').count()
     
-    # Job statistics
-    total_jobs = JobRequest.objects.count()
-    open_jobs = JobRequest.objects.filter(status='open').count()
-    completed_jobs = JobRequest.objects.filter(status='completed').count()
+    # Job statistics (ServiceRequest = new system)
+    total_jobs = ServiceRequest.objects.count()
+    open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
     
     # Recent activities
     recent_workers = WorkerProfile.objects.order_by('-created_at')[:5]
-    recent_jobs = JobRequest.objects.order_by('-created_at')[:5]
+    recent_jobs = ServiceRequest.objects.select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
     pending_documents = WorkerDocument.objects.filter(verification_status='pending')[:10]
     
     context = {
@@ -365,7 +365,7 @@ def reports(request):
     # Statistics for the period
     new_workers = WorkerProfile.objects.filter(created_at__gte=start_date).count()
     new_clients = ClientProfile.objects.filter(created_at__gte=start_date).count()
-    new_jobs = JobRequest.objects.filter(created_at__gte=start_date).count()
+    new_jobs = ServiceRequest.objects.filter(created_at__gte=start_date).count()
     
     # Calculate growth percentages
     previous_start = start_date - timedelta(days=days)
@@ -377,7 +377,7 @@ def reports(request):
         created_at__gte=previous_start, 
         created_at__lt=start_date
     ).count()
-    prev_jobs = JobRequest.objects.filter(
+    prev_jobs = ServiceRequest.objects.filter(
         created_at__gte=previous_start, 
         created_at__lt=start_date
     ).count()
@@ -398,8 +398,8 @@ def reports(request):
     ).order_by('-average_rating')[:10]
     
     # Job completion rate
-    total_jobs = JobRequest.objects.filter(created_at__gte=start_date).count()
-    completed = JobRequest.objects.filter(
+    total_jobs = ServiceRequest.objects.filter(created_at__gte=start_date).count()
+    completed = ServiceRequest.objects.filter(
         created_at__gte=start_date,
         status='completed'
     ).count()
@@ -420,9 +420,9 @@ def reports(request):
     verified_workers = WorkerProfile.objects.filter(verification_status='verified').count()
     pending_workers = WorkerProfile.objects.filter(verification_status='pending').count()
     available_workers = WorkerProfile.objects.filter(availability='available').count()
-    open_jobs = JobRequest.objects.filter(status='open').count()
-    in_progress_jobs = JobRequest.objects.filter(status='in_progress').count()
-    assigned_jobs = JobRequest.objects.filter(assigned_worker__isnull=False).count()
+    open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    in_progress_jobs = ServiceRequest.objects.filter(status='in_progress').count()
+    assigned_jobs = ServiceRequest.objects.filter(assigned_worker__isnull=False).count()
     
     # Average rating
     avg_rating = WorkerProfile.objects.filter(
@@ -511,11 +511,11 @@ def manage_users(request):
         }
         
         if user.is_client:
-            user_info['jobs_posted'] = JobRequest.objects.filter(client=user).count()
+            user_info['jobs_posted'] = ServiceRequest.objects.filter(client=user).count()
             user_info['ratings_given'] = Rating.objects.filter(client=user).count()
         
         if user.is_worker and hasattr(user, 'worker_profile'):
-            user_info['applications'] = JobRequest.objects.filter(assigned_worker=user.worker_profile).count()
+            user_info['applications'] = ServiceRequest.objects.filter(assigned_worker=user.worker_profile).count()
             ratings = Rating.objects.filter(worker=user.worker_profile)
             user_info['ratings_received'] = ratings.count()
             if ratings.exists():
@@ -569,7 +569,7 @@ def user_detail(request, user_id):
     
     # Client specific data
     if user.is_client:
-        jobs = JobRequest.objects.filter(client=user).order_by('-created_at')
+        jobs = ServiceRequest.objects.filter(client=user).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')
         context['jobs_posted'] = jobs
         context['ratings_given'] = Rating.objects.filter(client=user).order_by('-created_at')
     
@@ -577,7 +577,7 @@ def user_detail(request, user_id):
     if user.is_worker and hasattr(user, 'worker_profile'):
         worker = user.worker_profile
         context['worker_profile'] = worker
-        context['applications'] = JobRequest.objects.filter(assigned_worker=worker).order_by('-created_at')
+        context['applications'] = ServiceRequest.objects.filter(assigned_worker=worker).select_related('category', 'client').order_by('-created_at')
         context['ratings_received'] = Rating.objects.filter(worker=worker).order_by('-created_at')
         context['documents'] = WorkerDocument.objects.filter(worker=worker)
         context['skills'] = worker.skills.all()
@@ -599,21 +599,21 @@ def user_detail(request, user_id):
     activities = []
     
     # Add job activities
-    for job in JobRequest.objects.filter(client=user).order_by('-created_at')[:5]:
+    for job in ServiceRequest.objects.filter(client=user).order_by('-created_at')[:5]:
         activities.append({
             'type': 'job_posted',
             'date': job.created_at,
-            'description': f'Posted job: {job.title}',
+            'description': f'Posted service request: {job.title}',
             'icon': 'briefcase'
         })
     
     # Add assignment activities
     if user.is_worker and hasattr(user, 'worker_profile'):
-        for job in JobRequest.objects.filter(assigned_worker=user.worker_profile).order_by('-created_at')[:5]:
+        for job in ServiceRequest.objects.filter(assigned_worker=user.worker_profile).order_by('-created_at')[:5]:
             activities.append({
                 'type': 'assignment',
                 'date': job.updated_at,
-                'description': f'Assigned to job: {job.title}',
+                'description': f'Assigned to service request: {job.title}',
                 'icon': 'check-circle'
             })
     
@@ -784,31 +784,31 @@ def system_overview(request):
     
     # Client metrics
     total_clients = ClientProfile.objects.count()
-    active_clients = User.objects.filter(user_type='client', job_requests__isnull=False).distinct().count()
+    active_clients = User.objects.filter(user_type='client', service_requests__isnull=False).distinct().count()
     
-    # Job metrics
-    total_jobs = JobRequest.objects.count()
-    open_jobs = JobRequest.objects.filter(status='open').count()
-    in_progress_jobs = JobRequest.objects.filter(status='in_progress').count()
-    completed_jobs = JobRequest.objects.filter(status='completed').count()
-    cancelled_jobs = JobRequest.objects.filter(status='cancelled').count()
+    # Job metrics (ServiceRequest = new system)
+    total_jobs = ServiceRequest.objects.count()
+    open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    in_progress_jobs = ServiceRequest.objects.filter(status='in_progress').count()
+    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
+    cancelled_jobs = ServiceRequest.objects.filter(status='cancelled').count()
     
-    jobs_today = JobRequest.objects.filter(created_at__date=today).count()
-    jobs_week = JobRequest.objects.filter(created_at__date__gte=week_ago).count()
-    jobs_month = JobRequest.objects.filter(created_at__date__gte=month_ago).count()
+    jobs_today = ServiceRequest.objects.filter(created_at__date=today).count()
+    jobs_week = ServiceRequest.objects.filter(created_at__date__gte=week_ago).count()
+    jobs_month = ServiceRequest.objects.filter(created_at__date__gte=month_ago).count()
     
     # Application metrics
-    pending_applications = JobRequest.objects.filter(status='open', assigned_worker__isnull=True).count()
-    accepted_applications = JobRequest.objects.filter(assigned_worker__isnull=False).count()
+    pending_applications = ServiceRequest.objects.filter(status='pending').count()
+    accepted_applications = ServiceRequest.objects.filter(assigned_worker__isnull=False).count()
     
     # Rating metrics
     total_ratings = Rating.objects.count()
     avg_rating = Rating.objects.aggregate(Avg('rating'))['rating__avg'] or 0
     ratings_week = Rating.objects.filter(created_at__date__gte=week_ago).count()
     
-    # Financial metrics (if budget field exists)
-    total_budget = JobRequest.objects.aggregate(Sum('budget'))['budget__sum'] or 0
-    completed_budget = JobRequest.objects.filter(status='completed').aggregate(Sum('budget'))['budget__sum'] or 0
+    # Financial metrics
+    total_budget = ServiceRequest.objects.aggregate(total=Sum('total_price'))['total'] or 0
+    completed_budget = ServiceRequest.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
     
     # Document metrics
     total_documents = WorkerDocument.objects.count()
@@ -823,13 +823,13 @@ def system_overview(request):
     # Category metrics
     total_categories = Category.objects.count()
     most_popular_categories = Category.objects.annotate(
-        job_count=Count('jobs')
+        job_count=Count('service_requests')
     ).order_by('-job_count')[:5]
     
     # Recent activities
     recent_users = User.objects.order_by('-date_joined')[:5]
-    recent_jobs = JobRequest.objects.order_by('-created_at')[:5]
-    recent_assignments = JobRequest.objects.filter(assigned_worker__isnull=False).order_by('-updated_at')[:5]
+    recent_jobs = ServiceRequest.objects.select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
+    recent_assignments = ServiceRequest.objects.filter(assigned_worker__isnull=False).select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-updated_at')[:5]
     
     context = {
         # User metrics
@@ -935,12 +935,12 @@ def export_reports_csv(request):
     # Job Statistics
     writer.writerow(['JOB STATISTICS'])
     writer.writerow(['Metric', 'Count'])
-    writer.writerow(['Total Jobs', JobRequest.objects.count()])
-    writer.writerow(['Jobs Posted (Period)', JobRequest.objects.filter(created_at__gte=start_date).count()])
-    writer.writerow(['Open Jobs', JobRequest.objects.filter(status='open').count()])
-    writer.writerow(['In Progress Jobs', JobRequest.objects.filter(status='in_progress').count()])
-    writer.writerow(['Completed Jobs', JobRequest.objects.filter(status='completed').count()])
-    writer.writerow(['Assigned Jobs', JobRequest.objects.filter(assigned_worker__isnull=False).count()])
+    writer.writerow(['Total Jobs', ServiceRequest.objects.count()])
+    writer.writerow(['Jobs Posted (Period)', ServiceRequest.objects.filter(created_at__gte=start_date).count()])
+    writer.writerow(['Pending Jobs', ServiceRequest.objects.filter(status='pending').count()])
+    writer.writerow(['In Progress Jobs', ServiceRequest.objects.filter(status='in_progress').count()])
+    writer.writerow(['Completed Jobs', ServiceRequest.objects.filter(status='completed').count()])
+    writer.writerow(['Assigned Jobs', ServiceRequest.objects.filter(assigned_worker__isnull=False).count()])
     writer.writerow([])
     
     # Top Categories
@@ -1007,12 +1007,12 @@ def export_reports_excel(request):
     writer.writerow([])
     
     # Jobs
-    total_jobs = JobRequest.objects.count()
-    open_jobs = JobRequest.objects.filter(status='open').count()
-    completed_jobs = JobRequest.objects.filter(status='completed').count()
+    total_jobs = ServiceRequest.objects.count()
+    open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
     
     writer.writerow(['Jobs', 'Total Jobs', total_jobs])
-    writer.writerow(['Jobs', 'Open Jobs', open_jobs])
+    writer.writerow(['Jobs', 'Pending Jobs', open_jobs])
     writer.writerow(['Jobs', 'Completed Jobs', completed_jobs])
     writer.writerow([])
     
@@ -1059,12 +1059,12 @@ def export_reports_json(request):
             'average_rating': float(WorkerProfile.objects.aggregate(Avg('average_rating'))['average_rating__avg'] or 0)
         },
         'job_statistics': {
-            'total_jobs': JobRequest.objects.count(),
-            'jobs_in_period': JobRequest.objects.filter(created_at__gte=start_date).count(),
-            'open_jobs': JobRequest.objects.filter(status='open').count(),
-            'in_progress_jobs': JobRequest.objects.filter(status='in_progress').count(),
-            'completed_jobs': JobRequest.objects.filter(status='completed').count(),
-            'assigned_jobs': JobRequest.objects.filter(assigned_worker__isnull=False).count()
+            'total_jobs': ServiceRequest.objects.count(),
+            'jobs_in_period': ServiceRequest.objects.filter(created_at__gte=start_date).count(),
+            'pending_jobs': ServiceRequest.objects.filter(status='pending').count(),
+            'in_progress_jobs': ServiceRequest.objects.filter(status='in_progress').count(),
+            'completed_jobs': ServiceRequest.objects.filter(status='completed').count(),
+            'assigned_jobs': ServiceRequest.objects.filter(assigned_worker__isnull=False).count()
         },
         'top_categories': [],
         'top_workers': []
@@ -1225,18 +1225,18 @@ def export_reports_pdf(request):
     elements.append(Spacer(1, 20))
     
     # Job Statistics
-    total_jobs = JobRequest.objects.count()
-    jobs_in_period = JobRequest.objects.filter(created_at__gte=start_date).count()
-    open_jobs = JobRequest.objects.filter(status='open').count()
-    in_progress_jobs = JobRequest.objects.filter(status='in_progress').count()
-    completed_jobs = JobRequest.objects.filter(status='completed').count()
+    total_jobs = ServiceRequest.objects.count()
+    jobs_in_period = ServiceRequest.objects.filter(created_at__gte=start_date).count()
+    open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    in_progress_jobs = ServiceRequest.objects.filter(status='in_progress').count()
+    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
     
     elements.append(Paragraph("Job Statistics", heading_style))
     job_data = [
         ['Metric', 'Count'],
         ['Total Jobs', str(total_jobs)],
         [f'Jobs Posted ({days} days)', str(jobs_in_period)],
-        ['Open Jobs', str(open_jobs)],
+        ['Pending Jobs', str(open_jobs)],
         ['In Progress Jobs', str(in_progress_jobs)],
         ['Completed Jobs', str(completed_jobs)],
     ]
@@ -1344,9 +1344,8 @@ def job_management(request):
     search = request.GET.get('search', '')
     
     # Base queryset
-    jobs = JobRequest.objects.select_related(
-        'client', 'category', 'assigned_worker'
-    ).prefetch_related(
+    jobs = ServiceRequest.objects.select_related(
+        'client', 'category', 'assigned_worker',
         'assigned_worker__user'
     ).order_by('-created_at')
     
@@ -1372,10 +1371,10 @@ def job_management(request):
     jobs_page = paginator.get_page(page)
     
     # Statistics
-    total_jobs = JobRequest.objects.count()
-    open_jobs = JobRequest.objects.filter(status='open').count()
-    assigned_jobs = JobRequest.objects.filter(assigned_worker__isnull=False, status='in_progress').count()
-    completed_jobs = JobRequest.objects.filter(status='completed').count()
+    total_jobs = ServiceRequest.objects.count()
+    open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    assigned_jobs = ServiceRequest.objects.filter(assigned_worker__isnull=False, status='in_progress').count()
+    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
     
     # Get all categories for filter
     categories = Category.objects.all().order_by('name')
@@ -1402,129 +1401,9 @@ def job_management(request):
     return render(request, 'admin_panel/job_management.html', context)
 
 
-@staff_member_required
-def assign_worker(request, job_id):
-    """Assign a worker to a job"""
-    
-    job = get_object_or_404(JobRequest, pk=job_id)
-    
-    if request.method == 'POST':
-        worker_id = request.POST.get('worker_id')
-        action = request.POST.get('action')
-        
-        if action == 'assign':
-            if not worker_id or worker_id == 'undefined' or worker_id == '':
-                messages.error(request, 'Please select a worker first.')
-                return redirect('admin_panel:assign_worker', job_id=job.id)
-            # Validate worker_id is a valid number
-            try:
-                worker_id = int(worker_id)
-            except (ValueError, TypeError):
-                messages.error(request, 'Invalid worker selection. Please try again.')
-                return redirect('admin_panel:assign_worker', job_id=job.id)
-            
-            worker = get_object_or_404(WorkerProfile, pk=worker_id)
-            
-            # Check if worker is already assigned to this job
-            if job.assigned_workers.filter(id=worker.id).exists():
-                messages.warning(request, f'{worker.user.get_full_name()} is already assigned to this job.')
-                return redirect('admin_panel:job_management')
-            
-            # Check if worker is busy (assigned to other jobs)
-            if worker.availability == 'busy':
-                messages.warning(request, f'{worker.user.get_full_name()} is currently assigned to another job.')
-                return redirect('admin_panel:assign_worker', job_id=job.id)
-            
-            # Check if job is already fully staffed
-            if job.is_fully_staffed:
-                messages.warning(request, f'Job "{job.title}" is already fully staffed.')
-                return redirect('admin_panel:job_management')
-            
-            # Assign worker to job (use new many-to-many field)
-            job.assigned_workers.add(worker)
-            job.status = 'in_progress'
-            job.save()
-            
-            # Change worker availability to busy
-            worker.availability = 'busy'
-            worker.save()
-            
-            # Send notification message to both client and worker
-            admin_user = request.user
-            
-            # Message to client with clickable links
-            client_message = f"""We have assigned <a href="/clients/worker/{worker.id}/" style="color: #0f766e; text-decoration: none; font-weight: 600;">{worker.user.get_full_name()}</a> to your job '<a href="/jobs/{job.id}/" style="color: #0f766e; text-decoration: none; font-weight: 600;">{job.title}</a>'. The worker will start working on your project soon."""
-            
-            Message.objects.create(
-                sender=admin_user,
-                recipient=job.client,
-                job=job,
-                subject=f"Worker Assigned to Your Job: {job.title}",
-                message=client_message
-            )
-            
-            # Message to worker with clickable links  
-            worker_message = f"""You have been assigned to the job '<a href="/jobs/{job.id}/" style="color: #0f766e; text-decoration: none; font-weight: 600;">{job.title}</a>' posted by <strong>{job.client.get_full_name()}</strong>. Please contact the client through admin to discuss the details."""
-            
-            Message.objects.create(
-                sender=admin_user,
-                recipient=worker.user,
-                job=job,
-                subject=f"You Have Been Assigned to a Job: {job.title}",
-                message=worker_message
-            )
-            
-            messages.success(request, f'Successfully assigned {worker.user.get_full_name()} to job: {job.title}')
-            
-        elif action == 'unassign':
-            # Unassign worker (get worker_id for unassignment)
-            worker_id = request.POST.get('worker_id')
-            if worker_id:
-                worker = get_object_or_404(WorkerProfile, pk=worker_id)
-                worker_name = worker.user.get_full_name()
-                
-                # Remove worker from assigned workers
-                job.assigned_workers.remove(worker)
-                
-                # Change worker availability back to available
-                worker.availability = 'available'
-                worker.save()
-                
-                # If no workers left, change job status back to open
-                if not job.assigned_workers.exists():
-                    job.status = 'open'
-                job.save()
-                
-                messages.info(request, f'Unassigned {worker_name} from job: {job.title}')
-            else:
-                messages.error(request, 'No worker specified for unassignment')
-        
-        return redirect('admin_panel:job_management')
-    
-    # GET request - show assignment form
-    # Get verified workers matching job category (only available workers)
-    if job.category:
-        suggested_workers = WorkerProfile.objects.filter(
-            verification_status='verified',
-            categories=job.category,
-            availability='available'
-        ).select_related('user').order_by('-average_rating')[:10]
-    else:
-        suggested_workers = []
-    
-    # Get all verified available workers (only truly available ones)
-    all_workers = WorkerProfile.objects.filter(
-        verification_status='verified',
-        availability='available'
-    ).select_related('user').order_by('user__first_name')
-    
-    context = {
-        'job': job,
-        'suggested_workers': suggested_workers,
-        'all_workers': all_workers,
-    }
-    
-    return render(request, 'admin_panel/assign_worker.html', context)
+# Legacy function removed - use assign_worker_to_request() instead
+# This function used JobRequest with M2M assigned_workers (deprecated)
+# All functionality moved to assign_worker_to_request() which uses ServiceRequest with FK assigned_worker
 
 
 @staff_member_required

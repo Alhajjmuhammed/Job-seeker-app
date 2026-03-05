@@ -408,7 +408,7 @@
             </div>
             <div class="info-row">
                 <div class="info-label">Hourly Rate</div>
-                <div class="info-value">${{ worker_profile.hourly_rate|default:0 }}</div>
+                <div class="info-value">SDG {{ worker_profile.hourly_rate|default:0 }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Experience</div>
@@ -480,7 +480,7 @@
         <h6>{{ job.title }}</h6>
         <p>
             <span class="badge badge-{{ job.status }}">{{ job.status|title }}</span>
-            <span class="text-muted ms-2">Budget: ${{ job.budget }}</span>
+            <span class="text-muted ms-2">SDG {{ job.total_price|default:job.budget }}</span>
             <span class="text-muted ms-2">{{ job.created_at|date:"M d, Y" }}</span>
         </p>
     </div>
@@ -497,7 +497,7 @@
         <h6>{{ app.job.title }}</h6>
         <p>
             <span class="badge badge-{{ app.status }}">{{ app.status|title }}</span>
-            <span class="text-muted ms-2">Proposal: ${{ app.proposed_rate }}</span>
+            <span class="text-muted ms-2">SDG {{ app.total_price|default:app.proposed_rate }}</span>
             <span class="text-muted ms-2">{{ app.created_at|date:"M d, Y" }}</span>
         </p>
     </div>

@@ -141,37 +141,53 @@ def worker_stats(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from jobs.models import JobRequest
-        profile = WorkerProfile.objects.get(user=request.user)
+        from jobs.service_request_models import ServiceRequest
+        worker_profile = WorkerProfile.objects.get(user=request.user)
         
-        # Count assigned jobs by status (new service-request model)
-        assigned_jobs_total = JobRequest.objects.filter(
-            assigned_workers=profile
+        # Count assigned jobs by status (ServiceRequest model)
+        assigned_jobs_total = ServiceRequest.objects.filter(
+            assigned_worker=worker_profile
         ).count()
         
         # Count active assigned jobs (in progress)
-        active_jobs = JobRequest.objects.filter(
-            assigned_workers=profile,
+        active_jobs = ServiceRequest.objects.filter(
+            assigned_worker=worker_profile,
             status='in_progress'
         ).count()
         
         # Count completed jobs
-        completed_jobs = JobRequest.objects.filter(
-            assigned_workers=profile,
+        completed_jobs = ServiceRequest.objects.filter(
+            assigned_worker=worker_profile,
             status='completed'
         ).count()
         
-        # Count pending jobs (assigned but not started)
-        pending_jobs = JobRequest.objects.filter(
-            assigned_workers=profile,
-            status='open'
+        # Count pending jobs (pending or assigned but not started)
+        pending_jobs = ServiceRequest.objects.filter(
+            assigned_worker=worker_profile,
+            status__in=['pending', 'assigned']
         ).count()
+        
+        from django.db.models import Sum
+        # Earnings from completed jobs
+        total_earnings = ServiceRequest.objects.filter(
+            assigned_worker=worker_profile,
+            status='completed'
+        ).aggregate(total=Sum('total_price'))['total'] or 0
+        
+        # Pending earnings from active/assigned jobs (earned but pending payment)
+        pending_earnings = ServiceRequest.objects.filter(
+            assigned_worker=worker_profile,
+            status='in_progress'
+        ).aggregate(total=Sum('total_price'))['total'] or 0
         
         stats = {
             'assigned_jobs': assigned_jobs_total,
             'active_jobs': active_jobs,
             'completed_jobs': completed_jobs,
             'pending_jobs': pending_jobs,
+            'total_earnings': float(total_earnings),
+            'pending_earnings': float(pending_earnings),
+            'withdrawn_earnings': 0,
         }
         
         return Response(stats)
@@ -187,12 +203,12 @@ def assigned_jobs(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from jobs.models import JobRequest
+        from jobs.service_request_models import ServiceRequest
         profile = WorkerProfile.objects.get(user=request.user)
         
-        # Get jobs assigned to this worker
-        jobs = JobRequest.objects.filter(
-            assigned_workers=profile
+        # Get service requests assigned to this worker
+        jobs = ServiceRequest.objects.filter(
+            assigned_worker=profile
         ).select_related('client', 'category').order_by('-created_at')
         
         # Serialize the jobs
@@ -206,9 +222,8 @@ def assigned_jobs(request):
                 'urgency': job.urgency,
                 'location': job.location,
                 'city': job.city,
-                'budget': float(job.budget) if job.budget else None,
+                'total_price': float(job.total_price) if job.total_price else None,
                 'duration_days': job.duration_days,
-                'start_date': job.start_date.isoformat() if job.start_date else None,
                 'created_at': job.created_at.isoformat(),
                 'client': {
                     'id': job.client.id,
@@ -235,12 +250,12 @@ def update_job_status(request, job_id):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from jobs.models import JobRequest
+        from jobs.service_request_models import ServiceRequest
         profile = WorkerProfile.objects.get(user=request.user)
         
-        # Get the job and verify worker is assigned
-        job = JobRequest.objects.get(id=job_id)
-        if not job.assigned_workers.filter(id=profile.id).exists():
+        # Get the service request and verify worker is assigned
+        job = ServiceRequest.objects.get(id=job_id)
+        if job.assigned_worker_id != profile.id:
             return Response({'error': 'You are not assigned to this job'}, status=status.HTTP_403_FORBIDDEN)
         
         new_status = request.data.get('status')
@@ -251,9 +266,6 @@ def update_job_status(request, job_id):
         
         # Update job status
         job.status = new_status
-        if new_status == 'completed':
-            from django.utils import timezone
-            job.completed_at = timezone.now()
         job.save()
         
         # Send notification to client
@@ -268,7 +280,7 @@ def update_job_status(request, job_id):
         return Response({'message': 'Job status updated successfully', 'status': new_status})
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
-    except JobRequest.DoesNotExist:
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -621,40 +633,47 @@ def worker_analytics(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from django.db.models import Avg, Sum, Count
-        from clients.models import Rating
-        from datetime import datetime, timedelta
+        from django.db.models import Avg, Count
+        from jobs.service_request_models import ServiceRequest
         
         profile = WorkerProfile.objects.get(user=request.user)
         
-        # Total applications
-        total_applications = JobApplication.objects.filter(worker=profile).count()
+        # Total assignments (ever assigned to this worker)
+        total_assignments = ServiceRequest.objects.filter(
+            assigned_worker=profile
+        ).count()
         
         # Completed jobs
-        completed_jobs = DirectHireRequest.objects.filter(
-            worker=profile,
+        completed_jobs = ServiceRequest.objects.filter(
+            assigned_worker=profile,
             status='completed'
         ).count()
         
-        # Success rate (accepted / total applications)
-        accepted_apps = JobApplication.objects.filter(worker=profile, status='accepted').count()
-        success_rate = (accepted_apps / total_applications * 100) if total_applications > 0 else 0
-        
-        # Average rating
-        avg_rating = Rating.objects.filter(worker=profile).aggregate(Avg('rating'))['rating__avg'] or 0.0
-        
-        # Response rate (applications with responses / total)
-        responded_apps = JobApplication.objects.filter(
-            worker=profile,
-            status__in=['accepted', 'rejected']
+        # Accepted assignments (not cancelled)
+        accepted_assignments = ServiceRequest.objects.filter(
+            assigned_worker=profile,
+            status__in=['assigned', 'in_progress', 'completed']
         ).count()
-        response_rate = (responded_apps / total_applications * 100) if total_applications > 0 else 0
+        
+        # Success rate (completed / total)
+        success_rate = (completed_jobs / total_assignments * 100) if total_assignments > 0 else 0
+        
+        # Response rate (accepted / total)
+        response_rate = (accepted_assignments / total_assignments * 100) if total_assignments > 0 else 0
+        
+        # Average rating from completed ServiceRequests with ratings
+        avg_rating = ServiceRequest.objects.filter(
+            assigned_worker=profile,
+            status='completed',
+            client_rating__isnull=False
+        ).aggregate(avg=Avg('client_rating'))['avg'] or 0.0
         
         # Profile completeness
         profile_completeness = profile.profile_completion_percentage
         
         return Response({
-            'total_applications': total_applications,
+            'total_applications': total_assignments,
+            'accepted_applications': accepted_assignments,
             'completed_jobs': completed_jobs,
             'success_rate': round(success_rate, 1),
             'average_rating': round(avg_rating, 1),
@@ -674,31 +693,31 @@ def earnings_breakdown(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from datetime import datetime, timedelta
         from django.db.models import Sum
         from django.db.models.functions import TruncMonth, TruncWeek
+        from jobs.service_request_models import ServiceRequest
         
         profile = WorkerProfile.objects.get(user=request.user)
         group_by = request.GET.get('group_by', 'month')  # 'week' or 'month'
         periods = int(request.GET.get('periods', 6))
         
-        # Get completed jobs with payments (assuming DirectHireRequest has payment info)
-        jobs = DirectHireRequest.objects.filter(
-            worker=profile,
+        # Get completed ServiceRequests
+        jobs = ServiceRequest.objects.filter(
+            assigned_worker=profile,
             status='completed'
         )
         
         if group_by == 'month':
             earnings_data = jobs.annotate(
-                period=TruncMonth('created_at')
+                period=TruncMonth('updated_at')
             ).values('period').annotate(
-                earnings=Sum('total_amount')
+                earnings=Sum('total_price')
             ).order_by('-period')[:periods]
         else:  # week
             earnings_data = jobs.annotate(
-                period=TruncWeek('created_at')
+                period=TruncWeek('updated_at')
             ).values('period').annotate(
-                earnings=Sum('total_amount')
+                earnings=Sum('total_price')
             ).order_by('-period')[:periods]
         
         # Format the data
@@ -729,38 +748,28 @@ def earnings_by_category(request):
     
     try:
         from django.db.models import Sum, Count
+        from jobs.service_request_models import ServiceRequest
         
         profile = WorkerProfile.objects.get(user=request.user)
         
-        # Get earnings by category from completed jobs
-        # Assuming JobRequest has category field linked to DirectHireRequest
-        from jobs.models import JobRequest
+        # Group completed ServiceRequests by category
+        category_data = ServiceRequest.objects.filter(
+            assigned_worker=profile,
+            status='completed'
+        ).values('category__name').annotate(
+            jobs_count=Count('id'),
+            earnings=Sum('total_price')
+        ).order_by('-earnings')
         
-        category_earnings = []
+        result = []
+        for item in category_data:
+            result.append({
+                'category': item['category__name'] or 'Uncategorised',
+                'earnings': str(item['earnings'] or 0),
+                'jobs_count': item['jobs_count'],
+            })
         
-        # Get worker's categories
-        for category in profile.categories.all():
-            # Count completed jobs in this category
-            jobs_count = DirectHireRequest.objects.filter(
-                worker=profile,
-                status='completed',
-                # Add category filter when available
-            ).count()
-            
-            # Calculate total earnings (simplified - adjust based on your model)
-            total = DirectHireRequest.objects.filter(
-                worker=profile,
-                status='completed',
-            ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-            
-            if jobs_count > 0:
-                category_earnings.append({
-                    'category': category.name,
-                    'earnings': str(total / profile.categories.count()),  # Simple distribution
-                    'jobs_count': jobs_count,
-                })
-        
-        return Response(category_earnings)
+        return Response(result)
         
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -775,16 +784,17 @@ def top_clients(request):
     
     try:
         from django.db.models import Sum, Count
+        from jobs.service_request_models import ServiceRequest
         
         profile = WorkerProfile.objects.get(user=request.user)
         limit = int(request.GET.get('limit', 5))
         
-        # Get top clients from completed jobs
-        top_clients_data = DirectHireRequest.objects.filter(
-            worker=profile,
+        # Get top clients from completed ServiceRequests
+        top_clients_data = ServiceRequest.objects.filter(
+            assigned_worker=profile,
             status='completed'
         ).values('client__id', 'client__first_name', 'client__last_name').annotate(
-            total_earnings=Sum('total_amount'),
+            total_earnings=Sum('total_price'),
             jobs_count=Count('id')
         ).order_by('-total_earnings')[:limit]
         
@@ -811,12 +821,13 @@ def payment_history(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
+        from jobs.service_request_models import ServiceRequest
         profile = WorkerProfile.objects.get(user=request.user)
         limit = int(request.GET.get('limit', 20))
         
-        # Get completed jobs as payment history
-        payments = DirectHireRequest.objects.filter(
-            worker=profile,
+        # Get completed ServiceRequests as payment history
+        payments = ServiceRequest.objects.filter(
+            assigned_worker=profile,
             status='completed'
         ).select_related('client').order_by('-updated_at')[:limit]
         
@@ -827,7 +838,7 @@ def payment_history(request):
                 'job_id': payment.id,
                 'job_title': payment.title,
                 'client_name': payment.client.get_full_name(),
-                'amount': str(payment.total_amount),
+                'amount': str(payment.total_price or 0),
                 'date': payment.updated_at.isoformat(),
                 'status': 'completed',
             })

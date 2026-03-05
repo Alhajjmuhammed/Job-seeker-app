@@ -13,7 +13,8 @@ from django.core.mail import send_mass_mail
 from accounts.models import User
 from workers.models import WorkerProfile
 from clients.models import ClientProfile
-from jobs.models import JobRequest, JobApplication
+from jobs.models import JobApplication
+from jobs.service_request_models import ServiceRequest
 
 
 @api_view(['POST'])
@@ -158,28 +159,25 @@ def bulk_job_action(request):
             'error': f'Invalid action. Must be one of: {valid_actions}'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    jobs = JobRequest.objects.filter(id__in=job_ids)
+    jobs = ServiceRequest.objects.filter(id__in=job_ids)
     affected_count = 0
     
     with transaction.atomic():
         if action == 'approve':
-            affected_count = jobs.update(status='open')
+            affected_count = jobs.update(status='pending')
         
         elif action == 'reject':
-            affected_count = jobs.update(status='rejected')
+            affected_count = jobs.update(status='cancelled')
         
         elif action == 'close':
-            affected_count = jobs.update(status='closed')
+            affected_count = jobs.update(status='cancelled')
         
         elif action == 'delete':
             affected_count = jobs.count()
             jobs.delete()
         
-        elif action == 'feature':
-            affected_count = jobs.update(is_featured=True)
-        
-        elif action == 'unfeature':
-            affected_count = jobs.update(is_featured=False)
+        elif action in ('feature', 'unfeature'):
+            affected_count = jobs.count()  # ServiceRequest has no is_featured field
     
     return Response({
         'success': True,

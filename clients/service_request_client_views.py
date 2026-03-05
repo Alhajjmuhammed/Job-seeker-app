@@ -133,6 +133,17 @@ def client_service_requests(request):
         client=request.user
     ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')
     
+    # Search filter
+    search_query = request.GET.get('search')
+    if search_query:
+        from django.db.models import Q
+        queryset = queryset.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(city__icontains=search_query)
+        )
+    
     # Filter by status
     status_filter = request.GET.get('status')
     if status_filter:
@@ -335,5 +346,62 @@ def client_update_request(request, pk):
     response_serializer = ServiceRequestSerializer(service_request)
     return Response({
         'message': 'Service request updated',
+        'service_request': response_serializer.data
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def client_rate_service(request, pk):
+    """
+    Client rates a completed service
+    POST /api/v1/client/service-requests/{pk}/rate/
+    Body: {
+        "rating": 5,
+        "review": "Excellent service!"
+    }
+    """
+    if request.user.user_type != 'client':
+        return Response({'error': 'Only clients can rate services'}, status=status.HTTP_403_FORBIDDEN)
+    
+    service_request = get_object_or_404(ServiceRequest, pk=pk, client=request.user)
+    
+    # Can only rate completed services
+    if service_request.status != 'completed':
+        return Response(
+            {'error': 'Can only rate completed services'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Check if already rated
+    if service_request.client_rating:
+        return Response(
+            {'error': 'You have already rated this service'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Validate rating
+    rating = request.data.get('rating')
+    if not rating:
+        return Response({'error': 'Rating is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            return Response(
+                {'error': 'Rating must be between 1 and 5'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    except (ValueError, TypeError):
+        return Response({'error': 'Rating must be a valid number'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Update rating
+    service_request.client_rating = rating
+    service_request.client_review = request.data.get('review', '').strip()
+    service_request.save(update_fields=['client_rating', 'client_review'])
+    
+    response_serializer = ServiceRequestSerializer(service_request)
+    return Response({
+        'message': 'Thank you for your rating!',
         'service_request': response_serializer.data
     })

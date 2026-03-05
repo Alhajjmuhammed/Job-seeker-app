@@ -29,7 +29,7 @@
     </div>
     <div class="item">
         <span class="label">Budget</span>
-        <span class="value">${{ job.budget }}</span>
+        <span class="value">SDG {{ job.total_price|default:job.budget }}</span>
     </div>
 </div>
 

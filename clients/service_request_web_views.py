@@ -247,6 +247,48 @@ def client_web_cancel_request(request, pk):
 
 
 @login_required
+def client_web_complete_request(request, pk):
+    """Mark a service request as completed (client marks as finished)"""
+    if request.user.user_type != 'client':
+        messages.error(request, 'Only clients can access this page.')
+        return redirect('home')
+    
+    service_request = get_object_or_404(ServiceRequest, pk=pk, client=request.user)
+    
+    # Check if request can be marked as completed
+    if service_request.status != 'in_progress':
+        messages.error(request, f'Cannot mark as completed. Request status is: {service_request.get_status_display()}. Only in-progress requests can be marked as finished.')
+        return redirect('service_requests_web:client_request_detail', pk=pk)
+    
+    if request.method == 'POST':
+        # Update request status
+        service_request.status = 'completed'
+        service_request.completed_at = timezone.now()
+        service_request.save()
+        
+        # Notify worker that client has marked work as finished
+        if service_request.assigned_worker:
+            try:
+                from jobs.notifications import NotificationService
+                NotificationService.create_notification(
+                    recipient=service_request.assigned_worker.user,
+                    title=f"✅ Service Marked as Finished",
+                    message=f"Client has marked '{service_request.title}' as finished. Great work!",
+                    notification_type='job_completed',
+                    related_job_id=service_request.id
+                )
+            except Exception as e:
+                # Don't fail completion if notification fails
+                print(f"Failed to send completion notification: {e}")
+        
+        messages.success(request, '✅ Service request has been marked as finished! You can now rate the worker.')
+        return redirect('service_requests_web:client_request_detail', pk=pk)
+    
+    # If not POST, redirect back to detail page
+    return redirect('service_requests_web:client_request_detail', pk=pk)
+
+
+@login_required
 def client_web_history(request):
     """View completed and cancelled service requests history"""
     if request.user.user_type != 'client':

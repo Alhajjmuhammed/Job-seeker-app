@@ -1,6 +1,9 @@
 {% extends base_template %}
 {% load static %}
 
+<!-- LEGACY TEMPLATE: This template uses the old JobRequest system with M2M assigned_workers and budget field. -->
+<!-- For new development, use templates/service_requests/ which uses ServiceRequest with FK assigned_worker and total_price. -->
+
 {% block page_title %}{{ job.title }}{% endblock %}
 
 {% block extra_css %}
@@ -1041,7 +1044,7 @@
             <!-- Budget Card -->
             <div class="sidebar-card">
                 <div class="budget-display">
-                    <span class="budget-amount">${{ job.budget }}</span>
+                    <span class="budget-amount">SDG {{ job.budget }}</span>
                     <p class="budget-label">Project Budget</p>
                 </div>
                 <div class="info-grid">

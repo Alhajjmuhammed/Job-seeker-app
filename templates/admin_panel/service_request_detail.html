@@ -314,7 +314,7 @@
                                                 <i class="bi bi-star text-muted"></i> No ratings
                                                 {% endif %}
                                             </span>
-                                            <span class="text-success fw-bold">${{ worker.hourly_rate|default:"0.00" }}/hr</span>
+                                            <span class="text-success fw-bold">SDG {{ worker.daily_rate|default:"0.00" }}/day</span>
                                         </div>
                                         {% if worker.categories.all %}
                                         <div class="mt-1">

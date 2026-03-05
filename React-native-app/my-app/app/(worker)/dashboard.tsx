@@ -32,25 +32,15 @@ interface DirectHireRequest {
 interface AssignedJob {
   id: number;
   title: string;
-  description: string;
   status: string;
   urgency: string;
   location: string;
   city: string;
-  budget: number | null;
-  duration_days: number;
-  start_date: string | null;
+  total_price?: number;
   created_at: string;
-  client: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-  };
-  category: {
-    id: number;
-    name: string;
-  } | null;
+  client_name: string;
+  client_phone?: string;
+  category_name?: string;
 }
 
 interface PendingAssignment {
@@ -193,6 +183,20 @@ export default function WorkerDashboard() {
     },
     section: {
       marginBottom: 20,
+    },
+    activeServiceBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 16,
+    },
+    activeServiceBannerText: {
+      flex: 1,
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '600',
     },
     sectionTitle: {
       fontSize: 20,
@@ -525,9 +529,9 @@ export default function WorkerDashboard() {
     try {
       setLoading(true);
       const [assignedJobsData, statsData, pendingAssignmentsData] = await Promise.all([
-        apiService.getAssignedJobs().catch(err => {
+        apiService.getWorkerAssignments().catch(err => {
           console.error('Error fetching assigned jobs:', err);
-          return { jobs: [] };
+          return { results: [] };
         }),
         apiService.getWorkerStats().catch(err => {
           console.error('Error fetching stats:', err);
@@ -546,7 +550,9 @@ export default function WorkerDashboard() {
       
       // Only update state if component is still mounted
       if (isMounted()) {
-        setAssignedJobs(assignedJobsData?.jobs || []);
+        // Handle paginated response from getWorkerAssignments
+        const assignmentsList = assignedJobsData?.results || (Array.isArray(assignedJobsData) ? assignedJobsData : []);
+        setAssignedJobs(assignmentsList);
         setPendingAssignments(pendingAssignmentsData?.results || pendingAssignmentsData || []);
         setStats(statsData || {
           assigned_jobs: 0,
@@ -799,6 +805,18 @@ export default function WorkerDashboard() {
           </View>
         </View>
 
+        {/* Active Service Quick Access */}
+        {stats.active_jobs > 0 && (
+          <TouchableOpacity
+            style={[styles.activeServiceBanner, { backgroundColor: theme.primary }]}
+            onPress={() => router.push('/(worker)/active-service' as any)}
+          >
+            <Ionicons name="time" size={22} color="#fff" />
+            <Text style={styles.activeServiceBannerText}>You have an active service — Tap to manage</Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+
         {/* Assigned Jobs Section */}
         {assignedJobs.length > 0 && (
           <View style={styles.section}>
@@ -808,8 +826,11 @@ export default function WorkerDashboard() {
                 key={job.id}
                 style={[styles.infoCard, { backgroundColor: theme.surface }]}
                 onPress={() => {
-                  // Navigate to job details or job management screen
-                  router.push(`/(worker)/jobs/${job.id}` as any);
+                  if (job.status === 'in_progress') {
+                    router.push('/(worker)/active-service' as any);
+                  } else {
+                    router.push(`/(worker)/service-assignment/${job.id}` as any);
+                  }
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -830,13 +851,13 @@ export default function WorkerDashboard() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.infoCardTitle, { color: theme.text }]}>
-                      {job.service_needed}
+                      {job.title}
                     </Text>
                     <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
                       Client: {job.client_name}
                     </Text>
                     <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
-                      Budget: ${job.budget || 'Not specified'}
+                      {job.total_price ? `SDG ${job.total_price}` : 'Price not set'}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
@@ -846,7 +867,7 @@ export default function WorkerDashboard() {
             {assignedJobs.length > 3 && (
               <TouchableOpacity 
                 style={[styles.viewAllButton, { backgroundColor: theme.primary }]}
-                onPress={() => router.push('/(worker)/jobs')}
+                onPress={() => router.push('/(worker)/service-assignments' as any)}
               >
                 <Text style={styles.viewAllText}>
                   View All {assignedJobs.length} Jobs

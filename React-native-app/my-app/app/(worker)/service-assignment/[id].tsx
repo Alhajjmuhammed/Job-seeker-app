@@ -38,10 +38,18 @@ interface ServiceAssignmentDetail {
   client_phone: string;
   client_email?: string;
   worker_accepted: boolean | null;
-  started_at: string | null;
-  completed_at: string | null;
-  clock_in_time: string | null;
-  clock_out_time: string | null;
+  work_started_at: string | null;
+  work_completed_at: string | null;
+}
+
+interface TimeLog {
+  id: number;
+  clock_in: string;
+  clock_out?: string;
+  duration_hours?: number;
+  clock_in_location?: string;
+  clock_out_location?: string;
+  notes?: string;
 }
 
 export default function ServiceAssignmentDetail() {
@@ -51,6 +59,8 @@ export default function ServiceAssignmentDetail() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [assignment, setAssignment] = useState<ServiceAssignmentDetail | null>(null);
+  const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
+  const [isClockedIn, setIsClockedIn] = useState(false);
   const [notes, setNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
@@ -62,16 +72,10 @@ export default function ServiceAssignmentDetail() {
   const loadAssignmentDetail = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getWorkerAssignments();
-      const assignments = response.assignments || response.results || response || [];
-      const assignmentData = assignments.find((a: any) => a.id === Number(id));
-      
-      if (assignmentData) {
-        setAssignment(assignmentData);
-      } else {
-        Alert.alert('Error', 'Assignment not found');
-        router.back();
-      }
+      const response = await apiService.getWorkerAssignmentDetail(Number(id));
+      setAssignment(response.service_request || response);
+      setTimeLogs(response.time_logs || []);
+      setIsClockedIn(response.is_clocked_in || false);
     } catch (error: any) {
       console.error('Error loading assignment:', error);
       Alert.alert('Error', error.response?.data?.error || 'Failed to load assignment details');
@@ -487,32 +491,60 @@ export default function ServiceAssignmentDetail() {
           </View>
         )}
 
-        {/* Time Tracking (if started) */}
-        {assignment.clock_in_time && (
+        {/* Time Tracking - HIDDEN: Duration-based pricing, not hourly */}
+        {/* Keeping this section commented for potential future use
+        {(timeLogs.length > 0 || assignment.work_started_at) && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Tracking</Text>
-            
-            <View style={styles.timeRow}>
-              <Text style={[styles.timeLabel, { color: theme.textSecondary }]}>
-                Clock In:
-              </Text>
-              <Text style={[styles.timeValue, { color: theme.text }]}>
-                {new Date(assignment.clock_in_time).toLocaleString()}
-              </Text>
-            </View>
 
-            {assignment.clock_out_time && (
+            {isClockedIn && (
+              <View style={[styles.timeRow, { backgroundColor: theme.primary + '15', borderRadius: 8, padding: 10, marginBottom: 8 }]}>
+                <Ionicons name="timer-outline" size={18} color={theme.primary} />
+                <Text style={[styles.timeValue, { color: theme.primary, marginLeft: 8 }]}>
+                  ⏱️ Currently clocked in
+                </Text>
+              </View>
+            )}
+
+            {timeLogs.map((log) => (
+              <View key={log.id} style={styles.timeRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.timeLabel, { color: theme.textSecondary }]}>
+                    Clock In: {new Date(log.clock_in).toLocaleString()}
+                  </Text>
+                  {log.clock_out ? (
+                    <>
+                      <Text style={[styles.timeLabel, { color: theme.textSecondary }]}>
+                        Clock Out: {new Date(log.clock_out).toLocaleString()}
+                      </Text>
+                      {log.duration_hours != null && (
+                        <Text style={[styles.timeValue, { color: theme.primary }]}>
+                          Duration: {Number(log.duration_hours).toFixed(2)} hrs
+                        </Text>
+                      )}
+                    </>
+                  ) : (
+                    <Text style={[styles.timeValue, { color: theme.primary }]}>Still in progress</Text>
+                  )}
+                  {log.notes ? (
+                    <Text style={[styles.timeLabel, { color: theme.textSecondary }]}>
+                      Notes: {log.notes}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
+
+            {timeLogs.length === 0 && assignment.work_started_at && (
               <View style={styles.timeRow}>
                 <Text style={[styles.timeLabel, { color: theme.textSecondary }]}>
-                  Clock Out:
-                </Text>
-                <Text style={[styles.timeValue, { color: theme.text }]}>
-                  {new Date(assignment.clock_out_time).toLocaleString()}
+                  Work started: {new Date(assignment.work_started_at).toLocaleString()}
                 </Text>
               </View>
             )}
           </View>
         )}
+        */}
       </ScrollView>
 
       <StatusBar style={isDark ? 'light' : 'dark'} />

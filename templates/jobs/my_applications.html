@@ -1,6 +1,8 @@
 {% extends 'workers/base_worker.html' %}
 {% load static %}
 
+<!-- LEGACY TEMPLATE: Uses old JobRequest system. New development should use ServiceRequest templates. -->
+
 {% block page_title %}My Applications{% endblock %}
 
 {% block extra_css %}
@@ -536,7 +538,7 @@
                     <div class="job-info-item">
                         <i class="bi bi-currency-dollar"></i>
                         <span class="label">Budget:</span>
-                        <span class="value">${{ app.job.budget }}</span>
+                        <span class="value">SDG {{ app.job.budget }}</span>
                     </div>
                     <div class="job-info-item">
                         <i class="bi bi-clock"></i>

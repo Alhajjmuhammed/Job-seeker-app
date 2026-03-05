@@ -467,7 +467,7 @@ class ApiService {
   // NEW: Calculate service price based on duration
   async calculatePrice(data: {
     category_id: number;
-    duration_type: 'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom';
+    duration_type: 'daily' | 'monthly' | '3_months' | '6_months' | 'year ly' | 'custom';
     service_start_date?: string;
     service_end_date?: string;
   }) {
@@ -475,11 +475,17 @@ class ApiService {
     return response.data;
   }
 
-  // NEW: Process fake payment
-  async processFakePayment(data: {
+  // NEW: Process payment (Card or M-Pesa)
+  async processPayment(data: {
     amount: number;
-    card_holder_name: string;
-    card_last_four: string;
+    payment_type: 'card' | 'mpesa';
+    // For Card payments:
+    card_number?: string;
+    card_holder?: string;
+    card_expiry?: string;
+    card_cvv?: string;
+    // For M-Pesa payments:
+    phone_number?: string;
   }) {
     const response = await this.api.post('/v1/client/process-payment/', data);
     return response.data;
@@ -513,11 +519,12 @@ class ApiService {
     return response.data;
   }
 
-  async getMyServiceRequests(page: number = 1, category?: string, fromDate?: string, toDate?: string) {
+  async getMyServiceRequests(page: number = 1, category?: string, fromDate?: string, toDate?: string, search?: string) {
     const params: any = { page };
     if (category) params.category = category;
     if (fromDate) params.from_date = fromDate;
     if (toDate) params.to_date = toDate;
+    if (search) params.search = search;
     
     const response = await this.api.get('/v1/client/service-requests/', { params });
     return response.data;
@@ -530,6 +537,11 @@ class ApiService {
 
   async cancelServiceRequest(requestId: number) {
     const response = await this.api.post(`/v1/client/service-requests/${requestId}/cancel/`);
+    return response.data;
+  }
+
+  async completeServiceRequest(requestId: number) {
+    const response = await this.api.post(`/v1/client/service-requests/${requestId}/complete/`);
     return response.data;
   }
 
@@ -565,13 +577,18 @@ class ApiService {
     return response.data;
   }
 
+  async getWorkerAssignmentDetail(assignmentId: number) {
+    const response = await this.api.get(`/v1/worker/service-requests/${assignmentId}/detail/`);
+    return response.data;
+  }
+
   async getPendingAssignments() {
-    const response = await this.api.get('/workers/assigned-jobs/');
+    const response = await this.api.get('/v1/worker/service-requests/pending/');
     return response.data;
   }
 
   async getCurrentAssignment() {
-    const response = await this.api.get('/workers/assigned-jobs/');
+    const response = await this.api.get('/v1/worker/service-requests/current/');
     return response.data;
   }
 
@@ -624,7 +641,7 @@ class ApiService {
   }
 
   async getWorkerStatistics() {
-    const response = await this.api.get('/api/v1/worker/statistics/');
+    const response = await this.api.get('/v1/worker/statistics/');
     return response.data;
   }
 
@@ -706,11 +723,11 @@ class ApiService {
     return response.data;
   }
 
-  async rateWorker(workerId: number, ratingData: {
+  async rateServiceRequest(requestId: number, ratingData: {
     rating: number;
     review?: string;
   }) {
-    const response = await this.api.post(`/clients/workers/${workerId}/rate/`, ratingData);
+    const response = await this.api.post(`/v1/client/service-requests/${requestId}/rate/`, ratingData);
     
     // Clear any cached data after rating submission to ensure fresh data
     this.clearCache();

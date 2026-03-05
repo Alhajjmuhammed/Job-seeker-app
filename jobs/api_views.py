@@ -3,12 +3,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count
-from jobs.models import DirectHireRequest, JobRequest, JobApplication
+from jobs.models import DirectHireRequest, JobApplication
+from jobs.service_request_models import ServiceRequest
 from workers.models import WorkerProfile
 from worker_connect.pagination import paginate_queryset
 from .serializers import (
-    DirectHireRequestSerializer, JobRequestSerializer, JobApplicationSerializer,
-    JobRequestCreateSerializer, JobApplicationCreateSerializer
+    DirectHireRequestSerializer, JobApplicationSerializer,
+    JobApplicationCreateSerializer
+)
+from .service_request_serializers import (
+    ServiceRequestSerializer, ServiceRequestCreateSerializer
 )
 
 
@@ -64,11 +68,10 @@ def reject_direct_hire_request(request, request_id):
 @permission_classes([IsAuthenticated])
 def worker_job_listings(request):
     """Get available job listings for workers"""
-    jobs = JobRequest.objects.filter(status='open') \
-        .select_related('client', 'category') \
-        .prefetch_related('assigned_workers') \
+    jobs = ServiceRequest.objects.filter(status='pending') \
+        .select_related('client', 'category', 'assigned_worker') \
         .order_by('-created_at')
-    return paginate_queryset(request, jobs, JobRequestSerializer)
+    return paginate_queryset(request, jobs, ServiceRequestSerializer)
 
 
 @api_view(['GET'])
@@ -102,7 +105,7 @@ def apply_for_job(request, job_id):
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
     try:
-        job = JobRequest.objects.get(id=job_id)
+        job = ServiceRequest.objects.get(id=job_id)
         
         # Check if already applied
         if JobApplication.objects.filter(worker=worker_profile, job=job).exists():
@@ -117,7 +120,7 @@ def apply_for_job(request, job_id):
         
         serializer = JobApplicationSerializer(application)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    except JobRequest.DoesNotExist:
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -155,17 +158,17 @@ def client_jobs(request):
     if request.method == 'GET':
         # Get client's jobs with optional status filter
         status_filter = request.GET.get('status')
-        jobs = JobRequest.objects.filter(client=request.user)
+        jobs = ServiceRequest.objects.filter(client=request.user)
         
         if status_filter:
             jobs = jobs.filter(status=status_filter)
         
-        jobs = jobs.annotate(application_count=Count('applications')).order_by('-created_at')
-        return paginate_queryset(request, jobs, JobRequestSerializer)
+        jobs = jobs.select_related('category', 'assigned_worker').order_by('-created_at')
+        return paginate_queryset(request, jobs, ServiceRequestSerializer)
     
     elif request.method == 'POST':
         # Create new job
-        serializer = JobRequestCreateSerializer(data=request.data)
+        serializer = ServiceRequestCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(client=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -177,19 +180,19 @@ def client_jobs(request):
 def client_job_detail(request, job_id):
     """Get, update, or delete a specific job"""
     try:
-        job = JobRequest.objects.get(id=job_id, client=request.user)
-    except JobRequest.DoesNotExist:
+        job = ServiceRequest.objects.get(id=job_id, client=request.user)
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
-        job_with_count = JobRequest.objects.filter(id=job_id).annotate(
-            application_count=Count('applications')
+        job = ServiceRequest.objects.filter(id=job_id).select_related(
+            'category', 'assigned_worker', 'assigned_worker__user'
         ).first()
-        serializer = JobRequestSerializer(job_with_count)
+        serializer = ServiceRequestSerializer(job)
         return Response(serializer.data)
     
     elif request.method == 'PATCH':
-        serializer = JobRequestCreateSerializer(job, data=request.data, partial=True)
+        serializer = ServiceRequestCreateSerializer(job, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -205,8 +208,8 @@ def client_job_detail(request, job_id):
 def client_job_applications(request, job_id):
     """Get applications for a specific job"""
     try:
-        job = JobRequest.objects.get(id=job_id, client=request.user)
-    except JobRequest.DoesNotExist:
+        job = ServiceRequest.objects.get(id=job_id, client=request.user)
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     
     applications = JobApplication.objects.filter(job=job).order_by('-created_at')
@@ -230,7 +233,7 @@ def accept_application(request, application_id):
         
         # Update job status to in_progress
         job = application.job
-        if job.status == 'open':
+        if job.status == 'pending':
             job.status = 'in_progress'
             job.save(update_fields=['status'])
         
@@ -262,10 +265,8 @@ def reject_application(request, application_id):
 @permission_classes([IsAuthenticated])
 def browse_jobs(request):
     """Browse all open job listings (for workers)"""
-    jobs = JobRequest.objects.filter(status='open') \
-        .select_related('client', 'category') \
-        .prefetch_related('assigned_workers') \
-        .annotate(application_count=Count('applications')) \
+    jobs = ServiceRequest.objects.filter(status='pending') \
+        .select_related('client', 'category', 'assigned_worker') \
         .order_by('-created_at')
     
     # Optional filters
@@ -277,7 +278,7 @@ def browse_jobs(request):
     if city:
         jobs = jobs.filter(city__icontains=city)
     
-    return paginate_queryset(request, jobs, JobRequestSerializer)
+    return paginate_queryset(request, jobs, ServiceRequestSerializer)
 
 
 @api_view(['GET'])
@@ -285,12 +286,10 @@ def browse_jobs(request):
 def job_detail(request, job_id):
     """Get detailed information about a specific job"""
     try:
-        job = JobRequest.objects.select_related('client', 'category') \
-            .prefetch_related('assigned_workers', 'applications') \
-            .annotate(application_count=Count('applications')) \
+        job = ServiceRequest.objects.select_related('client', 'category', 'assigned_worker', 'assigned_worker__user') \
             .get(id=job_id)
         
-        serializer = JobRequestSerializer(job)
+        serializer = ServiceRequestSerializer(job)
         return Response(serializer.data)
-    except JobRequest.DoesNotExist:
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)

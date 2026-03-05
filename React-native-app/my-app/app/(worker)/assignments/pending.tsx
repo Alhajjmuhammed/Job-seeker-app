@@ -26,7 +26,7 @@ interface Assignment {
   created_at: string;
   assigned_at: string;
   client_name: string;
-  budget?: number;
+  total_price?: number;
   duration_days: number;
   worker_accepted?: boolean;
 }
@@ -186,12 +186,12 @@ export default function PendingAssignmentsScreen() {
                   </Text>
                 </View>
 
-                {/* Budget */}
-                {assignment.budget && (
+                {/* Total Price */}
+                {assignment.total_price && (
                   <View style={styles.infoRow}>
                     <Ionicons name="cash-outline" size={18} color={theme.primary} />
                     <Text style={[styles.budgetText, { color: theme.primary }]}>
-                      ${assignment.budget.toFixed(2)}
+                      SDG {assignment.total_price.toFixed(2)}
                     </Text>
                   </View>
                 )}

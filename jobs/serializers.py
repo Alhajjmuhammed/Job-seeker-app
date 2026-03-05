@@ -2,6 +2,12 @@ from rest_framework import serializers
 from jobs.models import DirectHireRequest, JobRequest, JobApplication
 from worker_connect.serializer_mixins import SanitizedSerializerMixin
 
+# ============================================================================
+# NOTE: This file contains both ACTIVE and DEPRECATED serializers.
+# - DirectHireRequestSerializer: ACTIVE - Still in use
+# - JobRequest serializers: DEPRECATED - Use ServiceRequestSerializer instead
+# ============================================================================
+
 
 class DirectHireRequestSerializer(serializers.ModelSerializer):
     client_name = serializers.SerializerMethodField()
@@ -18,7 +24,12 @@ class DirectHireRequestSerializer(serializers.ModelSerializer):
 
 
 class JobRequestSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
-    """Job request serializer with input sanitization"""
+    """
+    DEPRECATED: Use ServiceRequestSerializer from service_request_serializers.py
+    
+    This serializer is kept only for backward compatibility.
+    DO NOT USE IN NEW CODE!
+    """
     
     sanitize_fields = ['title', 'description', 'location', 'city']
     
@@ -40,7 +51,12 @@ class JobRequestSerializer(SanitizedSerializerMixin, serializers.ModelSerializer
 
 
 class JobRequestCreateSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
-    """Serializer for creating job requests with input sanitization"""
+    """
+    DEPRECATED: Use ServiceRequestCreateSerializer from service_request_serializers.py
+    
+    This serializer is kept only for backward compatibility.
+    DO NOT USE IN NEW CODE!
+    """
     
     sanitize_fields = ['title', 'description', 'location', 'city']
     
@@ -81,7 +97,12 @@ class JobRequestCreateSerializer(SanitizedSerializerMixin, serializers.ModelSeri
 
 
 class JobApplicationSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
-    """Job application serializer with input sanitization"""
+    """
+    DEPRECATED: Job application serializer (linked to deprecated JobRequest).
+    
+    This serializer is kept only for backward compatibility.
+    DO NOT USE IN NEW CODE!
+    """
     
     sanitize_fields = ['cover_letter']
     
@@ -106,7 +127,12 @@ class JobApplicationSerializer(SanitizedSerializerMixin, serializers.ModelSerial
 
 
 class JobApplicationCreateSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
-    """Serializer for creating job applications with input sanitization"""
+    """
+    DEPRECATED: Serializer for creating job applications (linked to deprecated JobRequest).
+    
+    This serializer is kept only for backward compatibility.
+    DO NOT USE IN NEW CODE!
+    """
     
     sanitize_fields = ['cover_letter']
     

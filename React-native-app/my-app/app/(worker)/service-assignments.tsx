@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  TextInput,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router, useFocusEffect } from 'expo-router';
@@ -16,6 +17,7 @@ import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface ServiceAssignment {
   id: number;
@@ -41,11 +43,13 @@ export default function ServiceAssignments() {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'active'>('all');
   const [assignments, setAssignments] = useState<ServiceAssignment[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useFocusEffect(
     React.useCallback(() => {
       loadAssignments();
-    }, [filter])
+    }, [filter, debouncedSearchQuery])
   );
 
   const loadAssignments = async () => {
@@ -112,10 +116,30 @@ export default function ServiceAssignments() {
     );
   };
 
+  // Filter assignments based on search query
+  const filteredAssignments = assignments.filter((assignment) => {
+    if (!debouncedSearchQuery) return true;
+    
+    const query = debouncedSearchQuery.toLowerCase();
+    return (
+      assignment.title?.toLowerCase().includes(query) ||
+      assignment.category_name?.toLowerCase().includes(query) ||
+      assignment.client_name?.toLowerCase().includes(query) ||
+      assignment.location?.toLowerCase().includes(query) ||
+      assignment.city?.toLowerCase().includes(query)
+    );
+  });
+
   const renderAssignment = ({ item }: { item: ServiceAssignment }) => (
     <TouchableOpacity
       style={[styles.assignmentCard, { backgroundColor: theme.card }]}
-      onPress={() => router.push(`/(worker)/service-assignment/${item.id}` as any)}
+      onPress={() => {
+        if (item.status === 'in_progress') {
+          router.push('/(worker)/active-service' as any);
+        } else {
+          router.push(`/(worker)/service-assignment/${item.id}` as any);
+        }
+      }}
       activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>
@@ -191,6 +215,25 @@ export default function ServiceAssignments() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Service Assignments" showBack />
       
+      {/* Search Bar */}
+      <View style={[styles.searchContainer, { backgroundColor: theme.card }]}>
+        <View style={[styles.searchInputContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <Ionicons name="search" size={20} color={theme.textSecondary} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search by title, client, location..."
+            placeholderTextColor={theme.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      
       <View style={[styles.filterContainer, { backgroundColor: theme.card }]}>
         <TouchableOpacity
           style={[
@@ -239,7 +282,7 @@ export default function ServiceAssignments() {
       </View>
 
       <FlatList
-        data={assignments}
+        data={filteredAssignments}
         renderItem={renderAssignment}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
@@ -394,6 +437,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     textAlign: 'center',
+  },
+  searchContainer: {
+    padding: 12,
+    paddingBottom: 8,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    padding: 0,
   },
 });
 

@@ -25,6 +25,38 @@ from worker_connect.pagination import paginate_queryset
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def worker_service_request_detail(request, pk):
+    """
+    Get full detail of a single assigned service request
+    GET /api/v1/worker/service-requests/{pk}/detail/
+    """
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        worker_profile = WorkerProfile.objects.get(user=request.user)
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    service_request = get_object_or_404(
+        ServiceRequest, pk=pk, assigned_worker=worker_profile
+    )
+
+    serializer = ServiceRequestSerializer(service_request)
+
+    # Include time tracking logs
+    time_logs = service_request.time_logs.all().order_by('clock_in')
+    time_logs_data = TimeTrackingSerializer(time_logs, many=True).data
+
+    return Response({
+        'service_request': serializer.data,
+        'time_logs': time_logs_data,
+        'is_clocked_in': service_request.time_logs.filter(clock_out__isnull=True).exists(),
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def worker_assigned_services(request):
     """
     Get services assigned to this worker
@@ -208,6 +240,21 @@ def worker_clock_in(request, pk):
     if not service_request.work_started_at:
         service_request.work_started_at = timezone.now()
         service_request.save()
+        
+        # Notify client that work has started
+        from worker_connect.notification_service import NotificationService
+        NotificationService.create_notification(
+            recipient=service_request.client,
+            title="🚀 Work Started on Your Request",
+            message=f"{worker_profile.user.get_full_name()} has started working on '{service_request.title}'",
+            notification_type='job_assigned',
+            content_object=service_request,
+            extra_data={
+                'service_request_id': service_request.id,
+                'worker': worker_profile.user.get_full_name(),
+                'started_at': str(timezone.now())
+            }
+        )
     
     # Log activity
     WorkerActivity.log_activity(
@@ -450,8 +497,14 @@ def worker_statistics(request):
     this_week_hours = week_stats['week_hours'] or 0
     this_week_earned = week_stats['week_earned'] or 0
     
-    # Average rating (if review system is implemented)
-    average_rating = None  # Implement when reviews are added
+    # Average rating from completed service requests
+    from django.db.models import Avg
+    rating_data = ServiceRequest.objects.filter(
+        assigned_worker=worker_profile,
+        status='completed',
+        client_rating__isnull=False
+    ).aggregate(avg=Avg('client_rating'))
+    average_rating = round(rating_data['avg'], 2) if rating_data['avg'] else None
     
     stats_serializer = WorkerStatsSerializer(data={
         'total_services': total_services,

@@ -40,14 +40,18 @@ interface ServiceRequestDetail {
   };
   worker_accepted?: boolean;
   rejection_reason?: string;
-  time_logs?: Array<{
-    id: number;
-    clock_in_time: string;
-    clock_out_time?: string;
-    duration_hours?: number;
-    location: string;
-    notes?: string;
-  }>;
+  client_rating?: number;
+  client_review?: string;
+}
+
+interface TimeLog {
+  id: number;
+  clock_in: string;
+  clock_out?: string;
+  duration_hours?: number;
+  clock_in_location: string;
+  clock_out_location?: string;
+  notes?: string;
 }
 
 export default function ServiceRequestDetailScreen() {
@@ -56,13 +60,16 @@ export default function ServiceRequestDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [request, setRequest] = useState<ServiceRequestDetail | null>(null);
+  const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
   const [canceling, setCanceling] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   const loadRequestDetail = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiService.getServiceRequestDetail(Number(id));
       setRequest(response.service_request || response);
+      setTimeLogs(response.time_logs || []);
     } catch (error: any) {
       console.error('Error loading request detail:', error);
       Alert.alert('Error', 'Failed to load request details');
@@ -117,6 +124,37 @@ export default function ServiceRequestDetailScreen() {
     }
   };
 
+  const handleMarkAsFinished = () => {
+    Alert.alert(
+      'Mark as Finished',
+      'Are you satisfied with the work completed? This will mark the service as finished and you can rate the worker.',
+      [
+        { text: 'Not Yet', style: 'cancel' },
+        {
+          text: 'Yes, Finished',
+          onPress: confirmCompletion,
+        },
+      ]
+    );
+  };
+
+  const confirmCompletion = async () => {
+    try {
+      setCompleting(true);
+      await apiService.completeServiceRequest(Number(id));
+      Alert.alert('Success', 'Service marked as finished! You can now rate the worker.', [
+        { text: 'OK', onPress: () => loadRequestDetail() },
+      ]);
+    } catch (error: any) {
+      Alert.alert(
+        'Error',
+        error.response?.data?.error || 'Failed to mark service as finished'
+      );
+    } finally {
+      setCompleting(false);
+    }
+  };
+
   const handleCallWorker = () => {
     if (request?.assigned_worker?.phone_number) {
       Linking.openURL(`tel:${request.assigned_worker.phone_number}`);
@@ -165,8 +203,7 @@ export default function ServiceRequestDetailScreen() {
   };
 
   const calculateTotalHours = () => {
-    if (!request?.time_logs) return 0;
-    return request.time_logs.reduce((sum, log) => sum + (log.duration_hours || 0), 0);
+    return timeLogs.reduce((sum, log) => sum + (log.duration_hours || 0), 0);
   };
 
   if (loading) {
@@ -382,7 +419,7 @@ export default function ServiceRequestDetailScreen() {
         )}
 
         {/* Time Logs */}
-        {request.time_logs && request.time_logs.length > 0 && (
+        {timeLogs.length > 0 && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Tracking</Text>
 
@@ -396,15 +433,15 @@ export default function ServiceRequestDetailScreen() {
             </View>
 
             <View style={styles.timeLogsList}>
-              {request.time_logs.map((log) => (
+              {timeLogs.map((log) => (
                 <View key={log.id} style={[styles.timeLogItem, { backgroundColor: theme.background }]}>
                   <View style={styles.timeLogHeader}>
                     <Ionicons name="time-outline" size={16} color={theme.primary} />
                     <Text style={[styles.timeLogDate, { color: theme.text }]}>
-                      {formatDateTime(log.clock_in_time)}
+                      {formatDateTime(log.clock_in)}
                     </Text>
                   </View>
-                  {log.clock_out_time ? (
+                  {log.clock_out ? (
                     <>
                       <Text style={[styles.timeLogDuration, { color: theme.textSecondary }]}>
                         Duration: {log.duration_hours?.toFixed(2)} hours
@@ -445,6 +482,63 @@ export default function ServiceRequestDetailScreen() {
                 </>
               )}
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Mark as Finished Button - Shows when status is in_progress */}
+        {request.status === 'in_progress' && (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={[styles.completeButton, { backgroundColor: '#4CAF50' }]}
+              onPress={handleMarkAsFinished}
+              disabled={completing}
+            >
+              {completing ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-done-circle-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.completeButtonText}>Mark as Finished</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Rate Worker Button */}
+        {request.status === 'completed' && request.assigned_worker && !request.client_rating && (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={[styles.rateButton, { backgroundColor: theme.primary }]}
+              onPress={() => router.push(`/(client)/rate-worker/${request.id}` as any)}
+            >
+              <Ionicons name="star-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.rateButtonText}>Rate Worker</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Display Rating if already rated */}
+        {request.status === 'completed' && request.client_rating && (
+          <View style={[styles.card, { backgroundColor: theme.card }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Your Rating</Text>
+            <View style={styles.ratingDisplay}>
+              <View style={styles.starsRow}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Ionicons
+                    key={star}
+                    name={star <= request.client_rating! ? 'star' : 'star-outline'}
+                    size={24}
+                    color="#FFD700"
+                  />
+                ))}
+              </View>
+              {request.client_review && (
+                <Text style={[styles.reviewText, { color: theme.textSecondary }]}>
+                  {request.client_review}
+                </Text>
+              )}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -717,5 +811,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  completeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  completeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  rateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  rateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  ratingDisplay: {
+    alignItems: 'center',
+  },
+  starsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 12,
+  },
+  reviewText: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

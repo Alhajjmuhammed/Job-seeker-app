@@ -13,7 +13,8 @@ from django.db.models import Count, Avg, Sum, Q
 from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 from datetime import timedelta
-from jobs.models import JobRequest, JobApplication
+from jobs.models import JobApplication
+from jobs.service_request_models import ServiceRequest
 from workers.models import WorkerProfile
 
 User = get_user_model()
@@ -36,11 +37,11 @@ def dashboard_overview(request):
     new_users_30d = User.objects.filter(date_joined__gte=thirty_days_ago).count()
     new_users_7d = User.objects.filter(date_joined__gte=seven_days_ago).count()
     
-    # Job statistics
-    total_jobs = JobRequest.objects.count()
-    active_jobs = JobRequest.objects.filter(status='open').count()
-    completed_jobs = JobRequest.objects.filter(status='completed').count()
-    new_jobs_30d = JobRequest.objects.filter(created_at__gte=thirty_days_ago).count()
+    # Service Request statistics
+    total_jobs = ServiceRequest.objects.count()
+    active_jobs = ServiceRequest.objects.filter(status='pending').count()
+    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
+    new_jobs_30d = ServiceRequest.objects.filter(created_at__gte=thirty_days_ago).count()
     
     # Application statistics
     total_applications = JobApplication.objects.count()
@@ -128,20 +129,18 @@ def job_statistics(request):
     now = timezone.now()
     thirty_days_ago = now - timedelta(days=30)
     
-    # Jobs by status
-    jobs_by_status = JobRequest.objects.values('status').annotate(
+    # Service Requests by status
+    jobs_by_status = ServiceRequest.objects.values('status').annotate(
         count=Count('id')
     ).order_by('-count')
     
-    # Jobs by category (if category field exists)
-    jobs_by_category = []
-    if hasattr(JobRequest, 'category'):
-        jobs_by_category = JobRequest.objects.values('category').annotate(
-            count=Count('id')
-        ).order_by('-count')[:10]
+    # Service Requests by category
+    jobs_by_category = ServiceRequest.objects.values('category').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
     
-    # Daily job postings (last 30 days)
-    daily_jobs = JobRequest.objects.filter(
+    # Daily service request postings (last 30 days)
+    daily_jobs = ServiceRequest.objects.filter(
         created_at__gte=thirty_days_ago
     ).annotate(
         date=TruncDate('created_at')
@@ -253,8 +252,8 @@ def recent_activity(request):
         'id', 'email', 'first_name', 'last_name', 'user_type', 'date_joined'
     )
     
-    # Recent jobs
-    recent_jobs = JobRequest.objects.order_by('-created_at')[:limit].values(
+    # Recent service requests
+    recent_jobs = ServiceRequest.objects.order_by('-created_at')[:limit].values(
         'id', 'title', 'status', 'created_at'
     )
     

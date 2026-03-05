@@ -7,11 +7,14 @@ from django.db import models, transaction
 from django.db.models import Q, Count, Avg
 from .models import ClientProfile, Favorite, Rating
 from workers.models import WorkerProfile, Category
-from jobs.models import JobRequest, DirectHireRequest
+from jobs.service_request_models import ServiceRequest
 from worker_connect.pagination import paginate_queryset
 from .serializers import (
     ClientProfileSerializer, WorkerSearchSerializer,
     CategorySerializer, FavoriteSerializer, RatingSerializer
+)
+from jobs.service_request_serializers import (
+    ServiceRequestListSerializer, ServiceRequestSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -38,13 +41,13 @@ def services_list(request):
             ).count()
             
             # Get completed projects in this category
-            completed_projects = JobRequest.objects.filter(
+            completed_projects = ServiceRequest.objects.filter(
                 category=category,
                 status='completed'
             ).count()
             
             # Get average completion days
-            avg_days = JobRequest.objects.filter(
+            avg_days = ServiceRequest.objects.filter(
                 category=category,
                 status='completed'
             ).aggregate(avg=Avg('duration_days'))['avg'] or 0
@@ -69,54 +72,6 @@ def services_list(request):
         return Response({'error': 'Failed to fetch services'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def request_service(request, category_id):
-    """Request a service - admin will assign worker"""
-    try:
-        category = Category.objects.get(id=category_id)
-        
-        # Validate request data
-        title = request.data.get('title')
-        description = request.data.get('description')
-        budget = request.data.get('budget')
-        location = request.data.get('location')
-        deadline = request.data.get('deadline')
-        workers_needed = int(request.data.get('workers_needed', 1))
-        
-        if not all([title, description, budget, location]):
-            return Response({
-                'error': 'Missing required fields: title, description, budget, location'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create job request
-        job_request = JobRequest.objects.create(
-            client=request.user,
-            category=category,
-            title=title,
-            description=description,
-            budget=budget,
-            location=location,
-            deadline=deadline,
-            workers_needed=workers_needed,
-            status='open'  # Will be reviewed by admin
-        )
-        
-        return Response({
-            'message': 'Service request submitted successfully! Our team will review and assign a qualified worker within 2-4 hours.',
-            'request_id': job_request.id,
-            'status': 'pending_assignment'
-        })
-        
-    except Category.DoesNotExist:
-        return Response({'error': 'Service category not found'}, status=status.HTTP_404_NOT_FOUND)
-    except ValueError as e:
-        return Response({'error': f'Invalid data: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        logger.error(f"Error creating service request: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to create service request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 # ============================================================================
 # CLIENT DASHBOARD & STATISTICS
 # ============================================================================
@@ -127,27 +82,34 @@ def request_service(request, category_id):
 def client_stats(request):
     """Get client dashboard statistics"""
     try:
-        # Get client's jobs
-        active_jobs = JobRequest.objects.filter(
+        from jobs.service_request_models import ServiceRequest
+        # Count active service requests (pending, assigned, or in_progress)
+        active_jobs = ServiceRequest.objects.filter(
             client=request.user,
-            status__in=['open', 'in_progress']
+            status__in=['pending', 'assigned', 'in_progress']
         ).count()
         
-        completed_jobs = JobRequest.objects.filter(
+        completed_jobs = ServiceRequest.objects.filter(
             client=request.user,
             status='completed'
         ).count()
         
-        # Get total spent (sum of completed jobs budgets)
-        total_spent = JobRequest.objects.filter(
+        # Total spent on completed requests
+        from django.db.models import Sum
+        total_spent_result = ServiceRequest.objects.filter(
             client=request.user,
             status='completed'
-        ).aggregate(total=Count('budget'))
+        ).aggregate(total=Sum('total_price'))
+        total_spent = float(total_spent_result['total'] or 0)
+        
+        # Count favorites
+        favorites = Favorite.objects.filter(client=request.user).count()
         
         return Response({
             'active_jobs': active_jobs,
             'completed_jobs': completed_jobs,
-            'total_spent': 0,  # TODO: Calculate actual spent when payment system is implemented
+            'total_spent': total_spent,
+            'favorites': favorites,
         })
     except Exception as e:
         logger.error(f"Error fetching client stats: {str(e)}", exc_info=True)
@@ -206,14 +168,13 @@ def services_list(request):
                 availability='available'
             ).count()
             
-            # Get average completion time and rating for this category
-            # (from completed jobs, but still no worker details exposed)
-            category_stats = JobRequest.objects.filter(
+            # Get average completion time and price for this category
+            category_stats = ServiceRequest.objects.filter(
                 category=category,
                 status='completed'
             ).aggregate(
                 avg_completion_days=Avg('duration_days'),
-                avg_budget=Avg('budget'),
+                avg_budget=Avg('total_price'),
                 total_completed=Count('id')
             )
             
@@ -245,21 +206,6 @@ def request_service(request, category_id):
     try:
         category = Category.objects.get(id=category_id, is_active=True)
         
-        # Create service request without any worker assignment
-        job_data = {
-            'client': request.user,
-            'category': category,
-            'title': request.data.get('title', f"{category.name} Service Request"),
-            'description': request.data.get('description', ''),
-            'location': request.data.get('location', ''),
-            'city': request.data.get('city', ''),
-            'budget': request.data.get('budget'),
-            'duration_days': request.data.get('duration_days', 1),
-            'urgency': request.data.get('urgency', 'medium'),
-            'workers_needed': request.data.get('workers_needed', 1),
-            'status': 'open'  # Admin will review and assign workers
-        }
-        
         # Validate required fields
         required_fields = ['description', 'location', 'city']
         for field in required_fields:
@@ -268,14 +214,22 @@ def request_service(request, category_id):
                     'error': f'{field.replace("_", " ").title()} is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create the service request
-        job_request = JobRequest.objects.create(**job_data)
-        
-        # TODO: Send notification to admin about new service request
-        # notify_admin_new_service_request(job_request)
+        # Create service request without any worker assignment
+        service_request = ServiceRequest.objects.create(
+            client=request.user,
+            category=category,
+            title=request.data.get('title', f"{category.name} Service Request"),
+            description=request.data.get('description', ''),
+            location=request.data.get('location', ''),
+            city=request.data.get('city', ''),
+            total_price=request.data.get('total_price') or request.data.get('budget') or 0,
+            duration_days=request.data.get('duration_days', 1),
+            urgency=request.data.get('urgency', 'medium'),
+            status='pending'  # Admin will review and assign a worker
+        )
         
         return Response({
-            'id': job_request.id,
+            'id': service_request.id,
             'message': f'Your {category.name} service request has been submitted successfully!',
             'details': 'Our team will review your request and assign the most suitable worker. You will be notified once a worker is assigned.',
             'status': 'pending_assignment',
@@ -294,79 +248,64 @@ def request_service(request, category_id):
 def my_service_requests(request):
     """Get client's service requests with assigned worker info (if any)"""
     try:
-        requests = JobRequest.objects.filter(client=request.user).order_by('-created_at')
-        
-        requests_data = []
-        for job_request in requests:
-            # Only show assigned worker basic info, not for selection
-            assigned_worker_info = None
-            if job_request.assigned_workers.exists():
-                worker = job_request.assigned_workers.first()
-                assigned_worker_info = {
-                    'name': worker.user.get_full_name(),
-                    'phone': worker.user.phone_number,
-                    # Only basic contact info, no profile browsing
-                }
-            
-            requests_data.append({
-                'id': job_request.id,
-                'service_name': job_request.category.name if job_request.category else 'General Service',
-                'title': job_request.title,
-                'description': job_request.description,
-                'status': job_request.status,
-                'status_display': job_request.get_status_display(),
-                'urgency': job_request.urgency,
-                'location': job_request.location,
-                'budget': str(job_request.budget) if job_request.budget else None,
-                'created_at': job_request.created_at.isoformat(),
-                'assigned_worker': assigned_worker_info,
-                'is_assigned': job_request.assigned_workers.exists(),
-                'can_cancel': job_request.status in ['open'],
-            })
-        
-        return Response({'requests': requests_data})
+        queryset = ServiceRequest.objects.filter(
+            client=request.user
+        ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')
+
+        # Optional filters
+        status_filter = request.GET.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        category_filter = request.GET.get('category')
+        if category_filter:
+            queryset = queryset.filter(category_id=category_filter)
+
+        search_query = request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(location__icontains=search_query) |
+                Q(city__icontains=search_query)
+            )
+
+        from_date = request.GET.get('from_date')
+        if from_date:
+            queryset = queryset.filter(created_at__date__gte=from_date)
+
+        to_date = request.GET.get('to_date')
+        if to_date:
+            queryset = queryset.filter(created_at__date__lte=to_date)
+
+        return paginate_queryset(request, queryset, ServiceRequestListSerializer)
     except Exception as e:
         logger.error(f"Error fetching service requests: {str(e)}", exc_info=True)
         return Response({'error': 'Failed to fetch requests'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated]) 
+@permission_classes([IsAuthenticated])
 def service_request_detail(request, request_id):
     """Get detailed info about a service request"""
     try:
-        job_request = JobRequest.objects.get(id=request_id, client=request.user)
-        
-        # Basic request details
-        request_detail = {
-            'id': job_request.id,
-            'service_name': job_request.category.name if job_request.category else 'General Service',
-            'title': job_request.title,
-            'description': job_request.description,
-            'status': job_request.status,
-            'status_display': job_request.get_status_display(),
-            'urgency': job_request.urgency,
-            'location': job_request.location,
-            'city': job_request.city,
-            'budget': str(job_request.budget) if job_request.budget else None,
-            'duration_days': job_request.duration_days,
-            'created_at': job_request.created_at.isoformat(),
-            'updated_at': job_request.updated_at.isoformat(),
-        }
-        
-        # Add assigned worker contact info (if assigned)
-        if job_request.assigned_workers.exists():
-            worker = job_request.assigned_workers.first()
-            request_detail['assigned_worker'] = {
-                'name': worker.user.get_full_name(),
-                'phone': worker.user.phone_number,
-                'email': worker.user.email,
-                'assigned_at': job_request.updated_at.isoformat(),
-                # No detailed profile info - just contact details
-            }
-        
-        return Response(request_detail)
-    except JobRequest.DoesNotExist:
+        service_request = ServiceRequest.objects.select_related(
+            'category', 'assigned_worker', 'assigned_worker__user'
+        ).get(id=request_id, client=request.user)
+
+        serializer = ServiceRequestSerializer(service_request)
+
+        # Include time logs if a worker is assigned
+        time_logs_data = []
+        if service_request.assigned_worker:
+            from jobs.service_request_serializers import TimeTrackingSerializer
+            time_logs_data = TimeTrackingSerializer(service_request.time_logs.all(), many=True).data
+
+        return Response({
+            'service_request': serializer.data,
+            'time_logs': time_logs_data,
+        })
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         logger.error(f"Error fetching service request detail: {str(e)}", exc_info=True)
@@ -376,21 +315,76 @@ def service_request_detail(request, request_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cancel_service_request(request, request_id):
-    """Cancel a service request (only if not yet assigned)"""
+    """Cancel a service request (only if pending or assigned, not in progress)"""
     try:
-        job_request = JobRequest.objects.get(id=request_id, client=request.user)
-        
-        job_request.status = 'cancelled'
-        job_request.save()
-        
-        return Response({
-            'message': 'Service request cancelled successfully'
-        })
-    except JobRequest.DoesNotExist:
+        service_request = ServiceRequest.objects.get(id=request_id, client=request.user)
+
+        if service_request.status == 'in_progress':
+            return Response(
+                {'error': 'Cannot cancel a request that is already in progress'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if service_request.status in ['completed', 'cancelled']:
+            return Response(
+                {'error': f'Request is already {service_request.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        service_request.status = 'cancelled'
+        service_request.save()
+
+        return Response({'message': 'Service request cancelled successfully'})
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         logger.error(f"Error cancelling service request: {str(e)}", exc_info=True)
         return Response({'error': 'Failed to cancel request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def complete_service_request(request, request_id):
+    """Mark a service request as completed (client marks as finished)"""
+    try:
+        service_request = ServiceRequest.objects.get(id=request_id, client=request.user)
+
+        if service_request.status != 'in_progress':
+            return Response(
+                {'error': f'Cannot mark as completed. Request status is: {service_request.status}. Only in-progress requests can be marked as finished.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        service_request.status = 'completed'
+        service_request.completed_at = timezone.now()
+        service_request.save()
+
+        # Notify worker that client has marked work as finished
+        try:
+            if service_request.assigned_worker:
+                from jobs.notifications import NotificationService
+                NotificationService.create_notification(
+                    recipient=service_request.assigned_worker.user,
+                    title=f"✅ Service Marked as Finished",
+                    message=f"Client has marked '{service_request.title}' as finished. Great work!",
+                    notification_type='job_completed',
+                    related_job_id=service_request.id
+                )
+        except Exception as notify_error:
+            logger.warning(f"Failed to send completion notification: {notify_error}")
+
+        return Response({
+            'message': 'Service request marked as completed successfully',
+            'service_request': {
+                'id': service_request.id,
+                'status': service_request.status,
+                'completed_at': service_request.completed_at.isoformat() if service_request.completed_at else None
+            }
+        })
+    except ServiceRequest.DoesNotExist:
+        return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error completing service request: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to mark service as completed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -402,7 +396,7 @@ def cancel_service_request(request, request_id):
 def client_jobs(request):
     """Get client's jobs (legacy support)"""
     try:
-        jobs = JobRequest.objects.filter(client=request.user).order_by('-created_at')
+        jobs = ServiceRequest.objects.filter(client=request.user).order_by('-created_at')
         
         jobs_data = []
         for job in jobs:
@@ -413,8 +407,8 @@ def client_jobs(request):
                 'status_display': job.get_status_display(),
                 'category': job.category.name if job.category else None,
                 'created_at': job.created_at.isoformat(),
-                'workers_count': job.assigned_workers.count(),
-                'budget': str(job.budget) if job.budget else None,
+                'worker_assigned': job.assigned_worker is not None,
+                'total_price': str(job.total_price) if job.total_price else None,
             })
         
         return Response({'jobs': jobs_data})
@@ -428,7 +422,7 @@ def client_jobs(request):
 def client_job_detail(request, job_id):
     """Get detailed job information (legacy support)"""
     try:
-        job = JobRequest.objects.get(id=job_id, client=request.user)
+        job = ServiceRequest.objects.get(id=job_id, client=request.user)
         
         job_detail = {
             'id': job.id,
@@ -439,15 +433,15 @@ def client_job_detail(request, job_id):
             'category': job.category.name if job.category else None,
             'location': job.location,
             'city': job.city,
-            'budget': str(job.budget) if job.budget else None,
+            'total_price': str(job.total_price) if job.total_price else None,
             'duration_days': job.duration_days,
             'created_at': job.created_at.isoformat(),
-            'workers_needed': job.workers_needed,
-            'assigned_workers_count': job.assigned_workers.count(),
+            'worker_assigned': job.assigned_worker is not None,
+            'worker_name': job.assigned_worker.user.get_full_name() if job.assigned_worker else None,
         }
         
         return Response(job_detail)
-    except JobRequest.DoesNotExist:
+    except ServiceRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         logger.error(f"Error fetching job detail: {str(e)}", exc_info=True)

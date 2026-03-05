@@ -359,12 +359,12 @@
 <div class="stats-grid">
     <div class="stat-card">
         <h3>Total Budget</h3>
-        <p class="stat-value">${{ total_budget|floatformat:0 }}</p>
+        <p class="stat-value">SDG {{ total_budget|floatformat:0 }}</p>
         <p class="stat-subtitle">All jobs combined</p>
     </div>
     <div class="stat-card highlight-green">
         <h3>Completed Budget</h3>
-        <p class="stat-value">${{ completed_budget|floatformat:0 }}</p>
+        <p class="stat-value">SDG {{ completed_budget|floatformat:0 }}</p>
         <p class="stat-subtitle">Finished jobs only</p>
     </div>
 </div>
@@ -462,7 +462,7 @@
                         <h6>New Job Posted</h6>
                         <p>
                             {{ job.title }} by {{ job.client.get_full_name|default:job.client.username }}
-                            <span class="badge badge-success">${{ job.budget }}</span>
+                            <span class="badge badge-success">SDG {{ job.total_price|default:"0" }}</span>
                             <span class="text-muted ms-2">{{ job.created_at|timesince }} ago</span>
                         </p>
                     </div>
