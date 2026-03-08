@@ -62,7 +62,7 @@ Title: {job.title}
 Client: {job.client.email}
 Category: {job.category.name if job.category else 'Not specified'}
 City: {job.city}
-Price: SDG {price}
+Price: TSH {price}
 Duration: {job.duration_days} days
 Urgency: {job.urgency}
 

@@ -379,7 +379,7 @@ export default function JobDetailScreen() {
         {/* Budget Card */}
         <View style={styles.budgetCard}>
           <Text style={styles.budgetLabel}>Budget</Text>
-          <Text style={styles.budgetAmount}>SDG {job.budget}</Text>
+          <Text style={styles.budgetAmount}>TSH {job.budget}</Text>
           <Text style={styles.budgetDuration}>{job.duration}</Text>
         </View>
 

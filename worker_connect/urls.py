@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -46,6 +46,8 @@ Authorization: Token <your-token>
 )
 
 urlpatterns = [
+    # Redirect admin login to custom system login
+    path('admin/login/', RedirectView.as_view(pattern_name='accounts:login', query_string=True), name='admin_login_redirect'),
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='http_landing.html'), name='home'),
     
@@ -153,3 +155,6 @@ handler500 = 'worker_connect.error_handlers.handler500'
 admin.site.site_header = "Worker Connect Administration"
 admin.site.site_title = "Worker Connect Admin"
 admin.site.index_title = "Welcome to Worker Connect Admin Panel"
+
+# Force admin to use custom login URL instead of Django's default
+admin.site.login_url = '/accounts/login/'

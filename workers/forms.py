@@ -10,7 +10,7 @@ EAST_AFRICAN_COUNTRIES = [
     ('Uganda', 'Uganda'),
     ('Rwanda', 'Rwanda'),
     ('Burundi', 'Burundi'),
-    ('South Sudan', 'South Sudan'),
+    ('Tanzania', 'Tanzania'),
     ('Somalia', 'Somalia'),
     ('Ethiopia', 'Ethiopia'),
     ('Djibouti', 'Djibouti'),

@@ -55,18 +55,18 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" href="{% url 'service_requests_web:client_my_requests' %}">
+                                    <i class="bi bi-list-check"></i> My Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'service_requests_web:client_request_service' %}">
+                                    <i class="bi bi-plus-circle"></i> New Request
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{% url 'clients:browse_services' %}">
                                     <i class="fas fa-search"></i> Browse Services
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'jobs:job_create' %}">
-                                    <i class="bi bi-plus-circle"></i> Post Job
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'clients:favorites_list' %}">
-                                    <i class="bi bi-heart"></i> Favorites
                                 </a>
                             </li>
                         {% elif user.is_admin_user %}

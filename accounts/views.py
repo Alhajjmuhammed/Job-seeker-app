@@ -56,7 +56,12 @@ def user_login(request):
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.username}!')
                 
-                # Redirect based on user type
+                # Check if there's a 'next' parameter (e.g., from admin redirect)
+                next_url = request.GET.get('next') or request.POST.get('next')
+                if next_url:
+                    return redirect(next_url)
+                
+                # Otherwise, redirect based on user type
                 if user.is_worker:
                     return redirect('workers:dashboard')
                 elif user.is_client:

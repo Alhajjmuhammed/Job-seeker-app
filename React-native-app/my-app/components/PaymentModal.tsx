@@ -29,7 +29,7 @@ type PaymentMethod = 'select' | 'card' | 'mpesa';
 export default function PaymentModal({
   visible,
   amount,
-  currency = 'SDG',
+  currency = 'TSH',
   onClose,
   onPaymentSuccess,
   processPayment,
@@ -96,11 +96,11 @@ export default function PaymentModal({
   };
 
   const formatPhone = (text: string) => {
-    // Ensure it starts with +249
-    if (!text.startsWith('+249')) {
-      return '+249' + text.replace(/\D/g, '').substring(0, 9);
+    // Ensure it starts with +255
+    if (!text.startsWith('+255')) {
+      return '+255' + text.replace(/\D/g, '').substring(0, 9);
     }
-    return '+249' + text.substring(4).replace(/\D/g, '').substring(0, 9);
+    return '+255' + text.substring(4).replace(/\D/g, '').substring(0, 9);
   };
 
   const handleCardPayment = async () => {
@@ -253,7 +253,7 @@ export default function PaymentModal({
                     <Text style={styles.demoText}>
                       Demo Mode: Use test credentials{'\n'}
                       Card: 4242 4242 4242 4242{'\n'}
-                      M-Pesa: +249123456789
+                      M-Pesa: +255123456789
                     </Text>
                   </View>
                 </View>
@@ -381,7 +381,7 @@ export default function PaymentModal({
                     <Text style={styles.label}>M-Pesa Phone Number</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="+249123456789"
+                      placeholder="+255123456789"
                       keyboardType="phone-pad"
                       value={phoneNumber}
                       onChangeText={(text) => setPhoneNumber(formatPhone(text))}

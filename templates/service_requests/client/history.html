@@ -208,9 +208,9 @@
                         </td>
                         <td>
                             {% if request.total_price %}
-                            <strong class="text-success">SDG {{ request.total_price|floatformat:2 }}</strong>
+                            <strong class="text-success">TSH {{ request.total_price|floatformat:2 }}</strong>
                             {% elif request.total_amount %}
-                            <strong class="text-success">SDG {{ request.total_amount|floatformat:2 }}</strong>
+                            <strong class="text-success">TSH {{ request.total_amount|floatformat:2 }}</strong>
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
@@ -251,7 +251,7 @@
                     <tr>
                         <td colspan="6" class="text-end"><strong>Total on this page:</strong></td>
                         <td colspan="3">
-                            <strong class="text-success">SDG {{ page_total|floatformat:2 }}</strong>
+                            <strong class="text-success">TSH {{ page_total|floatformat:2 }}</strong>
                         </td>
                     </tr>
                 </tfoot>

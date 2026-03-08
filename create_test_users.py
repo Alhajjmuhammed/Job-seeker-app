@@ -60,8 +60,8 @@ def create_test_users():
             user=client,
             defaults={
                 'company_name': 'Test Company',
-                'city': 'Khartoum',
-                'country': 'Sudan'
+                'city': 'Dar es Salaam',
+                'country': 'Tanzania'
             }
         )
         print('✅ Client created: client@test.com / test1234')
@@ -89,8 +89,8 @@ def create_test_users():
             user=worker,
             defaults={
                 'bio': 'Experienced professional worker',
-                'city': 'Khartoum',
-                'country': 'Sudan',
+                'city': 'Dar es Salaam',
+                'country': 'Tanzania',
                 'hourly_rate': 50.00,
                 'experience_years': 5,
                 'availability': 'available',

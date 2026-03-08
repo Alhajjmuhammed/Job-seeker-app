@@ -36,7 +36,7 @@
                         <h6><i class="fas fa-info-circle"></i> Current Work Session</h6>
                         <p class="mb-1"><strong>Clock In Time:</strong> {{ active_log.clock_in|date:"M d, Y g:i A" }}</p>
                         <p class="mb-1"><strong>Location:</strong> {{ active_log.clock_in_location|default:"Not specified" }}</p>
-                        <p class="mb-0"><strong>Hourly Rate:</strong> SDG {{ service_request.hourly_rate }}</p>
+                        <p class="mb-0"><strong>Hourly Rate:</strong> TSH {{ service_request.hourly_rate }}</p>
                     </div>
                     
                     <hr>
@@ -97,10 +97,10 @@
                         <dd class="col-sm-6">{{ service_request.total_hours_worked|default:"0" }} hours</dd>
                         
                         <dt class="col-sm-6">Hourly Rate:</dt>
-                        <dd class="col-sm-6">SDG {{ service_request.hourly_rate }}</dd>
+                        <dd class="col-sm-6">TSH {{ service_request.hourly_rate }}</dd>
                         
                         <dt class="col-sm-6">Estimated Earnings:</dt>
-                        <dd class="col-sm-6"><strong class="text-success">SDG {{ service_request.total_amount|default:"0" }}</strong></dd>
+                        <dd class="col-sm-6"><strong class="text-success">TSH {{ service_request.total_amount|default:"0" }}</strong></dd>
                     </dl>
                     <hr>
                     <p class="small text-muted mb-0">

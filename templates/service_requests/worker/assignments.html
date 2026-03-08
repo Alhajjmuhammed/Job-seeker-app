@@ -90,7 +90,7 @@
                     {% endif %}
                     
                     {% if assignment.status == 'completed' %}
-                    <p><strong>Earned:</strong> <span class="text-success">SDG {{ assignment.total_amount|default:"0" }}</span></p>
+                    <p><strong>Earned:</strong> <span class="text-success">TSH {{ assignment.total_amount|default:"0" }}</span></p>
                     <p><strong>Completed:</strong> {{ assignment.work_completed_at|date:"M d, Y" }}</p>
                     {% endif %}
                     

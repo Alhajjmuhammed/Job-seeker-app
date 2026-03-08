@@ -427,7 +427,7 @@ def worker_web_complete_service(request, pk):
             amount_earned=service_request.total_amount
         )
         
-        messages.success(request, f'✅ Service completed! Earned: SDG {service_request.total_amount}')
+        messages.success(request, f'✅ Service completed! Earned: TSH {service_request.total_amount}')
         return redirect('service_requests_web:worker_activity')
     
     context = {

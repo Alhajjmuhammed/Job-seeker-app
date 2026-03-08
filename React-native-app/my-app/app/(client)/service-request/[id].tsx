@@ -161,12 +161,6 @@ export default function ServiceRequestDetailScreen() {
     }
   };
 
-  const handleMessageWorker = () => {
-    if (request?.assigned_worker) {
-      router.push(`/(client)/conversation/${request.assigned_worker.id}`);
-    }
-  };
-
   const getStatusColor = (status: string) => {
     const colors = {
       pending: '#FFA500',
@@ -395,24 +389,15 @@ export default function ServiceRequestDetailScreen() {
                 </View>
               )}
 
-              {/* Contact Buttons */}
+              {/* Contact Button */}
               {request.worker_accepted === true && (
-                <View style={styles.contactButtons}>
-                  <TouchableOpacity
-                    style={[styles.contactButton, { backgroundColor: theme.primary }]}
-                    onPress={handleCallWorker}
-                  >
-                    <Ionicons name="call-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.contactButtonText}>Call</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.contactButton, { backgroundColor: theme.primary }]}
-                    onPress={handleMessageWorker}
-                  >
-                    <Ionicons name="chatbubble-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.contactButtonText}>Message</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={[styles.callWorkerButton, { backgroundColor: theme.primary }]}
+                  onPress={handleCallWorker}
+                >
+                  <Ionicons name="call" size={24} color="#FFFFFF" />
+                  <Text style={styles.callWorkerButtonText}>Call Worker</Text>
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -713,22 +698,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  contactButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  contactButton: {
-    flex: 1,
+  callWorkerButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 6,
+    padding: 16,
+    borderRadius: 12,
+    gap: 10,
+    marginTop: 8,
   },
-  contactButtonText: {
+  callWorkerButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
   },
   summaryRow: {

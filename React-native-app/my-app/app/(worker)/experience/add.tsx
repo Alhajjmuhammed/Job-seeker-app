@@ -124,7 +124,7 @@ export default function AddExperienceScreen() {
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={location}
               onChangeText={setLocation}
-              placeholder="e.g., Khartoum, Sudan"
+              placeholder="e.g., Dar es Salaam, Tanzania"
               placeholderTextColor={theme.textSecondary}
             />
           </View>

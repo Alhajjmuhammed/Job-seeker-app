@@ -857,7 +857,7 @@ export default function WorkerDashboard() {
                       Client: {job.client_name}
                     </Text>
                     <Text style={[styles.infoCardSubtitle, { color: theme.textSecondary }]}>
-                      {job.total_price ? `SDG ${job.total_price}` : 'Price not set'}
+                      {job.total_price ? `TSH ${job.total_price}` : 'Price not set'}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
@@ -922,7 +922,7 @@ export default function WorkerDashboard() {
                   </View>
                   <View style={styles.amountBadge}>
                     <Text style={styles.amountText}>
-                      SDG {request.offered_rate}
+                      TSH {request.offered_rate}
                     </Text>
                   </View>
                 </View>
@@ -935,7 +935,7 @@ export default function WorkerDashboard() {
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Total Amount:</Text>
                     <Text style={styles.detailValue}>
-                      SDG {request.total_amount.toLocaleString()}
+                      TSH {request.total_amount.toLocaleString()}
                     </Text>
                   </View>
                 </View>

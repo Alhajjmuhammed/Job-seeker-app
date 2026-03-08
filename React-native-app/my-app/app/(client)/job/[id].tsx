@@ -169,7 +169,7 @@ export default function JobDetailScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="cash" size={20} color={theme.primary} />
             <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
-              SDG {job.budget}
+              TSH {job.budget}
             </Text>
           </View>
 

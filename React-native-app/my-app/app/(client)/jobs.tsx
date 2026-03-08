@@ -222,7 +222,7 @@ export default function ClientJobsScreen() {
               )}
 
               <View style={[styles.jobFooter, { borderTopColor: theme.border }]}>
-                <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>Budget: SDG {job.budget?.toLocaleString()}</Text>
+                <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>Budget: TSH {job.budget?.toLocaleString()}</Text>
                 <Text style={[styles.dateText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{job.postedDate}</Text>
               </View>
             </TouchableOpacity>
@@ -268,7 +268,7 @@ export default function ClientJobsScreen() {
               )}
 
               <View style={[styles.jobFooter, { borderTopColor: theme.border }]}>
-                <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>Paid: SDG {job.budget?.toLocaleString()}</Text>
+                <Text style={[styles.budgetText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>Paid: TSH {job.budget?.toLocaleString()}</Text>
                 <Text style={[styles.dateText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Completed {job.postedDate}</Text>
               </View>
             </TouchableOpacity>

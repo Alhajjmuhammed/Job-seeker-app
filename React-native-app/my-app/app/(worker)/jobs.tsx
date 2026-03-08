@@ -404,7 +404,7 @@ export default function WorkerJobsScreen() {
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Price:</Text>
                     <Text style={styles.detailValue}>
-                      SDG {job.total_price}
+                      TSH {job.total_price}
                     </Text>
                   </View>
                 )}

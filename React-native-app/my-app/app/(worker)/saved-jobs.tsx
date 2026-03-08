@@ -156,7 +156,7 @@ export default function SavedJobsScreen() {
           {job.budget && (
             <View style={styles.budgetRow}>
               <Text style={[styles.budgetLabel, { color: theme.textSecondary }]}>Budget:</Text>
-              <Text style={[styles.budgetAmount, { color: theme.primary }]}>SDG {job.budget}</Text>
+              <Text style={[styles.budgetAmount, { color: theme.primary }]}>TSH {job.budget}</Text>
             </View>
           )}
 

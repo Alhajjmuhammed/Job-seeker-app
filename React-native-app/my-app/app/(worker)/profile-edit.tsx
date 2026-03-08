@@ -48,7 +48,7 @@ export default function ProfileEditScreen() {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
-  const [country, setCountry] = useState('Sudan');
+  const [country, setCountry] = useState('Tanzania');
   const [postalCode, setPostalCode] = useState('');
   const [religion, setReligion] = useState('');
   const [canWorkEverywhere, setCanWorkEverywhere] = useState(false);
@@ -391,7 +391,7 @@ export default function ProfileEditScreen() {
       setAddress(profileData.address || '');
       setCity(profileData.city || '');
       setState(profileData.state || '');
-      setCountry(profileData.country || 'Sudan');
+      setCountry(profileData.country || 'Tanzania');
       setPostalCode(profileData.postal_code || '');
       setReligion(profileData.religion || '');
       setCanWorkEverywhere(profileData.can_work_everywhere || false);
@@ -737,13 +737,12 @@ export default function ProfileEditScreen() {
                   onValueChange={setCountry}
                   style={styles.picker}
                 >
-                  <Picker.Item label="Sudan" value="Sudan" />
+                  <Picker.Item label="Tanzania" value="Tanzania" />
                   <Picker.Item label="Tanzania" value="Tanzania" />
                   <Picker.Item label="Kenya" value="Kenya" />
                   <Picker.Item label="Uganda" value="Uganda" />
                   <Picker.Item label="Rwanda" value="Rwanda" />
                   <Picker.Item label="Burundi" value="Burundi" />
-                  <Picker.Item label="South Sudan" value="South Sudan" />
                   <Picker.Item label="Somalia" value="Somalia" />
                   <Picker.Item label="Ethiopia" value="Ethiopia" />
                   <Picker.Item label="Djibouti" value="Djibouti" />

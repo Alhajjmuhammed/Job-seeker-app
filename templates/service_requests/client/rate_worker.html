@@ -62,7 +62,7 @@
                         <p class="mb-1"><strong>Worker:</strong> {{ service_request.assigned_worker.user.get_full_name }}</p>
                         <p class="mb-1"><strong>Category:</strong> {{ service_request.category.name }}</p>
                         <p class="mb-1"><strong>Completed:</strong> {{ service_request.work_completed_at|date:"M d, Y g:i A" }}</p>
-                        <p class="mb-0"><strong>Total Cost:</strong> <span class="text-success">SDG {{ service_request.total_amount|default:"0"|floatformat:2 }}</span></p>
+                        <p class="mb-0"><strong>Total Cost:</strong> <span class="text-success">TSH {{ service_request.total_amount|default:"0"|floatformat:2 }}</span></p>
                     </div>
                     
                     <!-- Rating Form -->

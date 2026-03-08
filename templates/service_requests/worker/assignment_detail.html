@@ -66,7 +66,7 @@
                         <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
                         
                         <dt class="col-sm-4">Hourly Rate:</dt>
-                        <dd class="col-sm-8"><strong>SDG {{ service_request.hourly_rate }}</strong></dd>
+                        <dd class="col-sm-8"><strong>TSH {{ service_request.hourly_rate }}</strong></dd>
                         
                         {% if service_request.preferred_date %}
                         <dt class="col-sm-4">Preferred Time:</dt>
@@ -149,7 +149,7 @@
                                 </tr>
                                 <tr class="table-light">
                                     <td colspan="2"><strong>Total Amount:</strong></td>
-                                    <td colspan="2"><strong class="text-success">SDG {{ service_request.total_amount|default:"0" }}</strong></td>
+                                    <td colspan="2"><strong class="text-success">TSH {{ service_request.total_amount|default:"0" }}</strong></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -202,7 +202,7 @@
                         <div class="alert alert-success">
                             <i class="fas fa-check-circle"></i> Service completed!
                             <hr>
-                            <strong>Earned: SDG {{ service_request.total_amount }}</strong>
+                            <strong>Earned: TSH {{ service_request.total_amount }}</strong>
                         </div>
                         {% endif %}
                     

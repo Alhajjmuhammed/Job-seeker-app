@@ -169,7 +169,7 @@ def request_service(request, category_id):
             
             messages.success(request, 
                 f'Your {category.name} service request has been submitted! '
-                f'Total price: SDG {total_price:.2f}. '
+                f'Total price: TSH {total_price:.2f}. '
                 'Our team will assign a qualified worker and notify you within 2-4 hours.'
             )
             return redirect('service_requests_web:client_request_detail', pk=service_request.id)

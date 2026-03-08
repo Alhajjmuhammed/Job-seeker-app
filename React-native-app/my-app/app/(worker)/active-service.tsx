@@ -74,10 +74,6 @@ export default function ActiveService() {
     }
   };
 
-  const handleMessageClient = () => {
-    Alert.alert('Coming Soon', 'Messaging feature will be available soon');
-  };
-
   const getUrgencyConfig = (urgency: string) => {
     const configs = {
       normal: { bg: '#e8f5e9', text: '#2e7d32' },
@@ -191,26 +187,16 @@ export default function ActiveService() {
           </Text>
           
           <Text style={[styles.infoText, { color: theme.textSecondary, marginBottom: 16 }]}>
-            Need to reach the client? Use the buttons below to call or message them.
+            Need to reach the client? Use the button below to call them directly.
           </Text>
 
-          <View style={styles.contactButtonsRow}>
-            <TouchableOpacity
-              style={[styles.contactButton, { backgroundColor: theme.primary }]}
-              onPress={handleCallClient}
-            >
-              <Ionicons name="call" size={20} color="#fff" />
-              <Text style={styles.contactButtonText}>Call Client</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.contactButton, { backgroundColor: theme.primary }]}
-              onPress={handleMessageClient}
-            >
-              <Ionicons name="chatbubble" size={20} color="#fff" />
-              <Text style={styles.contactButtonText}>Message</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[styles.callButton, { backgroundColor: theme.primary }]}
+            onPress={handleCallClient}
+          >
+            <Ionicons name="call" size={24} color="#fff" />
+            <Text style={styles.callButtonText}>Call Client</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Important Info */}
@@ -384,22 +370,17 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.5,
   },
-  contactButtonsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  contactButton: {
-    flex: 1,
+  callButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 14,
-    borderRadius: 10,
-    gap: 8,
+    padding: 16,
+    borderRadius: 12,
+    gap: 10,
   },
-  contactButtonText: {
+  callButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
   infoCard: {

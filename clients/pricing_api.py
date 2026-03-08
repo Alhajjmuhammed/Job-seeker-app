@@ -123,10 +123,10 @@ def process_fake_payment(request):
     Body for M-Pesa: {
         "amount": 750.00,
         "payment_type": "mpesa",
-        "phone_number": "+249123456789"
+        "phone_number": "+255123456789"
     }
     
-    DEMO MODE: Any card number starting with 4242, and any phone number starting with +249 will succeed
+    DEMO MODE: Any card number starting with 4242, and any phone number starting with +255 will succeed
     """
     try:
         amount = request.data.get('amount')
@@ -177,11 +177,11 @@ def process_fake_payment(request):
                     'error': 'Phone number is required for M-Pesa'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Demo validation: Accept numbers starting with +249
-            if not phone_number.startswith('+249'):
+            # Demo validation: Accept numbers starting with +255
+            if not phone_number.startswith('+255'):
                 return Response({
                     'success': False,
-                    'error': 'Invalid M-Pesa number. Use demo number: +249123456789'
+                    'error': 'Invalid M-Pesa number. Use demo number: +255123456789'
                 }, status=status.HTTP_402_PAYMENT_REQUIRED)
             
             payment_method = 'M-Pesa'
@@ -207,7 +207,7 @@ def process_fake_payment(request):
                 'success': True,
                 'transaction_id': transaction_id,
                 'amount': float(amount),
-                'currency': 'SDG',
+                'currency': 'TSH',
                 'payment_method': payment_method,
                 'payment_type': payment_type,
                 'status': 'paid',

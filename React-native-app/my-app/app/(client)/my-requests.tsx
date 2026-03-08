@@ -488,7 +488,7 @@ export default function MyRequestsScreen() {
                   <View style={styles.budgetRow}>
                     <Ionicons name="cash-outline" size={16} color={theme.primary} />
                     <Text style={[styles.budgetText, { color: theme.primary }]}>
-                      SDG {request.total_price}
+                      TSH {request.total_price}
                     </Text>
                   </View>
                 )}

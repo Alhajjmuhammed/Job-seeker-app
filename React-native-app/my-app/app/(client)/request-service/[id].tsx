@@ -200,7 +200,7 @@ export default function RequestServiceScreen() {
       
       Alert.alert(
         'Success!',
-        `Your service request has been submitted and payment of SDG ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will assign a qualified worker soon.`,
+        `Your service request has been submitted and payment of TSH ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will assign a qualified worker soon.`,
         [
           {
             text: 'View My Requests',
@@ -267,7 +267,7 @@ export default function RequestServiceScreen() {
             <View style={styles.rateRow}>
               <Ionicons name="cash-outline" size={16} color={theme.primary} />
               <Text style={[styles.rateText, { color: theme.primary }]}>
-                SDG {category.daily_rate}/day
+                TSH {category.daily_rate}/day
               </Text>
             </View>
           </View>
@@ -490,14 +490,14 @@ export default function RequestServiceScreen() {
               <Ionicons name="cash-outline" size={20} color={theme.primary} />
               <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
-                SDG {priceCalculation.daily_rate}
+                TSH {priceCalculation.daily_rate}
               </Text>
             </View>
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
               <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
-                SDG {priceCalculation.total_price}
+                TSH {priceCalculation.total_price}
               </Text>
             </View>
           </View>
@@ -572,7 +572,7 @@ export default function RequestServiceScreen() {
             <>
               <Ionicons name="card-outline" size={24} color="#FFFFFF" />
               <Text style={styles.submitButtonText}>
-                Pay SDG {priceCalculation?.total_price || '0'} to Get Service
+                Pay TSH {priceCalculation?.total_price || '0'} to Get Service
               </Text>
             </>
           )}
@@ -585,7 +585,7 @@ export default function RequestServiceScreen() {
       <PaymentModal
         visible={showPaymentModal}
         amount={priceCalculation?.total_price || 0}
-        currency="SDG"
+        currency="TSH"
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={handlePaymentSuccess}
         processPayment={apiService.processPayment.bind(apiService)}

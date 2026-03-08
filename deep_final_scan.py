@@ -294,11 +294,11 @@ for root, dirs, files in os.walk('templates'):
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
                     
-                    # Check for dollar signs (should be SDG)
-                    if '$' in content and 'SDG' not in content:
+                    # Check for dollar signs (should be TSH)
+                    if '$' in content and 'TSH' not in content:
                         templates_with_issues.append({
                             'file': filepath,
-                            'issue': 'Uses $ instead of SDG'
+                            'issue': 'Uses $ instead of TSH'
                         })
                     
                     # Check for URL patterns
@@ -316,7 +316,7 @@ if templates_with_issues:
     for item in templates_with_issues[:10]:  # Show first 10
         print(f"  • {item['file']}: {item['issue']}")
 else:
-    print("✅ All templates using proper SDG currency")
+    print("✅ All templates using proper TSH currency")
 
 # ============================================================================
 # SCAN 8: DATABASE STATE

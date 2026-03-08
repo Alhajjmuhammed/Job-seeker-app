@@ -117,7 +117,7 @@
             <div class="card">
                 <div class="card-header">💰 Total Earnings</div>
                 <div class="card-body text-center">
-                    <h2>SDG {{ total_earned|floatformat:2 }}</h2>
+                    <h2>TSH {{ total_earned|floatformat:2 }}</h2>
                     <p class="text-muted">{{ total_hours|floatformat:1 }} hours worked</p>
                 </div>
             </div>
@@ -126,7 +126,7 @@
             <div class="card">
                 <div class="card-header">📊 This Week</div>
                 <div class="card-body text-center">
-                    <h2>SDG {{ week_earned|floatformat:2 }}</h2>
+                    <h2>TSH {{ week_earned|floatformat:2 }}</h2>
                     <p class="text-muted">{{ week_hours|floatformat:1 }} hours worked</p>
                 </div>
             </div>
@@ -161,7 +161,7 @@
                     </div>
                     <p class="mb-1">{{ activity.description }}</p>
                     {% if activity.amount_earned %}
-                    <small class="text-success">Earned: SDG {{ activity.amount_earned|floatformat:2 }}</small>
+                    <small class="text-success">Earned: TSH {{ activity.amount_earned|floatformat:2 }}</small>
                     {% endif %}
                 </div>
                 {% empty %}

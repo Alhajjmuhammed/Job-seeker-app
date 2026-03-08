@@ -76,7 +76,7 @@ class WorkerProfile(models.Model):
     address = models.CharField(max_length=255, blank=True)
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, default='Sudan')
+    country = models.CharField(max_length=100, default='Tanzania')
     postal_code = models.CharField(max_length=20, blank=True)
     
     # Personal details

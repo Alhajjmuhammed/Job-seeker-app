@@ -25,7 +25,7 @@
                             <h4 class="mb-1">{{ worker.user.get_full_name }}</h4>
                             <p class="text-muted mb-1">
                                 {% if worker.hourly_rate %}
-                                    <i class="bi bi-currency-dollar"></i> {{ worker.hourly_rate }} SDG/hour
+                                    <i class="bi bi-currency-dollar"></i> {{ worker.hourly_rate }} TSH/hour
                                 {% endif %}
                             </p>
                             <span class="badge bg-{{ worker.availability|yesno:'success,warning,secondary' }}">
@@ -182,7 +182,7 @@ function calculateTotal() {
         const total = durationValue * offeredRate;
         const unit = durationType === 'hours' ? 'hour(s)' : 'day(s)';
         document.getElementById('estimated-total').innerHTML = `
-            <strong>${durationValue} ${unit} × ${offeredRate} SDG = ${total.toFixed(2)} SDG</strong>
+            <strong>${durationValue} ${unit} × ${offeredRate} TSH = ${total.toFixed(2)} TSH</strong>
         `;
     }
 }

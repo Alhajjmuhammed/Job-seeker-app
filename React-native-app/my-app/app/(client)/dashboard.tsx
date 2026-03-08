@@ -281,7 +281,7 @@ export default function ClientDashboard() {
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Completed</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>SDG {((Number(stats.totalSpent) || 0) / 1000).toFixed(1)}K</Text>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>TSH {((Number(stats.totalSpent) || 0) / 1000).toFixed(1)}K</Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Total Spent</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>
@@ -430,7 +430,7 @@ export default function ClientDashboard() {
                     <Ionicons name="star" size={13} color="#F59E0B" />
                     <Text style={[styles.workerRating, { fontFamily: 'Poppins_600SemiBold' }]}> {worker.rating}</Text>
                     <Text style={[styles.workerJobs, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• {worker.completedJobs} jobs</Text>
-                    <Text style={[styles.workerRate, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• SDG {worker.hourlyRate}/hr</Text>
+                    <Text style={[styles.workerRate, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>• TSH {worker.hourlyRate}/hr</Text>
                   </View>
                 </View>
               </View>

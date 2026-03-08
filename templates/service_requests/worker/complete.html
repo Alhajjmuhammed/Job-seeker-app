@@ -47,10 +47,10 @@
                                 <dd class="col-sm-6"><strong>{{ service_request.total_hours_worked|default:"0" }} hours</strong></dd>
                                 
                                 <dt class="col-sm-6">Hourly Rate:</dt>
-                                <dd class="col-sm-6">SDG {{ service_request.hourly_rate }}</dd>
+                                <dd class="col-sm-6">TSH {{ service_request.hourly_rate }}</dd>
                                 
                                 <dt class="col-sm-6">Total Earnings:</dt>
-                                <dd class="col-sm-6"><strong class="text-success fs-5">SDG {{ service_request.total_amount|default:"0" }}</strong></dd>
+                                <dd class="col-sm-6"><strong class="text-success fs-5">TSH {{ service_request.total_amount|default:"0" }}</strong></dd>
                             </dl>
                         </div>
                     </div>
@@ -98,7 +98,7 @@
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> <strong>What Happens Next?</strong>
                             <ul class="mb-0 mt-2">
-                                <li>Your earnings (SDG {{ service_request.total_amount|default:"0" }}) will be recorded</li>
+                                <li>Your earnings (TSH {{ service_request.total_amount|default:"0" }}) will be recorded</li>
                                 <li>The client will be notified that the service is complete</li>
                                 <li>The client can leave a review and rating</li>
                                 <li>Payment processing will be initiated</li>

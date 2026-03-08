@@ -43,8 +43,8 @@ def client_create_service_request(request):
         "category": 1,
         "title": "Need plumber for kitchen sink",
         "description": "Kitchen sink is leaking...",
-        "location": "123 Main St, Khartoum",
-        "city": "Khartoum",
+        "location": "123 Main St, Dar es Salaam",
+        "city": "Dar es Salaam",
         "preferred_date": "2026-02-10",
         "preferred_time": "10:00",
         "duration_type": "monthly",  # daily, monthly, 3_months, 6_months, yearly, custom

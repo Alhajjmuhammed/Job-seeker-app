@@ -106,7 +106,7 @@ class DirectHireRequestForm(forms.ModelForm):
             'duration_type': 'Duration Type',
             'duration_value': 'How long?',
             'start_datetime': 'When to start?',
-            'offered_rate': 'Your offered rate (SDG)',
+            'offered_rate': 'Your offered rate (TSH)',
         }
     
     def __init__(self, *args, **kwargs):
@@ -116,7 +116,7 @@ class DirectHireRequestForm(forms.ModelForm):
         # Pre-fill rate with worker's hourly rate if available
         if worker_hourly_rate and not self.instance.pk:
             self.fields['offered_rate'].initial = worker_hourly_rate
-            self.fields['offered_rate'].help_text = f"Worker's rate: {worker_hourly_rate} SDG/hour"
+            self.fields['offered_rate'].help_text = f"Worker's rate: {worker_hourly_rate} TSH/hour"
 
 
 class MessageForm(forms.ModelForm):
