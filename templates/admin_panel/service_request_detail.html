@@ -175,6 +175,114 @@
                 </div>
             </div>
 
+            <!-- Payment Information -->
+            <div class="card border-0 shadow-sm mb-4 {% if service_request.payment_verified %}border-start border-success border-4{% elif service_request.payment_screenshot %}border-start border-warning border-4{% endif %}">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-credit-card me-2"></i>Payment Information
+                    </h5>
+                    {% if service_request.payment_verified %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Verified</span>
+                    {% elif service_request.payment_screenshot %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending Verification</span>
+                    {% else %}
+                    <span class="badge bg-secondary">No Proof Uploaded</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Payment Status</label>
+                            <p class="mb-0">
+                                {% if service_request.payment_status == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                                {% elif service_request.payment_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif service_request.payment_status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ service_request.payment_status|title }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Amount</label>
+                            <p class="mb-0"><strong class="text-success">TSH {{ service_request.total_price|floatformat:2 }}</strong></p>
+                        </div>
+                        {% if service_request.payment_method %}
+                        <div class="col-md-6">
+                            <label class="text-muted small">Payment Method</label>
+                            <p class="mb-0">{{ service_request.payment_method }}</p>
+                        </div>
+                        {% endif %}
+                        {% if service_request.payment_transaction_id %}
+                        <div class="col-md-6">
+                            <label class="text-muted small">Transaction ID</label>
+                            <p class="mb-0"><code>{{ service_request.payment_transaction_id }}</code></p>
+                        </div>
+                        {% endif %}
+                        {% if service_request.paid_at %}
+                        <div class="col-md-6">
+                            <label class="text-muted small">Paid At</label>
+                            <p class="mb-0">{{ service_request.paid_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Payment Screenshot -->
+                        {% if service_request.payment_screenshot %}
+                        <div class="col-12">
+                            <label class="text-muted small">Payment Proof Screenshot</label>
+                            <div class="border rounded p-3 bg-light">
+                                <img src="{{ service_request.payment_screenshot.url }}" 
+                                     alt="Payment Screenshot" 
+                                     class="img-fluid rounded shadow-sm mb-3" 
+                                     style="max-height: 400px; cursor: pointer;"
+                                     onclick="window.open(this.src, '_blank')">
+                                <div class="d-flex gap-2">
+                                    <a href="{{ service_request.payment_screenshot.url }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>View Full Size
+                                    </a>
+                                    {% if not service_request.payment_verified %}
+                                    <form method="post" action="{% url 'admin_panel:verify_payment' service_request.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle me-1"></i>Verify Payment
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-warning mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Client has not uploaded payment screenshot yet.
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Verification Info -->
+                        {% if service_request.payment_verified %}
+                        <div class="col-12">
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>Payment Verified</strong>
+                                {% if service_request.payment_verified_by %}
+                                by {{ service_request.payment_verified_by.get_full_name }}
+                                {% endif %}
+                                {% if service_request.payment_verified_at %}
+                                on {{ service_request.payment_verified_at|date:"M d, Y g:i A" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
             <!-- Worker Assignment Info (if assigned) -->
             {% if service_request.assigned_worker %}
             <div class="card border-0 shadow-sm mb-4 border-start border-success border-4">

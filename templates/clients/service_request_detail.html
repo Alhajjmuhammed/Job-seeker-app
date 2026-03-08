@@ -74,6 +74,95 @@
                 </div>
             </div>
             
+            <!-- Payment Information -->
+            {% if request.payment_method %}
+            <div class="card shadow-sm mb-4 {% if request.payment_verified %}border-success{% elif request.payment_screenshot %}border-warning{% endif %}" style="{% if request.payment_verified or request.payment_screenshot %}border-width: 3px !important;{% endif %}">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-credit-card"></i>
+                        Payment Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Payment Method:</strong><br>
+                            <span class="text-muted">{{ request.payment_method }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Transaction ID:</strong><br>
+                            <span class="text-muted small">{{ request.payment_transaction_id }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        {% if request.payment_verified %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> Payment Verified
+                        </span>
+                        {% elif request.payment_screenshot %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-clock"></i> Verification Pending
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-exclamation-circle"></i> No Proof Uploaded
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if request.payment_screenshot %}
+                    <div class="mb-3">
+                        <strong>Payment Screenshot:</strong><br>
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            <p class="mb-0 text-success"><strong>Screenshot uploaded successfully</strong></p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Late Upload Section -->
+                    <div class="alert alert-warning">
+                        <i class="bi bi-warning"></i>
+                        <strong>Payment Proof Required!</strong>
+                        <p class="mb-2">Please upload your payment screenshot for faster verification.</p>
+                        <small class="text-danger"><strong>⏰ Upload within 7 minutes for faster processing.</strong></small>
+                    </div>
+                    
+                    <div id="screenshotUploadSection">
+                        <div id="uploadPreview" style="display: none;" class="text-center mb-3">
+                            <img id="previewImg" src="" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
+                            <br>
+                            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeUploadedScreenshot()">
+                                <i class="bi bi-trash"></i> Remove
+                            </button>
+                        </div>
+                        
+                        <div id="uploadButtonDiv">
+                            <label for="paymentScreenshotFile" class="btn btn-primary w-100">
+                                <i class="bi bi-cloud-upload"></i> Upload Payment Screenshot
+                            </label>
+                            <input type="file" id="paymentScreenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
+                        </div>
+                        
+                        <button type="button" id="submitScreenshotBtn" class="btn btn-success w-100 mt-2" style="display: none;" onclick="submitScreenshot()">
+                            <i class="bi bi-check-circle"></i> Submit Screenshot
+                        </button>
+                    </div>
+                    {% endif %}
+                    
+                    {% if request.payment_verified %}
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-person-check"></i>
+                            Verified by: {{ request.payment_verified_by.get_full_name }} on {{ request.payment_verified_at|date:"M d, Y g:i A" }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
             <!-- Assigned Worker Info -->
             {% if request.assigned_worker %}
             <div class="card shadow-sm mb-4">
@@ -305,6 +394,70 @@ function cancelRequest() {
 function rateWorker() {
     // This would open a rating modal or redirect to rating page
     alert('Rating feature will be implemented here');
+}
+
+// Screenshot upload functions
+let screenshotFile = null;
+
+function handleScreenshotUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        screenshotFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('uploadPreview').style.display = 'block';
+            document.getElementById('uploadButtonDiv').style.display = 'none';
+            document.getElementById('submitScreenshotBtn').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeUploadedScreenshot() {
+    screenshotFile = null;
+    document.getElementById('paymentScreenshotFile').value = '';
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('uploadButtonDiv').style.display = 'block';
+    document.getElementById('submitScreenshotBtn').style.display = 'none';
+}
+
+async function submitScreenshot() {
+    if (!screenshotFile) {
+        alert('Please select a screenshot first');
+        return;
+    }
+    
+    const btn = document.getElementById('submitScreenshotBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('payment_screenshot', screenshotFile);
+        
+        const response = await fetch('/api/v1/clients/requests/{{ request.id }}/update/', {
+            method: 'PUT',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Success! Payment screenshot uploaded successfully.');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to upload screenshot'));
+        }
+    } catch (error) {
+        alert('Upload error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Screenshot';
+    }
 }
 </script>
 {% endblock %}

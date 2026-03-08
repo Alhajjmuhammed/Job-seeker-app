@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db import models, transaction
 from django.db.models import Q, Count, Avg
+from django.utils import timezone
 from .models import ClientProfile, Favorite, Rating
 from workers.models import WorkerProfile, Category
 from jobs.service_request_models import ServiceRequest
@@ -214,6 +215,14 @@ def request_service(request, category_id):
                     'error': f'{field.replace("_", " ").title()} is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
         
+        # Get duration and pricing info
+        duration_type = request.data.get('duration_type', 'daily')
+        daily_rate = category.daily_rate or 0
+        duration_days = request.data.get('duration_days', 1)
+        
+        # Calculate total price
+        total_price = daily_rate * int(duration_days)
+        
         # Create service request without any worker assignment
         service_request = ServiceRequest.objects.create(
             client=request.user,
@@ -222,17 +231,40 @@ def request_service(request, category_id):
             description=request.data.get('description', ''),
             location=request.data.get('location', ''),
             city=request.data.get('city', ''),
-            total_price=request.data.get('total_price') or request.data.get('budget') or 0,
-            duration_days=request.data.get('duration_days', 1),
-            urgency=request.data.get('urgency', 'medium'),
-            status='pending'  # Admin will review and assign a worker
+            preferred_date=request.data.get('preferred_date'),
+            preferred_time=request.data.get('preferred_time'),
+            duration_type=duration_type,
+            duration_days=duration_days,
+            daily_rate=daily_rate,
+            total_price=total_price,
+            urgency=request.data.get('urgency', 'normal'),
+            client_notes=request.data.get('client_notes', ''),
+            status='pending',  # Admin will review and assign a worker
+            # Payment info
+            payment_status='paid' if request.data.get('payment_transaction_id') else 'pending',
+            payment_method=request.data.get('payment_method', ''),
+            payment_transaction_id=request.data.get('payment_transaction_id', ''),
+            paid_at=timezone.now() if request.data.get('payment_transaction_id') else None,
         )
+        
+        # Handle payment screenshot if provided
+        if 'payment_screenshot' in request.FILES:
+            service_request.payment_screenshot = request.FILES['payment_screenshot']
+            service_request.save()
+        
+        # Handle custom date range
+        if duration_type == 'custom':
+            service_request.service_start_date = request.data.get('service_start_date')
+            service_request.service_end_date = request.data.get('service_end_date')
+            service_request.save()
         
         return Response({
             'id': service_request.id,
             'message': f'Your {category.name} service request has been submitted successfully!',
-            'details': 'Our team will review your request and assign the most suitable worker. You will be notified once a worker is assigned.',
+            'details': 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.',
             'status': 'pending_assignment',
+            'payment_status': service_request.payment_status,
+            'has_screenshot': bool(service_request.payment_screenshot),
             'estimated_response_time': '2-4 hours'
         }, status=status.HTTP_201_CREATED)
         
@@ -385,6 +417,52 @@ def complete_service_request(request, request_id):
     except Exception as e:
         logger.error(f"Error completing service request: {str(e)}", exc_info=True)
         return Response({'error': 'Failed to mark service as completed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def update_service_request(request, request_id):
+    """Update a service request (including payment screenshot upload)"""
+    try:
+        service_request = ServiceRequest.objects.get(id=request_id, client=request.user)
+
+        # Check if we're uploading a payment screenshot
+        if 'payment_screenshot' in request.FILES:
+            service_request.payment_screenshot = request.FILES['payment_screenshot']
+            service_request.save()
+            
+            return Response({
+                'message': 'Payment screenshot uploaded successfully',
+                'service_request': {
+                    'id': service_request.id,
+                    'has_screenshot': True,
+                    'payment_verified': service_request.payment_verified
+                }
+            })
+        
+        # Otherwise, update other fields
+        allowed_fields = ['title', 'description', 'location', 'city', 'preferred_date', 
+                         'preferred_time', 'estimated_duration_hours', 'urgency', 'client_notes']
+        
+        for field in allowed_fields:
+            if field in request.data:
+                setattr(service_request, field, request.data[field])
+        
+        service_request.save()
+        
+        return Response({
+            'message': 'Service request updated successfully',
+            'service_request': {
+                'id': service_request.id,
+                'title': service_request.title,
+                'status': service_request.status
+            }
+        })
+    except ServiceRequest.DoesNotExist:
+        return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error updating service request: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to update service request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================

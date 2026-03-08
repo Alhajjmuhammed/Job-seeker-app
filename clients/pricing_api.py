@@ -114,19 +114,19 @@ def process_fake_payment(request):
     Body for Card: {
         "amount": 750.00,
         "payment_type": "card",  # card or mpesa
-        "card_number": "4242424242424242",
+        "card_number": "4242424242424242",  # or 5555555555555555 for Mastercard
         "card_holder": "John Doe",
         "card_expiry": "12/28",
         "card_cvv": "123"
     }
     
-    Body for M-Pesa: {
+    Body for Mobile Money: {
         "amount": 750.00,
         "payment_type": "mpesa",
         "phone_number": "+255123456789"
     }
     
-    DEMO MODE: Any card number starting with 4242, and any phone number starting with +255 will succeed
+    DEMO MODE: Cards starting with 4242 (Visa) or 5555 (Mastercard), and phone numbers starting with +255 will succeed
     """
     try:
         amount = request.data.get('amount')
@@ -160,14 +160,14 @@ def process_fake_payment(request):
                     'error': 'Card details are incomplete'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Demo validation: Accept test card 4242...
-            if not card_number.startswith('4242'):
+            # Demo validation: Accept test cards (Visa 4242... or Mastercard 5555...)
+            if not (card_number.startswith('4242') or card_number.startswith('5555')):
                 return Response({
                     'success': False,
-                    'error': 'Card declined. Use demo card: 4242 4242 4242 4242'
+                    'error': 'Card declined. Use demo cards: 4242 4242 4242 4242 (Visa) or 5555 5555 5555 5555 (Mastercard)'
                 }, status=status.HTTP_402_PAYMENT_REQUIRED)
                 
-            payment_method = 'Virtual Card'
+            payment_method = 'Credit Card'
             
         elif payment_type == 'mpesa':
             phone_number = request.data.get('phone_number', '')
@@ -184,7 +184,7 @@ def process_fake_payment(request):
                     'error': 'Invalid M-Pesa number. Use demo number: +255123456789'
                 }, status=status.HTTP_402_PAYMENT_REQUIRED)
             
-            payment_method = 'M-Pesa'
+            payment_method = 'Mobile Money'
         else:
             return Response({
                 'error': 'Invalid payment type. Use "card" or "mpesa"'

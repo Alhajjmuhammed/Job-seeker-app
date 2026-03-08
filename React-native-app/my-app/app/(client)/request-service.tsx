@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import PaymentModal from '../../components/PaymentModal';
+import PaymentScreenshotModal from '../../components/PaymentScreenshotModal';
 import apiService from '../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -40,6 +41,8 @@ export default function RequestServiceScreen() {
   
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showScreenshotModal, setShowScreenshotModal] = useState(false);
+  const [paymentData, setPaymentData] = useState<any>(null);
   
   // Form state
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -78,6 +81,9 @@ export default function RequestServiceScreen() {
     setUrgency('normal');
     setClientNotes('');
     setPriceCalculation(null);
+    setPaymentData(null);
+    setShowScreenshotModal(false);
+    setShowPaymentModal(false);
   };
 
   useEffect(() => {
@@ -136,40 +142,75 @@ export default function RequestServiceScreen() {
     setShowPaymentModal(true);
   };
 
-  const handlePaymentSuccess = async (paymentData: any) => {
+  const handlePaymentSuccess = async (transactionData: any) => {
+    // Store payment data and show screenshot upload modal
+    console.log('handlePaymentSuccess called with:', transactionData);
+    console.log('Current modals state - payment:', showPaymentModal, 'screenshot:', showScreenshotModal);
+    
+    setPaymentData(transactionData);
+    
+    // Use setTimeout to ensure state updates happen in sequence
+    setTimeout(() => {
+      setShowPaymentModal(false);
+      setTimeout(() => {
+        setShowScreenshotModal(true);
+        console.log('Screenshot modal should now be visible');
+      }, 100);
+    }, 100);
+    
+    console.log('Modals updated - payment should close, screenshot should open');
+  };
+
+  const handleScreenshotSubmit = async (screenshot: any) => {
     try {
       setSubmitting(true);
-      setShowPaymentModal(false);
 
-      // Submit service request with actual payment data
-      const requestData: any = {
-        category: selectedCategory!,
-        title: title.trim(),
-        description: description.trim(),
-        location: location.trim(),
-        city: city.trim(),
-        preferred_date: preferredDate.toISOString().split('T')[0],
-        preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
-        duration_type: durationType,
-        urgency: urgency,
-        client_notes: clientNotes.trim() || undefined,
-        payment_method: paymentData.payment_method,
-        payment_transaction_id: paymentData.transaction_id
-      };
+      // Submit service request with payment data and screenshot
+      const formData = new FormData();
+      formData.append('category', selectedCategory!.toString());
+      formData.append('title', title.trim());
+      formData.append('description', description.trim());
+      formData.append('location', location.trim());
+      formData.append('city', city.trim());
+      formData.append('preferred_date', preferredDate.toISOString().split('T')[0]);
+      formData.append('preferred_time', preferredTime.toTimeString().split(' ')[0].substring(0, 5));
+      formData.append('duration_type', durationType);
+      formData.append('urgency', urgency);
+      if (clientNotes.trim()) {
+        formData.append('client_notes', clientNotes.trim());
+      }
+      formData.append('payment_method', paymentData.payment_method);
+      formData.append('payment_transaction_id', paymentData.transaction_id);
 
       if (durationType === 'custom') {
-        requestData.service_start_date = serviceStartDate.toISOString().split('T')[0];
-        requestData.service_end_date = serviceEndDate.toISOString().split('T')[0];
+        formData.append('service_start_date', serviceStartDate.toISOString().split('T')[0]);
+        formData.append('service_end_date', serviceEndDate.toISOString().split('T')[0]);
       }
 
-      await apiService.requestService(selectedCategory!, requestData);
+      // Add screenshot if provided
+      if (screenshot) {
+        const localUri = screenshot.uri;
+        const filename = localUri.split('/').pop() || 'payment_screenshot.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formData.append('payment_screenshot', {
+          uri: localUri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      await apiService.requestService(selectedCategory!, formData);
       
-      // Reset form fields
+      // Close modal and reset everything
+      setShowScreenshotModal(false);
+      setPaymentData(null);
       resetForm();
       
       Alert.alert(
         'Success!',
-        `Your service request has been submitted and payment of TSH ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will assign a qualified worker soon.`,
+        `Your service request has been submitted and payment of TSH ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will review your payment and assign a qualified worker soon.`,
         [
           {
             text: 'View My Requests',
@@ -190,6 +231,17 @@ export default function RequestServiceScreen() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleScreenshotSkip = () => {
+    // Submit without screenshot
+    handleScreenshotSubmit(null);
+  };
+
+  const handleScreenshotModalClose = () => {
+    // Clear payment data and close modal
+    setShowScreenshotModal(false);
+    setPaymentData(null);
   };
 
   function validateForm(): boolean {
@@ -613,6 +665,15 @@ export default function RequestServiceScreen() {
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={handlePaymentSuccess}
         processPayment={apiService.processPayment.bind(apiService)}
+      />
+
+      {/* Payment Screenshot Modal */}
+      <PaymentScreenshotModal
+        visible={showScreenshotModal}
+        paymentData={paymentData}
+        onClose={handleScreenshotModalClose}
+        onSubmit={handleScreenshotSubmit}
+        onSkip={handleScreenshotSkip}
       />
     </View>
   );

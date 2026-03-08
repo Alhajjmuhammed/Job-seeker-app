@@ -313,9 +313,9 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg">
+                                    <button type="button" id="submitBtn" class="btn btn-primary btn-lg">
                                         <i class="bi bi-send"></i>
-                                        Submit Service Request
+                                        Pay and Submit Request
                                     </button>
                                     <a href="{% url 'clients:browse_services' %}" class="btn btn-outline-secondary">
                                         <i class="bi bi-arrow-left"></i>
@@ -331,8 +331,160 @@
     </div>
 </div>
 
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Complete Payment</h5>
+            </div>
+            <div class="modal-body">
+                <!-- Payment Selection -->
+                <div id="paymentSelection">
+                    <p class="text-center mb-4">Total Amount: <strong class="text-success">TSH <span id="paymentAmount">0</span></strong></p>
+                    
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-outline-primary btn-lg" onclick="selectPaymentMethod('card')">
+                            <i class="bi bi-credit-card"></i> Credit Card
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-lg" onclick="selectPaymentMethod('mobile')">
+                            <i class="bi bi-phone"></i> Mobile Money
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card Payment Form -->
+                <div id="cardPaymentForm" style="display: none;">
+                    <button type="button" class="btn btn-link mb-3" onclick="backToPaymentSelection()">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    
+                    <div class="alert alert-info small">
+                        <strong>Demo Mode:</strong> Use test cards:<br>
+                        Visa: 4242 4242 4242 4242<br>
+                        Mastercard: 5555 5555 5555 5555
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" id="cardNumber" class="form-control" placeholder="4242 4242 4242 4242" maxlength="19">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" id="cardHolder" class="form-control" placeholder="John Doe">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry (MM/YY)</label>
+                            <input type="text" id="cardExpiry" class="form-control" placeholder="12/25" maxlength="5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">CVV</label>
+                            <input type="text" id="cardCVV" class="form-control" placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="processCardPayment()" id="cardPayBtn">
+                        <i class="bi bi-lock"></i> Pay TSH <span id="cardPayAmount">0</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Money Form -->
+                <div id="mobilePaymentForm" style="display: none;">
+                    <button type="button" class="btn btn-link mb-3" onclick="backToPaymentSelection()">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    
+                    <div class="alert alert-info small">
+                        <strong>Demo Mode:</strong> Use test number: +255123456789<br>
+                        Supports: M-Pesa, Tigo Pesa, Airtel Money
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Mobile Money Phone Number</label>
+                        <input type="text" id="mobilePhone" class="form-control" placeholder="+255123456789" maxlength="13">
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="processMobilePayment()" id="mobilePayBtn">
+                        <i class="bi bi-phone"></i> Pay TSH <span id="mobilePayAmount">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Screenshot Modal -->
+<div class="modal fade" id="screenshotModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Proof</h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    <h6 class="mt-2">Payment Initiated!</h6>
+                    <small class="text-muted">Transaction ID: <span id="transactionId"></span></small>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    Upload a screenshot of your payment confirmation to help admin verify your payment quickly.
+                    <br><small class="text-danger"><strong>⏰ Please upload within 7 minutes for faster processing.</strong></small>
+                </div>
+                
+                <div id="screenshotPreview" style="display: none;" class="text-center mb-3">
+                    <img id="previewImage" src="" alt="Screenshot Preview" class="img-fluid rounded" style="max-height: 300px;">
+                    <br>
+                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeScreenshot()">
+                        <i class="bi bi-trash"></i> Remove
+                    </button>
+                </div>
+                
+                <div id="uploadButtons">
+                    <div class="d-grid gap-2">
+                        <label for="screenshotFile" class="btn btn-outline-primary">
+                            <i class="bi bi-upload"></i> Choose Screenshot
+                        </label>
+                        <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="previewScreenshot(event)">
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button type="button" class="btn btn-success" onclick="submitRequest()" id="submitWithScreenshot">
+                        <i class="bi bi-check-circle"></i> Submit Anyway
+                    </button>
+                    <button type="button" class="btn btn-link text-muted" onclick="skipScreenshot()">
+                        Skip for Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let paymentData = null;
+let screenshotFile = null;
+let currentTotalPrice = 0;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Submit button handler
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        const form = document.getElementById('serviceRequestForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        // Calculate price and show payment modal
+        const durationType = document.getElementById('duration_type').value;
+        calculateFinalPrice(durationType);
+        showPaymentModal();
+    });
+    
     // Duration type selection
     const durationBtns = document.querySelectorAll('.duration-btn');
     const durationTypeInput = document.getElementById('duration_type');
@@ -397,6 +549,32 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('preferred_date').min = today;
     if (startDateInput) startDateInput.min = today;
     
+    // Card number formatting
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue.substring(0, 19);
+    });
+    
+    // Expiry formatting
+    document.getElementById('cardExpiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        } else {
+            e.target.value = value;
+        }
+    });
+    
+    // Mobile phone formatting
+    document.getElementById('mobilePhone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/[^\d+]/g, '');
+        if (!value.startsWith('+255')) {
+            value = '+255' + value.replace(/\D/g, '');
+        }
+        e.target.value = value.substring(0, 13);
+    });
+    
     function calculatePrice(durationType) {
         // Get the real daily rate from Django context
         let durationDays = 1;
@@ -415,14 +593,252 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const totalPrice = durationDays * dailyRate; // 1 worker × daily rate × duration
+        currentTotalPrice = totalPrice;
         
         // Update price display
         document.getElementById('durationDays').textContent = durationDays;
-        document.getElementById('dailyRate').textContent = `$${dailyRate}`;
-        document.getElementById('totalPrice').textContent = `$${totalPrice}`;
-        document.getElementById('calcFormula').textContent = `$${dailyRate} × ${durationDays} days = $${totalPrice}`;
+        document.getElementById('dailyRate').textContent = `TSH ${dailyRate}`;
+        document.getElementById('totalPrice').textContent = `TSH ${totalPrice}`;
+        document.getElementById('calcFormula').textContent = `TSH ${dailyRate} × ${durationDays} days = TSH ${totalPrice}`;
         priceDisplay.style.display = 'block';
     }
+    
+    function calculateFinalPrice(durationType) {
+        let durationDays = 1;
+        const dailyRate = {{ daily_rate }};
+        
+        switch(durationType) {
+            case 'daily': durationDays = 1; break;
+            case 'monthly': durationDays = 30; break;
+            case '3_months': durationDays = 90; break;
+            case '6_months': durationDays = 180; break;
+            case 'yearly': durationDays = 365; break;
+        }
+        
+        currentTotalPrice = durationDays * dailyRate;
+    }
 });
+
+function showPaymentModal() {
+    document.getElementById('paymentAmount').textContent = currentTotalPrice.toFixed(2);
+    document.getElementById('cardPayAmount').textContent = currentTotalPrice.toFixed(2);
+    document.getElementById('mobilePayAmount').textContent = currentTotalPrice.toFixed(2);
+    
+    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    modal.show();
+}
+
+function selectPaymentMethod(method) {
+    document.getElementById('paymentSelection').style.display = 'none';
+    
+    if (method === 'card') {
+        document.getElementById('cardPaymentForm').style.display = 'block';
+    } else {
+        document.getElementById('mobilePaymentForm').style.display = 'block';
+    }
+}
+
+function backToPaymentSelection() {
+    document.getElementById('paymentSelection').style.display = 'block';
+    document.getElementById('cardPaymentForm').style.display = 'none';
+    document.getElementById('mobilePaymentForm').style.display = 'none';
+}
+
+async function processCardPayment() {
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+    const cardHolder = document.getElementById('cardHolder').value;
+    const cardExpiry = document.getElementById('cardExpiry').value;
+    const cardCVV = document.getElementById('cardCVV').value;
+    
+    if (!cardNumber || cardNumber.length < 13) {
+        alert('Please enter a valid card number');
+        return;
+    }
+    if (!cardHolder) {
+        alert('Please enter cardholder name');
+        return;
+    }
+    if (cardExpiry.length !== 5) {
+        alert('Please enter expiry date (MM/YY)');
+        return;
+    }
+    if (cardCVV.length < 3) {
+        alert('Please enter CVV');
+        return;
+    }
+    
+    const btn = document.getElementById('cardPayBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+    
+    try {
+        const response = await fetch('/api/v1/clients/process-payment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                amount: currentTotalPrice,
+                payment_type: 'card',
+                card_number: cardNumber,
+                card_holder: cardHolder,
+                card_expiry: cardExpiry,
+                card_cvv: cardCVV
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            paymentData = data;
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            showScreenshotModal();
+        } else {
+            alert('Payment failed: ' + (data.error || 'Please try again'));
+        }
+    } catch (error) {
+        alert('Payment error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-lock"></i> Pay TSH ' + currentTotalPrice.toFixed(2);
+    }
+}
+
+async function processMobilePayment() {
+    const phoneNumber = document.getElementById('mobilePhone').value;
+    
+    if (phoneNumber.length < 13) {
+        alert('Please enter a valid phone number');
+        return;
+    }
+    
+    const btn = document.getElementById('mobilePayBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+    
+    try {
+        const response = await fetch('/api/v1/clients/process-payment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                amount: currentTotalPrice,
+                payment_type: 'mpesa',
+                phone_number: phoneNumber
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            paymentData = data;
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            showScreenshotModal();
+        } else {
+            alert('Payment failed: ' + (data.error || 'Please try again'));
+        }
+    } catch (error) {
+        alert('Payment error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-phone"></i> Pay TSH ' + currentTotalPrice.toFixed(2);
+    }
+}
+
+function showScreenshotModal() {
+    document.getElementById('transactionId').textContent = paymentData.transaction_id;
+    const modal = new bootstrap.Modal(document.getElementById('screenshotModal'));
+    modal.show();
+}
+
+function previewScreenshot(event) {
+    const file = event.target.files[0];
+    if (file) {
+        screenshotFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('screenshotPreview').style.display = 'block';
+            document.getElementById('uploadButtons').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeScreenshot() {
+    screenshotFile = null;
+    document.getElementById('screenshotFile').value = '';
+    document.getElementById('screenshotPreview').style.display = 'none';
+    document.getElementById('uploadButtons').style.display = 'block';
+}
+
+function skipScreenshot() {
+    if (confirm('Are you sure you want to skip screenshot upload? Admin may require verification before assigning a worker.')) {
+        submitRequest();
+    }
+}
+
+async function submitRequest() {
+    const btn = document.getElementById('submitWithScreenshot');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+    
+    try {
+        const formData = new FormData();
+        const form = document.getElementById('serviceRequestForm');
+        
+        // Add form fields
+        formData.append('category', '{{ category.id }}');
+        formData.append('title', form.title.value);
+        formData.append('description', form.description.value);
+        formData.append('location', form.location.value);
+        formData.append('city', form.city.value);
+        formData.append('preferred_date', form.preferred_date.value);
+        formData.append('preferred_time', form.preferred_time.value);
+        formData.append('duration_type', form.duration_type.value);
+        formData.append('urgency', form.urgency.value);
+        formData.append('client_notes', form.client_notes.value);
+        
+        if (form.duration_type.value === 'custom') {
+            formData.append('service_start_date', form.service_start_date.value);
+            formData.append('service_end_date', form.service_end_date.value);
+        }
+        
+        // Add payment data
+        formData.append('payment_method', paymentData.payment_method);
+        formData.append('payment_transaction_id', paymentData.transaction_id);
+        
+        // Add screenshot if provided
+        if (screenshotFile) {
+            formData.append('payment_screenshot', screenshotFile);
+        }
+        
+        const response = await fetch('/api/v1/clients/services/{{ category.id }}/request/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('screenshotModal')).hide();
+            alert('Success! Your service request has been submitted and payment of TSH ' + currentTotalPrice.toFixed(2) + ' has been processed! Our admin will review your payment and assign a qualified worker soon.');
+            window.location.href = '/clients/requests/';
+        } else {
+            alert('Error: ' + (data.error || 'Failed to submit request'));
+        }
+    } catch (error) {
+        alert('Submission error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Anyway';
+    }
+}
 </script>
 {% endblock %}

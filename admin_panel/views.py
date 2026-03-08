@@ -3,6 +3,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
@@ -1539,6 +1540,35 @@ def service_request_detail(request, request_id):
     }
     
     return render(request, 'admin_panel/service_request_detail.html', context)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def verify_payment(request, request_id):
+    """Verify payment screenshot for a service request"""
+    
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+    
+    if not service_request.payment_screenshot:
+        messages.error(request, 'No payment screenshot to verify.')
+        return redirect('admin_panel:service_request_detail', request_id=request_id)
+    
+    if service_request.payment_verified:
+        messages.info(request, 'Payment has already been verified.')
+        return redirect('admin_panel:service_request_detail', request_id=request_id)
+    
+    # Mark payment as verified
+    service_request.payment_verified = True
+    service_request.payment_verified_by = request.user
+    service_request.payment_verified_at = timezone.now()
+    service_request.save()
+    
+    messages.success(
+        request, 
+        f'Payment for Service Request #{service_request.id} has been verified successfully!'
+    )
+    
+    return redirect('admin_panel:service_request_detail', request_id=request_id)
 
 
 @staff_member_required

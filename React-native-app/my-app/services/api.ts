@@ -471,7 +471,7 @@ class ApiService {
     service_start_date?: string;
     service_end_date?: string;
   }) {
-    const response = await this.api.post('/v1/client/calculate-price/', data);
+    const response = await this.api.post('/v1/clients/calculate-price/', data);
     return response.data;
   }
 
@@ -487,13 +487,13 @@ class ApiService {
     // For M-Pesa payments:
     phone_number?: string;
   }) {
-    const response = await this.api.post('/v1/client/process-payment/', data);
+    const response = await this.api.post('/v1/clients/process-payment/', data);
     return response.data;
   }
 
   // NEW: Get category pricing
   async getCategoryPricing() {
-    const response = await this.api.get('/v1/client/category-pricing/');
+    const response = await this.api.get('/v1/clients/category-pricing/');
     return response.data;
   }
 
@@ -511,10 +511,20 @@ class ApiService {
     client_notes?: string;
     payment_transaction_id?: string;
     payment_method?: string;
-  }) {
-    const response = await this.api.post(`/v1/client/service-requests/create/`, {
+  } | FormData) {
+    // Handle FormData (for file uploads like payment screenshot)
+    if (data instanceof FormData) {
+      const response = await this.api.post(`/v1/clients/services/${categoryId}/request/`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    }
+    
+    // Handle regular object data
+    const response = await this.api.post(`/v1/clients/services/${categoryId}/request/`, {
       ...data,
-      category: categoryId,
     });
     return response.data;
   }
@@ -526,47 +536,44 @@ class ApiService {
     if (toDate) params.to_date = toDate;
     if (search) params.search = search;
     
-    const response = await this.api.get('/v1/client/service-requests/', { params });
+    const response = await this.api.get('/v1/clients/requests/', { params });
     return response.data;
   }
 
   async getServiceRequestDetail(requestId: number) {
-    const response = await this.api.get(`/v1/client/service-requests/${requestId}/`);
+    const response = await this.api.get(`/v1/clients/requests/${requestId}/`);
     return response.data;
   }
 
   async cancelServiceRequest(requestId: number) {
-    const response = await this.api.post(`/v1/client/service-requests/${requestId}/cancel/`);
+    const response = await this.api.post(`/v1/clients/requests/${requestId}/cancel/`);
     return response.data;
   }
 
   async completeServiceRequest(requestId: number) {
-    const response = await this.api.post(`/v1/client/service-requests/${requestId}/complete/`);
+    const response = await this.api.post(`/v1/clients/requests/${requestId}/complete/`);
     return response.data;
   }
 
-  async updateServiceRequest(requestId: number, data: {
-    title?: string;
-    description?: string;
-    location?: string;
-    city?: string;
-    preferred_date?: string;
-    preferred_time?: string;
-    estimated_duration_hours?: number;
-    urgency?: string;
-    client_notes?: string;
-  }) {
-    const response = await this.api.put(`/v1/client/service-requests/${requestId}/update/`, data);
+  async updateServiceRequest(requestId: number, data: any) {
+    // Support both JSON and FormData
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    } : {};
+    
+    const response = await this.api.put(`/v1/clients/requests/${requestId}/update/`, data, config);
     return response.data;
   }
 
   async getClientStatistics() {
-    const response = await this.api.get('/v1/client/statistics/');
+    const response = await this.api.get('/v1/clients/stats/');
     return response.data;
   }
 
   async getClientCategories() {
-    const response = await this.api.get('/v1/client/categories/');
+    const response = await this.api.get('/v1/clients/categories/');
     return response.data;
   }
 
@@ -727,7 +734,7 @@ class ApiService {
     rating: number;
     review?: string;
   }) {
-    const response = await this.api.post(`/v1/client/service-requests/${requestId}/rate/`, ratingData);
+    const response = await this.api.post(`/v1/clients/requests/${requestId}/rate/`, ratingData);
     
     // Clear any cached data after rating submission to ensure fresh data
     this.clearCache();

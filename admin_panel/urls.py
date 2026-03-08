@@ -22,6 +22,7 @@ urlpatterns = [
     path('service-requests/<int:request_id>/', views.service_request_detail, name='service_request_detail'),
     path('service-requests/<int:request_id>/workers/', views.view_request_workers, name='view_request_workers'),
     path('service-requests/<int:request_id>/assign/', views.assign_worker_to_request, name='assign_worker_to_request'),
+    path('service-requests/<int:request_id>/verify-payment/', views.verify_payment, name='verify_payment'),
     
     # Export URLs
     path('reports/export/csv/', views.export_reports_csv, name='export_reports_csv'),

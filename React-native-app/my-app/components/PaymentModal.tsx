@@ -134,9 +134,11 @@ export default function PaymentModal({
         card_cvv: cardCVV,
       });
 
+      console.log('Card payment result:', result);
       if (result.success) {
+        console.log('Card payment success, calling onPaymentSuccess');
         resetForm();
-        onClose();
+        // Let parent handle closing payment modal and opening screenshot modal
         onPaymentSuccess(result);
       } else {
         Alert.alert('Payment Failed', result.error || 'Payment could not be processed');
@@ -167,9 +169,11 @@ export default function PaymentModal({
         phone_number: phoneNumber,
       });
 
+      console.log('Mobile money payment result:', result);
       if (result.success) {
+        console.log('Mobile money payment success, calling onPaymentSuccess');
         resetForm();
-        onClose();
+        // Let parent handle closing payment modal and opening screenshot modal
         onPaymentSuccess(result);
       } else {
         Alert.alert('Payment Failed', result.error || 'Payment could not be processed');
@@ -228,7 +232,7 @@ export default function PaymentModal({
                       <Ionicons name="card" size={32} color="#14b8a6" />
                     </View>
                     <View style={styles.methodInfo}>
-                      <Text style={styles.methodTitle}>Virtual Card</Text>
+                      <Text style={styles.methodTitle}>Credit Card</Text>
                       <Text style={styles.methodSubtitle}>Visa, Mastercard</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#999" />
@@ -242,8 +246,8 @@ export default function PaymentModal({
                       <Ionicons name="phone-portrait" size={32} color="#14b8a6" />
                     </View>
                     <View style={styles.methodInfo}>
-                      <Text style={styles.methodTitle}>M-Pesa</Text>
-                      <Text style={styles.methodSubtitle}>Mobile Money</Text>
+                      <Text style={styles.methodTitle}>Mobile Money</Text>
+                      <Text style={styles.methodSubtitle}>M-Pesa, Tigo Pesa, Airtel Money</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#999" />
                   </TouchableOpacity>
@@ -252,8 +256,9 @@ export default function PaymentModal({
                     <Ionicons name="information-circle" size={20} color="#14b8a6" />
                     <Text style={styles.demoText}>
                       Demo Mode: Use test credentials{'\n'}
-                      Card: 4242 4242 4242 4242{'\n'}
-                      M-Pesa: +255123456789
+                      Visa: 4242 4242 4242 4242{'\n'}
+                      Mastercard: 5555 5555 5555 5555{'\n'}
+                      Mobile Money: +255123456789
                     </Text>
                   </View>
                 </View>
@@ -278,7 +283,7 @@ export default function PaymentModal({
                     <View style={styles.inputWithIcon}>
                       <TextInput
                         style={[styles.input, cardType && styles.inputWithCardIcon]}
-                        placeholder="4242 4242 4242 4242"
+                        placeholder="4242 4242 4242 4242 or 5555 5555 5555 5555"
                         keyboardType="numeric"
                         value={cardNumber}
                         onChangeText={(text) => setCardNumber(formatCardNumber(text))}
@@ -375,10 +380,10 @@ export default function PaymentModal({
                     <Text style={styles.backText}>Back</Text>
                   </TouchableOpacity>
 
-                  <Text style={styles.sectionTitle}>M-Pesa Payment</Text>
+                  <Text style={styles.sectionTitle}>Mobile Money Payment</Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>M-Pesa Phone Number</Text>
+                    <Text style={styles.label}>Mobile Money Phone Number</Text>
                     <TextInput
                       style={styles.input}
                       placeholder="+255123456789"
@@ -389,7 +394,7 @@ export default function PaymentModal({
                       editable={!processing}
                     />
                     <Text style={styles.hint}>
-                      Enter your M-Pesa registered phone number
+                      Enter your Mobile Money registered phone number
                     </Text>
                   </View>
 

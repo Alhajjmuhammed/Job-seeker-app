@@ -9,12 +9,14 @@ import {
   Alert,
   Linking,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
+import * as ImagePicker from 'expo-image-picker';
 
 interface ServiceRequestDetail {
   id: number;
@@ -42,6 +44,13 @@ interface ServiceRequestDetail {
   rejection_reason?: string;
   client_rating?: number;
   client_review?: string;
+  // Payment fields
+  payment_method?: string;
+  payment_transaction_id?: string;
+  payment_screenshot?: string;
+  payment_verified?: boolean;
+  payment_status?: string;
+  paid_at?: string;
 }
 
 interface TimeLog {
@@ -63,6 +72,7 @@ export default function ServiceRequestDetailScreen() {
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
   const [canceling, setCanceling] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
 
   const loadRequestDetail = useCallback(async () => {
     try {
@@ -159,6 +169,90 @@ export default function ServiceRequestDetailScreen() {
     if (request?.assigned_worker?.phone_number) {
       Linking.openURL(`tel:${request.assigned_worker.phone_number}`);
     }
+  };
+
+  const handleUploadScreenshot = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please allow access to your photo library to upload payment screenshot.'
+      );
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [3, 4],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await uploadScreenshotToServer(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const uploadScreenshotToServer = async (screenshot: any) => {
+    try {
+      setUploadingScreenshot(true);
+
+      const formData = new FormData();
+      const localUri = screenshot.uri;
+      const filename = localUri.split('/').pop() || 'payment_screenshot.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      formData.append('payment_screenshot', {
+        uri: localUri,
+        name: filename,
+        type,
+      } as any);
+
+      await apiService.updateServiceRequest(Number(id), formData as any);
+
+      Alert.alert('Success', 'Payment screenshot uploaded successfully!');
+      await loadRequestDetail();
+    } catch (error: any) {
+      console.error('Error uploading screenshot:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.error || 'Failed to upload screenshot. Please try again.'
+      );
+    } finally {
+      setUploadingScreenshot(false);
+    }
+  };
+
+  const getTimeSincePaid = () => {
+    if (!request?.paid_at) return null;
+    
+    const paidTime = new Date(request.paid_at).getTime();
+    const now = Date.now();
+    const diffMinutes = Math.floor((now - paidTime) / (1000 * 60));
+    
+    return diffMinutes;
+  };
+
+  const showScreenshotUploadWarning = () => {
+    const minutesSincePaid = getTimeSincePaid();
+    if (minutesSincePaid === null) return false;
+    
+    // Show warning if payment is made but no screenshot and less than 7 minutes
+    return !request?.payment_screenshot && minutesSincePaid < 7;
+  };
+
+  const getRemainingUploadTime = () => {
+    const minutesSincePaid = getTimeSincePaid();
+    if (minutesSincePaid === null) return 0;
+    
+    const remaining = 7 - minutesSincePaid;
+    return Math.max(0, remaining);
   };
 
   const getStatusColor = (status: string) => {
@@ -333,6 +427,85 @@ export default function ServiceRequestDetailScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Payment Information */}
+        {request.payment_method && (
+          <View style={[styles.card, { backgroundColor: theme.card }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Payment Information</Text>
+            
+            <View style={styles.detailRow}>
+              <Ionicons name="card-outline" size={20} color={theme.textSecondary} />
+              <Text style={[styles.detailText, { color: theme.text }]}>
+                Method: {request.payment_method}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="receipt-outline" size={20} color={theme.textSecondary} />
+              <Text style={[styles.detailText, { color: theme.text }]}>
+                Transaction ID: {request.payment_transaction_id}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons 
+                name={request.payment_verified ? "checkmark-circle" : "time-outline"} 
+                size={20} 
+                color={request.payment_verified ? "#10b981" : "#f59e0b"} 
+              />
+              <Text style={[styles.detailText, { 
+                color: request.payment_verified ? "#10b981" : "#f59e0b",
+                fontWeight: '600'
+              }]}>
+                {request.payment_verified ? "Payment Verified" : "Verification Pending"}
+              </Text>
+            </View>
+
+            {/* Screenshot Upload Section */}
+            {!request.payment_screenshot ? (
+              <View style={styles.uploadSection}>
+                {showScreenshotUploadWarning() && (
+                  <View style={styles.warningBox}>
+                    <Ionicons name="warning" size={24} color="#dc2626" />
+                    <View style={styles.warningTextContainer}>
+                      <Text style={styles.warningTitle}>Payment Proof Required!</Text>
+                      <Text style={styles.warningText}>
+                        Please upload your payment screenshot within {getRemainingUploadTime()} minute(s) for faster verification.
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                
+                <TouchableOpacity
+                  style={[styles.uploadButton, uploadingScreenshot && styles.uploadButtonDisabled]}
+                  onPress={handleUploadScreenshot}
+                  disabled={uploadingScreenshot}
+                >
+                  {uploadingScreenshot ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="cloud-upload-outline" size={24} color="#fff" />
+                      <Text style={styles.uploadButtonText}>Upload Payment Screenshot</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.screenshotSection}>
+                <Text style={[styles.detailLabel, { color: theme.textSecondary, marginBottom: 8 }]}>
+                  Payment Screenshot:
+                </Text>
+                <View style={styles.screenshotPreview}>
+                  <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+                  <Text style={[styles.screenshotUploaded, { color: "#10b981" }]}>
+                    Screenshot uploaded successfully
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Assigned Worker */}
         {request.assigned_worker && (
@@ -831,5 +1004,64 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  uploadSection: {
+    marginTop: 16,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    backgroundColor: '#fef2f2',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#dc2626',
+  },
+  warningTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#dc2626',
+    marginBottom: 4,
+  },
+  warningText: {
+    fontSize: 13,
+    color: '#991b1b',
+    lineHeight: 18,
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#14b8a6',
+    padding: 16,
+    borderRadius: 12,
+    gap: 10,
+  },
+  uploadButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  uploadButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  screenshotSection: {
+    marginTop: 16,
+  },
+  screenshotPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+  },
+  screenshotUploaded: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

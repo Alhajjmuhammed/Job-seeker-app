@@ -57,6 +57,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
             'service_start_date', 'service_end_date',
             'daily_rate', 'total_price',
             'payment_status', 'payment_method', 'paid_at', 'payment_transaction_id',
+            'payment_screenshot', 'payment_verified', 'payment_verified_by', 'payment_verified_at',
             # Legacy field
             'estimated_duration_hours',
             'status', 'status_display', 'urgency', 'urgency_display',

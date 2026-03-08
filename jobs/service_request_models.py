@@ -108,6 +108,29 @@ class ServiceRequest(models.Model):
         blank=True,
         help_text="Payment transaction ID (fake for demo)"
     )
+    payment_screenshot = models.ImageField(
+        upload_to='payment_screenshots/',
+        null=True,
+        blank=True,
+        help_text="Payment proof screenshot uploaded by client"
+    )
+    payment_verified = models.BooleanField(
+        default=False,
+        help_text="Admin verified payment screenshot"
+    )
+    payment_verified_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_payments',
+        help_text="Admin who verified payment"
+    )
+    payment_verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When payment was verified"
+    )
     
     # Legacy field (keep for backward compatibility)
     estimated_duration_hours = models.DecimalField(
