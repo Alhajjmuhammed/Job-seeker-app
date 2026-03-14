@@ -360,3 +360,232 @@ def custom_category_delete(request, pk):
     category.delete()
     messages.success(request, f'Category "{category.name}" removed successfully!')
     return redirect('workers:profile_edit')
+
+
+@login_required
+def worker_analytics(request):
+    """Worker analytics dashboard view"""
+    if not request.user.is_worker:
+        messages.error(request, 'Access denied. Workers only.')
+        return redirect('home')
+    
+    from django.db.models import Sum, Avg, Count
+    from django.db.models.functions import TruncMonth, TruncWeek, TruncDay
+    from jobs.service_request_models import ServiceRequest
+    import json
+    
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    
+    # Get period filter (default: 180 days for 6 months)
+    period = request.GET.get('period', '180')
+    try:
+        period_days = int(period)
+    except ValueError:
+        period_days = 180
+    
+    # Get all service requests for this worker
+    all_requests = ServiceRequest.objects.filter(assigned_worker=profile)
+    completed_requests = all_requests.filter(status='completed')
+    
+    # Apply period filter
+    from datetime import datetime, timedelta
+    period_start = datetime.now() - timedelta(days=period_days)
+    filtered_completed = completed_requests.filter(updated_at__gte=period_start)
+    filtered_all = all_requests.filter(updated_at__gte=period_start)
+    
+    # Basic stats (for selected period)
+    total_assignments = filtered_all.count()
+    completed_jobs = filtered_completed.count()
+    active_jobs = all_requests.filter(status='in_progress').count()  # Current active jobs (not period filtered)
+    
+    # Earnings
+    total_earnings = filtered_completed.aggregate(total=Sum('total_price'))['total'] or 0
+    pending_earnings = all_requests.filter(status='in_progress').aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # Performance metrics
+    success_rate = (completed_jobs / total_assignments * 100) if total_assignments > 0 else 0
+    avg_rating = filtered_completed.filter(client_rating__isnull=False).aggregate(avg=Avg('client_rating'))['avg'] or 0
+    
+    # Earnings by month, week, or day depending on period
+    if period_days <= 30:
+        # Last 30 days - show daily
+        time_earnings = filtered_completed.annotate(
+            time_period=TruncDay('updated_at')
+        ).values('time_period').annotate(
+            earnings=Sum('total_price'),
+            jobs=Count('id')
+        ).order_by('time_period')
+    elif period_days <= 90:
+        # Last 90 days - show weekly
+        time_earnings = filtered_completed.annotate(
+            time_period=TruncWeek('updated_at')
+        ).values('time_period').annotate(
+            earnings=Sum('total_price'),
+            jobs=Count('id')
+        ).order_by('time_period')
+    else:
+        # 180+ days - show monthly
+        time_earnings = filtered_completed.annotate(
+            time_period=TruncMonth('updated_at')
+        ).values('time_period').annotate(
+            earnings=Sum('total_price'),
+            jobs=Count('id')
+        ).order_by('time_period')
+    
+    # Earnings by category
+    category_earnings = filtered_completed.values(
+        'category__name', 'category__icon'
+    ).annotate(
+        earnings=Sum('total_price'),
+        jobs=Count('id')
+    ).order_by('-earnings')[:10]
+    
+    # Job status distribution (pie chart data)
+    status_distribution = all_requests.values('status').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Recent completed jobs
+    recent_jobs = filtered_completed.select_related('category', 'client').order_by('-updated_at')[:10]
+    
+    # Convert time earnings to JSON-serializable format
+    time_earnings_list = []
+    for item in time_earnings:
+        time_earnings_list.append({
+            'time_period': item['time_period'].isoformat() if item['time_period'] else None,
+            'earnings': float(item['earnings'] or 0),
+            'jobs': item['jobs']
+        })
+    
+    # Convert category earnings to JSON
+    category_earnings_list = []
+    for item in category_earnings:
+        category_earnings_list.append({
+            'name': item['category__name'] or 'Uncategorized',
+            'icon': item['category__icon'] or '',
+            'earnings': float(item['earnings'] or 0),
+            'jobs': item['jobs']
+        })
+    
+    # Convert status distribution to JSON
+    status_distribution_list = []
+    status_labels = {
+        'pending': 'Pending',
+        'assigned': 'Assigned',
+        'in_progress': 'In Progress',
+        'completed': 'Completed',
+        'cancelled': 'Cancelled'
+    }
+    for item in status_distribution:
+        status_distribution_list.append({
+            'status': status_labels.get(item['status'], item['status']),
+            'count': item['count']
+        })
+    
+    context = {
+        'profile': profile,
+        'total_assignments': total_assignments,
+        'completed_jobs': completed_jobs,
+        'active_jobs': active_jobs,
+        'total_earnings': total_earnings,
+        'pending_earnings': pending_earnings,
+        'success_rate': round(success_rate, 1),
+        'avg_rating': round(avg_rating, 1),
+        'time_earnings_json': json.dumps(time_earnings_list),
+        'category_earnings_json': json.dumps(category_earnings_list),
+        'status_distribution_json': json.dumps(status_distribution_list),
+        'category_earnings': list(category_earnings),
+        'recent_jobs': recent_jobs,
+        'period_days': period_days,
+    }
+    
+    return render(request, 'workers/analytics.html', context)
+
+
+@login_required
+def export_analytics_csv(request):
+    """Export analytics data to CSV"""
+    if not request.user.is_worker:
+        messages.error(request, 'Access denied. Workers only.')
+        return redirect('home')
+    
+    import csv
+    from django.http import HttpResponse
+    from datetime import datetime
+    from jobs.service_request_models import ServiceRequest
+    
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="analytics_{profile.user.username}_{datetime.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    
+    # Write header
+    writer.writerow(['Analytics Export'])
+    writer.writerow(['Worker:', profile.user.get_full_name()])
+    writer.writerow(['Export Date:', datetime.now().strftime('%Y-%m-%d %H:%M')])
+    writer.writerow([])
+    
+    # Summary stats
+    all_requests = ServiceRequest.objects.filter(assigned_worker=profile)
+    completed_requests = all_requests.filter(status='completed')
+    
+    from django.db.models import Sum, Avg, Count
+    total_assignments = all_requests.count()
+    completed_jobs = completed_requests.count()
+    total_earnings = completed_requests.aggregate(total=Sum('total_price'))['total'] or 0
+    avg_rating = completed_requests.filter(client_rating__isnull=False).aggregate(avg=Avg('client_rating'))['avg'] or 0
+    success_rate = (completed_jobs / total_assignments * 100) if total_assignments > 0 else 0
+    
+    writer.writerow(['Summary Statistics'])
+    writer.writerow(['Total Assignments', total_assignments])
+    writer.writerow(['Completed Jobs', completed_jobs])
+    writer.writerow(['Success Rate (%)', f'{success_rate:.1f}'])
+    writer.writerow(['Total Earnings (TSH)', f'{total_earnings:.2f}'])
+    writer.writerow(['Average Rating', f'{avg_rating:.2f}'])
+    writer.writerow([])
+    
+    # Completed jobs details
+    writer.writerow(['Completed Jobs Details'])
+    writer.writerow(['Job ID', 'Category', 'Client', 'Title', 'Earnings (TSH)', 'Rating', 'Completed Date'])
+    
+    for job in completed_requests.select_related('category', 'client').order_by('-updated_at'):
+        writer.writerow([
+            job.id,
+            job.category.name if job.category else 'N/A',
+            job.client.get_full_name(),
+            job.title,
+            f'{job.total_price:.2f}' if job.total_price else '0.00',
+            job.client_rating if job.client_rating else 'N/A',
+            job.updated_at.strftime('%Y-%m-%d') if job.updated_at else 'N/A'
+        ])
+    
+    writer.writerow([])
+    
+    # Earnings by category
+    category_earnings = completed_requests.values(
+        'category__name'
+    ).annotate(
+        earnings=Sum('total_price'),
+        jobs=Count('id')
+    ).order_by('-earnings')
+    
+    writer.writerow(['Earnings by Category'])
+    writer.writerow(['Category', 'Jobs', 'Total Earnings (TSH)', 'Avg per Job (TSH)'])
+    
+    for item in category_earnings:
+        cat_name = item['category__name'] or 'Uncategorized'
+        jobs_count = item['jobs']
+        earnings = item['earnings'] or 0
+        avg_per_job = earnings / jobs_count if jobs_count > 0 else 0
+        
+        writer.writerow([
+            cat_name,
+            jobs_count,
+            f'{earnings:.2f}',
+            f'{avg_per_job:.2f}'
+        ])
+    
+    return response

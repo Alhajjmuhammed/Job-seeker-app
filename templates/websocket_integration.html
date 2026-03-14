@@ -1,0 +1,217 @@
+<!-- Add this to your base template (templates/base.html) -->
+{% load static %}
+
+<!-- WebSocket Client -->
+<script src="{% static 'js/websocket-client.js' %}"></script>
+
+<!-- Initialize WebSocket connections after user authentication -->
+<script>
+    // Get auth token from your authentication system
+    // Example: stored in localStorage, or passed from Django context
+    const authToken = '{{ request.user.auth_token.key }}'; // Django template variable
+    
+    // Only initialize if user is authenticated
+    if (authToken && authToken !== 'None') {
+        // 1. NOTIFICATIONS - Connect to receive real-time notifications
+        const notificationWS = window.wsManager.createNotificationConnection(authToken);
+        
+        notificationWS.onNotification((notification) => {
+            console.log('New notification received:', notification);
+            
+            // Update notification badge
+            updateNotificationBadge(notification);
+            
+            // Show toast notification
+            showToastNotification(notification);
+            
+            // Update notification list in UI
+            addNotificationToList(notification);
+        });
+
+        // 2. JOB UPDATES - Connect to receive real-time job postings
+        const jobUpdatesWS = window.wsManager.createJobUpdatesConnection();
+        
+        jobUpdatesWS.onJobUpdate((jobData) => {
+            console.log('Job update received:', jobData);
+            
+            if (jobData.type === 'new_job') {
+                // Add new job to list
+                addJobToList(jobData.data);
+                showJobNotification('New job posted!');
+            } else if (jobData.type === 'job_updated') {
+                // Update existing job in list
+                updateJobInList(jobData.data);
+            }
+        });
+
+        // Optional: Subscribe to location-specific jobs
+        // jobUpdatesWS.subscribeToLocation('Dar es Salaam');
+    }
+
+    // 3. CHAT - Connect when user opens a conversation
+    function openChatConversation(conversationId) {
+        const chatWS = window.wsManager.createChatConnection(conversationId, authToken);
+        
+        chatWS.onMessage((message) => {
+            console.log('New chat message:', message);
+            appendMessageToChat(message);
+            playNotificationSound();
+        });
+
+        chatWS.onTyping((typingData) => {
+            console.log('User typing:', typingData);
+            if (typingData.is_typing) {
+                showTypingIndicator(typingData.username);
+            } else {
+                hideTypingIndicator(typingData.username);
+            }
+        });
+
+        // Send typing indicator when user types
+        const messageInput = document.getElementById('message-input');
+        let typingTimeout;
+        messageInput.addEventListener('input', () => {
+            chatWS.sendTypingIndicator(true);
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                chatWS.sendTypingIndicator(false);
+            }, 2000);
+        });
+    }
+
+    // Example UI update functions (implement according to your UI)
+    function updateNotificationBadge(notification) {
+        const badge = document.getElementById('notification-badge');
+        if (badge) {
+            const count = parseInt(badge.textContent || '0') + 1;
+            badge.textContent = count;
+            badge.style.display = 'inline';
+        }
+    }
+
+    function showToastNotification(notification) {
+        // Using Bootstrap Toast (if available)
+        const toastHtml = `
+            <div class="toast" role="alert" data-bs-autohide="true" data-bs-delay="5000">
+                <div class="toast-header">
+                    <strong class="me-auto">${notification.title || 'Notification'}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">${notification.message || notification.text}</div>
+            </div>
+        `;
+        
+        const toastContainer = document.getElementById('toast-container');
+        if (toastContainer) {
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+    }
+
+    function addNotificationToList(notification) {
+        const notificationList = document.getElementById('notification-list');
+        if (notificationList) {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = 'notification-item unread';
+            notificationItem.innerHTML = `
+                <div class="notification-content">
+                    <strong>${notification.title || 'Notification'}</strong>
+                    <p>${notification.message || notification.text}</p>
+                    <small>${new Date().toLocaleString()}</small>
+                </div>
+            `;
+            notificationList.insertBefore(notificationItem, notificationList.firstChild);
+        }
+    }
+
+    function addJobToList(job) {
+        const jobList = document.getElementById('job-list');
+        if (jobList) {
+            const jobCard = document.createElement('div');
+            jobCard.className = 'job-card new-job';
+            jobCard.innerHTML = `
+                <h5>${job.title}</h5>
+                <p>${job.description}</p>
+                <span class="badge bg-info">New</span>
+            `;
+            jobList.insertBefore(jobCard, jobList.firstChild);
+            
+            // Remove "new" badge after 5 seconds
+            setTimeout(() => {
+                jobCard.classList.remove('new-job');
+            }, 5000);
+        }
+    }
+
+    function updateJobInList(job) {
+        const jobCard = document.querySelector(`[data-job-id="${job.id}"]`);
+        if (jobCard) {
+            // Update job details
+            jobCard.querySelector('.job-title').textContent = job.title;
+            jobCard.querySelector('.job-description').textContent = job.description;
+        }
+    }
+
+    function appendMessageToChat(message) {
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.innerHTML = `
+                <div class="message-sender">${message.sender_name}</div>
+                <div class="message-text">${message.text}</div>
+                <div class="message-time">${new Date(message.timestamp).toLocaleString()}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    function showTypingIndicator(username) {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) {
+            indicator.textContent = `${username} is typing...`;
+            indicator.style.display = 'block';
+        }
+    }
+
+    function hideTypingIndicator(username) {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) {
+            indicator.style.display = 'none';
+        }
+    }
+
+    function showJobNotification(message) {
+        // Simple alert for new jobs
+        if (Notification.permission === 'granted') {
+            new Notification('Worker Connect', {
+                body: message,
+                icon: '/static/images/logo.png'
+            });
+        }
+    }
+
+    function playNotificationSound() {
+        const audio = new Audio('/static/sounds/notification.mp3');
+        audio.play().catch(() => {
+            // Ignore errors if sound file doesn't exist
+        });
+    }
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    // Disconnect WebSockets when page is unloaded
+    window.addEventListener('beforeunload', () => {
+        window.wsManager.disconnectAll();
+    });
+</script>
+
+<!-- Toast Container for notifications -->
+<div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>

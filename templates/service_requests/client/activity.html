@@ -1,0 +1,298 @@
+{% extends "clients/base_client.html" %}
+
+{% block title %}Activity Log - Request #{{ service_request.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .bg-primary { background-color: #14b8a6 !important; }
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
+    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .text-primary { color: #14b8a6 !important; }
+    
+    /* Activity Timeline */
+    .timeline-item {
+        position: relative;
+    }
+    
+    .timeline-icon {
+        width: 50px;
+        height: 50px;
+        flex-shrink: 0;
+    }
+    
+    .timeline-content {
+        flex-grow: 1;
+    }
+    
+    .activity-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .activity-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'service_requests_web:client_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'service_requests_web:client_request_detail' service_request.id %}">Request #{{ service_request.id }}</a></li>
+            <li class="breadcrumb-item active">Activity Log</li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>📋 Activity Log</h2>
+            <p class="text-muted mb-0">Request: {{ service_request.title }}</p>
+        </div>
+        <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Details
+        </a>
+    </div>
+    
+    <!-- Request Summary Card -->
+    <div class="card mb-4 border-primary">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="card-title">{{ service_request.title }}</h5>
+                    <p class="text-muted mb-2">{{ service_request.description|truncatewords:30 }}</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        {% if service_request.status == 'completed' %}
+                        <span class="badge bg-success fs-6">
+                        {% elif service_request.status == 'in_progress' %}
+                        <span class="badge bg-primary fs-6">
+                        {% elif service_request.status == 'cancelled' %}
+                        <span class="badge bg-danger fs-6">
+                        {% else %}
+                        <span class="badge bg-warning fs-6">
+                        {% endif %}
+                            {{ service_request.get_status_display }}
+                        </span>
+                        <span class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ service_request.created_at|date:"M d, Y" }}
+                        </span>
+                        {% if service_request.assigned_worker %}
+                        <span class="text-muted">
+                            <i class="bi bi-person-badge"></i> {{ service_request.assigned_worker.user.get_full_name }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="text-muted small">Activity Log</div>
+                    <div class="fs-3 fw-bold text-primary">{{ activities.paginator.count }}</div>
+                    <div class="text-muted small">Total Activities</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Type Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group flex-wrap" role="group" aria-label="Activity type filter">
+                <a href="{% url 'service_requests_web:client_request_activity' service_request.id %}" 
+                   class="btn btn-sm {% if not activity_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="bi bi-funnel"></i> All Activities
+                </a>
+                <a href="?type=assigned" 
+                   class="btn btn-sm {% if activity_type == 'assigned' %}btn-info text-white{% else %}btn-outline-info{% endif %}">
+                    <i class="bi bi-person-plus"></i> Assigned
+                </a>
+                <a href="?type=accepted" 
+                   class="btn btn-sm {% if activity_type == 'accepted' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="bi bi-check-circle"></i> Accepted
+                </a>
+                <a href="?type=started" 
+                   class="btn btn-sm {% if activity_type == 'started' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="bi bi-play-circle"></i> Started
+                </a>
+                <a href="?type=paused" 
+                   class="btn btn-sm {% if activity_type == 'paused' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+                    <i class="bi bi-pause-circle"></i> Paused
+                </a>
+                <a href="?type=completed" 
+                   class="btn btn-sm {% if activity_type == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="bi bi-check-circle-fill"></i> Completed
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Timeline -->
+    {% if activities %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Activity Timeline</h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                {% for activity in activities %}
+                <div class="activity-card mb-3 p-3 border rounded {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex gap-3">
+                        <!-- Icon -->
+                        <div class="timeline-icon 
+                            {% if activity.activity_type == 'assigned' %}bg-info
+                            {% elif activity.activity_type == 'accepted' %}bg-success
+                            {% elif activity.activity_type == 'rejected' %}bg-danger
+                            {% elif activity.activity_type == 'started' %}bg-primary
+                            {% elif activity.activity_type == 'paused' %}bg-warning
+                            {% elif activity.activity_type == 'resumed' %}bg-info
+                            {% elif activity.activity_type == 'completed' %}bg-success
+                            {% elif activity.activity_type == 'cancelled' %}bg-secondary
+                            {% else %}bg-secondary
+                            {% endif %} text-white rounded-circle d-flex align-items-center justify-content-center">
+                            {% if activity.activity_type == 'assigned' %}
+                            <i class="bi bi-person-plus fs-4"></i>
+                            {% elif activity.activity_type == 'accepted' %}
+                            <i class="bi bi-check-circle fs-4"></i>
+                            {% elif activity.activity_type == 'rejected' %}
+                            <i class="bi bi-x-circle fs-4"></i>
+                            {% elif activity.activity_type == 'started' %}
+                            <i class="bi bi-play-circle fs-4"></i>
+                            {% elif activity.activity_type == 'paused' %}
+                            <i class="bi bi-pause-circle fs-4"></i>
+                            {% elif activity.activity_type == 'resumed' %}
+                            <i class="bi bi-play-circle fs-4"></i>
+                            {% elif activity.activity_type == 'completed' %}
+                            <i class="bi bi-check-circle-fill fs-4"></i>
+                            {% elif activity.activity_type == 'cancelled' %}
+                            <i class="bi bi-x-octagon fs-4"></i>
+                            {% else %}
+                            <i class="bi bi-circle fs-4"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="timeline-content flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <span class="badge 
+                                            {% if activity.activity_type == 'assigned' %}bg-info
+                                            {% elif activity.activity_type == 'accepted' %}bg-success
+                                            {% elif activity.activity_type == 'rejected' %}bg-danger
+                                            {% elif activity.activity_type == 'started' %}bg-primary
+                                            {% elif activity.activity_type == 'paused' %}bg-warning text-dark
+                                            {% elif activity.activity_type == 'resumed' %}bg-info
+                                            {% elif activity.activity_type == 'completed' %}bg-success
+                                            {% elif activity.activity_type == 'cancelled' %}bg-secondary
+                                            {% else %}bg-secondary
+                                            {% endif %}">
+                                            {{ activity.get_activity_type_display }}
+                                        </span>
+                                    </h6>
+                                    <p class="mb-1">{{ activity.description }}</p>
+                                    {% if activity.location %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt"></i> {{ activity.location }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-muted small">{{ activity.created_at|date:"M d, Y" }}</div>
+                                    <div class="fw-bold">{{ activity.created_at|time:"g:i A" }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Info -->
+                            {% if activity.duration or activity.amount_earned %}
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <div class="row">
+                                    {% if activity.duration %}
+                                    <div class="col-auto">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock"></i> Duration: <strong>{{ activity.duration }}</strong>
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    {% if activity.amount_earned %}
+                                    <div class="col-auto">
+                                        <small class="text-muted">
+                                            <i class="bi bi-currency-dollar"></i> Amount: <strong>TSH {{ activity.amount_earned|floatformat:2 }}</strong>
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if activities.has_other_pages %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    {% if activities.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if activity_type %}&type={{ activity_type }}{% endif %}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.previous_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ activities.number }} of {{ activities.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if activities.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.next_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.paginator.num_pages }}{% if activity_type %}&type={{ activity_type }}{% endif %}">Last</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- No Activities -->
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+            <h5 class="text-muted">No Activities Yet</h5>
+            <p class="text-muted">Activities will appear here once the worker starts working on this request.</p>
+            {% if activity_type %}
+            <a href="{% url 'service_requests_web:client_request_activity' service_request.id %}" class="btn btn-primary mt-3">
+                View All Activities
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Helpful Info Card -->
+    <div class="card bg-light mt-4">
+        <div class="card-body">
+            <h6 class="card-title"><i class="bi bi-info-circle"></i> About Activity Log</h6>
+            <p class="card-text small mb-0">
+                The activity log shows all actions taken by the assigned worker on your service request. 
+                This includes when they accepted the assignment, started work, paused, resumed, and completed the service. 
+                You can filter by activity type using the buttons above.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -90,7 +90,6 @@ urlpatterns = [
     path('api/v1/worker-availability/', include('workers.availability_urls')),
     path('api/v1/worker-earnings/', include('workers.earnings_urls')),
     path('api/v1/worker-badges/', include('workers.badge_urls')),
-    path('api/v1/worker-portfolio/', include('workers.portfolio_urls')),
     
     # Job-related endpoints (consolidated)
     path('api/v1/job-recommendations/', include('jobs.recommendation_urls')),
@@ -110,10 +109,12 @@ urlpatterns = [
     
     # Payment system endpoints
     path('api/v1/payments/', include('worker_connect.payment_urls')),
+    path('api/v1/payment-methods/', include('worker_connect.payment_methods_urls')),
     
     # Core system endpoints
     path('api/v1/gdpr/', include('accounts.gdpr_urls')),
     path('api/v1/notification-preferences/', include('accounts.notification_urls')),
+    path('api/v1/accounts/privacy-settings/', include('accounts.privacy_urls')),
     path('api/v1/admin-performance/', include('worker_connect.performance_urls')),
     
     # Core feature endpoints with mobile compatibility
@@ -138,6 +139,9 @@ urlpatterns = [
     
     # Service Request Web Interface (NEW)
     path('services/', include('jobs.service_request_web_urls')),
+    
+    # Notification Center Web Interface (NEW)
+    path('notifications/', include('worker_connect.notification_web_urls')),
 ]
 
 # Serve media files in development

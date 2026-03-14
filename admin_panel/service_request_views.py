@@ -11,10 +11,11 @@ from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404
 from datetime import datetime, timedelta
 
-from jobs.service_request_models import ServiceRequest, TimeTracking, WorkerActivity
+from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment, TimeTracking, WorkerActivity
 from jobs.service_request_serializers import (
     ServiceRequestSerializer, ServiceRequestListSerializer,
-    AdminAssignWorkerSerializer, TimeTrackingSerializer
+    AdminAssignWorkerSerializer, TimeTrackingSerializer,
+    BulkAssignWorkersSerializer, ServiceRequestAssignmentSerializer
 )
 from workers.models import WorkerProfile, Category
 from worker_connect.pagination import paginate_queryset
@@ -134,8 +135,39 @@ def admin_assign_worker(request, pk):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Assign worker
-        service_request.assign_worker(worker, request.user, admin_notes)
+        # Check if worker is already assigned
+        existing_assignment = ServiceRequestAssignment.objects.filter(
+            service_request=service_request,
+            worker=worker
+        ).first()
+        
+        if existing_assignment:
+            return Response(
+                {'error': 'Worker is already assigned to this request'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if we've reached the maximum workers needed
+        existing_assignments_count = ServiceRequestAssignment.objects.filter(
+            service_request=service_request
+        ).count()
+        
+        if existing_assignments_count >= service_request.workers_needed:
+            return Response(
+                {'error': f'Cannot assign more workers. This request only needs {service_request.workers_needed} worker(s).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # NEW: Create ServiceRequestAssignment record
+        individual_payment = service_request.daily_rate * service_request.duration_days
+        assignment = ServiceRequestAssignment.objects.create(
+            service_request=service_request,
+            worker=worker,
+            assigned_by=request.user,
+            assignment_number=existing_assignments_count + 1,
+            worker_payment=individual_payment,
+            admin_notes=admin_notes
+        )
         
         # Log activity
         WorkerActivity.log_activity(
@@ -146,10 +178,23 @@ def admin_assign_worker(request, pk):
             location=service_request.location
         )
         
+        # Update service request status if all workers are now assigned
+        total_assignments = existing_assignments_count + 1
+        if total_assignments >= service_request.workers_needed:
+            service_request.status = 'assigned'
+            service_request.save()
+        
+        # Notify worker
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_service_assigned(service_request, worker)
+        
         serializer = ServiceRequestSerializer(service_request)
+        assignment_serializer = ServiceRequestAssignmentSerializer(assignment)
+        
         return Response({
             'message': 'Worker assigned successfully',
-            'service_request': serializer.data
+            'service_request': serializer.data,
+            'assignment': assignment_serializer.data
         })
         
     except WorkerProfile.DoesNotExist:
@@ -186,13 +231,39 @@ def admin_reassign_worker(request, pk):
     try:
         worker = WorkerProfile.objects.get(id=worker_id)
         
-        # Reset worker response fields
-        service_request.worker_accepted = None
-        service_request.worker_response_at = None
-        service_request.worker_rejection_reason = ''
+        # Check if worker is already assigned
+        existing_assignment = ServiceRequestAssignment.objects.filter(
+            service_request=service_request,
+            worker=worker
+        ).first()
         
-        # Assign new worker
-        service_request.assign_worker(worker, request.user, admin_notes)
+        if existing_assignment:
+            return Response(
+                {'error': 'Worker is already assigned to this request'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if we've reached the maximum workers needed
+        existing_assignments_count = ServiceRequestAssignment.objects.filter(
+            service_request=service_request
+        ).count()
+        
+        if existing_assignments_count >= service_request.workers_needed:
+            return Response(
+                {'error': f'Cannot assign more workers. This request only needs {service_request.workers_needed} worker(s).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # NEW: Create ServiceRequestAssignment record
+        individual_payment = service_request.daily_rate * service_request.duration_days
+        assignment = ServiceRequestAssignment.objects.create(
+            service_request=service_request,
+            worker=worker,
+            assigned_by=request.user,
+            assignment_number=existing_assignments_count + 1,
+            worker_payment=individual_payment,
+            admin_notes=admin_notes
+        )
         
         # Log activity
         WorkerActivity.log_activity(
@@ -203,16 +274,166 @@ def admin_reassign_worker(request, pk):
             location=service_request.location
         )
         
+        # Update service request status if all workers are now assigned
+        total_assignments = existing_assignments_count + 1
+        if total_assignments >= service_request.workers_needed:
+            service_request.status = 'assigned'
+            service_request.save()
+        
+        # Notify worker
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_service_assigned(service_request, worker)
+        
         serializer = ServiceRequestSerializer(service_request)
+        assignment_serializer = ServiceRequestAssignmentSerializer(assignment)
+        
         return Response({
             'message': 'Worker reassigned successfully',
-            'service_request': serializer.data
+            'service_request': serializer.data,
+            'assignment': assignment_serializer.data
         })
         
     except WorkerProfile.DoesNotExist:
         return Response(
             {'error': 'Worker not found'},
             status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def admin_bulk_assign_workers(request, pk):
+    """
+    Admin assigns multiple workers to a service request at once
+    POST /api/admin/service-requests/{pk}/bulk-assign/
+    Body: {
+        "worker_ids": [123, 456, 789],
+        "admin_notes": "Best available workers"
+    }
+    """
+    service_request = get_object_or_404(ServiceRequest, pk=pk)
+    
+    # Validate request is not already completed or cancelled
+    if service_request.status in ['completed', 'cancelled']:
+        return Response(
+            {'error': f'Cannot assign workers to {service_request.status} request'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Check existing assignments
+    existing_assignments = ServiceRequestAssignment.objects.filter(
+        service_request=service_request
+    )
+    existing_count = existing_assignments.count()
+    
+    # Validate data
+    serializer = BulkAssignWorkersSerializer(
+        data=request.data,
+        context={'service_request': service_request}
+    )
+    
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    worker_ids = serializer.validated_data['worker_ids']
+    admin_notes = serializer.validated_data.get('admin_notes', '')
+    
+    # Check total assignments (existing + new) doesn't exceed request needs
+    total_after_assignment = existing_count + len(worker_ids)
+    if total_after_assignment > service_request.workers_needed:
+        remaining_needed = service_request.workers_needed - existing_count
+        return Response(
+            {
+                'error': f'Cannot assign {len(worker_ids)} workers. Request has {existing_count} assigned and only needs {remaining_needed} more worker(s).'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Get all workers
+        workers = WorkerProfile.objects.filter(id__in=worker_ids)
+        
+        # Get already assigned worker IDs to prevent duplicates
+        already_assigned_ids = set(existing_assignments.values_list('worker_id', flat=True))
+        
+        # Filter out workers already assigned
+        workers_to_assign = []
+        skipped_workers = []
+        
+        for worker in workers:
+            if worker.id in already_assigned_ids:
+                skipped_workers.append(worker.user.get_full_name())
+            else:
+                workers_to_assign.append(worker)
+        
+        # If all workers were already assigned, return error
+        if not workers_to_assign:
+            return Response(
+                {'error': 'All selected workers are already assigned to this request'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check category match for workers to assign
+        if service_request.category:
+            for worker in workers_to_assign:
+                if not worker.categories.filter(id=service_request.category.id).exists():
+                    return Response(
+                        {'error': f'Worker "{worker.user.get_full_name()}" does not have the required category'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+        
+        # Create individual assignments
+        assignments_created = []
+        individual_payment = service_request.daily_rate * service_request.duration_days
+        
+        for idx, worker in enumerate(workers_to_assign, start=existing_count + 1):
+            assignment = ServiceRequestAssignment.objects.create(
+                service_request=service_request,
+                worker=worker,
+                assigned_by=request.user,
+                assignment_number=idx,
+                worker_payment=individual_payment,
+                admin_notes=admin_notes
+            )
+            assignments_created.append(assignment)
+            
+            # Log activity for each worker
+            WorkerActivity.log_activity(
+                worker=worker,
+                activity_type='assigned',
+                description=f'Assigned to: {service_request.title} (Worker {idx} of {service_request.workers_needed})',
+                service_request=service_request,
+                location=service_request.location
+            )
+        
+        # Update service request status only if all workers are now assigned
+        total_assignments = existing_count + len(assignments_created)
+        if total_assignments >= service_request.workers_needed:
+            service_request.status = 'assigned'
+            service_request.save()
+        
+        # Serialize response
+        assignment_serializer = ServiceRequestAssignmentSerializer(assignments_created, many=True)
+        request_serializer = ServiceRequestSerializer(service_request)
+        
+        # Build response message
+        message = f'Successfully assigned {len(assignments_created)} worker(s) to "{service_request.title}"'
+        if skipped_workers:
+            message += f'. Skipped {len(skipped_workers)} already assigned: {", ".join(skipped_workers)}'
+        
+        return Response({
+            'message': message,
+            'service_request': request_serializer.data,
+            'assignments': assignment_serializer.data,
+            'skipped': skipped_workers,
+            'assigned_count': len(assignments_created),
+            'skipped_count': len(skipped_workers)
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Error assigning workers: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 

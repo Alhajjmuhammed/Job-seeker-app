@@ -284,10 +284,13 @@ export default function ClientDashboard() {
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>TSH {((Number(stats.totalSpent) || 0) / 1000).toFixed(1)}K</Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Total Spent</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+          <TouchableOpacity
+            style={[styles.statCard, { backgroundColor: theme.card }]}
+            onPress={() => router.push('/(client)/favorites')}
+          >
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.favorites}</Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Favorites</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Actions */}

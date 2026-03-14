@@ -220,8 +220,19 @@ def request_service(request, category_id):
         daily_rate = category.daily_rate or 0
         duration_days = request.data.get('duration_days', 1)
         
-        # Calculate total price
-        total_price = daily_rate * int(duration_days)
+        # NEW: Get number of workers needed
+        workers_needed = int(request.data.get('workers_needed', 1))
+        if workers_needed < 1:
+            workers_needed = 1
+        elif workers_needed > 100:
+            workers_needed = 100
+        
+        # Calculate total price: daily_rate × duration_days × workers_needed
+        total_price = daily_rate * int(duration_days) * workers_needed
+        
+        # Handle date/time fields - convert empty strings to None
+        preferred_date = request.data.get('preferred_date') or None
+        preferred_time = request.data.get('preferred_time') or None
         
         # Create service request without any worker assignment
         service_request = ServiceRequest.objects.create(
@@ -231,15 +242,16 @@ def request_service(request, category_id):
             description=request.data.get('description', ''),
             location=request.data.get('location', ''),
             city=request.data.get('city', ''),
-            preferred_date=request.data.get('preferred_date'),
-            preferred_time=request.data.get('preferred_time'),
+            preferred_date=preferred_date,
+            preferred_time=preferred_time,
             duration_type=duration_type,
             duration_days=duration_days,
+            workers_needed=workers_needed,  # NEW: Store workers needed
             daily_rate=daily_rate,
             total_price=total_price,
             urgency=request.data.get('urgency', 'normal'),
             client_notes=request.data.get('client_notes', ''),
-            status='pending',  # Admin will review and assign a worker
+            status='pending',  # Admin will review and assign worker(s)
             # Payment info
             payment_status='paid' if request.data.get('payment_transaction_id') else 'pending',
             payment_method=request.data.get('payment_method', ''),
@@ -252,18 +264,20 @@ def request_service(request, category_id):
             service_request.payment_screenshot = request.FILES['payment_screenshot']
             service_request.save()
         
-        # Handle custom date range
+        # Handle custom date range - convert empty strings to None
         if duration_type == 'custom':
-            service_request.service_start_date = request.data.get('service_start_date')
-            service_request.service_end_date = request.data.get('service_end_date')
+            service_request.service_start_date = request.data.get('service_start_date') or None
+            service_request.service_end_date = request.data.get('service_end_date') or None
             service_request.save()
         
         return Response({
             'id': service_request.id,
             'message': f'Your {category.name} service request has been submitted successfully!',
-            'details': 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.',
+            'details': f'Our admin will review your payment and assign {workers_needed} suitable worker(s). You will be notified once workers are assigned.' if workers_needed > 1 else 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.',
+            'workers_needed': workers_needed,
             'status': 'pending_assignment',
             'payment_status': service_request.payment_status,
+            'total_price': float(total_price),
             'has_screenshot': bool(service_request.payment_screenshot),
             'estimated_response_time': '2-4 hours'
         }, status=status.HTTP_201_CREATED)
@@ -322,16 +336,17 @@ def service_request_detail(request, request_id):
     """Get detailed info about a service request"""
     try:
         service_request = ServiceRequest.objects.select_related(
-            'category', 'assigned_worker', 'assigned_worker__user'
+            'category'
+        ).prefetch_related(
+            'assignments__worker__user'
         ).get(id=request_id, client=request.user)
 
-        serializer = ServiceRequestSerializer(service_request)
+        serializer = ServiceRequestSerializer(service_request, context={'request': request})
 
-        # Include time logs if a worker is assigned
+        # Include time logs
         time_logs_data = []
-        if service_request.assigned_worker:
-            from jobs.service_request_serializers import TimeTrackingSerializer
-            time_logs_data = TimeTrackingSerializer(service_request.time_logs.all(), many=True).data
+        from jobs.service_request_serializers import TimeTrackingSerializer
+        time_logs_data = TimeTrackingSerializer(service_request.time_logs.all(), many=True).data
 
         return Response({
             'service_request': serializer.data,
@@ -541,3 +556,84 @@ def categories_list(request):
     except Exception as e:
         logger.error(f"Error fetching categories: {str(e)}", exc_info=True)
         return Response({'error': 'Failed to fetch categories'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# FAVORITES
+# ============================================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def favorites_list(request):
+    """Get client's list of favorite workers"""
+    try:
+        favorites = Favorite.objects.filter(
+            client=request.user
+        ).select_related('worker', 'worker__user').order_by('-created_at')
+        
+        # Paginate
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 20))
+        result = paginate_queryset(favorites, page, page_size)
+        
+        # Serialize favorites with worker details
+        favorites_data = []
+        for favorite in result['results']:
+            worker = favorite.worker
+            worker_data = {
+                'id': favorite.id,
+                'worker_id': worker.id,
+                'worker_name': worker.user.get_full_name(),
+                'worker_username': worker.user.username,
+                'categories': [cat.name for cat in worker.categories.all()],
+                'rating': worker.rating,
+                'total_reviews': worker.total_reviews,
+                'completed_jobs': worker.completed_jobs,
+                'hourly_rate': worker.hourly_rate,
+                'daily_rate': worker.daily_rate,
+                'availability': worker.availability,
+                'bio': worker.bio,
+                'city': worker.city,
+                'profile_picture': request.build_absolute_uri(worker.profile_picture.url) if worker.profile_picture else None,
+                'added_at': favorite.created_at.isoformat(),
+            }
+            favorites_data.append(worker_data)
+        
+        return Response({
+            'results': favorites_data,
+            'count': result['count'],
+            'next': result['next'],
+            'previous': result['previous'],
+        })
+    except Exception as e:
+        logger.error(f"Error fetching favorites: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to fetch favorites'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_favorite(request, worker_id):
+    """Add or remove a worker from favorites"""
+    try:
+        worker = WorkerProfile.objects.get(id=worker_id)
+        favorite = Favorite.objects.filter(client=request.user, worker=worker).first()
+        
+        if favorite:
+            # Remove from favorites
+            favorite.delete()
+            return Response({
+                'is_favorite': False,
+                'message': f'{worker.user.get_full_name()} removed from favorites'
+            })
+        else:
+            # Add to favorites
+            Favorite.objects.create(client=request.user, worker=worker)
+            return Response({
+                'is_favorite': True,
+                'message': f'{worker.user.get_full_name()} added to favorites'
+            }, status=status.HTTP_201_CREATED)
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error toggling favorite: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to update favorites'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

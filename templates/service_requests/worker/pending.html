@@ -27,32 +27,32 @@
         <div class="col-md-6 mb-4">
             <div class="card border-warning">
                 <div class="card-header bg-warning">
-                    <h5 class="mb-0">{{ assignment.title }}</h5>
+                    <h5 class="mb-0">{{ assignment.service_request.title }}</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Category:</strong> {{ assignment.category.name }}</p>
-                    <p><strong>Client:</strong> {{ assignment.client.get_full_name }}</p>
-                    <p><strong>Location:</strong> {{ assignment.location }}, {{ assignment.city }}</p>
+                    <p><strong>Category:</strong> {{ assignment.service_request.category.name }}</p>
+                    <p><strong>Client:</strong> {{ assignment.service_request.client.get_full_name }}</p>
+                    <p><strong>Location:</strong> {{ assignment.service_request.location }}, {{ assignment.service_request.city }}</p>
                     <p><strong>Urgency:</strong> 
-                        <span class="badge {% if assignment.urgency == 'emergency' %}bg-danger{% elif assignment.urgency == 'urgent' %}bg-warning{% else %}bg-secondary{% endif %}">
-                            {{ assignment.get_urgency_display }}
+                        <span class="badge {% if assignment.service_request.urgency == 'emergency' %}bg-danger{% elif assignment.service_request.urgency == 'urgent' %}bg-warning{% else %}bg-secondary{% endif %}">
+                            {{ assignment.service_request.get_urgency_display }}
                         </span>
                     </p>
-                    <p><strong>Estimated Duration:</strong> {{ assignment.estimated_duration_hours }} hours</p>
-                    {% if assignment.preferred_date %}
-                    <p><strong>Preferred Date:</strong> {{ assignment.preferred_date|date:"M d, Y" }} 
-                       {% if assignment.preferred_time %}at {{ assignment.preferred_time|time:"h:i A" }}{% endif %}</p>
+                    <p><strong>Estimated Duration:</strong> {{ assignment.service_request.estimated_duration_hours }} hours</p>
+                    {% if assignment.service_request.preferred_date %}
+                    <p><strong>Preferred Date:</strong> {{ assignment.service_request.preferred_date|date:"M d, Y" }} 
+                       {% if assignment.service_request.preferred_time %}at {{ assignment.service_request.preferred_time|time:"h:i A" }}{% endif %}</p>
                     {% endif %}
-                    <p><strong>Description:</strong><br>{{ assignment.description }}</p>
-                    {% if assignment.admin_notes %}
-                    <p><strong>Admin Notes:</strong><br><em>{{ assignment.admin_notes }}</em></p>
+                    <p><strong>Description:</strong><br>{{ assignment.service_request.description }}</p>
+                    {% if assignment.service_request.admin_notes %}
+                    <p><strong>Admin Notes:</strong><br><em>{{ assignment.service_request.admin_notes }}</em></p>
                     {% endif %}
                     <p><small class="text-muted">Assigned {{ assignment.assigned_at|timesince }} ago</small></p>
                     
                     <div class="d-grid gap-2">
-                        <a href="{% url 'service_requests_web:worker_respond' assignment.id %}" 
+                        <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
                            class="btn btn-primary btn-lg">
-                            Respond to Assignment
+                            View & Respond
                         </a>
                     </div>
                 </div>

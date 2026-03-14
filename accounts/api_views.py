@@ -485,52 +485,70 @@ def get_account_activity(request):
 @permission_classes([IsAuthenticated])
 def get_notifications(request):
     """Get notifications for the authenticated user"""
-    # TODO: Implement actual notification model and filtering
-    # For now, return mock notifications based on user activity
+    from worker_connect.notification_models import Notification
+    from worker_connect.notification_serializers import NotificationSerializer
     
     unread_only = request.GET.get('unread_only', 'false').lower() == 'true'
+    limit = int(request.GET.get('limit', 50))  # Default limit to 50
     
-    # Mock notifications (replace with actual database queries)
-    notifications = []
+    # Query notifications from database (use recipient field from worker_connect model)
+    notifications = Notification.objects.filter(recipient=request.user)
     
-    # In production, query from Notification model:
-    # from notifications.models import Notification
-    # notifications = Notification.objects.filter(user=request.user)
-    # if unread_only:
-    #     notifications = notifications.filter(is_read=False)
+    if unread_only:
+        notifications = notifications.filter(is_read=False)
     
-    return Response(notifications)
+    # Apply limit
+    notifications = notifications[:limit]
+    
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_notification_read(request, notification_id):
     """Mark a notification as read"""
-    # TODO: Implement with actual Notification model
-    # notification = Notification.objects.get(id=notification_id, user=request.user)
-    # notification.is_read = True
-    # notification.save()
+    from worker_connect.notification_models import Notification
+    from django.shortcuts import get_object_or_404
     
-    return Response({'message': 'Notification marked as read'})
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.mark_as_read()
+    
+    return Response({'message': 'Notification marked as read', 'success': True})
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_all_notifications_read(request):
     """Mark all notifications as read for the user"""
-    # TODO: Implement with actual Notification model
-    # Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    from worker_connect.notification_models import Notification
+    from django.utils import timezone
     
-    return Response({'message': 'All notifications marked as read'})
+    # Update all unread notifications (use recipient field from worker_connect model)
+    updated_count = Notification.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).update(
+        is_read=True,
+        read_at=timezone.now()
+    )
+    
+    return Response({
+        'message': 'All notifications marked as read',
+        'success': True,
+        'count': updated_count
+    })
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def unread_notification_count(request):
     """Get count of unread notifications"""
-    # TODO: Implement with actual Notification model
-    # count = Notification.objects.filter(user=request.user, is_read=False).count()
+    from worker_connect.notification_models import Notification
     
-    count = 0  # Mock data
+    count = Notification.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).count()
     
     return Response({'count': count})

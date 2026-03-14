@@ -15,7 +15,7 @@ from accounts.models import User
 from workers.models import WorkerProfile, WorkerDocument, Category, Skill
 from clients.models import ClientProfile, Rating
 from jobs.models import Message
-from jobs.service_request_models import ServiceRequest
+from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment, WorkerActivity
 
 
 @staff_member_required
@@ -1415,12 +1415,15 @@ def service_request_list(request):
     status_filter = request.GET.get('status', '')
     urgency_filter = request.GET.get('urgency', '')
     category_filter = request.GET.get('category', '')
+    payment_filter = request.GET.get('payment', '')
     search_query = request.GET.get('search', '')
     export_csv = request.GET.get('export', '')
     
     # Base queryset
     requests = ServiceRequest.objects.select_related(
-        'client', 'category', 'assigned_worker', 'assigned_worker__user'
+        'client', 'category'
+    ).prefetch_related(
+        'assignments__worker__user'
     ).order_by('-created_at')
     
     # Apply filters
@@ -1430,6 +1433,13 @@ def service_request_list(request):
         requests = requests.filter(urgency=urgency_filter)
     if category_filter:
         requests = requests.filter(category_id=category_filter)
+    if payment_filter:
+        if payment_filter == 'verified':
+            requests = requests.filter(payment_screenshot__isnull=False, payment_verified=True)
+        elif payment_filter == 'pending':
+            requests = requests.filter(payment_screenshot__isnull=False, payment_verified=False)
+        elif payment_filter == 'none':
+            requests = requests.filter(payment_screenshot__isnull=True)
     if search_query:
         requests = requests.filter(
             Q(title__icontains=search_query) |
@@ -1446,11 +1456,18 @@ def service_request_list(request):
         writer = csv.writer(response)
         writer.writerow([
             'ID', 'Title', 'Client', 'Category', 'Status', 'Urgency',
-            'Location', 'City', 'Duration (hrs)', 'Hourly Rate', 'Total Amount',
-            'Worker', 'Created', 'Assigned', 'Completed', 'Rating'
+            'Location', 'City', 'Duration Days', 'Daily Rate', 'Total Amount',
+            'Workers Needed', 'Workers Assigned', 'Payment Status', 'Created', 'Rating'
         ])
         
         for req in requests:
+            assignments = req.assignments.all()
+            assigned_workers = ', '.join([a.worker.user.get_full_name() for a in assignments]) if assignments else 'Unassigned'
+            
+            payment_status = 'No Proof'
+            if req.payment_screenshot:
+                payment_status = 'Verified' if req.payment_verified else 'Pending Verification'
+            
             writer.writerow([
                 req.id,
                 req.title,
@@ -1460,13 +1477,13 @@ def service_request_list(request):
                 req.get_urgency_display(),
                 req.location,
                 req.city,
-                req.estimated_duration_hours or 0,
-                req.hourly_rate or 0,
+                req.duration_days or 0,
+                req.daily_rate or 0,
                 req.total_amount or 0,
-                req.assigned_worker.user.get_full_name() if req.assigned_worker else 'Unassigned',
+                req.workers_needed,
+                f'{assignments.count()} of {req.workers_needed}',
+                payment_status,
                 req.created_at.strftime('%Y-%m-%d %H:%M'),
-                req.assigned_at.strftime('%Y-%m-%d %H:%M') if req.assigned_at else '',
-                req.work_completed_at.strftime('%Y-%m-%d %H:%M') if req.work_completed_at else '',
                 req.client_rating or ''
             ])
         
@@ -1498,6 +1515,7 @@ def service_request_list(request):
         'status_filter': status_filter,
         'urgency_filter': urgency_filter,
         'category_filter': category_filter,
+        'payment_filter': payment_filter,
         'search_query': search_query,
     }
     
@@ -1518,25 +1536,45 @@ def service_request_detail(request, request_id):
     # Get time logs
     time_logs = service_request.time_logs.all().order_by('-clock_in')
     
-    # Get available workers for this category
+    # Get existing assignments count
+    existing_assignments = ServiceRequestAssignment.objects.filter(
+        service_request=service_request
+    ).select_related('worker', 'worker__user')
+    existing_assignments_count = existing_assignments.count()
+    
+    # Calculate remaining workers needed
+    remaining_workers_needed = service_request.workers_needed - existing_assignments_count
+    
+    # Get IDs of already assigned workers to exclude them
+    assigned_worker_ids = existing_assignments.values_list('worker_id', flat=True)
+    
+    # Get available workers for this category (excluding already assigned)
     if service_request.category:
         available_workers = WorkerProfile.objects.filter(
             categories=service_request.category,
             verification_status='verified'
         ).exclude(
             availability='offline'
+        ).exclude(
+            id__in=assigned_worker_ids
         ).select_related('user').order_by('-average_rating')[:15]
     else:
         available_workers = WorkerProfile.objects.filter(
             verification_status='verified'
         ).exclude(
             availability='offline'
+        ).exclude(
+            id__in=assigned_worker_ids
         ).select_related('user').order_by('-average_rating')[:15]
     
     context = {
         'service_request': service_request,
         'time_logs': time_logs,
         'available_workers': available_workers,
+        'existing_assignments': existing_assignments,
+        'existing_assignments_count': existing_assignments_count,
+        'remaining_workers_needed': remaining_workers_needed,
+        'assigned_worker_ids': list(assigned_worker_ids),
     }
     
     return render(request, 'admin_panel/service_request_detail.html', context)
@@ -1577,10 +1615,18 @@ def view_request_workers(request, request_id):
     
     service_request = get_object_or_404(
         ServiceRequest.objects.select_related(
-            'client', 'category', 'assigned_worker', 'assigned_worker__user'
+            'client', 'category'
         ),
         id=request_id
     )
+    
+    # NEW: Get current assignments (multiple workers support)
+    current_assignments = ServiceRequestAssignment.objects.filter(
+        service_request=service_request
+    ).select_related('worker', 'worker__user')
+    
+    # Create set of assigned worker IDs for quick lookup
+    assigned_worker_ids = set(current_assignments.values_list('worker_id', flat=True))
     
     # Get all verified workers for this category (no limit)
     if service_request.category:
@@ -1598,6 +1644,10 @@ def view_request_workers(request, request_id):
         'service_request': service_request,
         'available_workers': available_workers,
         'workers_count': available_workers.count(),
+        'current_assignments': current_assignments,
+        'assigned_worker_ids': assigned_worker_ids,
+        'workers_needed': service_request.workers_needed,
+        'workers_remaining': service_request.workers_needed - current_assignments.count(),
     }
     
     return render(request, 'admin_panel/view_request_workers.html', context)
@@ -1605,7 +1655,7 @@ def view_request_workers(request, request_id):
 
 @staff_member_required
 def assign_worker_to_request(request, request_id):
-    """Assign a worker to a service request"""
+    """Assign a worker to a service request (NEW: Uses ServiceRequestAssignment)"""
     
     service_request = get_object_or_404(ServiceRequest, id=request_id)
     
@@ -1620,24 +1670,109 @@ def assign_worker_to_request(request, request_id):
         try:
             worker = WorkerProfile.objects.get(id=worker_id)
             
+            # Check if worker is already assigned to this request
+            existing_assignment = ServiceRequestAssignment.objects.filter(
+                service_request=service_request,
+                worker=worker
+            ).first()
+            
+            if existing_assignment:
+                messages.warning(
+                    request,
+                    f'{worker.user.get_full_name()} is already assigned to this request'
+                )
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+            
             # Check if worker has the required category
             if service_request.category and not worker.categories.filter(id=service_request.category.id).exists():
                 messages.warning(request, f'{worker.user.get_full_name()} does not have the required category')
             
-            # Assign the worker
-            service_request.assign_worker(worker, request.user, admin_notes)
+            # NEW: Check if we've reached the maximum workers needed
+            existing_assignments_count = ServiceRequestAssignment.objects.filter(
+                service_request=service_request
+            ).count()
+            
+            if existing_assignments_count >= service_request.workers_needed:
+                messages.error(
+                    request,
+                    f'Cannot assign more workers. This request only needs {service_request.workers_needed} worker(s) and already has {existing_assignments_count} assigned.'
+                )
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+            
+            # NEW: Create ServiceRequestAssignment record instead of using old assign_worker method
+            individual_payment = service_request.daily_rate * service_request.duration_days
+            assignment = ServiceRequestAssignment.objects.create(
+                service_request=service_request,
+                worker=worker,
+                assigned_by=request.user,
+                assignment_number=existing_assignments_count + 1,
+                worker_payment=individual_payment,
+                admin_notes=admin_notes
+            )
+            
+            # Log activity
+            WorkerActivity.log_activity(
+                worker=worker,
+                activity_type='assigned',
+                description=f'Assigned to: {service_request.title}',
+                service_request=service_request,
+                location=service_request.location
+            )
+            
+            # Update service request status if all workers are now assigned
+            total_assignments = existing_assignments_count + 1
+            if total_assignments >= service_request.workers_needed:
+                service_request.status = 'assigned'
+                service_request.save()
             
             messages.success(
                 request,
-                f'Successfully assigned {worker.user.get_full_name()} to "{service_request.title}"'
+                f'Successfully assigned {worker.user.get_full_name()} to "{service_request.title}" (Worker {assignment.assignment_number} of {service_request.workers_needed})'
             )
             
-            # Notify worker (the assign_worker method already handles this)
+            # Notify worker
+            from worker_connect.notification_service import NotificationService
+            NotificationService.notify_service_assigned(service_request, worker)
             
         except WorkerProfile.DoesNotExist:
             messages.error(request, 'Worker not found')
         except Exception as e:
             messages.error(request, f'Error assigning worker: {str(e)}')
+    
+    return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+
+@staff_member_required
+def unassign_worker_from_request(request, request_id, assignment_id):
+    """Unassign a worker from a service request (for rejected or pending assignments)"""
+    
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+    assignment = get_object_or_404(ServiceRequestAssignment, id=assignment_id, service_request=service_request)
+    
+    if request.method == 'POST':
+        try:
+            worker_name = assignment.worker.user.get_full_name()
+            assignment_status = assignment.status
+            
+            # Delete the assignment
+            assignment.delete()
+            
+            # If this was the last/only assignment, update service request status back to pending
+            remaining_assignments = ServiceRequestAssignment.objects.filter(
+                service_request=service_request
+            ).count()
+            
+            if remaining_assignments == 0:
+                service_request.status = 'pending'
+                service_request.save()
+            
+            messages.success(
+                request,
+                f'Successfully unassigned {worker_name} (was {assignment_status}). You can now assign a replacement.'
+            )
+            
+        except Exception as e:
+            messages.error(request, f'Error unassigning worker: {str(e)}')
     
     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
@@ -1725,13 +1860,13 @@ def worker_ratings(request, worker_id):
     
     # Get rating statistics
     rating_stats = ratings.aggregate(
-        total=models.Count('id'),
-        average=models.Avg('rating'),
-        five_star=models.Count('id', filter=models.Q(rating=5)),
-        four_star=models.Count('id', filter=models.Q(rating=4)),
-        three_star=models.Count('id', filter=models.Q(rating=3)),
-        two_star=models.Count('id', filter=models.Q(rating=2)),
-        one_star=models.Count('id', filter=models.Q(rating=1)),
+        total=Count('id'),
+        average=Avg('rating'),
+        five_star=Count('id', filter=Q(rating=5)),
+        four_star=Count('id', filter=Q(rating=4)),
+        three_star=Count('id', filter=Q(rating=3)),
+        two_star=Count('id', filter=Q(rating=2)),
+        one_star=Count('id', filter=Q(rating=1)),
     )
     
     # Calculate percentages for CSS width values

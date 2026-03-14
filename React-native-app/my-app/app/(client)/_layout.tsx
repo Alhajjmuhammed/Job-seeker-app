@@ -64,9 +64,17 @@ export default function ClientLayout() {
         }}
       />
       {/* Hidden routes */}
-      <Tabs.Screen name="my-requests" options={{ href: null }} />
+      <Tabs.Screen name="change-password" options={{ href: null }} />
+      <Tabs.Screen name="data-retention" options={{ href: null }} />
+      <Tabs.Screen name="favorites" options={{ href: null }} />
       <Tabs.Screen name="jobs" options={{ href: null }} />
+      <Tabs.Screen name="my-requests" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="payment-methods" options={{ href: null }} />
+      <Tabs.Screen name="privacy-settings" options={{ href: null }} />
+      <Tabs.Screen name="profile-edit" options={{ href: null }} />
       <Tabs.Screen name="request-service" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
       <Tabs.Screen name="job/[id]" options={{ href: null }} />
       <Tabs.Screen name="request-service/[id]" options={{ href: null }} />

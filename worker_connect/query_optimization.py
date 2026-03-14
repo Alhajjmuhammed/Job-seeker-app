@@ -98,7 +98,6 @@ class QueryOptimizer:
         """
         from workers.models import WorkerProfile
         from workers.badges import WorkerBadge
-        from workers.portfolio import PortfolioItem
         
         return WorkerProfile.objects.select_related(
             'user',
@@ -108,10 +107,6 @@ class QueryOptimizer:
             Prefetch(
                 'badges',
                 queryset=WorkerBadge.objects.filter(status='active').select_related('badge')
-            ),
-            Prefetch(
-                'portfolio_items',
-                queryset=PortfolioItem.objects.filter(is_public=True)
             ),
         ).get(id=worker_id)
     

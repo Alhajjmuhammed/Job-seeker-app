@@ -17,7 +17,7 @@ class NotificationService:
         content_object=None,
         extra_data=None
     ):
-        """Create a new notification"""
+        """Create a new notification and broadcast via WebSocket"""
         notification_data = {
             'recipient': recipient,
             'title': title,
@@ -30,7 +30,41 @@ class NotificationService:
             notification_data['content_type'] = ContentType.objects.get_for_model(content_object)
             notification_data['object_id'] = content_object.pk
         
-        return Notification.objects.create(**notification_data)
+        notification = Notification.objects.create(**notification_data)
+        
+        # Broadcast via WebSocket
+        NotificationService._broadcast_notification(notification)
+        
+        return notification
+    
+    @staticmethod
+    def _broadcast_notification(notification):
+        """Broadcast notification via WebSocket to connected clients"""
+        try:
+            from asgiref.sync import async_to_sync
+            from channels.layers import get_channel_layer
+            
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                async_to_sync(channel_layer.group_send)(
+                    f'user_{notification.recipient.id}_notifications',
+                    {
+                        'type': 'notification_message',
+                        'data': {
+                            'id': notification.id,
+                            'title': notification.title,
+                            'message': notification.message,
+                            'notification_type': notification.notification_type,
+                            'is_read': notification.is_read,
+                            'created_at': notification.created_at.isoformat(),
+                            'extra_data': notification.extra_data,
+                        },
+                    }
+                )
+        except Exception as e:
+            # Log error but don't fail the notification creation
+            import logging
+            logging.error(f"Failed to broadcast notification via WebSocket: {e}")
     
     @staticmethod
     def notify_job_assigned(job_request, worker):

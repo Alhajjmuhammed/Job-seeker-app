@@ -126,14 +126,20 @@ export default function ClientProfileScreen() {
 
         {/* Menu Items */}
         <View style={[styles.section, { backgroundColor: theme.card }]}>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: theme.border }]}
+            onPress={() => router.push('/(client)/profile-edit')}
+          >
             <Ionicons name="person-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
               Edit Profile
             </Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity
+            style={[styles.menuItem, { borderBottomColor: theme.border }]}
+            onPress={() => router.push('/(client)/favorites')}
+          >
             <Ionicons name="heart-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
               Favorite Workers
@@ -157,7 +163,10 @@ export default function ClientProfileScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.card }]}>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: theme.border }]}
+            onPress={() => router.push('/(client)/settings')}
+          >
             <Ionicons name="settings-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
               Settings

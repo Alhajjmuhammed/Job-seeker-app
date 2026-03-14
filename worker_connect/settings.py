@@ -46,6 +46,18 @@ ALLOWED_HOSTS = config(
 # Application definition
 
 INSTALLED_APPS = [
+    # Daphne (optional - only needed for production ASGI server)
+    # If not installed, Django's development server will handle WebSockets
+]
+
+# Add daphne if installed (for production ASGI server)
+try:
+    import daphne
+    INSTALLED_APPS.insert(0, 'daphne')  # Must be first
+except ImportError:
+    pass  # Daphne not installed, Django dev server will handle WebSockets
+
+INSTALLED_APPS += [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -62,6 +74,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'widget_tweaks',
     'drf_yasg',  # API documentation
+    'channels',  # WebSocket support
     
     # Local apps
     'worker_connect',
@@ -108,6 +121,25 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'worker_connect.wsgi.application'
+
+# ASGI Application for WebSocket support
+ASGI_APPLICATION = 'worker_connect.asgi.application'
+
+# Channel Layers for WebSocket communication
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # Development
+    }
+}
+
+# Use Redis for Channel Layers in production
+if config('REDIS_URL', default=None):
+    CHANNEL_LAYERS['default'] = {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [config('REDIS_URL')],
+        },
+    }
 
 
 # Database

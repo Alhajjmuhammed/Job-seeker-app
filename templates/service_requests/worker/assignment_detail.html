@@ -12,6 +12,13 @@
     .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
     .text-primary { color: #14b8a6 !important; }
     .card-header.bg-primary { background-color: #14b8a6 !important; }
+    .card-header.bg-primary,
+    .card-header.bg-primary h4,
+    .card-header.bg-primary h5,
+    .card-header.bg-primary i,
+    .card-header.bg-primary small {
+        color: white !important;
+    }
     
     /* Success - green */
     .bg-success { background-color: #10b981 !important; }
@@ -26,7 +33,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4" data-service-request-id="{{ service_request.id }}">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📋 Assignment Details</h2>
         <a href="{% url 'service_requests_web:worker_assignments' %}" class="btn btn-outline-secondary">
@@ -165,27 +172,42 @@
                 <div class="card-body">
                     <h6 class="card-title">Actions</h6>
                     
-                    {% if service_request.worker_accepted is None %}
-                    <div class="alert alert-warning">
+                    {% if assignment.status == 'pending' %}
+                    <div class="alert alert-warning mb-3">
                         <i class="fas fa-exclamation-triangle"></i> You need to respond to this assignment.
                     </div>
-                    <a href="{% url 'service_requests_web:worker_respond' service_request.id %}" 
-                       class="btn btn-primary btn-lg w-100 mb-2">
-                        <i class="fas fa-reply"></i> Respond to Assignment
-                    </a>
                     
-                    {% elif service_request.worker_accepted == True %}
-                        {% if service_request.status == 'in_progress' %}
+                    <!-- Accept Button -->
+                    <form method="post" action="{% url 'service_requests_web:worker_respond' assignment.id %}" class="mb-2">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="accept" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-check"></i> Accept Assignment
+                        </button>
+                    </form>
+                    
+                    <!-- Reject Button -->
+                    <form method="post" action="{% url 'service_requests_web:worker_respond' assignment.id %}">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <textarea name="reason" class="form-control" rows="2" 
+                                      placeholder="Reason for rejection (optional)"></textarea>
+                        </div>
+                        <button type="submit" name="action" value="reject" class="btn btn-outline-danger btn-lg w-100">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                    
+                    {% elif assignment.status == 'accepted' or assignment.status == 'in_progress' %}
                             {% if is_clocked_in %}
                             <div class="alert alert-info">
                                 <i class="fas fa-clock"></i> You are currently clocked in.
                             </div>
-                            <a href="{% url 'service_requests_web:worker_clock_out' service_request.id %}" 
+                            <a href="{% url 'service_requests_web:worker_clock_out' assignment.id %}" 
                                class="btn btn-danger btn-lg w-100 mb-2">
                                 <i class="fas fa-clock"></i> Clock Out
                             </a>
                             {% else %}
-                            <a href="{% url 'service_requests_web:worker_clock_in' service_request.id %}" 
+                            <a href="{% url 'service_requests_web:worker_clock_in' assignment.id %}" 
                                class="btn btn-success btn-lg w-100 mb-2">
                                 <i class="fas fa-clock"></i> Clock In
                             </a>
@@ -193,20 +215,20 @@
                             
                             {% if not is_clocked_in %}
                             <hr>
-                            <a href="{% url 'service_requests_web:worker_complete' service_request.id %}" 
+                            <a href="{% url 'service_requests_web:worker_complete' assignment.id %}" 
                                class="btn btn-primary btn-lg w-100">
                                 <i class="fas fa-check-circle"></i> Mark Complete
                             </a>
                             {% endif %}
-                        {% elif service_request.status == 'completed' %}
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> Service completed!
-                            <hr>
-                            <strong>Earned: TSH {{ service_request.total_amount }}</strong>
-                        </div>
-                        {% endif %}
+                        
+                    {% elif assignment.status == 'completed' %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Service completed!
+                        <hr>
+                        <strong>Earned: TSH {{ assignment.worker_payment|default:"0" }}</strong>
+                    </div>
                     
-                    {% elif service_request.worker_accepted == False %}
+                    {% elif assignment.status == 'rejected' %}
                     <div class="alert alert-danger">
                         <i class="fas fa-times-circle"></i> You rejected this assignment.
                     </div>
@@ -228,4 +250,52 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time updates via WebSocket
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.querySelector('[data-service-request-id]');
+        const requestId = container ? parseInt(container.getAttribute('data-service-request-id')) : null;
+        
+        // Listen for assignment updates from WebSocket (initialized in base.html)
+        if (window.notificationWS && requestId) {
+            window.notificationWS.onNotification(function(data) {
+                // Check if this notification is about our current assignment
+                const notifData = data.data || data;
+                const extraData = notifData.extra_data || {};
+                const serviceRequestId = extraData.service_request_id || extraData.job_id;
+                
+                // Reload if notification is about this specific assignment
+                if (serviceRequestId && serviceRequestId === requestId) {
+                    const notifType = notifData.notification_type;
+                    
+                    if (notifType === 'job_assigned' || notifType === 'job_completed' ||
+                        notifType === 'account_update' || notifType === 'payment_received') {
+                        console.log('Assignment updated (' + notifType + '), refreshing page...');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                }
+            });
+        }
+        
+        // Auto-refresh on visibility change (when user returns to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Check for updates when user returns to tab
+                console.log('Tab became visible, checking for updates...');
+                setTimeout(function() {
+                    fetch(window.location.href, {
+                        method: 'HEAD'
+                    }).then(function() {
+                        // Optionally refresh if needed
+                    });
+                }, 1000);
+            }
+        });
+    });
+</script>
 {% endblock %}

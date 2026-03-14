@@ -4,7 +4,7 @@ Admin assigns workers to client service requests
 """
 
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
 from accounts.models import User
@@ -76,18 +76,25 @@ class ServiceRequest(models.Model):
     service_start_date = models.DateField(null=True, blank=True, help_text="Service start date (for custom range)")
     service_end_date = models.DateField(null=True, blank=True, help_text="Service end date (for custom range)")
     
+    # Multiple Workers Support
+    workers_needed = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        help_text="Number of workers needed for this service (1-100)"
+    )
+    
     # Pricing
     daily_rate = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        help_text="Daily rate at time of booking"
+        help_text="Daily rate per worker at time of booking"
     )
     total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        help_text="Total price (daily_rate × duration_days)"
+        help_text="Total price (daily_rate × duration_days × workers_needed)"
     )
     
     # Payment
@@ -146,13 +153,14 @@ class ServiceRequest(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     urgency = models.CharField(max_length=20, choices=URGENCY_CHOICES, default='normal')
     
-    # Assignment (by admin)
+    # Assignment (by admin) - LEGACY: kept for backward compatibility with single worker
     assigned_worker = models.ForeignKey(
         WorkerProfile,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='assigned_service_requests'
+        related_name='assigned_service_requests',
+        help_text="LEGACY: First assigned worker (use assignments relation for multiple workers)"
     )
     assigned_by = models.ForeignKey(
         User,
@@ -160,7 +168,7 @@ class ServiceRequest(models.Model):
         null=True,
         blank=True,
         related_name='service_assignments_made',
-        help_text="Admin who assigned the worker"
+        help_text="Admin who assigned the worker(s)"
     )
     assigned_at = models.DateTimeField(null=True, blank=True)
     
@@ -249,14 +257,18 @@ class ServiceRequest(models.Model):
         return duration_map.get(self.duration_type, 1)
     
     def calculate_total_price(self):
-        """Calculate total price based on daily rate and duration"""
-        if self.duration_type == 'custom':
+        """Calculate total price based on daily rate, duration, and number of workers"""
+        # Only recalculate duration_days if it's custom range or not already set
+        if self.duration_type == 'custom' and (self.service_start_date and self.service_end_date):
             self.duration_days = self.calculate_duration_days()
-        else:
+        elif not self.duration_days or self.duration_days == 0:
+            # If duration_days not set, calculate from duration_type
             self.duration_days = self.calculate_duration_days()
         
         if self.daily_rate and self.duration_days:
-            self.total_price = self.daily_rate * Decimal(str(self.duration_days))
+            # Calculate: daily_rate × duration_days × workers_needed
+            workers_count = self.workers_needed if self.workers_needed else 1
+            self.total_price = self.daily_rate * Decimal(str(self.duration_days)) * Decimal(str(workers_count))
             return self.total_price
         return Decimal('0.00')
     
@@ -491,3 +503,233 @@ class WorkerActivity(models.Model):
             amount_earned=kwargs.get('amount_earned', None)
         )
         return activity
+
+
+class ServiceRequestAssignment(models.Model):
+    """
+    Individual worker assignments for service requests
+    Supports multiple workers assigned to the same service request
+    """
+    
+    STATUS_CHOICES = (
+        ('pending', 'Pending Worker Response'),
+        ('accepted', 'Accepted by Worker'),
+        ('rejected', 'Rejected by Worker'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    # Links
+    service_request = models.ForeignKey(
+        ServiceRequest,
+        on_delete=models.CASCADE,
+        related_name='assignments',
+        help_text="The service request this assignment is for"
+    )
+    worker = models.ForeignKey(
+        WorkerProfile,
+        on_delete=models.CASCADE,
+        related_name='service_assignments',
+        help_text="The worker assigned to this service"
+    )
+    assigned_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='worker_assignments_created',
+        help_text="Admin who made this assignment"
+    )
+    
+    # Assignment info
+    assignment_number = models.IntegerField(
+        default=1,
+        help_text="Worker number (e.g., 1 of 3)"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="Assignment status"
+    )
+    
+    # Worker response
+    worker_accepted = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Worker acceptance status"
+    )
+    worker_response_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When worker responded"
+    )
+    worker_rejection_reason = models.TextField(
+        blank=True,
+        help_text="Reason for rejection if rejected"
+    )
+    
+    # Work tracking
+    work_started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When worker started work"
+    )
+    work_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When work was completed"
+    )
+    completion_notes = models.TextField(
+        blank=True,
+        help_text="Worker's completion notes"
+    )
+    
+    # Billing (per worker)
+    worker_payment = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Payment amount for this worker (daily_rate × duration)"
+    )
+    total_hours_worked = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Total hours this worker spent"
+    )
+    
+    # Admin notes
+    admin_notes = models.TextField(
+        blank=True,
+        help_text="Admin notes for this specific assignment"
+    )
+    
+    # Timestamps
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['service_request', 'assignment_number']
+        unique_together = [['service_request', 'worker']]
+        indexes = [
+            models.Index(fields=['service_request', 'status']),
+            models.Index(fields=['worker', 'status']),
+            models.Index(fields=['status', '-assigned_at']),
+        ]
+    
+    def __str__(self):
+        return f"Assignment #{self.assignment_number} - {self.worker.user.get_full_name()} - SR#{self.service_request.id}"
+    
+    def accept_assignment(self):
+        """Worker accepts this assignment"""
+        self.worker_accepted = True
+        self.worker_response_at = timezone.now()
+        self.status = 'accepted'
+        self.save()
+        
+        # Check if this is the first acceptance - update main request status
+        self._update_main_request_status()
+        
+        # Note: Notifications are handled in the API view layer
+        
+        # Log activity
+        WorkerActivity.log_activity(
+            worker=self.worker,
+            activity_type='accepted',
+            description=f"Accepted assignment for {self.service_request.title}",
+            service_request=self.service_request
+        )
+        
+        return True
+    
+    def reject_assignment(self, reason=''):
+        """Worker rejects this assignment"""
+        self.worker_accepted = False
+        self.worker_response_at = timezone.now()
+        self.worker_rejection_reason = reason
+        self.status = 'rejected'
+        self.save()
+        
+        # Note: Notifications are handled in the API view layer
+        
+        # Log activity
+        WorkerActivity.log_activity(
+            worker=self.worker,
+            activity_type='rejected',
+            description=f"Rejected assignment: {reason}",
+            service_request=self.service_request
+        )
+        
+        return True
+    
+    def mark_completed(self, completion_notes=''):
+        """Worker marks their assignment as completed"""
+        self.work_completed_at = timezone.now()
+        self.status = 'completed'
+        self.completion_notes = completion_notes
+        self.save()
+        
+        # Note: Notifications are handled in the API view layer
+        
+        # Update worker completed jobs count
+        self.worker.completed_jobs += 1
+        self.worker.save()
+        
+        # Check if all assignments are completed
+        self._check_all_completed()
+        
+        # Note: Notifications are handled in the API view layer
+        
+        # Log activity
+        WorkerActivity.log_activity(
+            worker=self.worker,
+            activity_type='completed',
+            description=f"Completed work for {self.service_request.title}",
+            service_request=self.service_request,
+            amount_earned=self.worker_payment
+        )
+        
+        return True
+    
+    def _update_main_request_status(self):
+        """Update main service request status based on assignments"""
+        sr = self.service_request
+        
+        # If any worker accepted, update main request to "in_progress"
+        if self.status == 'in_progress':
+            if sr.status == 'pending' or sr.status == 'assigned':
+                sr.status = 'in_progress'
+                sr.save()
+    
+    def _check_all_completed(self):
+        """Check if all assignments are completed and update main request"""
+        sr = self.service_request
+        
+        # Get all assignments for this service request
+        all_assignments = ServiceRequestAssignment.objects.filter(service_request=sr)
+        completed_count = all_assignments.filter(status='completed').count()
+        total_count = all_assignments.count()
+        
+        # If all assignments completed, mark main request as completed
+        if completed_count == total_count and total_count > 0:
+            sr.status = 'completed'
+            sr.work_completed_at = timezone.now()
+            sr.save()
+            
+            # Notify client that all work is done
+            from worker_connect.notification_service import NotificationService
+            NotificationService.notify_service_completed(sr)
+    
+    def calculate_payment(self):
+        """Calculate payment for this individual worker"""
+        if self.service_request.daily_rate and self.service_request.duration_days:
+            self.worker_payment = (
+                self.service_request.daily_rate * 
+                Decimal(str(self.service_request.duration_days))
+            )
+            self.save()
+            return self.worker_payment
+        return Decimal('0.00')
+

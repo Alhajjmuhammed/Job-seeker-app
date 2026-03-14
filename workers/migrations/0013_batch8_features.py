@@ -3,7 +3,6 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import workers.portfolio
 
 
 class Migration(migrations.Migration):
@@ -55,30 +54,7 @@ class Migration(migrations.Migration):
                 'ordering': ['level'],
             },
         ),
-        migrations.CreateModel(
-            name='PortfolioItem',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('media_type', models.CharField(choices=[('image', 'Image'), ('video', 'Video'), ('document', 'Document'), ('link', 'External Link')], default='image', max_length=20)),
-                ('media_file', models.FileField(blank=True, null=True, upload_to=workers.portfolio.portfolio_upload_path)),
-                ('thumbnail', models.ImageField(blank=True, null=True, upload_to='portfolio/thumbnails/')),
-                ('external_url', models.URLField(blank=True, null=True)),
-                ('tags', models.JSONField(blank=True, default=list)),
-                ('is_featured', models.BooleanField(default=False)),
-                ('display_order', models.PositiveIntegerField(default=0)),
-                ('is_public', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='workers.category')),
-                ('related_job', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='jobs.jobrequest')),
-                ('worker', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='portfolio_items', to='workers.workerprofile')),
-            ],
-            options={
-                'ordering': ['-is_featured', 'display_order', '-created_at'],
-            },
-        ),
+        # PortfolioItem model removed - Portfolio feature deprecated
         migrations.CreateModel(
             name='WorkerBadge',
             fields=[

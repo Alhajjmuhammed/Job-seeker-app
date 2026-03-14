@@ -1,0 +1,182 @@
+{% extends "clients/base_client.html" %}
+
+{% block title %}Edit Service Request{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .text-primary { color: #14b8a6 !important; }
+    .text-warning { color: #f59e0b !important; }
+    
+    .alert-warning {
+        background-color: #fef3c7;
+        border-color: #fcd34d;
+        color: #92400e;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">✏️ Edit Service Request</h2>
+    
+    {% if messages %}
+    <div class="row">
+        <div class="col-md-8">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-warning mb-4">
+                        <strong>⚠️ Note:</strong> You can only edit pending service requests. Once a worker is assigned, editing is disabled.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Service Category *</label>
+                            <input type="text" class="form-control" value="{% if service_request.category.icon %}{{ service_request.category.icon }} {% endif %}{{ service_request.category.name }}" disabled>
+                            <small class="text-muted">Category cannot be changed after request creation</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Service Title *</label>
+                            <input type="text" name="title" id="title" class="form-control" 
+                                   value="{{ service_request.title }}" 
+                                   placeholder="e.g., Fix kitchen sink leak" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description * (min. 20 characters)</label>
+                            <textarea name="description" id="description" class="form-control" rows="4" 
+                                      placeholder="Describe what needs to be done..." required>{{ service_request.description }}</textarea>
+                            <small class="text-muted" id="char-count">{{ service_request.description|length }} characters</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="location" class="form-label">Location *</label>
+                                <input type="text" name="location" id="location" class="form-control" 
+                                       value="{{ service_request.location }}"
+                                       placeholder="123 Main Street, Building A" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="city" class="form-label">City *</label>
+                                <input type="text" name="city" id="city" class="form-control" 
+                                       value="{{ service_request.city }}"
+                                       placeholder="Dar es Salaam" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="preferred_date" class="form-label">Preferred Date</label>
+                                <input type="date" name="preferred_date" id="preferred_date" 
+                                       class="form-control" value="{{ service_request.preferred_date|date:'Y-m-d' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="preferred_time" class="form-label">Preferred Time</label>
+                                <input type="time" name="preferred_time" id="preferred_time" 
+                                       class="form-control" value="{{ service_request.preferred_time|time:'H:i' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="estimated_duration_hours" class="form-label">Est. Duration (hours) *</label>
+                                <input type="number" name="estimated_duration_hours" id="estimated_duration_hours" 
+                                       class="form-control" step="0.5" min="0.5" 
+                                       value="{{ service_request.estimated_duration_hours }}"
+                                       placeholder="2" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="urgency" class="form-label">Urgency</label>
+                            <select name="urgency" id="urgency" class="form-select">
+                                <option value="normal" {% if service_request.urgency == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="urgent" {% if service_request.urgency == 'urgent' %}selected{% endif %}>Urgent</option>
+                                <option value="emergency" {% if service_request.urgency == 'emergency' %}selected{% endif %}>Emergency</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="client_notes" class="form-label">Additional Notes</label>
+                            <textarea name="client_notes" id="client_notes" class="form-control" rows="2" 
+                                      placeholder="Any additional information...">{{ service_request.client_notes }}</textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">💾 Save Changes</button>
+                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">ℹ️ What can you edit?</h5>
+                    <ul>
+                        <li><strong>✅ Can edit:</strong>
+                            <ul>
+                                <li>Title</li>
+                                <li>Description</li>
+                                <li>Location & City</li>
+                                <li>Preferred Date & Time</li>
+                                <li>Duration</li>
+                                <li>Urgency</li>
+                                <li>Additional Notes</li>
+                            </ul>
+                        </li>
+                        <li><strong>❌ Cannot edit:</strong>
+                            <ul>
+                                <li>Service Category</li>
+                                <li>Status (after worker assigned)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card bg-info text-white mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">📌 Request Info</h6>
+                    <p class="mb-1"><strong>Status:</strong> {{ service_request.get_status_display }}</p>
+                    <p class="mb-1"><strong>Created:</strong> {{ service_request.created_at|date:"M d, Y H:i" }}</p>
+                    <p class="mb-0"><strong>Request ID:</strong> #{{ service_request.id }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character counter for description
+document.getElementById('description').addEventListener('input', function() {
+    const count = this.value.length;
+    const counter = document.getElementById('char-count');
+    counter.textContent = count + ' characters';
+    
+    if (count < 20) {
+        counter.classList.add('text-danger');
+        counter.classList.remove('text-muted');
+    } else {
+        counter.classList.remove('text-danger');
+        counter.classList.add('text-muted');
+    }
+});
+</script>
+{% endblock %}

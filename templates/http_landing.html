@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Worker Connect - Connect. Work. Grow.</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         :root {
             --primary-color: #667eea;
@@ -11,6 +13,20 @@
             --dark-color: #343a40;
             --light-color: #f8f9fa;
             --border-color: #e0e0e0;
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --info-bg: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] {
+            --bg-color: #0a0a0a;
+            --text-color: #e0e0e0;
+            --card-bg: #1a1a1a;
+            --dark-color: #e0e0e0;
+            --light-color: #1a1a1a;
+            --border-color: #333333;
+            --info-bg: #1a1a1a;
         }
         
         * {
@@ -21,18 +37,43 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fff;
-            color: #333;
+            background: var(--bg-color);
+            color: var(--text-color);
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         .header {
-            background: white;
+            background: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
             padding: 20px 0;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: background 0.3s ease;
+        }
+        
+        .theme-toggle {
+            margin-left: auto;
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: rotate(15deg);
         }
         
         .logo-container {
@@ -138,7 +179,7 @@
         }
         
         .feature-card {
-            background: white;
+            background: var(--card-bg);
             padding: 30px 20px;
             border-radius: 12px;
             text-align: center;
@@ -207,6 +248,7 @@
             background: var(--light-color);
             padding: 50px 25px;
             margin: 50px 0 0 0;
+            transition: background 0.3s ease;
         }
         
         .credentials-inner {
@@ -222,7 +264,7 @@
         }
         
         .credential-card {
-            background: white;
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
@@ -266,7 +308,7 @@
         }
         
         code {
-            background: #f8f9fa;
+            background: var(--info-bg);
             padding: 4px 10px;
             border-radius: 5px;
             font-family: 'Courier New', monospace;
@@ -277,7 +319,7 @@
         }
         
         .info-box {
-            background: #f8f9fa;
+            background: var(--info-bg);
             border-radius: 10px;
             padding: 20px 25px;
             margin: 35px 0;
@@ -285,6 +327,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            transition: background 0.3s ease;
         }
         
         .info-icon {
@@ -349,6 +392,9 @@
         <div class="logo-container">
             <div class="logo-icon">WC</div>
             <div class="logo-text">Worker Connect</div>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+                <span id="theme-icon">🌙</span>
+            </button>
         </div>
     </div>
     
@@ -475,6 +521,42 @@
         }
         console.log('%c✅ Worker Connect Online', 'font-size: 20px; color: #28a745; font-weight: bold;');
         console.log('%cServer: http://127.0.0.1:8080/', 'color: #667eea;');
+        
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+        
+        // Function to set theme
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.setAttribute('data-bs-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-bs-theme', 'light');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        // Check for saved theme preference or default to 'light'
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (prefersDark) {
+            setTheme('dark');
+        } else {
+            setTheme('light');
+        }
+        
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
     </script>
 </body>
 </html>

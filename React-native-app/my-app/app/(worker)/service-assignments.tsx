@@ -59,13 +59,21 @@ export default function ServiceAssignments() {
       
       if (filter === 'pending') {
         response = await apiService.getPendingAssignments();
-      } else if (filter === 'active') {
-        response = await apiService.getWorkerAssignments('in_progress');
       } else {
+        // Get all assignments, then filter client-side for "active"
         response = await apiService.getWorkerAssignments();
       }
       
-      setAssignments(response.assignments || response.results || response || []);
+      let assignmentsList = response.assignments || response.results || response || [];
+      
+      // Filter for active assignments (accepted or in_progress)
+      if (filter === 'active') {
+        assignmentsList = assignmentsList.filter((a: ServiceAssignment) => 
+          a.status === 'accepted' || a.status === 'in_progress'
+        );
+      }
+      
+      setAssignments(assignmentsList);
     } catch (error: any) {
       console.error('Error loading assignments:', error);
       Alert.alert('Error', error.response?.data?.error || 'Failed to load assignments');
@@ -134,11 +142,8 @@ export default function ServiceAssignments() {
     <TouchableOpacity
       style={[styles.assignmentCard, { backgroundColor: theme.card }]}
       onPress={() => {
-        if (item.status === 'in_progress') {
-          router.push('/(worker)/active-service' as any);
-        } else {
-          router.push(`/(worker)/service-assignment/${item.id}` as any);
-        }
+        // Always navigate to the specific assignment detail page
+        router.push(`/(worker)/service-assignment/${item.id}` as any);
       }}
       activeOpacity={0.7}
     >

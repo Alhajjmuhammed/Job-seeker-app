@@ -16,6 +16,110 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
+    <style>
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #dc2626;
+            color: white;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+        }
+        
+        .nav-link.position-relative {
+            position: relative;
+        }
+        
+        /* Global Badge Text Color Fixes */
+        .badge.bg-primary, .bg-primary.badge { background-color: #14b8a6 !important; color: white !important; }
+        .badge.bg-secondary, .bg-secondary.badge { background-color: #6c757d !important; color: white !important; }
+        .badge.bg-success, .bg-success.badge { background-color: #10b981 !important; color: white !important; }
+        .badge.bg-danger, .bg-danger.badge { background-color: #ef4444 !important; color: white !important; }
+        .badge.bg-warning, .bg-warning.badge { background-color: #fbbf24 !important; color: #1f2937 !important; }
+        .badge.bg-info, .bg-info.badge { background-color: #06b6d4 !important; color: white !important; }
+        .badge.bg-dark, .bg-dark.badge { background-color: #1f2937 !important; color: white !important; }
+        .badge.bg-light, .bg-light.badge { background-color: #f3f4f6 !important; color: #1f2937 !important; }
+        
+        /* Card Headers with Background Colors */
+        .card-header.bg-primary, .card-header.bg-secondary, .card-header.bg-success, 
+        .card-header.bg-danger, .card-header.bg-info, .card-header.bg-dark { color: white !important; }
+        .card-header.bg-primary *, .card-header.bg-secondary *, .card-header.bg-success *, 
+        .card-header.bg-danger *, .card-header.bg-info *, .card-header.bg-dark * { color: white !important; }
+        .card-header.bg-warning { color: #1f2937 !important; }
+        .card-header.bg-warning * { color: #1f2937 !important; }
+        
+        /* Button Text Colors - Comprehensive Fix */
+        .btn-primary, .btn-primary:hover, .btn-primary:focus, .btn-primary:active { 
+            background-color: #14b8a6 !important; 
+            border-color: #14b8a6 !important; 
+            color: white !important; 
+        }
+        .btn-primary i, .btn-primary span { color: white !important; }
+        
+        .btn-secondary, .btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active { 
+            background-color: #6c757d !important; 
+            border-color: #6c757d !important; 
+            color: white !important; 
+        }
+        .btn-secondary i, .btn-secondary span { color: white !important; }
+        
+        .btn-success, .btn-success:hover, .btn-success:focus, .btn-success:active { 
+            background-color: #10b981 !important; 
+            border-color: #10b981 !important; 
+            color: white !important; 
+        }
+        .btn-success i, .btn-success span { color: white !important; }
+        
+        .btn-danger, .btn-danger:hover, .btn-danger:focus, .btn-danger:active { 
+            background-color: #ef4444 !important; 
+            border-color: #ef4444 !important; 
+            color: white !important; 
+        }
+        .btn-danger i, .btn-danger span { color: white !important; }
+        
+        .btn-info, .btn-info:hover, .btn-info:focus, .btn-info:active { 
+            background-color: #06b6d4 !important; 
+            border-color: #06b6d4 !important; 
+            color: white !important; 
+        }
+        .btn-info i, .btn-info span { color: white !important; }
+        
+        .btn-warning, .btn-warning:hover, .btn-warning:focus, .btn-warning:active { 
+            background-color: #fbbf24 !important; 
+            border-color: #fbbf24 !important; 
+            color: #1f2937 !important; 
+        }
+        .btn-warning i, .btn-warning span { color: #1f2937 !important; }
+        
+        .btn-dark, .btn-dark:hover, .btn-dark:focus, .btn-dark:active { 
+            background-color: #1f2937 !important; 
+            border-color: #1f2937 !important; 
+            color: white !important; 
+        }
+        .btn-dark i, .btn-dark span { color: white !important; }
+        
+        /* Buttons with bg-* classes */
+        .btn.bg-primary, .btn.bg-secondary, .btn.bg-success, .btn.bg-danger, 
+        .btn.bg-info, .btn.bg-dark { color: white !important; }
+        .btn.bg-warning { color: #1f2937 !important; }
+        
+        /* Cards with bg-* classes text visibility */
+        .card.bg-primary, .card.bg-secondary, .card.bg-success, .card.bg-danger,
+        .card.bg-info, .card.bg-dark { color: white !important; }
+        .card.bg-primary *, .card.bg-secondary *, .card.bg-success *, .card.bg-danger *,
+        .card.bg-info *, .card.bg-dark * { color: white !important; }
+        .card.bg-warning { color: #1f2937 !important; }
+        .card.bg-warning * { color: #1f2937 !important; }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -77,10 +181,25 @@
                             </li>
                         {% endif %}
                         
+                        <!-- Notifications -->
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="{% url 'notification_center' %}">
+                                <i class="bi bi-bell"></i> Notifications
+                                <span class="notification-badge" id="navbar-notification-badge" style="display: none;">0</span>
+                            </a>
+                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'jobs:inbox' %}">
                                 <i class="bi bi-envelope"></i> Messages
                             </a>
+                        </li>
+                        
+                        <!-- Theme Toggle -->
+                        <li class="nav-item d-flex align-items-center">
+                            <button id="theme-toggle" class="btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+                                <i class="bi bi-moon-fill" id="theme-icon"></i>
+                            </button>
                         </li>
                         
                         <li class="nav-item dropdown">
@@ -102,6 +221,12 @@
                             <a class="nav-link btn btn-primary text-white px-3" href="{% url 'accounts:register_choice' %}">
                                 Sign Up
                             </a>
+                        </li>
+                        <!-- Theme Toggle for guests -->
+                        <li class="nav-item d-flex align-items-center">
+                            <button id="theme-toggle" class="btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+                                <i class="bi bi-moon-fill" id="theme-icon"></i>
+                            </button>
                         </li>
                     {% endif %}
                 </ul>
@@ -160,6 +285,197 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% if user.is_authenticated %}
+    <!-- WebSocket Client for Real-Time Notifications -->
+    <script src="{% static 'js/websocket-client.js' %}"></script>
+    <script>
+        // Initialize WebSocket for real-time notifications
+        const authToken = '{{ user.auth_token.key|default:"" }}';
+        let notificationWS = null;
+        
+        // Function to update notification badge
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('navbar-notification-badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        // Fetch initial notification count
+        function fetchInitialNotificationCount() {
+            fetch('{% url "get_unread_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateNotificationBadge(data.count);
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch initial count
+            fetchInitialNotificationCount();
+            
+            // Initialize WebSocket if auth token is available
+            if (authToken && authToken !== 'None' && authToken !== '') {
+                try {
+                    notificationWS = window.wsManager.createNotificationConnection(authToken);
+                    
+                    // Listen for real-time notifications
+                    notificationWS.onNotification((notification) => {
+                        console.log('Real-time notification received:', notification);
+                        
+                        // Increment badge count
+                        const badge = document.getElementById('navbar-notification-badge');
+                        if (badge) {
+                            const currentCount = parseInt(badge.textContent || '0');
+                            updateNotificationBadge(currentCount + 1);
+                        }
+                        
+                        // Show toast notification
+                        showToastNotification(notification);
+                    });
+                    
+                    console.log('WebSocket notification service initialized');
+                } catch (error) {
+                    console.error('WebSocket initialization failed, falling back to polling:', error);
+                    // Fallback to AJAX polling if WebSocket fails
+                    setInterval(fetchInitialNotificationCount, 30000);
+                }
+            } else {
+                // Fallback to AJAX polling if no auth token
+                console.warn('No auth token available, using AJAX polling');
+                setInterval(fetchInitialNotificationCount, 30000);
+            }
+        });
+        
+        // Show toast notification using Bootstrap Toast
+        function showToastNotification(notification) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <strong>${notification.title || 'Notification'}</strong><br>
+                            ${notification.message || notification.text || ''}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            // Find or create toast container
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Add toast to container
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+        
+        // Disconnect WebSocket when page is unloaded
+        window.addEventListener('beforeunload', function() {
+            if (notificationWS && window.wsManager) {
+                window.wsManager.disconnectAll();
+            }
+        });
+    </script>
+    {% endif %}
+    
+    <!-- Dark Mode Toggle Script -->
+    <script>
+        // Theme management
+        (function() {
+            // Get stored theme or default to light
+            const getStoredTheme = () => localStorage.getItem('theme') || 'light';
+            const setStoredTheme = theme => localStorage.setItem('theme', theme);
+            
+            // Get preferred theme (check stored, then system preference)
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme();
+                if (storedTheme) {
+                    return storedTheme;
+                }
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            };
+            
+            // Apply theme to document
+            const setTheme = theme => {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+                updateThemeIcon(theme);
+            };
+            
+            // Update theme toggle icon
+            const updateThemeIcon = theme => {
+                const themeIcon = document.getElementById('theme-icon');
+                if (themeIcon) {
+                    if (theme === 'dark') {
+                        themeIcon.className = 'bi bi-sun-fill';
+                    } else {
+                        themeIcon.className = 'bi bi-moon-fill';
+                    }
+                }
+            };
+            
+            // Apply theme on page load
+            setTheme(getPreferredTheme());
+            
+            // Wait for DOM to be ready
+            window.addEventListener('DOMContentLoaded', () => {
+                const themeToggle = document.getElementById('theme-toggle');
+                
+                if (themeToggle) {
+                    // Update icon on load
+                    updateThemeIcon(getPreferredTheme());
+                    
+                    // Toggle theme on button click
+                    themeToggle.addEventListener('click', () => {
+                        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                        setStoredTheme(newTheme);
+                        setTheme(newTheme);
+                        
+                        // Show brief feedback
+                        const icon = document.getElementById('theme-icon');
+                        if (icon) {
+                            icon.style.transform = 'scale(1.3)';
+                            setTimeout(() => {
+                                icon.style.transform = 'scale(1)';
+                            }, 200);
+                        }
+                    });
+                }
+            });
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                const storedTheme = getStoredTheme();
+                if (!storedTheme) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        })();
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>

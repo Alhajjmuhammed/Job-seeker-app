@@ -124,6 +124,11 @@
                     </h5>
                     <div class="row g-2">
                         <div class="col-md-4 col-6">
+                            <a href="{% url 'workers:analytics' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-graph-up"></i> Analytics
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-6">
                             <a href="{% url 'workers:profile_edit' %}" class="btn btn-outline-primary w-100">
                                 <i class="bi bi-pencil"></i> Edit Profile
                             </a>
@@ -333,6 +338,66 @@
         if (progressBar) {
             const completion = progressBar.getAttribute('data-completion');
             progressBar.style.width = completion + '%';
+        }
+        
+        // Real-time dashboard updates via WebSocket
+        if (window.notificationWS) {
+            window.notificationWS.onNotification(function(data) {
+                // Refresh dashboard when relevant events occur
+                const notifData = data.data || data;
+                const notifType = notifData.notification_type;
+                
+                if (notifType === 'job_assigned' || 
+                    notifType === 'job_completed' ||
+                    notifType === 'job_application' ||
+                    notifType === 'payment_received' ||
+                    notifType === 'review_received' ||
+                    notifType === 'document_verified') {
+                    console.log('Worker dashboard update detected:', notifType);
+                    // Show a subtle notification
+                    showUpdateNotification(notifType);
+                    // Reload after a short delay to batch updates
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                }
+            });
+        }
+        
+        // Function to show update notification
+        function showUpdateNotification(updateType) {
+            const existingNotif = document.getElementById('update-notification');
+            if (existingNotif) return; // Don't show multiple
+            
+            let message = 'New update available';
+            if (updateType === 'job_assigned') {
+                message = 'You have a new assignment!';
+            } else if (updateType === 'job_completed') {
+                message = 'Service completed!';
+            } else if (updateType === 'payment_received') {
+                message = 'Payment received!';
+            } else if (updateType === 'review_received') {
+                message = 'New review received!';
+            }
+            
+            const notif = document.createElement('div');
+            notif.id = 'update-notification';
+            notif.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            notif.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            notif.innerHTML = `
+                <i class="bi bi-bell-fill me-2"></i>
+                <strong>${message}</strong>
+                <p class="mb-0 small">Refreshing dashboard...</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notif);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(function() {
+                if (notif.parentNode) {
+                    notif.remove();
+                }
+            }, 5000);
         }
     });
 </script>

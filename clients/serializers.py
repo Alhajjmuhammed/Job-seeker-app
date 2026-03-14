@@ -7,9 +7,9 @@ from accounts.models import User
 class ClientProfileSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
-    first_name = serializers.CharField(source='user.first_name', read_only=True)
-    last_name = serializers.CharField(source='user.last_name', read_only=True)
-    phone_number = serializers.CharField(source='user.phone_number', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    phone_number = serializers.CharField(source='user.phone_number', required=False)
     
     class Meta:
         model = ClientProfile
@@ -19,6 +19,26 @@ class ClientProfileSerializer(serializers.ModelSerializer):
             'total_jobs_posted', 'total_spent', 'created_at', 'updated_at'
         ]
         read_only_fields = ['total_jobs_posted', 'total_spent', 'created_at', 'updated_at']
+    
+    def update(self, instance, validated_data):
+        # Extract user data if present
+        user_data = {}
+        if 'user' in validated_data:
+            user_data = validated_data.pop('user')
+        
+        # Update user fields
+        if user_data:
+            user = instance.user
+            for attr, value in user_data.items():
+                setattr(user, attr, value)
+            user.save()
+        
+        # Update profile fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        return instance
 
 
 class CategorySerializer(serializers.ModelSerializer):

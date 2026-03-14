@@ -326,7 +326,7 @@
         <p class="stat-value">{{ jobs_posted|length|default:0 }}</p>
     </div>
     <div class="stat-card">
-        <h3>Applications</h3>
+        <h3>Assignments</h3>
         <p class="stat-value">{{ applications|length|default:0 }}</p>
     </div>
     <div class="stat-card">
@@ -491,13 +491,13 @@
 <!-- Applications (for workers) -->
 {% if applications %}
 <div class="info-card">
-    <h5><i class="bi bi-file-earmark-text-fill"></i>Job Applications</h5>
+    <h5><i class="bi bi-file-earmark-text-fill"></i>Service Assignments</h5>
     {% for app in applications|slice:":5" %}
     <div class="application-item">
-        <h6>{{ app.job.title }}</h6>
+        <h6>{{ app.title }}</h6>
         <p>
             <span class="badge badge-{{ app.status }}">{{ app.status|title }}</span>
-            <span class="text-muted ms-2">TSH {{ app.total_price|default:app.proposed_rate }}</span>
+            <span class="text-muted ms-2">TSH {{ app.total_price|floatformat:0 }}</span>
             <span class="text-muted ms-2">{{ app.created_at|date:"M d, Y" }}</span>
         </p>
     </div>

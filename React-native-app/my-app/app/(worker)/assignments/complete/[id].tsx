@@ -42,10 +42,8 @@ export default function CompleteServiceScreen() {
   const loadAssignment = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getCurrentAssignment();
-      if (response.service_request && response.service_request.id === Number(id)) {
-        setAssignment(response.service_request);
-      }
+      const response = await apiService.getWorkerAssignmentDetail(Number(id));
+      setAssignment(response.assignment || response);
     } catch (error: any) {
       console.error('Error loading assignment:', error);
       Alert.alert('Error', 'Failed to load assignment');
@@ -84,23 +82,31 @@ export default function CompleteServiceScreen() {
 
     try {
       setSubmitting(true);
-      await apiService.completeService(assignment.id, completionNotes);
+      console.log('✅ Marking Complete:', {
+        assignmentId: assignment.id,
+        hasNotes: !!completionNotes.trim()
+      });
+      
+      const result = await apiService.completeService(assignment.id, completionNotes);
+      console.log('✅ Complete Success:', result);
+      
+      // Navigate back with a slight delay to ensure state updates
+      setTimeout(() => {
+        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+      }, 300);
       
       Alert.alert(
         '🎉 Service Completed!',
-        'Excellent work! The service has been marked as complete. The client will be notified.',
-        [
-          {
-            text: 'View Dashboard',
-            onPress: () => router.replace('/(worker)/dashboard'),
-          },
-        ]
+        'Excellent work! The service has been marked as complete. The client will be notified.'
       );
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to complete service. Please try again.'
-      );
+      console.error('❌ Complete Error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to complete service. Please try again.';
+      Alert.alert('Complete Failed', errorMessage);
     } finally {
       setSubmitting(false);
     }

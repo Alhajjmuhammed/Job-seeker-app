@@ -102,14 +102,14 @@ class GDPRService:
         # Messages
         from jobs.models import Message
         sent_messages = Message.objects.filter(sender=user)
-        received_messages = Message.objects.filter(receiver=user)
+        received_messages = Message.objects.filter(recipient=user)
         
         for msg in sent_messages:
             data['messages'].append({
                 'id': msg.id,
                 'type': 'sent',
-                'to': msg.receiver.username if msg.receiver else 'Unknown',
-                'content': msg.content if hasattr(msg, 'content') else '',
+                'to': msg.recipient.username if msg.recipient else 'Unknown',
+                'content': msg.content if msg.content else msg.message,
                 'sent_at': msg.created_at.isoformat() if hasattr(msg, 'created_at') else None,
             })
         
@@ -118,9 +118,99 @@ class GDPRService:
                 'id': msg.id,
                 'type': 'received',
                 'from': msg.sender.username if msg.sender else 'Unknown',
-                'content': msg.content if hasattr(msg, 'content') else '',
+                'content': msg.content if msg.content else msg.message,
                 'received_at': msg.created_at.isoformat() if hasattr(msg, 'created_at') else None,
             })
+        
+        # Notifications
+        from worker_connect.notification_models import Notification
+        notifications = Notification.objects.filter(recipient=user)
+        data['notifications'] = []
+        for notif in notifications:
+            data['notifications'].append({
+                'id': notif.id,
+                'title': notif.title,
+                'message': notif.message,
+                'type': notif.notification_type,
+                'is_read': notif.is_read,
+                'created_at': notif.created_at.isoformat(),
+                'read_at': notif.read_at.isoformat() if notif.read_at else None,
+            })
+        
+        # Reviews & Ratings
+        data['reviews'] = {
+            'given': [],
+            'received': []
+        }
+        try:
+            from jobs.review_models import Review
+            # Reviews given by user
+            given_reviews = Review.objects.filter(reviewer=user)
+            for review in given_reviews:
+                data['reviews']['given'].append({
+                    'id': review.id,
+                    'rating': review.rating,
+                    'comment': review.comment if hasattr(review, 'comment') else '',
+                    'created_at': review.created_at.isoformat() if hasattr(review, 'created_at') else None,
+                })
+            
+            # Reviews received by user (if worker)
+            if hasattr(user, 'worker_profile') and user.worker_profile:
+                received_reviews = Review.objects.filter(worker=user.worker_profile)
+                for review in received_reviews:
+                    data['reviews']['received'].append({
+                        'id': review.id,
+                        'rating': review.rating,
+                        'comment': review.comment if hasattr(review, 'comment') else '',
+                        'reviewer': review.reviewer.username if review.reviewer else 'Anonymous',
+                        'created_at': review.created_at.isoformat() if hasattr(review, 'created_at') else None,
+                    })
+        except:
+            # Review model may not exist yet
+            pass
+        
+        # Payment Information
+        data['payments'] = []
+        try:
+            from jobs.payment_models import Payment
+            payments = Payment.objects.filter(user=user)
+            for payment in payments:
+                data['payments'].append({
+                    'id': payment.id,
+                    'amount': str(payment.amount) if hasattr(payment, 'amount') else None,
+                    'status': payment.status if hasattr(payment, 'status') else '',
+                    'method': payment.payment_method if hasattr(payment, 'payment_method') else '',
+                    'created_at': payment.created_at.isoformat() if hasattr(payment, 'created_at') else None,
+                })
+        except:
+            # Payment model may not exist or have different structure
+            pass
+        
+        # Location Data
+        data['location_history'] = []
+        # Location data from service requests
+        if hasattr(user, 'client_profile'):
+            from jobs.service_request_models import ServiceRequest
+            requests_with_location = ServiceRequest.objects.filter(client=user).exclude(location='')
+            for req in requests_with_location:
+                data['location_history'].append({
+                    'type': 'service_request',
+                    'location': req.location if hasattr(req, 'location') else '',
+                    'city': req.city if hasattr(req, 'city') else '',
+                    'timestamp': req.created_at.isoformat(),
+                })
+        
+        # Usage Analytics (anonymized where possible)
+        data['usage_analytics'] = {
+            'account_created': user.date_joined.isoformat(),
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+            'total_logins': 'N/A',  # Would need separate tracking
+            'total_jobs_posted': len(data['jobs']),
+            'total_applications': len(data['applications']),
+            'total_messages_sent': len([m for m in data['messages'] if m['type'] == 'sent']),
+            'total_messages_received': len([m for m in data['messages'] if m['type'] == 'received']),
+            'total_notifications': len(data['notifications']),
+        }
         
         return data
     
@@ -159,8 +249,33 @@ class GDPRService:
         preview['messages_count'] = Message.objects.filter(
             sender=user
         ).count() + Message.objects.filter(
-            receiver=user
+            recipient=user
         ).count()
+        
+        # Notifications
+        from worker_connect.notification_models import Notification
+        preview['notifications_count'] = Notification.objects.filter(
+            recipient=user
+        ).count()
+        
+        # Reviews
+        try:
+            from jobs.review_models import Review
+            preview['reviews_given_count'] = Review.objects.filter(reviewer=user).count()
+            if hasattr(user, 'worker_profile') and user.worker_profile:
+                preview['reviews_received_count'] = Review.objects.filter(
+                    worker=user.worker_profile
+                ).count()
+        except:
+            preview['reviews_given_count'] = 0
+            preview['reviews_received_count'] = 0
+        
+        # Payments
+        try:
+            from jobs.payment_models import Payment
+            preview['payments_count'] = Payment.objects.filter(user=user).count()
+        except:
+            preview['payments_count'] = 0
         
         return preview
     
@@ -214,8 +329,13 @@ class GDPRService:
         # Anonymize messages
         from jobs.models import Message
         Message.objects.filter(sender=user).update(
-            content="[Message deleted by user]"
+            content="[Message deleted by user]",
+            message="[Message deleted by user]"
         )
+        
+        # Delete notifications (no need to keep)
+        from worker_connect.notification_models import Notification
+        Notification.objects.filter(recipient=user).delete()
         
         return {
             'success': True,
@@ -262,7 +382,32 @@ class GDPRService:
                 # Delete messages
                 from jobs.models import Message
                 Message.objects.filter(sender=user).delete()
-                Message.objects.filter(receiver=user).delete()
+                Message.objects.filter(recipient=user).delete()
+                
+                # Delete notifications
+                from worker_connect.notification_models import Notification
+                Notification.objects.filter(recipient=user).delete()
+                
+                # Delete reviews (received reviews kept anonymized for workers)
+                try:
+                    from jobs.review_models import Review
+                    Review.objects.filter(reviewer=user).update(
+                        reviewer=None,
+                        comment="[Review author deleted account]"
+                    )
+                except:
+                    pass
+                
+                # Keep payment records for 7 years (legal requirement)
+                # Mark as anonymized instead of deleting
+                try:
+                    from jobs.payment_models import Payment
+                    Payment.objects.filter(user=user).update(
+                        user=None,  # Null the user relationship
+                        # Keep payment records for legal/tax purposes
+                    )
+                except:
+                    pass
                 
                 # Finally delete user
                 user_id = user.id

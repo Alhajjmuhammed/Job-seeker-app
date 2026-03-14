@@ -4,6 +4,19 @@
 
 {% block title %}Request Worker - {{ worker.user.get_full_name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .card-header.bg-primary {
+        color: white !important;
+    }
+    .card-header.bg-primary h5,
+    .card-header.bg-primary i,
+    .card-header.bg-primary small {
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
@@ -45,9 +58,9 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-lightning-charge"></i> Quick Hire Request
+                        <i class="bi bi-lightning-charge me-2"></i> Quick Hire Request
                     </h5>
-                    <small>Book this worker for immediate or short-term work</small>
+                    <small class="text-white opacity-90">Book this worker for immediate or short-term work</small>
                 </div>
                 <div class="card-body">
                     <form method="post" id="directHireForm">

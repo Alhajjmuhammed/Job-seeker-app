@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Notification Center - Worker Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .notification-item {
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .notification-item:hover {
+        background-color: rgba(20, 184, 166, 0.05);
+        border-left-color: #14b8a6;
+    }
+    
+    .notification-item.unread {
+        background-color: rgba(20, 184, 166, 0.08);
+        border-left-color: #14b8a6;
+    }
+    
+    .notification-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.5rem;
+    }
+    
+    .notification-icon.info { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .notification-icon.success { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .notification-icon.warning { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .notification-icon.danger { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .notification-icon.primary { background-color: rgba(20, 184, 166, 0.1); color: #14b8a6; }
+    
+    .filter-btn.active {
+        background-color: #14b8a6 !important;
+        border-color: #14b8a6 !important;
+        color: white !important;
+    }
+    
+    .btn-teal {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+        color: white;
+    }
+    
+    .btn-teal:hover {
+        background-color: #0f766e;
+        border-color: #0f766e;
+        color: white;
+    }
+    
+    .text-teal {
+        color: #14b8a6 !important;
+    }
+    
+    .badge-unread {
+        background-color: #14b8a6;
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        color: #6b7280;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i class="bi bi-bell"></i> Notification Center
+                    </h2>
+                    <p class="text-muted mb-0">Stay updated with your latest activities</p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if unread_count > 0 %}
+                    <form method="post" action="{% url 'accounts:mark_all_read' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-teal">
+                            <i class="bi bi-check-all"></i> Mark All as Read
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="fw-bold me-2">Filter:</span>
+                        <div class="btn-group" role="group">
+                            <a href="?filter=all" class="btn btn-sm btn-outline-primary filter-btn {% if filter_type == 'all' %}active{% endif %}">
+                                <i class="bi bi-inbox"></i> All
+                                {% if all_count > 0 %}
+                                    <span class="badge badge-unread ms-1">{{ all_count }}</span>
+                                {% endif %}
+                            </a>
+                            <a href="?filter=unread" class="btn btn-sm btn-outline-primary filter-btn {% if filter_type == 'unread' %}active{% endif %}">
+                                <i class="bi bi-envelope"></i> Unread
+                                {% if unread_count > 0 %}
+                                    <span class="badge badge-unread ms-1">{{ unread_count }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                        <div class="notification-item p-3 border-bottom {% if not notification.is_read %}unread{% endif %}">
+                            <div class="row align-items-start">
+                                <div class="col-auto">
+                                    <div class="notification-icon {% if notification.notification_type == 'system' %}warning{% elif notification.notification_type == 'success' %}success{% elif notification.notification_type == 'error' %}danger{% else %}primary{% endif %}">
+                                        {% if notification.notification_type == 'job_assigned' %}
+                                            <i class="bi bi-briefcase"></i>
+                                        {% elif notification.notification_type == 'application_status' %}
+                                            <i class="bi bi-person-check"></i>
+                                        {% elif notification.notification_type == 'job_completed' %}
+                                            <i class="bi bi-check-circle"></i>
+                                        {% elif notification.notification_type == 'payment' %}
+                                            <i class="bi bi-cash-stack"></i>
+                                        {% elif notification.notification_type == 'review' %}
+                                            <i class="bi bi-star"></i>
+                                        {% elif notification.notification_type == 'message' %}
+                                            <i class="bi bi-chat-dots"></i>
+                                        {% elif notification.notification_type == 'system' %}
+                                            <i class="bi bi-gear"></i>
+                                        {% else %}
+                                            <i class="bi bi-bell"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="mb-1 fw-bold">{{ notification.title }}</h6>
+                                        <small class="text-muted">{{ notification.created_at|naturaltime }}</small>
+                                    </div>
+                                    <p class="text-muted mb-2">{{ notification.message }}</p>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        {% if not notification.is_read %}
+                                        <a href="{% url 'accounts:mark_notification_read' notification.id %}" class="btn btn-sm btn-outline-teal">
+                                            <i class="bi bi-check"></i> Mark as Read
+                                        </a>
+                                        <span class="badge badge-unread">New</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Read</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Pagination -->
+                        {% if notifications.has_other_pages %}
+                        <div class="p-3">
+                            <nav aria-label="Notification pagination">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if notifications.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.previous_page_number }}">
+                                            <i class="bi bi-chevron-left"></i> Previous
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    <li class="page-item disabled">
+                                        <span class="page-link">
+                                            Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}
+                                        </span>
+                                    </li>
+                                    
+                                    {% if notifications.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.next_page_number }}">
+                                            Next <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5 class="mb-2">No notifications</h5>
+                            {% if filter_type == 'unread' %}
+                            <p>You've read all your notifications! 🎉</p>
+                            <a href="?filter=all" class="btn btn-outline-primary">View All Notifications</a>
+                            {% else %}
+                            <p>You don't have any notifications yet.</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh notification count (optional)
+function updateNotificationBadge() {
+    fetch('/api/notifications/unread-count/')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.querySelector('.notification-badge');
+            if (badge && data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'inline-block';
+            } else if (badge) {
+                badge.style.display = 'none';
+            }
+        })
+        .catch(error => console.log('Error fetching notification count:', error));
+}
+
+// Update every 30 seconds
+setInterval(updateNotificationBadge, 30000);
+</script>
+{% endblock %}

@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Sum, Q
 
-from jobs.service_request_models import ServiceRequest
+from jobs.service_request_models import ServiceRequest, WorkerActivity
 from workers.models import Category
 from django.utils import timezone
 
@@ -56,7 +56,9 @@ def client_web_dashboard(request):
 
 @login_required
 def client_web_request_service(request):
-    """Client creates a new service request"""
+    """Client creates a new service request - matching the working template exactly"""
+    from datetime import datetime
+    
     if request.user.user_type != 'client':
         messages.error(request, 'Only clients can access this page.')
         return redirect('home')
@@ -65,21 +67,89 @@ def client_web_request_service(request):
     
     if request.method == 'POST':
         try:
+            # Get category
+            category_id = request.POST.get('category')
+            category = Category.objects.get(id=category_id, is_active=True)
+            
+            # Get workers_needed from POST or default to 1
+            workers_needed = request.POST.get('workers_needed', '1')
+            try:
+                workers_needed = int(workers_needed)
+                workers_needed = max(1, min(100, workers_needed))  # Clamp between 1 and 100
+            except (ValueError, TypeError):
+                workers_needed = 1
+            
+            # Get form data
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            location = request.POST.get('location', '').strip()
+            city = request.POST.get('city', '').strip()
+            duration_type = request.POST.get('duration_type')
+            urgency = request.POST.get('urgency', 'normal')
+            client_notes = request.POST.get('client_notes', '').strip()
+            
+            # Parse dates
+            preferred_date = request.POST.get('preferred_date')
+            preferred_time = request.POST.get('preferred_time')
+            service_start_date = request.POST.get('service_start_date')
+            service_end_date = request.POST.get('service_end_date')
+            
+            # Calculate duration and pricing
+            daily_rate = float(category.daily_rate)  # Use category-specific daily rate
+            duration_days = 1
+            
+            if duration_type == 'daily':
+                duration_days = 1
+            elif duration_type == 'monthly':
+                duration_days = 30
+            elif duration_type == '3_months':
+                duration_days = 90
+            elif duration_type == '6_months':
+                duration_days = 180
+            elif duration_type == 'yearly':
+                duration_days = 365
+            elif duration_type == 'custom' and service_start_date and service_end_date:
+                start_date = datetime.strptime(service_start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(service_end_date, '%Y-%m-%d').date()
+                duration_days = (end_date - start_date).days + 1
+            
+            # Calculate total: daily_rate × duration_days × workers_needed
+            total_price = duration_days * daily_rate * workers_needed
+            
+            # Get payment data
+            payment_method = request.POST.get('payment_method', 'pending')
+            payment_transaction_id = request.POST.get('payment_transaction_id', '')
+            payment_screenshot = request.FILES.get('payment_screenshot')
+            
             # Create service request
             service_request = ServiceRequest.objects.create(
                 client=request.user,
-                category_id=request.POST.get('category'),
-                title=request.POST.get('title'),
-                description=request.POST.get('description'),
-                location=request.POST.get('location'),
-                city=request.POST.get('city'),
-                preferred_date=request.POST.get('preferred_date') or None,
-                preferred_time=request.POST.get('preferred_time') or None,
-                estimated_duration_hours=request.POST.get('estimated_duration_hours'),
-                urgency=request.POST.get('urgency', 'normal'),
-                client_notes=request.POST.get('client_notes', ''),
-                status='pending'
+                category=category,
+                title=title,
+                description=description,
+                location=location,
+                city=city,
+                urgency=urgency,
+                duration_type=duration_type,
+                duration_days=duration_days,
+                daily_rate=daily_rate,
+                total_price=total_price,
+                preferred_date=preferred_date if preferred_date else None,
+                preferred_time=preferred_time if preferred_time else None,
+                service_start_date=service_start_date if service_start_date else None,
+                service_end_date=service_end_date if service_end_date else None,
+                client_notes=client_notes if client_notes else None,
+                workers_needed=workers_needed,
+                status='pending',
+                payment_status='pending',
+                payment_method=payment_method,
+                payment_transaction_id=payment_transaction_id
             )
+            
+            # Save payment screenshot if provided
+            if payment_screenshot:
+                service_request.payment_screenshot = payment_screenshot
+                service_request.save()
             
             # Update client profile
             if hasattr(request.user, 'client_profile'):
@@ -91,11 +161,16 @@ def client_web_request_service(request):
             from worker_connect.notification_service import NotificationService
             NotificationService.notify_admin_new_service_request(service_request)
             
-            messages.success(request, '✅ Service request created! Admin will assign a worker soon.')
+            # Success message
+            messages.success(request, 
+                f'Your {category.name} service request has been submitted! '
+                f'Total price: TSH {total_price:.2f}. '
+                'Our team will assign a qualified worker and notify you within 2-4 hours.'
+            )
             return redirect('service_requests_web:client_request_detail', pk=service_request.id)
             
         except Exception as e:
-            messages.error(request, f'Error creating request: {str(e)}')
+            messages.error(request, f'Error creating service request: {str(e)}')
     
     context = {
         'categories': categories,
@@ -187,9 +262,16 @@ def client_web_request_detail(request, pk):
     # Get time logs
     time_logs = service_request.time_logs.all().order_by('-clock_in')
     
+    # Get worker assignments - only show accepted/in_progress/completed workers
+    # Clients should only see workers who have accepted their request (not pending or rejected)
+    assignments = service_request.assignments.filter(
+        status__in=['accepted', 'in_progress', 'completed']
+    ).select_related('worker', 'worker__user').order_by('assignment_number')
+    
     context = {
         'service_request': service_request,  # Changed from 'request' to avoid conflict
         'time_logs': time_logs,
+        'assignments': assignments,
         'active_menu': 'my_requests'
     }
     
@@ -247,6 +329,66 @@ def client_web_cancel_request(request, pk):
 
 
 @login_required
+def client_web_edit_request(request, pk):
+    """Edit a pending service request"""
+    if request.user.user_type != 'client':
+        messages.error(request, 'Only clients can access this page.')
+        return redirect('home')
+    
+    service_request = get_object_or_404(ServiceRequest, pk=pk, client=request.user)
+    
+    # Check if request can be edited (only pending requests)
+    if service_request.status != 'pending':
+        messages.error(request, f'Cannot edit request that is {service_request.status}. Only pending requests can be edited.')
+        return redirect('service_requests_web:client_request_detail', pk=pk)
+    
+    categories = Category.objects.filter(is_active=True).order_by('name')
+    
+    if request.method == 'POST':
+        try:
+            # Update service request fields
+            service_request.title = request.POST.get('title', '').strip()
+            service_request.description = request.POST.get('description', '').strip()
+            service_request.location = request.POST.get('location', '').strip()
+            service_request.city = request.POST.get('city', '').strip()
+            service_request.preferred_date = request.POST.get('preferred_date') or None
+            service_request.preferred_time = request.POST.get('preferred_time') or None
+            service_request.estimated_duration_hours = request.POST.get('estimated_duration_hours')
+            service_request.urgency = request.POST.get('urgency', 'normal')
+            service_request.client_notes = request.POST.get('client_notes', '').strip()
+            
+            # Validate required fields
+            if not service_request.title:
+                messages.error(request, 'Title is required.')
+                raise ValueError('Title is required')
+            if not service_request.description or len(service_request.description) < 20:
+                messages.error(request, 'Description must be at least 20 characters.')
+                raise ValueError('Description too short')
+            if not service_request.location:
+                messages.error(request, 'Location is required.')
+                raise ValueError('Location is required')
+            
+            service_request.save()
+            
+            messages.success(request, '✅ Service request has been updated successfully!')
+            return redirect('service_requests_web:client_request_detail', pk=service_request.id)
+            
+        except ValueError:
+            # Validation error, re-render form with error message
+            pass
+        except Exception as e:
+            messages.error(request, f'Error updating request: {str(e)}')
+    
+    context = {
+        'service_request': service_request,
+        'categories': categories,
+        'active_menu': 'my_requests'
+    }
+    
+    return render(request, 'service_requests/client/edit_request.html', context)
+
+
+@login_required
 def client_web_complete_request(request, pk):
     """Mark a service request as completed (client marks as finished)"""
     if request.user.user_type != 'client':
@@ -286,6 +428,67 @@ def client_web_complete_request(request, pk):
     
     # If not POST, redirect back to detail page
     return redirect('service_requests_web:client_request_detail', pk=pk)
+
+
+@login_required
+def client_web_upload_screenshot(request, pk):
+    """Upload payment screenshot for a service request"""
+    if request.user.user_type != 'client':
+        messages.error(request, 'Only clients can access this page.')
+        return redirect('home')
+    
+    service_request = get_object_or_404(ServiceRequest, pk=pk, client=request.user)
+    
+    if request.method == 'POST':
+        # Check if file was uploaded
+        if 'payment_screenshot' not in request.FILES:
+            messages.error(request, 'Please select a screenshot file to upload.')
+            return redirect('service_requests_web:client_request_detail', pk=pk)
+        
+        # Get the uploaded file
+        screenshot = request.FILES['payment_screenshot']
+        
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        if screenshot.content_type not in allowed_types:
+            messages.error(request, 'Invalid file type. Please upload an image file (JPEG, PNG, GIF, or WebP).')
+            return redirect('service_requests_web:client_request_detail', pk=pk)
+        
+        # Validate file size (max 5MB)
+        max_size = 5 * 1024 * 1024  # 5MB in bytes
+        if screenshot.size > max_size:
+            messages.error(request, 'File too large. Maximum size is 5MB.')
+            return redirect('service_requests_web:client_request_detail', pk=pk)
+        
+        # Save the screenshot
+        service_request.payment_screenshot = screenshot
+        service_request.payment_verified = False  # Reset verification when new screenshot uploaded
+        service_request.payment_verified_by = None
+        service_request.payment_verified_at = None
+        service_request.save()
+        
+        # Notify admin about new screenshot
+        from worker_connect.notification_helpers import notify_system_alert
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        admins = User.objects.filter(is_staff=True, is_active=True)
+        for admin in admins:
+            notify_system_alert(
+                admin,
+                'New Payment Screenshot',
+                f'Client {request.user.get_full_name()} uploaded a payment screenshot for request #{service_request.id}'
+            )
+        
+        messages.success(request, '✅ Payment screenshot uploaded successfully! Admin will verify it soon.')
+        return redirect('service_requests_web:client_request_detail', pk=pk)
+    
+    # GET request - show upload form
+    context = {
+        'service_request': service_request,
+        'active_menu': 'my_requests'
+    }
+    
+    return render(request, 'service_requests/client/upload_screenshot.html', context)
 
 
 @login_required
@@ -414,3 +617,37 @@ def client_web_rate_worker(request, pk):
     }
     
     return render(request, 'service_requests/client/rate_worker.html', context)
+
+
+@login_required
+def client_web_activity(request, pk):
+    """View activity log for a specific service request"""
+    if request.user.user_type != 'client':
+        messages.error(request, 'Only clients can access this page.')
+        return redirect('home')
+    
+    service_request = get_object_or_404(ServiceRequest, pk=pk, client=request.user)
+    
+    # Get all activities for this service request
+    activity_list = WorkerActivity.objects.filter(
+        service_request=service_request
+    ).select_related('worker', 'worker__user').order_by('-created_at')
+    
+    # Filter by activity type if specified
+    activity_type = request.GET.get('type')
+    if activity_type:
+        activity_list = activity_list.filter(activity_type=activity_type)
+    
+    # Pagination
+    paginator = Paginator(activity_list, 20)
+    page = request.GET.get('page', 1)
+    activities = paginator.get_page(page)
+    
+    context = {
+        'service_request': service_request,
+        'activities': activities,
+        'activity_type': activity_type,
+        'active_menu': 'my_requests'
+    }
+    
+    return render(request, 'service_requests/client/activity.html', context)

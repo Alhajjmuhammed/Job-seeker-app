@@ -1,0 +1,717 @@
+{% extends 'workers/base_worker.html' %}
+{% load static %}
+
+{% block title %}Analytics - Worker Connect{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+    .worker-content {
+        background: white !important;
+        padding: 2rem !important;
+    }
+    
+    .stats-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    }
+    
+    .stats-card.primary { border-left-color: #0f766e; }
+    .stats-card.success { border-left-color: #10b981; }
+    .stats-card.warning { border-left-color: #f59e0b; }
+    .stats-card.info { border-left-color: #3b82f6; }
+    .stats-card.danger { border-left-color: #ef4444; }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 2rem;
+    }
+    
+    .metric-badge {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+    }
+    
+    .category-bar {
+        height: 30px;
+        background: linear-gradient(90deg, #0f766e 0%, #14b8a6 100%);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .category-bar::after {
+        content: attr(data-value);
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(15, 118, 110, 0.05);
+    }
+    
+    .performance-indicator {
+        width: 100%;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .performance-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .performance-fill.excellent { background: linear-gradient(90deg, #10b981, #14b8a6); }
+    .performance-fill.good { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .performance-fill.average { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .performance-fill.poor { background: linear-gradient(90deg, #ef4444, #f87171); }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i class="bi bi-graph-up"></i> Performance Analytics
+                    </h2>
+                    <p class="text-muted mb-0">Track your earnings, jobs, and performance metrics</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'workers:export_analytics' %}" class="btn btn-success">
+                        <i class="bi bi-download"></i> Export CSV
+                    </a>
+                    <a href="{% url 'workers:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="fw-bold me-2">Time Period:</span>
+                        <div class="btn-group" role="group">
+                            <a href="?period=7" class="btn btn-sm {% if period_days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Last 7 Days
+                            </a>
+                            <a href="?period=30" class="btn btn-sm {% if period_days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Last Month
+                            </a>
+                            <a href="?period=90" class="btn btn-sm {% if period_days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Last 3 Months
+                            </a>
+                            <a href="?period=180" class="btn btn-sm {% if period_days == 180 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Last 6 Months
+                            </a>
+                            <a href="?period=365" class="btn btn-sm {% if period_days == 365 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Last Year
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card primary border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-2 text-uppercase small">Total Earnings</h6>
+                            <h3 class="mb-0 fw-bold text-primary">TSH {{ total_earnings|floatformat:0|default:"0" }}</h3>
+                            <small class="text-success">
+                                <i class="bi bi-cash-stack"></i> Completed Jobs
+                            </small>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-currency-dollar display-6 text-primary"></i>
+                        </div>
+                    </div>
+                    {% if pending_earnings > 0 %}
+                    <div class="border-top pt-2">
+                        <small class="text-muted">Pending: TSH {{ pending_earnings|floatformat:0 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card success border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-2 text-uppercase small">Completed Jobs</h6>
+                            <h3 class="mb-0 fw-bold text-success">{{ completed_jobs }}</h3>
+                            <small class="text-muted">
+                                of {{ total_assignments }} total assignments
+                            </small>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-check-circle display-6 text-success"></i>
+                        </div>
+                    </div>
+                    <div class="performance-indicator">
+                        <div class="performance-fill excellent" data-width="{{ success_rate }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card warning border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-2 text-uppercase small">Average Rating</h6>
+                            <h3 class="mb-0 fw-bold text-warning">
+                                {{ avg_rating|floatformat:1 }}
+                                <i class="bi bi-star-fill" style="font-size: 1.2rem;"></i>
+                            </h3>
+                            <small class="text-muted">
+                                Based on client reviews
+                            </small>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-star display-6 text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1">
+                        {% for i in "12345" %}
+                            <i class="bi bi-star-fill {% if forloop.counter <= avg_rating %}text-warning{% else %}text-muted opacity-25{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card info border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-2 text-uppercase small">Success Rate</h6>
+                            <h3 class="mb-0 fw-bold text-info">{{ success_rate|floatformat:1 }}%</h3>
+                            <small class="text-muted">
+                                Job completion rate
+                            </small>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-graph-up-arrow display-6 text-info"></i>
+                        </div>
+                    </div>
+                    <div class="performance-indicator">
+                        <div class="performance-fill {% if success_rate >= 90 %}excellent{% elif success_rate >= 70 %}good{% elif success_rate >= 50 %}average{% else %}poor{% endif %}" 
+                             data-width="{{ success_rate }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Earnings Over Time -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-graph-up"></i> Earnings Over Time
+                        </h5>
+                        <span class="metric-badge bg-primary bg-opacity-10 text-primary">
+                            Last 6 Months
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="earningsChart"></canvas>
+                    </div>
+                    {% if completed_jobs == 0 %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-bar-chart text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No earnings data yet. Complete jobs to see your earnings trend!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-speedometer2"></i> Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Profile Completion</span>
+                            <span class="fw-bold text-primary">{{ profile.profile_completion_percentage }}%</span>
+                        </div>
+                        <div class="performance-indicator">
+                            <div class="performance-fill {% if profile.profile_completion_percentage >= 80 %}excellent{% elif profile.profile_completion_percentage >= 60 %}good{% else %}average{% endif %}" 
+                                 data-width="{{ profile.profile_completion_percentage }}"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Active Jobs</span>
+                            <span class="fw-bold text-success">{{ active_jobs }}</span>
+                        </div>
+                        <small class="text-muted">Currently in progress</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Total Assignments</span>
+                            <span class="fw-bold">{{ total_assignments }}</span>
+                        </div>
+                        <small class="text-muted">All jobs assigned to you</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Avg. Earnings/Job</span>
+                            <span class="fw-bold text-primary">
+                                {% if completed_jobs > 0 %}
+                                    TSH {{ total_earnings|floatformat:0|default:"0" }} / {{ completed_jobs }} = 
+                                    TSH {% widthratio total_earnings completed_jobs 1 %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid">
+                        <a href="{% url 'workers:dashboard' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-speedometer2"></i> View Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings by Category -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-bar-chart"></i> Earnings by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    {% if not category_earnings %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-bar-chart text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No category data yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-pie-chart"></i> Job Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Completed Jobs -->
+                        <i class="bi bi-pie-chart"></i> Earnings by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if category_earnings %}
+                        {% for item in category_earnings %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-medium">{{ item.category__name }}</span>
+                                <span class="text-muted small">{{ item.jobs }} job{{ item.jobs|pluralize }}</span>
+                            </div>
+                            <div class="category-bar" 
+                                 data-width="{% widthratio item.earnings total_earnings 100 %}"
+                                 data-value="TSH {{ item.earnings|floatformat:0 }}">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-pie-chart text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">No category data yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Completed Jobs -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-clock-history"></i> Recent Completed Jobs
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_jobs %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0">Category</th>
+                                        <th class="border-0">Client</th>
+                                        <th class="border-0">Earned</th>
+                                        <th class="border-0">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for job in recent_jobs %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary">
+                                                {{ job.category.name|default:"N/A" }}
+                                            </span>
+                                        </td>
+                                        <td>{{ job.client.get_full_name }}</td>
+                                        <td class="fw-bold text-success">TSH {{ job.total_price|floatformat:0 }}</td>
+                                        <td class="text-muted small">{{ job.updated_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">No completed jobs yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb text-warning"></i> Tips to Improve Your Performance
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <small>Complete jobs on time</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-star-fill text-warning me-2"></i>
+                                <small>Maintain high ratings</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-person-check-fill text-info me-2"></i>
+                                <small>Complete your profile</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-chat-dots-fill text-primary me-2"></i>
+                                <small>Communicate clearly</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Data for JavaScript -->
+<script id="time-earnings-data" type="application/json">{{ time_earnings_json|safe }}</script>
+<script id="category-earnings-data" type="application/json">{{ category_earnings_json|safe }}</script>
+<script id="status-distribution-data" type="application/json">{{ status_distribution_json|safe }}</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set dynamic widths from data attributes
+    document.querySelectorAll('[data-width]').forEach(function(el) {
+        el.style.width = el.getAttribute('data-width') + '%';
+    });
+    
+    // Earnings Over Time Chart
+    const earningsCtx = document.getElementById('earningsChart');
+    if (earningsCtx) {
+        const timeDataElement = document.getElementById('time-earnings-data');
+        const timeData = timeDataElement ? JSON.parse(timeDataElement.textContent) : [];
+        
+        if (timeData && timeData.length > 0) {
+            const labels = timeData.map(item => {
+                const date = new Date(item.time_period);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            });
+            
+            const earnings = timeData.map(item => parseFloat(item.earnings || 0));
+            const jobs = timeData.map(item => item.jobs || 0);
+            
+            new Chart(earningsCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Earnings (TSH)',
+                        data: earnings,
+                        borderColor: '#0f766e',
+                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#0f766e',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const jobCount = jobs[context.dataIndex];
+                                    return [
+                                        'Earnings: TSH ' + context.parsed.y.toFixed(0),
+                                        'Jobs: ' + jobCount
+                                    ];
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            borderColor: '#0f766e',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'TSH ' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Category Earnings Chart (Bar Chart)
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx) {
+        const categoryDataElement = document.getElementById('category-earnings-data');
+        const categoryData = categoryDataElement ? JSON.parse(categoryDataElement.textContent) : [];
+        
+        if (categoryData && categoryData.length > 0) {
+            const labels = categoryData.map(item => `${item.icon} ${item.name}`);
+            const earnings = categoryData.map(item => parseFloat(item.earnings || 0));
+            const jobs = categoryData.map(item => item.jobs || 0);
+            
+            // Generate gradient colors
+            const colors = [
+                '#0f766e', '#14b8a6', '#10b981', '#3b82f6', '#8b5cf6',
+                '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16'
+            ];
+            
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Earnings (TSH)',
+                        data: earnings,
+                        backgroundColor: colors.slice(0, categoryData.length),
+                        borderWidth: 0,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const jobCount = jobs[context.dataIndex];
+                                    return [
+                                        'Earnings: TSH ' + context.parsed.y.toFixed(0),
+                                        'Jobs: ' + jobCount
+                                    ];
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'TSH ' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Status Distribution Chart (Pie Chart)
+    const statusCtx = document.getElementById('statusPieChart');
+    if (statusCtx) {
+        const statusDataElement = document.getElementById('status-distribution-data');
+        const statusData = statusDataElement ? JSON.parse(statusDataElement.textContent) : [];
+        
+        if (statusData && statusData.length > 0) {
+            const labels = statusData.map(item => item.status);
+            const counts = statusData.map(item => item.count);
+            
+            const statusColors = {
+                'Pending': '#fbbf24',
+                'Assigned': '#3b82f6',
+                'In Progress': '#8b5cf6',
+                'Completed': '#10b981',
+                'Cancelled': '#ef4444'
+            };
+            
+            const backgroundColors = labels.map(label => statusColors[label] || '#6b7280');
+            
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}
+

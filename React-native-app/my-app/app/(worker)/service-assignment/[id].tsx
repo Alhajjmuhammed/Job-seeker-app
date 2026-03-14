@@ -11,7 +11,7 @@ import {
   Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -65,25 +65,50 @@ export default function ServiceAssignmentDetail() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
 
-  useEffect(() => {
-    loadAssignmentDetail();
-  }, [id]);
-
-  const loadAssignmentDetail = async () => {
+  const loadAssignmentDetail = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiService.getWorkerAssignmentDetail(Number(id));
-      setAssignment(response.service_request || response);
+      
+      // Extract assignment data from response
+      const assignmentData = response.assignment || response.service_request || response;
+      const clockedInStatus = response.is_clocked_in === true;
+      
+      // Update all states
+      setAssignment(assignmentData);
       setTimeLogs(response.time_logs || []);
-      setIsClockedIn(response.is_clocked_in || false);
+      setIsClockedIn(clockedInStatus);
+      
+      console.log('✅ Assignment Detail Loaded:', {
+        assignmentId: assignmentData.id,
+        status: assignmentData.status,
+        workerAccepted: assignmentData.worker_accepted,
+        isClockedIn: clockedInStatus,
+        timeLogsCount: (response.time_logs || []).length
+      });
     } catch (error: any) {
-      console.error('Error loading assignment:', error);
+      console.error('❌ Error loading assignment:', error);
       Alert.alert('Error', error.response?.data?.error || 'Failed to load assignment details');
       router.back();
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadAssignmentDetail();
+  }, [loadAssignmentDetail]);
+
+  // Reload data when screen comes back into focus (e.g., after clock in/out)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Screen focused - Reloading assignment data...');
+      loadAssignmentDetail();
+      return () => {
+        console.log('👋 Screen unfocused');
+      };
+    }, [loadAssignmentDetail])
+  );
 
   const handleAccept = async () => {
     if (!assignment) return;
@@ -491,6 +516,76 @@ export default function ServiceAssignmentDetail() {
           </View>
         )}
 
+        {/* Action Buttons for Accepted/In Progress Assignments */}
+        {(assignment.status === 'accepted' || assignment.status === 'in_progress') && (
+          <View style={[styles.card, { backgroundColor: theme.card }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              Actions
+            </Text>
+
+            {/* Debug Info - Remove in production */}
+            <Text style={{ fontSize: 10, color: theme.textSecondary, marginBottom: 8 }}>
+              Status: {isClockedIn ? 'Clocked In' : 'Clocked Out'} | Assignment: {assignment.status}
+            </Text>
+
+            {isClockedIn ? (
+              // Show Clock Out button when clocked in
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: theme.error }]}
+                onPress={() => {
+                  console.log('🕐 Clock Out pressed - Assignment ID:', assignment.id, '| Clocked In:', isClockedIn);
+                  router.push(`/(worker)/assignments/clock/out/${assignment.id}` as any);
+                }}
+              >
+                <Ionicons name="log-out-outline" size={20} color="#fff" />
+                <Text style={styles.actionButtonText}>Clock Out</Text>
+              </TouchableOpacity>
+            ) : (
+              // Show Clock In and Complete buttons when clocked out
+              <>
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: theme.primary }]}
+                  onPress={() => {
+                    console.log('🕐 Clock In pressed - Assignment ID:', assignment.id, '| Clocked In:', isClockedIn);
+                    router.push(`/(worker)/assignments/clock/in/${assignment.id}` as any);
+                  }}
+                >
+                  <Ionicons name="log-in-outline" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Clock In</Text>
+                </TouchableOpacity>
+
+                {!isClockedIn && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, { backgroundColor: theme.success || '#10b981', marginTop: 12 }]}
+                    onPress={() => {
+                      console.log('✅ Mark Complete pressed - Assignment ID:', assignment.id);
+                      router.push(`/(worker)/assignments/complete/${assignment.id}` as any);
+                    }}
+                  >
+                    <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                    <Text style={styles.actionButtonText}>Mark as Complete</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </View>
+        )}
+
+        {/* Completed Status */}
+        {assignment.status === 'completed' && (
+          <View style={[styles.card, { backgroundColor: theme.success || '#10b981' }]}>
+            <View style={styles.completedContent}>
+              <Ionicons name="checkmark-circle" size={32} color="#fff" />
+              <Text style={styles.completedText}>Service Completed!</Text>
+              {assignment.work_completed_at && (
+                <Text style={styles.completedDate}>
+                  Completed on {new Date(assignment.work_completed_at).toLocaleDateString()}
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Time Tracking - HIDDEN: Duration-based pricing, not hourly */}
         {/* Keeping this section commented for potential future use
         {(timeLogs.length > 0 || assignment.work_started_at) && (
@@ -767,5 +862,34 @@ const styles = StyleSheet.create({
   },
   timeValue: {
     fontSize: 14,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  completedContent: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  completedText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 12,
+  },
+  completedDate: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 8,
+    opacity: 0.9,
   },
 });

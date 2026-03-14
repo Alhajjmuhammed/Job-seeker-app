@@ -5,6 +5,7 @@ URL patterns for Service Request API
 from django.urls import path
 from admin_panel import service_request_views as admin_views
 from workers import service_request_worker_views as worker_views
+from workers import assignment_views  # New: Individual assignment views for multi-worker system
 from clients import service_request_client_views as client_views
 from clients import pricing_api
 
@@ -13,6 +14,7 @@ admin_urlpatterns = [
     path('service-requests/', admin_views.admin_service_requests, name='admin_service_requests'),
     path('service-requests/<int:pk>/', admin_views.admin_service_request_detail, name='admin_service_request_detail'),
     path('service-requests/<int:pk>/assign/', admin_views.admin_assign_worker, name='admin_assign_worker'),
+    path('service-requests/<int:pk>/bulk-assign/', admin_views.admin_bulk_assign_workers, name='admin_bulk_assign_workers'),
     path('service-requests/<int:pk>/reassign/', admin_views.admin_reassign_worker, name='admin_reassign_worker'),
     path('service-requests/dashboard/', admin_views.admin_dashboard_stats, name='admin_service_dashboard_stats'),
     path('service-requests/workers/', admin_views.admin_available_workers, name='admin_available_workers'),
@@ -20,6 +22,7 @@ admin_urlpatterns = [
 
 # Worker URLs - prefix: /api/v1/worker/
 worker_urlpatterns = [
+    # Legacy endpoints (single worker system - keep for backwards compatibility)
     path('service-requests/', worker_views.worker_assigned_services, name='worker_assigned_services'),
     path('service-requests/pending/', worker_views.worker_pending_assignments, name='worker_pending_assignments'),
     path('service-requests/current/', worker_views.worker_current_assignment, name='worker_current_assignment'),
@@ -30,6 +33,17 @@ worker_urlpatterns = [
     path('service-requests/<int:pk>/complete/', worker_views.worker_complete_service, name='worker_complete_service'),
     path('activity/', worker_views.worker_activity_history, name='worker_activity'),
     path('statistics/', worker_views.worker_statistics, name='worker_service_statistics'),
+    
+    # NEW: Individual assignment endpoints (multi-worker system)
+    # Each worker sees ONLY their own individual assignment
+    path('my-assignments/', assignment_views.worker_my_assignments, name='worker_my_assignments'),
+    path('my-assignments/pending/', assignment_views.worker_pending_assignments, name='worker_pending_assignments_new'),
+    path('my-assignments/<int:assignment_id>/', assignment_views.worker_assignment_detail, name='worker_assignment_detail'),
+    path('my-assignments/<int:assignment_id>/respond/', assignment_views.worker_respond_to_assignment, name='worker_respond_assignment_new'),
+    path('my-assignments/<int:assignment_id>/clock-in/', assignment_views.worker_clock_in_assignment, name='worker_clock_in_assignment'),
+    path('my-assignments/<int:assignment_id>/clock-out/', assignment_views.worker_clock_out_assignment, name='worker_clock_out_assignment'),
+    path('my-assignments/<int:assignment_id>/complete/', assignment_views.worker_complete_assignment, name='worker_complete_assignment'),
+    path('my-assignments/stats/', assignment_views.worker_assignment_stats, name='worker_assignment_stats'),
 ]
 
 # Client URLs - prefix: /api/v1/client/

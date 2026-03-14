@@ -49,6 +49,12 @@
     .card-header.bg-primary {
         background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%) !important;
         border: none;
+        color: white !important;
+    }
+    .card-header.bg-primary h5,
+    .card-header.bg-primary i,
+    .card-header.bg-primary small {
+        color: white !important;
     }
     .alert-info {
         background-color: #f0fdfa;
@@ -72,7 +78,7 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-plus-circle"></i>
+                        <i class="bi bi-plus-circle me-2"></i>
                         Request {{ category.name }} Service
                     </h5>
                 </div>
@@ -105,7 +111,7 @@
                     </div>
 
                     <!-- Request Form -->
-                    <form method="post" id="serviceRequestForm">
+                    <form method="post" id="serviceRequestForm" data-daily-rate="{{ daily_rate|default:0 }}">
                         {% csrf_token %}
                         
                         <div class="row">
@@ -168,6 +174,28 @@
                                                id="preferred_time" 
                                                name="preferred_time">
                                     </div>
+                                </div>
+
+                                <!-- Number of Workers Needed -->
+                                <div class="mb-3">
+                                    <label for="workers_needed" class="form-label">Number of Workers Needed</label>
+                                    <div class="input-group" style="max-width: 200px;">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(-1)">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control text-center" 
+                                               id="workers_needed" 
+                                               name="workers_needed" 
+                                               value="1" 
+                                               min="1" 
+                                               max="100"
+                                               required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(1)">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Each additional worker increases the total cost</small>
                                 </div>
                             </div>
 
@@ -233,28 +261,30 @@
 
                                 <!-- Price Display -->
                                 <div id="priceDisplay" class="price-card p-3 mb-4" style="display: none;">
-                                    <h6 class="mb-3"><i class="bi bi-calculator me-2"></i>Price Calculation (1 Worker)</h6>
+                                    <h6 class="mb-3"><i class="bi bi-calculator me-2"></i>Price Calculation</h6>
                                     <div class="row">
-                                        <div class="col-4 text-center">
-                                            <div class="text-muted small">Service Duration</div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Workers</div>
+                                            <div id="workersDisplay" class="price-value">1</div>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Duration</div>
                                             <div id="durationDays" class="price-value">-</div>
                                             <div class="text-muted small">days</div>
                                         </div>
-                                        <div class="col-4 text-center">
-                                            <div class="text-muted small">Daily Rate</div>
-                                            <div id="dailyRate" class="price-value">$-</div>
-                                            <div class="text-muted small">per day</div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Rate/Day</div>
+                                            <div id="dailyRate" class="price-value">-</div>
                                         </div>
-                                        <div class="col-4 text-center">
-                                            <div class="text-muted small">Total Cost</div>
-                                            <div id="totalPrice" class="price-value">$-</div>
-                                            <div class="text-muted small">for 1 worker</div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Total</div>
+                                            <div id="totalPrice" class="price-value">-</div>
                                         </div>
                                     </div>
                                     <div class="text-center mt-2">
                                         <small class="text-muted">
                                             <i class="bi bi-info-circle"></i> 
-                                            Price is calculated as: <span id="calcFormula">Daily Rate × Duration Days</span>
+                                            <span id="calcFormula">Workers × Days × Daily Rate</span>
                                         </small>
                                     </div>
                                 </div>
@@ -463,11 +493,30 @@
 </div>
 
 <script>
+// @ts-nocheck
 let paymentData = null;
 let screenshotFile = null;
 let currentTotalPrice = 0;
+let DAILY_RATE = 0;
+
+function adjustWorkers(delta) {
+    const input = document.getElementById('workers_needed');
+    let current = parseInt(input.value) || 1;
+    let newValue = Math.max(1, Math.min(100, current + delta));
+    input.value = newValue;
+    
+    // Recalculate price
+    const durationType = document.getElementById('duration_type').value;
+    if (durationType) {
+        calculatePrice(durationType);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Get daily rate from form data attribute
+    const form = document.getElementById('serviceRequestForm');
+    DAILY_RATE = parseFloat(form.getAttribute('data-daily-rate')) || 0;
+    
     // Submit button handler
     document.getElementById('submitBtn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -549,6 +598,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('preferred_date').min = today;
     if (startDateInput) startDateInput.min = today;
     
+    // Workers change listener
+    const workersInput = document.getElementById('workers_needed');
+    if (workersInput) {
+        workersInput.addEventListener('change', function() {
+            const durationType = document.getElementById('duration_type').value;
+            if (durationType) {
+                calculatePrice(durationType);
+            }
+        });
+    }
+    
     // Card number formatting
     document.getElementById('cardNumber').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\s/g, '');
@@ -578,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function calculatePrice(durationType) {
         // Get the real daily rate from Django context
         let durationDays = 1;
-        const dailyRate = {{ daily_rate }}; // Real category-specific daily rate
+        const workersNeeded = parseInt(document.getElementById('workers_needed').value) || 1;
         
         switch(durationType) {
             case 'daily': durationDays = 1; break;
@@ -586,26 +646,32 @@ document.addEventListener('DOMContentLoaded', function() {
             case '3_months': durationDays = 90; break;
             case '6_months': durationDays = 180; break;
             case 'yearly': durationDays = 365; break;
-            case 'custom': 
-                // Will be calculated when dates are selected
-                durationDays = 1;
+            case 'custom':
+                const startDate = document.getElementById('service_start_date').value;
+                const endDate = document.getElementById('service_end_date').value;
+                if (startDate && endDate) {
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    durationDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                }
                 break;
         }
         
-        const totalPrice = durationDays * dailyRate; // 1 worker × daily rate × duration
+        const totalPrice = durationDays * DAILY_RATE * workersNeeded;
         currentTotalPrice = totalPrice;
         
         // Update price display
+        document.getElementById('workersDisplay').textContent = workersNeeded;
         document.getElementById('durationDays').textContent = durationDays;
-        document.getElementById('dailyRate').textContent = `TSH ${dailyRate}`;
-        document.getElementById('totalPrice').textContent = `TSH ${totalPrice}`;
-        document.getElementById('calcFormula').textContent = `TSH ${dailyRate} × ${durationDays} days = TSH ${totalPrice}`;
+        document.getElementById('dailyRate').textContent = `TSH ${DAILY_RATE.toLocaleString()}`;
+        document.getElementById('totalPrice').textContent = `TSH ${totalPrice.toLocaleString()}`;
+        document.getElementById('calcFormula').textContent = `${workersNeeded} × ${durationDays} × TSH ${DAILY_RATE.toLocaleString()} = TSH ${totalPrice.toLocaleString()}`;
         priceDisplay.style.display = 'block';
     }
     
     function calculateFinalPrice(durationType) {
         let durationDays = 1;
-        const dailyRate = {{ daily_rate }};
+        const workersNeeded = parseInt(document.getElementById('workers_needed').value) || 1;
         
         switch(durationType) {
             case 'daily': durationDays = 1; break;
@@ -615,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'yearly': durationDays = 365; break;
         }
         
-        currentTotalPrice = durationDays * dailyRate;
+        currentTotalPrice = durationDays * DAILY_RATE * workersNeeded;
     }
 });
 
@@ -801,6 +867,7 @@ async function submitRequest() {
         formData.append('duration_type', form.duration_type.value);
         formData.append('urgency', form.urgency.value);
         formData.append('client_notes', form.client_notes.value);
+        formData.append('workers_needed', form.workers_needed.value);
         
         if (form.duration_type.value === 'custom') {
             formData.append('service_start_date', form.service_start_date.value);

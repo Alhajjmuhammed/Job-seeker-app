@@ -1,0 +1,289 @@
+{% extends "clients/base_client.html" %}
+
+{% block title %}Upload Payment Screenshot{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Teal System Colors */
+    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
+    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+    .text-primary { color: #14b8a6 !important; }
+    
+    .upload-area {
+        border: 2px dashed #14b8a6;
+        border-radius: 8px;
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: rgba(20, 184, 166, 0.02);
+    }
+    
+    .upload-area:hover {
+        border-color: #0f766e;
+        background: rgba(20, 184, 166, 0.05);
+    }
+    
+    .upload-area.dragover {
+        border-color: #0f766e;
+        background: rgba(20, 184, 166, 0.1);
+    }
+    
+    .upload-icon {
+        font-size: 4rem;
+        color: #14b8a6;
+        margin-bottom: 1rem;
+    }
+    
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+    
+    .file-input-wrapper input[type=file] {
+        position: absolute;
+        left: -9999px;
+    }
+    
+    .file-input-label {
+        display: inline-block;
+        padding: 0.75rem 2rem;
+        background: #14b8a6;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .file-input-label:hover {
+        background: #0f766e;
+    }
+    
+    .preview-container {
+        margin-top: 2rem;
+        display: none;
+    }
+    
+    .preview-container.show {
+        display: block;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .file-info {
+        background: #f0fdfa;
+        border: 1px solid #14b8a6;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .alert-info {
+        background-color: #f0f9ff;
+        border-color: #3b82f6;
+        color: #1e40af;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📸 Upload Payment Screenshot</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h6 class="mb-2"><i class="bi bi-info-circle"></i> Upload Guidelines</h6>
+                        <ul class="mb-0 small">
+                            <li>Accepted formats: JPEG, PNG, GIF, WebP</li>
+                            <li>Maximum file size: 5MB</li>
+                            <li>Screenshot should clearly show payment details</li>
+                            <li>Admin will verify the screenshot before processing</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                        {% csrf_token %}
+                        
+                        <div class="upload-area" id="uploadArea">
+                            <i class="bi bi-cloud-upload upload-icon"></i>
+                            <h5>Drag & Drop Screenshot Here</h5>
+                            <p class="text-muted mb-3">or</p>
+                            
+                            <div class="file-input-wrapper">
+                                <label for="fileInput" class="file-input-label">
+                                    <i class="bi bi-folder2-open"></i> Browse Files
+                                </label>
+                                <input type="file" 
+                                       id="fileInput" 
+                                       name="payment_screenshot" 
+                                       accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-container" id="previewContainer">
+                            <h6 class="mb-3">Selected Screenshot:</h6>
+                            <img id="previewImage" class="preview-image" alt="Screenshot preview">
+                            
+                            <div class="file-info" id="fileInfo">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>File:</strong> <span id="fileName"></span><br>
+                                        <strong>Size:</strong> <span id="fileSize"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
+                                        <i class="bi bi-x-circle"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="bi bi-upload"></i> Upload Screenshot
+                            </button>
+                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">📋 Request Info</h6>
+                    <hr>
+                    <p class="mb-1"><strong>Request ID:</strong> #{{ service_request.id }}</p>
+                    <p class="mb-1"><strong>Title:</strong> {{ service_request.title }}</p>
+                    <p class="mb-1"><strong>Status:</strong> {{ service_request.get_status_display }}</p>
+                    {% if service_request.total_price %}
+                    <p class="mb-1"><strong>Amount:</strong> TSH {{ service_request.total_price|floatformat:0 }}</p>
+                    {% endif %}
+                    
+                    {% if service_request.payment_screenshot %}
+                    <hr>
+                    <div class="alert alert-success mb-0 small">
+                        <i class="bi bi-check-circle"></i> Screenshot already uploaded
+                        {% if service_request.payment_verified %}
+                        <br><i class="bi bi-shield-check"></i> Verified by admin
+                        {% else %}
+                        <br><i class="bi bi-clock"></i> Pending verification
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card bg-info text-white mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">💡 Tips</h6>
+                    <ul class="small mb-0">
+                        <li>Take a clear screenshot</li>
+                        <li>Include transaction ID</li>
+                        <li>Show amount and date</li>
+                        <li>Avoid blurry images</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // File input change
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', function() {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect();
+        }
+    });
+    
+    function handleFileSelect() {
+        const file = fileInput.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('Invalid file type. Please upload an image file (JPEG, PNG, GIF, or WebP).');
+            clearFile();
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('File too large. Maximum size is 5MB.');
+            clearFile();
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            previewContainer.classList.add('show');
+        };
+        reader.readAsDataURL(file);
+        
+        // Show file info
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        
+        // Enable submit button
+        submitBtn.disabled = false;
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+    
+    window.clearFile = function() {
+        fileInput.value = '';
+        previewContainer.classList.remove('show');
+        previewImage.src = '';
+        submitBtn.disabled = true;
+    }
+});
+</script>
+{% endblock %}

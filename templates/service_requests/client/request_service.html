@@ -1,119 +1,885 @@
-{% extends "clients/base_client.html" %}
+{% extends 'clients/base_client.html' %}
+{% load static %}
 
-{% block title %}Request Service{% endblock %}
+{% block title %}Request Service - Worker Connect{% endblock %}
+{% block page_title %}Request Service{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Teal System Colors */
-    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
-    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
-    .text-primary { color: #14b8a6 !important; }
-    .text-success { color: #10b981 !important; }
+    .btn-primary {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+    }
+    .btn-primary:hover {
+        background-color: #0f766e;
+        border-color: #0f766e;
+    }
+    .btn-outline-primary {
+        color: #14b8a6;
+        border-color: #14b8a6;
+    }
+    .btn-outline-primary:hover {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+        color: white;
+    }
+    .duration-btn {
+        transition: all 0.2s ease;
+        border: 2px solid #e5e7eb;
+    }
+    .duration-btn.active {
+        background-color: #14b8a6 !important;
+        border-color: #14b8a6 !important;
+        color: white !important;
+    }
+    .duration-btn:not(.active):hover {
+        border-color: #14b8a6;
+        color: #14b8a6;
+    }
+    .price-card {
+        background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%);
+        border: 2px solid #14b8a6;
+        border-radius: 12px;
+    }
+    .price-value {
+        color: #0f766e;
+        font-weight: 700;
+        font-size: 1.25rem;
+    }
+    .card-header.bg-primary {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%) !important;
+        border: none;
+        color: white !important;
+    }
+    .card-header.bg-primary h5,
+    .card-header.bg-primary i,
+    .card-header.bg-primary small {
+        color: white !important;
+    }
+    .alert-info {
+        background-color: #f0fdfa;
+        border-color: #14b8a6;
+        color: #0f766e;
+    }
+    .urgency-btn {
+        transition: all 0.2s ease;
+        border: 2px solid #e5e7eb;
+    }
+    .urgency-btn.normal.active { background-color: #6b7280 !important; border-color: #6b7280 !important; }
+    .urgency-btn.urgent.active { background-color: #f59e0b !important; border-color: #f59e0b !important; }
+    .urgency-btn.emergency.active { background-color: #ef4444 !important; border-color: #ef4444 !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">📝 Request a Service</h2>
-    
+<div class="container-fluid mt-4 px-4">
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <form method="post">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        📝 Request a Service
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Service Info -->
+                    <div class="alert alert-info mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-12">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
+                                    <div>
+                                        <strong>Service Request</strong><br>
+                                        <small>Fill out the form below to request a service. Our team will assign a qualified worker and notify you within 2-4 hours.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Request Form -->
+                    <form method="post" id="serviceRequestForm">
                         {% csrf_token %}
                         
-                        <div class="mb-3">
-                            <label for="category" class="form-label">Service Category *</label>
-                            <select name="category" id="category" class="form-select" required>
-                                <option value="">-- Select Category --</option>
-                                {% for cat in categories %}
-                                <option value="{{ cat.id }}">
-                                    {% if cat.icon %}{{ cat.icon }}{% endif %} {{ cat.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Service Title *</label>
-                            <input type="text" name="title" id="title" class="form-control" 
-                                   placeholder="e.g., Fix kitchen sink leak" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description *</label>
-                            <textarea name="description" id="description" class="form-control" rows="4" 
-                                      placeholder="Describe what needs to be done..." required></textarea>
-                        </div>
-                        
                         <div class="row">
-                            <div class="col-md-8 mb-3">
-                                <label for="location" class="form-label">Location *</label>
-                                <input type="text" name="location" id="location" class="form-control" 
-                                       placeholder="123 Main Street, Building A" required>
+                            <!-- Left Column - Basic Info -->
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Service Category *</label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="">-- Select Category --</option>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat.id }}" data-daily-rate="{{ cat.daily_rate }}">
+                                            {% if cat.icon %}{{ cat.icon }}{% endif %} {{ cat.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Service Title *</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="title" 
+                                           name="title" 
+                                           required
+                                           placeholder="Brief description of what you need">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Detailed Description *</label>
+                                    <textarea class="form-control" 
+                                              id="description" 
+                                              name="description" 
+                                              rows="4" 
+                                              required
+                                              placeholder="Provide detailed information about your needs..."></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="location" class="form-label">Service Location *</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="location" 
+                                               name="location" 
+                                               required
+                                               placeholder="Where should the service be performed?">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="city" class="form-label">City *</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="city" 
+                                               name="city" 
+                                               required
+                                               placeholder="City name">
+                                    </div>
+                                </div>
+
+                                <!-- Preferred Date & Time -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="preferred_date" class="form-label">Preferred Date</label>
+                                        <input type="date" 
+                                               class="form-control" 
+                                               id="preferred_date" 
+                                               name="preferred_date">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="preferred_time" class="form-label">Preferred Time</label>
+                                        <input type="time" 
+                                               class="form-control" 
+                                               id="preferred_time" 
+                                               name="preferred_time">
+                                    </div>
+                                </div>
+
+                                <!-- Number of Workers Needed -->
+                                <div class="mb-3">
+                                    <label for="workers_needed" class="form-label">Number of Workers Needed</label>
+                                    <div class="input-group" style="max-width: 200px;">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(-1)">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control text-center" 
+                                               id="workers_needed" 
+                                               name="workers_needed" 
+                                               value="1" 
+                                               min="1" 
+                                               max="100"
+                                               required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(1)">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Each additional worker increases the total cost</small>
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="city" class="form-label">City *</label>
-                                <input type="text" name="city" id="city" class="form-control" 
-                                       placeholder="Dar es Salaam" required>
+
+                            <!-- Right Column - Duration & Pricing -->
+                            <div class="col-lg-6">
+                                <!-- Duration Type Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label">Service Duration *</label>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <button type="button" class="btn duration-btn w-100" data-duration="daily">
+                                                Daily
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn duration-btn w-100" data-duration="monthly">
+                                                Monthly
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn duration-btn w-100" data-duration="3_months">
+                                                3 Months
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn duration-btn w-100" data-duration="6_months">
+                                                6 Months
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn duration-btn w-100" data-duration="yearly">
+                                                Yearly
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn duration-btn w-100" data-duration="custom">
+                                                Custom
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="duration_type" id="duration_type" required>
+                                </div>
+
+                                <!-- Custom Date Range (shown when Custom is selected) -->
+                                <div id="customDateRange" class="mb-4" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="service_start_date" class="form-label">Start Date *</label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="service_start_date" 
+                                                   name="service_start_date">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="service_end_date" class="form-label">End Date *</label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="service_end_date" 
+                                                   name="service_end_date">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Price Display -->
+                                <div id="priceDisplay" class="price-card p-3 mb-4" style="display: none;">
+                                    <h6 class="mb-3"><i class="bi bi-calculator me-2"></i>Price Calculation</h6>
+                                    <div class="row">
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Workers</div>
+                                            <div id="workersDisplay" class="price-value">1</div>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Duration</div>
+                                            <div id="durationDays" class="price-value">-</div>
+                                            <div class="text-muted small">days</div>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Rate/Day</div>
+                                            <div id="dailyRate" class="price-value">-</div>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div class="text-muted small">Total</div>
+                                            <div id="totalPrice" class="price-value">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle"></i> 
+                                            <span id="calcFormula">Workers × Days × Daily Rate</span>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Urgency Level -->
+                                <div class="mb-4">
+                                    <label class="form-label">Urgency Level</label>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <button type="button" class="btn urgency-btn normal w-100" data-urgency="normal">
+                                                <i class="bi bi-clock"></i>
+                                                <div class="small">Normal</div>
+                                                <small class="d-block">1 week</small>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn urgency-btn urgent w-100" data-urgency="urgent">
+                                                <i class="bi bi-clock-history"></i>
+                                                <div class="small">Urgent</div>
+                                                <small class="d-block">2-3 days</small>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn urgency-btn emergency w-100" data-urgency="emergency">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                                <div class="small">Emergency</div>
+                                                <small class="d-block">Same day</small>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="urgency" id="urgency" value="normal">
+                                </div>
+
+                                <!-- Additional Notes -->
+                                <div class="mb-3">
+                                    <label for="client_notes" class="form-label">Additional Notes</label>
+                                    <textarea class="form-control" 
+                                              id="client_notes" 
+                                              name="client_notes" 
+                                              rows="3"
+                                              placeholder="Any additional requirements or special instructions..."></textarea>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="preferred_date" class="form-label">Preferred Date</label>
-                                <input type="date" name="preferred_date" id="preferred_date" class="form-control">
+
+                        <!-- Bottom Section -->
+                        <div class="row mt-4">
+                            <div class="col-md-8">
+                                <div class="alert alert-warning mb-3">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Note:</strong> After submission, our team will review your request and assign a qualified worker. 
+                                        You'll be notified within 2-4 hours with the assigned worker's contact details.
+                                    </small>
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="preferred_time" class="form-label">Preferred Time</label>
-                                <input type="time" name="preferred_time" id="preferred_time" class="form-control">
+                            <div class="col-md-4">
+                                <div class="d-grid gap-2">
+                                    <button type="button" id="submitBtn" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-credit-card"></i>
+                                        Pay and Submit Request
+                                    </button>
+                                    <a href="{% url 'service_requests_web:client_dashboard' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i>
+                                        Cancel
+                                    </a>
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="estimated_duration_hours" class="form-label">Est. Duration (hours) *</label>
-                                <input type="number" name="estimated_duration_hours" id="estimated_duration_hours" 
-                                       class="form-control" step="0.5" min="0.5" placeholder="2" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="urgency" class="form-label">Urgency</label>
-                            <select name="urgency" id="urgency" class="form-select">
-                                <option value="normal">Normal</option>
-                                <option value="urgent">Urgent</option>
-                                <option value="emergency">Emergency</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="client_notes" class="form-label">Additional Notes</label>
-                            <textarea name="client_notes" id="client_notes" class="form-control" rows="2" 
-                                      placeholder="Any additional information..."></textarea>
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">Submit Request</button>
-                            <a href="{% url 'service_requests_web:client_dashboard' %}" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title">ℹ️ How It Works</h5>
-                    <ol>
-                        <li>Fill in the service request form</li>
-                        <li>Admin will review your request</li>
-                        <li>Admin assigns the best worker for you</li>
-                        <li>Worker contacts you and completes the work</li>
-                        <li>You receive notification when done</li>
-                    </ol>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Complete Payment</h5>
+            </div>
+            <div class="modal-body">
+                <!-- Payment Selection -->
+                <div id="paymentSelection">
+                    <p class="text-center mb-4">Total Amount: <strong class="text-success">TSH <span id="paymentAmount">0</span></strong></p>
+                    
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-outline-primary btn-lg" onclick="selectPaymentMethod('card')">
+                            <i class="bi bi-credit-card"></i> Credit Card
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-lg" onclick="selectPaymentMethod('mobile')">
+                            <i class="bi bi-phone"></i> Mobile Money
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card Payment Form -->
+                <div id="cardPaymentForm" style="display: none;">
+                    <button type="button" class="btn btn-link mb-3" onclick="backToPaymentSelection()">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    
+                    <div class="alert alert-info small">
+                        <strong>Demo Mode:</strong> Use test cards:<br>
+                        Visa: 4242 4242 4242 4242<br>
+                        Mastercard: 5555 5555 5555 5555
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" id="cardNumber" class="form-control" placeholder="4242 4242 4242 4242" maxlength="19">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" id="cardHolder" class="form-control" placeholder="John Doe">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry (MM/YY)</label>
+                            <input type="text" id="cardExpiry" class="form-control" placeholder="12/25" maxlength="5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">CVV</label>
+                            <input type="text" id="cardCVV" class="form-control" placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="processCardPayment()" id="cardPayBtn">
+                        <i class="bi bi-lock"></i> Pay TSH <span id="cardPayAmount">0</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Money Form -->
+                <div id="mobilePaymentForm" style="display: none;">
+                    <button type="button" class="btn btn-link mb-3" onclick="backToPaymentSelection()">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    
+                    <div class="alert alert-info small">
+                        <strong>Demo Mode:</strong> Use test number: +255123456789<br>
+                        Supports: M-Pesa, Tigo Pesa, Airtel Money
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Mobile Money Phone Number</label>
+                        <input type="text" id="mobilePhone" class="form-control" placeholder="+255123456789" maxlength="13">
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="processMobilePayment()" id="mobilePayBtn">
+                        <i class="bi bi-phone"></i> Pay TSH <span id="mobilePayAmount">0</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Screenshot Modal -->
+<div class="modal fade" id="screenshotModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Proof</h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    <h6 class="mt-2">Payment Initiated!</h6>
+                    <small class="text-muted">Transaction ID: <span id="transactionId"></span></small>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    Upload a screenshot of your payment confirmation to help admin verify your payment quickly.
+                    <br><small class="text-danger"><strong>⏰ Please upload within 7 minutes for faster processing.</strong></small>
+                </div>
+                
+                <div id="screenshotPreview" style="display: none;" class="text-center mb-3">
+                    <img id="previewImage" src="" alt="Screenshot Preview" class="img-fluid rounded" style="max-height: 300px;">
+                    <br>
+                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeScreenshot()">
+                        <i class="bi bi-trash"></i> Remove
+                    </button>
+                </div>
+                
+                <div id="uploadButtons">
+                    <div class="d-grid gap-2">
+                        <label for="screenshotFile" class="btn btn-outline-primary">
+                            <i class="bi bi-upload"></i> Choose Screenshot
+                        </label>
+                        <input type="file" id="screenshotFile" accept="image/*" style="display: none;" onchange="previewScreenshot(event)">
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button type="button" class="btn btn-success" onclick="submitRequest()" id="submitWithScreenshot">
+                        <i class="bi bi-check-circle"></i> Submit Request
+                    </button>
+                    <button type="button" class="btn btn-link text-muted" onclick="skipScreenshot()">
+                        Skip for Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let paymentData = null;
+let screenshotFile = null;
+let currentTotalPrice = 0;
+
+function adjustWorkers(delta) {
+    const input = document.getElementById('workers_needed');
+    let current = parseInt(input.value) || 1;
+    let newValue = Math.max(1, Math.min(100, current + delta));
+    input.value = newValue;
+    updatePriceCalculation();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Submit button handler
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        const form = document.getElementById('serviceRequestForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        // Show payment modal
+        showPaymentModal();
+    });
+    
+    // Duration type selection
+    const durationBtns = document.querySelectorAll('.duration-btn');
+    const durationTypeInput = document.getElementById('duration_type');
+    const customDateRange = document.getElementById('customDateRange');
+    const priceDisplay = document.getElementById('priceDisplay');
+    
+    durationBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            durationBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            // Set hidden input value
+            const durationType = this.getAttribute('data-duration');
+            durationTypeInput.value = durationType;
+            
+            // Show/hide custom date range
+            if (durationType === 'custom') {
+                customDateRange.style.display = 'block';
+            } else {
+                customDateRange.style.display = 'none';
+            }
+            
+            // Calculate and show price
+            calculatePrice(durationType);
+        });
+    });
+    
+    // Urgency level selection
+    const urgencyBtns = document.querySelectorAll('.urgency-btn');
+    const urgencyInput = document.getElementById('urgency');
+    
+    urgencyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            urgencyBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            // Set hidden input value
+            urgencyInput.value = this.getAttribute('data-urgency');
+        });
+    });
+    
+    // Set default urgency to normal
+    document.querySelector('.urgency-btn.normal').classList.add('active');
+    
+    // Date validation for custom range
+    const startDateInput = document.getElementById('service_start_date');
+    const endDateInput = document.getElementById('service_end_date');
+    
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', function() {
+            endDateInput.min = this.value;
+            if (endDateInput.value && endDateInput.value < this.value) {
+                endDateInput.value = this.value;
+            }
+            calculatePrice('custom');
+        });
+        
+        endDateInput.addEventListener('change', function() {
+            calculatePrice('custom');
+        });
+    }
+    
+    // Set minimum dates to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('preferred_date').min = today;
+    if (startDateInput) startDateInput.min = today;
+    
+    // Category change triggers price update
+    document.getElementById('category').addEventListener('change', function() {
+        const durationType = document.getElementById('duration_type').value;
+        if (durationType) {
+            calculatePrice(durationType);
+        }
+    });
+    
+    // Workers change triggers price update
+    document.getElementById('workers_needed').addEventListener('change', updatePriceCalculation);
+    
+    // Card number formatting
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue.substring(0, 19);
+    });
+    
+    // Expiry formatting
+    document.getElementById('cardExpiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        } else {
+            e.target.value = value;
+        }
+    });
+    
+    // Mobile phone formatting
+    document.getElementById('mobilePhone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/[^\d+]/g, '');
+        if (!value.startsWith('+255')) {
+            value = '+255' + value.replace(/\D/g, '');
+        }
+        e.target.value = value.substring(0, 13);
+    });
+});
+
+function calculatePrice(durationType) {
+    // Get daily rate from selected category
+    const categorySelect = document.getElementById('category');
+    const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+    const dailyRate = parseFloat(selectedOption.getAttribute('data-daily-rate') || 0);
+    
+    if (!dailyRate) {
+        document.getElementById('priceDisplay').style.display = 'none';
+        return;
+    }
+    
+    let durationDays = 1;
+    
+    switch(durationType) {
+        case 'daily': durationDays = 1; break;
+        case 'monthly': durationDays = 30; break;
+        case '3_months': durationDays = 90; break;
+        case '6_months': durationDays = 180; break;
+        case 'yearly': durationDays = 365; break;
+        case 'custom':
+            const startDate = document.getElementById('service_start_date').value;
+            const endDate = document.getElementById('service_end_date').value;
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                durationDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            }
+            break;
+    }
+    
+    const workersNeeded = parseInt(document.getElementById('workers_needed').value) || 1;
+    const totalPrice = durationDays * dailyRate * workersNeeded;
+    currentTotalPrice = totalPrice;
+    
+    // Update price display
+    document.getElementById('workersDisplay').textContent = workersNeeded;
+    document.getElementById('durationDays').textContent = durationDays;
+    document.getElementById('dailyRate').textContent = `TSH ${dailyRate.toLocaleString()}`;
+    document.getElementById('totalPrice').textContent = `TSH ${totalPrice.toLocaleString()}`;
+    document.getElementById('calcFormula').textContent = `${workersNeeded} × ${durationDays} × TSH ${dailyRate.toLocaleString()} = TSH ${totalPrice.toLocaleString()}`;
+    document.getElementById('priceDisplay').style.display = 'block';
+}
+
+function updatePriceCalculation() {
+    const durationType = document.getElementById('duration_type').value;
+    if (durationType) {
+        calculatePrice(durationType);
+    }
+}
+
+function showPaymentModal() {
+    updatePriceCalculation(); // Ensure price is calculated
+    document.getElementById('paymentAmount').textContent = currentTotalPrice.toFixed(2);
+    document.getElementById('cardPayAmount').textContent = currentTotalPrice.toFixed(2);
+    document.getElementById('mobilePayAmount').textContent = currentTotalPrice.toFixed(2);
+    
+    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    modal.show();
+}
+
+function selectPaymentMethod(method) {
+    document.getElementById('paymentSelection').style.display = 'none';
+    
+    if (method === 'card') {
+        document.getElementById('cardPaymentForm').style.display = 'block';
+    } else {
+        document.getElementById('mobilePaymentForm').style.display = 'block';
+    }
+}
+
+function backToPaymentSelection() {
+    document.getElementById('paymentSelection').style.display = 'block';
+    document.getElementById('cardPaymentForm').style.display = 'none';
+    document.getElementById('mobilePaymentForm').style.display = 'none';
+}
+
+async function processCardPayment() {
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+    const cardHolder = document.getElementById('cardHolder').value;
+    const cardExpiry = document.getElementById('cardExpiry').value;
+    const cardCVV = document.getElementById('cardCVV').value;
+    
+    if (!cardNumber || cardNumber.length < 13) {
+        alert('Please enter a valid card number');
+        return;
+    }
+    if (!cardHolder) {
+        alert('Please enter cardholder name');
+        return;
+    }
+    if (cardExpiry.length !== 5) {
+        alert('Please enter expiry date (MM/YY)');
+        return;
+    }
+    if (cardCVV.length < 3) {
+        alert('Please enter CVV');
+        return;
+    }
+    
+    const btn = document.getElementById('cardPayBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+    
+    try {
+        // Simulate payment processing (2 seconds delay)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Mock successful payment
+        paymentData = {
+            success: true,
+            transaction_id: 'TXN' + Date.now(),
+            payment_method: 'card',
+            amount: currentTotalPrice
+        };
+        
+        bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+        showScreenshotModal();
+    } catch (error) {
+        alert('Payment error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-lock"></i> Pay TSH ' + currentTotalPrice.toFixed(2);
+    }
+}
+
+async function processMobilePayment() {
+    const phoneNumber = document.getElementById('mobilePhone').value;
+    
+    if (phoneNumber.length < 13) {
+        alert('Please enter a valid phone number');
+        return;
+    }
+    
+    const btn = document.getElementById('mobilePayBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+    
+    try {
+        // Simulate payment processing (2 seconds delay)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Mock successful payment
+        paymentData = {
+            success: true,
+            transaction_id: 'MPesa' + Date.now(),
+            payment_method: 'mpesa',
+            amount: currentTotalPrice,
+            phone_number: phoneNumber
+        };
+        
+        bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+        showScreenshotModal();
+    } catch (error) {
+        alert('Payment error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-phone"></i> Pay TSH ' + currentTotalPrice.toFixed(2);
+    }
+}
+
+function showScreenshotModal() {
+    document.getElementById('transactionId').textContent = paymentData.transaction_id;
+    const modal = new bootstrap.Modal(document.getElementById('screenshotModal'));
+    modal.show();
+}
+
+function previewScreenshot(event) {
+    const file = event.target.files[0];
+    if (file) {
+        screenshotFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('screenshotPreview').style.display = 'block';
+            document.getElementById('uploadButtons').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeScreenshot() {
+    screenshotFile = null;
+    document.getElementById('screenshotFile').value = '';
+    document.getElementById('screenshotPreview').style.display = 'none';
+    document.getElementById('uploadButtons').style.display = 'block';
+}
+
+function skipScreenshot() {
+    if (confirm('Are you sure you want to skip screenshot upload? Admin may require verification before assigning a worker.')) {
+        submitRequest();
+    }
+}
+
+async function submitRequest() {
+    const btn = document.getElementById('submitWithScreenshot');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+    
+    try {
+        const formData = new FormData();
+        const form = document.getElementById('serviceRequestForm');
+        
+        // Add form fields
+        formData.append('category', form.category.value);
+        formData.append('title', form.title.value);
+        formData.append('description', form.description.value);
+        formData.append('location', form.location.value);
+        formData.append('city', form.city.value);
+        formData.append('preferred_date', form.preferred_date.value);
+        formData.append('preferred_time', form.preferred_time.value);
+        formData.append('duration_type', form.duration_type.value);
+        formData.append('urgency', form.urgency.value);
+        formData.append('client_notes', form.client_notes.value);
+        formData.append('workers_needed', form.workers_needed.value);
+        
+        if (form.duration_type.value === 'custom') {
+            formData.append('service_start_date', form.service_start_date.value);
+            formData.append('service_end_date', form.service_end_date.value);
+        }
+        
+        // Add payment data
+        formData.append('payment_method', paymentData.payment_method);
+        formData.append('payment_transaction_id', paymentData.transaction_id);
+        
+        // Add screenshot if provided
+        if (screenshotFile) {
+            formData.append('payment_screenshot', screenshotFile);
+        }
+        
+        // Submit via POST to current URL
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('screenshotModal')).hide();
+            alert('✅ Success! Your service request has been submitted with payment of TSH ' + currentTotalPrice.toFixed(2) + '! Our admin will review your payment and assign a qualified worker soon.');
+            window.location.href = '{% url "service_requests_web:client_dashboard" %}';
+        } else {
+            const text = await response.text();
+            throw new Error('Failed to submit request');
+        }
+    } catch (error) {
+        alert('Submission error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Request';
+    }
+}
+</script>
 {% endblock %}
+

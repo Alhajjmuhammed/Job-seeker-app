@@ -11,9 +11,9 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useTheme } from '../../../../contexts/ThemeContext';
-import Header from '../../../../components/Header';
-import apiService from '../../../../services/api';
+import { useTheme } from '../../../../../contexts/ThemeContext';
+import Header from '../../../../../components/Header';
+import apiService from '../../../../../services/api';
 
 interface Assignment {
   id: number;
@@ -22,6 +22,8 @@ interface Assignment {
   location: string;
   city: string;
   client_name: string;
+  status?: string;
+  worker_accepted?: boolean;
 }
 
 export default function ClockInScreen() {
@@ -42,23 +44,17 @@ export default function ClockInScreen() {
   const loadAssignment = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getCurrentAssignment();
-      if (response.service_request && response.service_request.id === Number(id)) {
-        setAssignment(response.service_request);
-      } else {
-        // Try to get from all assignments
-        const allResponse = await apiService.getWorkerAssignments('accepted');
-        const assignments = allResponse.results || allResponse;
-        const found = assignments.find((a: any) => a.id === Number(id));
-        if (found) {
-          setAssignment(found);
-        } else {
-          Alert.alert('Error', 'Assignment not found');
-          router.back();
-        }
-      }
+      const response = await apiService.getWorkerAssignmentDetail(Number(id));
+      const assignmentData = response.assignment || response;
+      setAssignment(assignmentData);
+      
+      console.log('📋 Clock In Screen Loaded:', {
+        assignmentId: assignmentData.id,
+        status: assignmentData.status,
+        workerAccepted: assignmentData.worker_accepted
+      });
     } catch (error: any) {
-      console.error('Error loading assignment:', error);
+      console.error('❌ Error loading assignment:', error);
       Alert.alert('Error', 'Failed to load assignment');
       router.back();
     } finally {
@@ -69,10 +65,13 @@ export default function ClockInScreen() {
   const requestLocationPermission = async () => {
     try {
       setLocationLoading(true);
+      setLocationError(null);
+      
       const { status } = await Location.requestForegroundPermissionsAsync();
       
       if (status !== 'granted') {
         setLocationError('Location permission denied. You can still clock in without location.');
+        setLocationLoading(false);
         return;
       }
 
@@ -84,16 +83,25 @@ export default function ClockInScreen() {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
+      setLocationLoading(false);
     } catch (error) {
       console.error('Error getting location:', error);
       setLocationError('Could not get location. You can still clock in without it.');
-    } finally {
       setLocationLoading(false);
     }
   };
 
   const handleClockIn = async () => {
     if (!assignment) return;
+
+    // Check if assignment has been accepted
+    if (assignment.worker_accepted !== true) {
+      Alert.alert(
+        'Assignment Not Accepted',
+        'You must accept this assignment before you can clock in.'
+      );
+      return;
+    }
 
     Alert.alert(
       'Confirm Clock In',
@@ -113,23 +121,33 @@ export default function ClockInScreen() {
 
     try {
       setSubmitting(true);
-      await apiService.clockIn(assignment.id, currentLocation || undefined);
+      console.log('⏰ Clocking In:', {
+        assignmentId: assignment.id,
+        status: assignment.status,
+        workerAccepted: assignment.worker_accepted,
+        hasLocation: !!currentLocation
+      });
+      
+      const result = await apiService.clockIn(assignment.id, currentLocation || undefined);
+      console.log('✅ Clock In Success:', result);
+      
+      // Navigate back with a slight delay to ensure state updates
+      setTimeout(() => {
+        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+      }, 300);
       
       Alert.alert(
         '⏰ Clocked In Successfully!',
-        'Your work session has started. Time tracking is now active.',
-        [
-          {
-            text: 'Start Working',
-            onPress: () => router.replace('/(worker)/dashboard'),
-          },
-        ]
+        'Your work session has started. Time tracking is now active.'
       );
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to clock in. Please try again.'
-      );
+      console.error('❌ Clock In Error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to clock in. Please try again.';
+      Alert.alert('Clock In Failed', errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -266,41 +284,6 @@ export default function ClockInScreen() {
           <Text style={[styles.locationNote, { color: theme.textSecondary }]}>
             📍 Location helps verify your attendance and improves service quality
           </Text>
-        </View>
-
-        {/* Checklist */}
-        <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Before You Start
-          </Text>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Review assignment details
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Have necessary tools and materials
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Contact client if needed
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Ready to provide excellent service
-            </Text>
-          </View>
         </View>
 
         {/* Important Notes */}
@@ -487,16 +470,6 @@ const styles = StyleSheet.create({
   locationNote: {
     fontSize: 12,
     fontStyle: 'italic',
-  },
-  checklistItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 10,
-  },
-  checklistText: {
-    fontSize: 14,
-    flex: 1,
   },
   infoBox: {
     flexDirection: 'row',

@@ -8,10 +8,12 @@
     .btn-primary {
         background-color: #14b8a6;
         border-color: #14b8a6;
+        color: white !important;
     }
     .btn-primary:hover {
         background-color: #0f766e;
         border-color: #0f766e;
+        color: white !important;
     }
     .btn-outline-primary {
         color: #14b8a6;
@@ -20,16 +22,36 @@
     .btn-outline-primary:hover {
         background-color: #14b8a6;
         border-color: #14b8a6;
-        color: white;
+        color: white !important;
     }
     .btn-outline-primary.active {
         background-color: #14b8a6;
         border-color: #14b8a6;
-        color: white;
+        color: white !important;
     }
     .badge.bg-success {
         background-color: #14b8a6 !important;
         color: white !important;
+    }
+    .badge.bg-primary {
+        background-color: #14b8a6 !important;
+        color: white !important;
+    }
+    .badge.bg-info {
+        background-color: #06b6d4 !important;
+        color: white !important;
+    }
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+        color: white !important;
+    }
+    .badge.bg-danger {
+        background-color: #ef4444 !important;
+        color: white !important;
+    }
+    .badge.bg-warning {
+        background-color: #fbbf24 !important;
+        color: #1f2937 !important;
     }
     .card-header.bg-success {
         background-color: #14b8a6 !important;
@@ -50,9 +72,6 @@
     }
     .table tbody tr:hover {
         background-color: #f1fffe;
-    }
-    .badge.bg-info {
-        background-color: #0f766e !important;
     }
     .text-success.fw-bold {
         color: #14b8a6 !important;
@@ -313,4 +332,64 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time updates for service requests list
+    document.addEventListener('DOMContentLoaded', function() {
+        // Listen for service request updates from WebSocket
+        if (window.notificationWS) {
+            window.notificationWS.onNotification(function(data) {
+                // Refresh list when relevant events occur
+                const notifData = data.data || data;
+                const notifType = notifData.notification_type;
+                
+                if (notifType === 'job_assigned' ||
+                    notifType === 'job_completed' ||
+                    notifType === 'job_application' ||
+                    notifType === 'payment_received') {
+                    console.log('Service requests list update detected:', notifType);
+                    
+                    // Show update indicator
+                    showListUpdateIndicator();
+                    
+                    // Auto-refresh after short delay
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                }
+            });
+        }
+        
+        // Function to show update indicator
+        function showListUpdateIndicator() {
+            const existingIndicator = document.getElementById('list-update-indicator');
+            if (existingIndicator) return;
+            
+            const indicator = document.createElement('div');
+            indicator.id = 'list-update-indicator';
+            indicator.className = 'alert alert-info alert-dismissible fade show position-fixed';
+            indicator.style.cssText = 'top: 20px; right: 20px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+            indicator.innerHTML = `
+                <i class="bi bi-arrow-clockwise spin me-2"></i>
+                <strong>Update Available</strong>
+                <p class="mb-0 small">Refreshing list...</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(indicator);
+            
+            // Add spin animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .spin { animation: spin 1s linear infinite; display: inline-block; }
+            `;
+            document.head.appendChild(style);
+        }
+    });
+</script>
 {% endblock %}

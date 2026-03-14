@@ -5,7 +5,7 @@ from accounts.models import User
 from workers.models import WorkerProfile, Category
 
 # Import new service request models
-from .service_request_models import ServiceRequest, TimeTracking, WorkerActivity
+from .service_request_models import ServiceRequest, ServiceRequestAssignment, TimeTracking, WorkerActivity
 
 # ============================================================================
 # DEPRECATED MODELS - LEGACY CODE

@@ -40,19 +40,64 @@
                     {{ service_request.client.get_full_name }}
                 </div>
                 <div class="col-md-3">
-                    <small class="text-muted d-block">Current Worker</small>
-                    {% if service_request.assigned_worker %}
+                    <small class="text-muted d-block">Current Workers</small>
+                    {% if current_assignments %}
                     <span class="text-success">
                         <i class="bi bi-person-check me-1"></i>
-                        {{ service_request.assigned_worker.user.get_full_name }}
+                        {{ current_assignments.count }} of {{ workers_needed }} assigned
                     </span>
                     {% else %}
-                    <span class="text-muted">Not assigned</span>
+                    <span class="text-muted">Not assigned (0 of {{ workers_needed }})</span>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Currently Assigned Workers -->
+    {% if current_assignments %}
+    <div class="alert alert-success border-0 shadow-sm mb-4">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading mb-2">
+                    <strong>Currently Assigned Workers ({{ current_assignments.count }} of {{ workers_needed }})</strong>
+                </h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for assignment in current_assignments %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-person-check me-1"></i>
+                        {{ assignment.worker.user.get_full_name }}
+                        {% if assignment.status == 'accepted' %}
+                        <i class="bi bi-check-circle ms-1" title="Accepted"></i>
+                        {% elif assignment.status == 'pending' %}
+                        <i class="bi bi-clock ms-1" title="Pending response"></i>
+                        {% elif assignment.status == 'rejected' %}
+                        <i class="bi bi-x-circle ms-1" title="Rejected"></i>
+                        {% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% if workers_remaining > 0 %}
+                <small class="text-muted d-block mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Still need {{ workers_remaining }} more worker{{ workers_remaining|pluralize }} to complete the assignment
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning border-0 shadow-sm mb-4">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-exclamation-circle-fill fs-4 me-3 text-warning"></i>
+            <div>
+                <h6 class="alert-heading mb-1"><strong>No Workers Assigned Yet</strong></h6>
+                <p class="mb-0">This request needs {{ workers_needed }} worker{{ workers_needed|pluralize }}. Select from available workers below.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Workers Count -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -70,7 +115,7 @@
     <div class="row g-4">
         {% for worker in available_workers %}
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm {% if service_request.assigned_worker and service_request.assigned_worker.id == worker.id %}border-start border-4 border-success{% endif %}">
+            <div class="card h-100 border-0 shadow-sm {% if worker.id in assigned_worker_ids %}border-start border-4 border-success{% endif %}">
                 <div class="card-body">
                     <!-- Worker Header -->
                     <div class="d-flex align-items-start mb-3">
@@ -94,7 +139,7 @@
                         <div class="flex-grow-1">
                             <h5 class="card-title mb-1">
                                 {{ worker.user.get_full_name }}
-                                {% if service_request.assigned_worker and service_request.assigned_worker.id == worker.id %}
+                                {% if worker.id in assigned_worker_ids %}
                                 <span class="badge bg-success ms-1 small">Assigned</span>
                                 {% endif %}
                             </h5>
@@ -160,13 +205,13 @@
                                 <strong>Admin Notes (Optional)</strong>
                             </label>
                             <textarea class="form-control form-control-sm" id="admin_notes_{{ worker.id }}" 
-                                      name="admin_notes" rows="2" placeholder="Special instructions...">{% if service_request.assigned_worker.id == worker.id and service_request.admin_notes %}{{ service_request.admin_notes }}{% endif %}</textarea>
+                                      name="admin_notes" rows="2" placeholder="Special instructions..."></textarea>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <button type="submit" class="btn btn-primary btn-sm w-100" {% if worker.id in assigned_worker_ids %}disabled{% endif %}>
                             <i class="bi bi-check-circle me-1"></i>
-                            {% if service_request.assigned_worker and service_request.assigned_worker.id == worker.id %}
-                            Update Assignment
+                            {% if worker.id in assigned_worker_ids %}
+                            Already Assigned
                             {% else %}
                             Assign This Worker
                             {% endif %}

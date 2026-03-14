@@ -163,61 +163,77 @@
             </div>
             {% endif %}
             
-            <!-- Assigned Worker Info -->
-            {% if request.assigned_worker %}
+            <!-- Assigned Workers Info -->
+            {% if assignments_count > 0 %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-user-check"></i>
-                        Assigned Worker
+                        Assigned Workers
+                        <span class="badge bg-primary">{{ assignments_count }} of {{ request.workers_needed }} assigned</span>
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row align-items-center">
+                    {% for assignment in assignments %}
+                    <div class="row align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
                         <div class="col-md-3 text-center">
-                            {% if request.assigned_worker.profile_image %}
-                            <img src="{{ request.assigned_worker.profile_image.url }}" 
+                            {% if assignment.worker.profile_image %}
+                            <img src="{{ assignment.worker.profile_image.url }}" 
                                  alt="Worker Photo" 
                                  class="rounded-circle"
                                  width="80" height="80">
                             {% else %}
                             <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center"
                                  style="width: 80px; height: 80px;">
-                                <span class="text-white h4">{{ request.assigned_worker.user.first_name.0 }}{{ request.assigned_worker.user.last_name.0 }}</span>
+                                <span class="text-white h4">{{ assignment.worker.user.first_name.0 }}{{ assignment.worker.user.last_name.0 }}</span>
                             </div>
                             {% endif %}
                         </div>
                         <div class="col-md-9">
-                            <h5>{{ request.assigned_worker.user.get_full_name }}</h5>
-                            <p class="text-muted mb-1">{{ request.assigned_worker.specializations }}</p>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="mb-0">Worker #{{ forloop.counter }}: {{ assignment.worker.user.get_full_name }}</h5>
+                                    <p class="text-muted mb-1">{{ assignment.worker.specializations }}</p>
+                                </div>
+                                <div>
+                                    {% if assignment.status == 'accepted' %}
+                                    <span class="badge bg-success">Accepted</span>
+                                    {% elif assignment.status == 'in_progress' %}
+                                    <span class="badge bg-info">In Progress</span>
+                                    {% elif assignment.status == 'completed' %}
+                                    <span class="badge bg-primary">Completed</span>
+                                    {% endif %}
+                                </div>
+                            </div>
                             
                             <div class="row">
                                 <div class="col-md-6">
                                     <small class="text-muted">
                                         <i class="fas fa-star text-warning"></i>
-                                        Rating: {{ request.assigned_worker.average_rating|floatformat:1 }}/5.0
+                                        Rating: {{ assignment.worker.average_rating|floatformat:1 }}/5.0
                                     </small>
                                 </div>
                                 <div class="col-md-6">
                                     <small class="text-muted">
                                         <i class="fas fa-briefcase"></i>
-                                        {{ request.assigned_worker.completed_jobs_count }} jobs completed
+                                        {{ assignment.worker.completed_jobs_count }} jobs completed
                                     </small>
                                 </div>
                             </div>
                             
-                            {% if request.assigned_worker.user.phone_number %}
+                            {% if assignment.worker.user.phone_number %}
                             <div class="mt-2">
                                 <small>
                                     <i class="fas fa-phone"></i>
-                                    <a href="tel:{{ request.assigned_worker.user.phone_number }}">
-                                        {{ request.assigned_worker.user.phone_number }}
+                                    <a href="tel:{{ assignment.worker.user.phone_number }}">
+                                        {{ assignment.worker.user.phone_number }}
                                     </a>
                                 </small>
                             </div>
                             {% endif %}
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
             {% endif %}
@@ -294,10 +310,14 @@
                             <i class="fas fa-times"></i> Cancel Request
                         </button>
                         {% endif %}
-                        {% if request.status == 'completed' %}
-                        <a href="#" class="btn btn-outline-warning" onclick="rateWorker()">
-                            <i class="fas fa-star"></i> Rate Worker
+                        {% if request.status == 'completed' and not request.client_rating %}
+                        <a href="{% url 'service_requests_web:client_rate_worker' request.id %}" class="btn btn-outline-warning">
+                            <i class="fas fa-star"></i> Rate Service
                         </a>
+                        {% elif request.status == 'completed' and request.client_rating %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-star"></i> Rated {{ request.client_rating }}/5
+                        </span>
                         {% endif %}
                     </div>
                 </div>
@@ -389,11 +409,6 @@ function cancelRequest() {
             }
         });
     }
-}
-
-function rateWorker() {
-    // This would open a rating modal or redirect to rating page
-    alert('Rating feature will be implemented here');
 }
 
 // Screenshot upload functions

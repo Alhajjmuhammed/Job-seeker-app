@@ -46,6 +46,15 @@
     .badge.bg-primary, .bg-primary {
         background-color: #14b8a6 !important;
     }
+    .card-header.bg-primary {
+        color: white !important;
+    }
+    .card-header.bg-primary h5,
+    .card-header.bg-primary i,
+    .card-header.bg-primary small,
+    .card-header.bg-primary span {
+        color: white !important;
+    }
     .text-success {
         color: #14b8a6 !important;
     }
@@ -74,7 +83,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4" data-service-request-id="{{ service_request.id }}">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📄 Request Details</h2>
         <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-outline-secondary">
@@ -156,8 +165,13 @@
                         {% endif %}
                         
                         <dt class="col-sm-4">Created:</dt>
-                        <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }} ({{ service_request.created_at|naturaltime }})</dd>
-                        
+                        <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }} ({{ service_request.created_at|naturaltime }})</dd>                        
+                        {% if service_request.workers_needed and service_request.workers_needed > 1 %}
+                        <dt class=\"col-sm-4\">Workers Needed:</dt>
+                        <dd class=\"col-sm-8\">
+                            <span class=\"badge bg-info fs-6\">{{ service_request.workers_needed }} workers</span>
+                        </dd>
+                        {% endif %}                        
                         {% if service_request.assigned_at %}
                         <dt class="col-sm-4">Assigned:</dt>
                         <dd class="col-sm-8">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</dd>
@@ -231,7 +245,81 @@
             </div>
             
             <!-- Worker Information -->
-            {% if service_request.assigned_worker %}
+            {% if service_request.workers_needed and service_request.workers_needed > 1 and assignments %}
+            <!-- Multiple Workers View -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people-fill"></i> Assigned Workers 
+                        <span class="badge bg-light text-dark">{{ assignments|length }}/{{ service_request.workers_needed }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for assignment in assignments %}
+                    <div class="row mb-4 {% if not forloop.last %}pb-4 border-bottom{% endif %}">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-start mb-2">
+                                <span class="badge bg-secondary me-2">#{{ assignment.assignment_number }}</span>
+                                <h5 class="mb-0">{{ assignment.worker.user.get_full_name }}</h5>
+                            </div>
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-envelope"></i> {{ assignment.worker.user.email }}
+                            </p>
+                            {% if assignment.worker.phone_number %}
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-telephone"></i> {{ assignment.worker.phone_number }}
+                            </p>
+                            {% endif %}
+                            {% if assignment.worker.bio %}
+                            <p class="mb-2">{{ assignment.worker.bio|truncatewords:20 }}</p>
+                            {% endif %}
+                            
+                            {% if assignment.status == 'accepted' %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Accepted
+                            </span>
+                            {% elif assignment.status == 'in_progress' %}
+                            <span class="badge bg-info">
+                                <i class="bi bi-play-circle"></i> In Progress
+                            </span>
+                            {% elif assignment.status == 'completed' %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle-fill"></i> Completed
+                            </span>
+                            {% endif %}
+                            
+                            {% if assignment.accepted_at %}
+                            <p class="text-muted small mt-1 mb-0">
+                                <i class="bi bi-calendar-check"></i> Accepted on {{ assignment.accepted_at|date:"M d, Y g:i A" }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-center">
+                            {% if assignment.worker.average_rating %}
+                            <div class="mb-2">
+                                <div style="font-size: 2rem; color: #ffc107;">
+                                    ★ {{ assignment.worker.average_rating|floatformat:1 }}
+                                </div>
+                                <small class="text-muted">Average Rating</small>
+                            </div>
+                            {% endif %}
+                            <a href="{% url 'workers:public_profile' assignment.worker.user.id %}" 
+                               class="btn btn-outline-primary btn-sm mb-2" target="_blank">
+                                <i class="bi bi-box-arrow-up-right"></i> View Profile
+                            </a>
+                            {% if assignment.status == 'accepted' or assignment.status == 'in_progress' %}
+                            <a href="{% url 'jobs:conversation' assignment.worker.user.id %}" 
+                               class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-chat-dots"></i> Message
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif service_request.assigned_worker and service_request.worker_accepted == True %}
+            <!-- Single Worker View (Legacy) - Only show if worker accepted -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="bi bi-person-badge"></i> Assigned Worker</h5>
@@ -252,19 +340,9 @@
                             <p class="mb-2">{{ service_request.assigned_worker.bio|truncatewords:30 }}</p>
                             {% endif %}
                             
-                            {% if service_request.worker_accepted == True %}
                             <span class="badge bg-success">
                                 <i class="bi bi-check-circle"></i> Accepted Assignment
                             </span>
-                            {% elif service_request.worker_accepted == False %}
-                            <span class="badge bg-danger">
-                                <i class="bi bi-x-circle"></i> Rejected Assignment
-                            </span>
-                            {% else %}
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-clock"></i> Awaiting Response
-                            </span>
-                            {% endif %}
                         </div>
                         <div class="col-md-4 text-center">
                             {% if service_request.assigned_worker.average_rating %}
@@ -368,6 +446,32 @@
                             </span>
                         </dd>
                         {% endif %}
+                        
+                        {% if service_request.payment_screenshot %}
+                        <dt class="col-sm-4">Payment Screenshot:</dt>
+                        <dd class="col-sm-8">
+                            <div class="mb-2">
+                                {% if service_request.payment_verified %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-shield-check"></i> Verified
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-clock"></i> Pending Verification
+                                </span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ service_request.payment_screenshot.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Screenshot
+                            </a>
+                            {% if service_request.payment_verified %}
+                            <div class="mt-2 small text-muted">
+                                <i class="bi bi-person-check"></i> Verified by {{ service_request.payment_verified_by.get_full_name }}<br>
+                                <i class="bi bi-calendar-check"></i> on {{ service_request.payment_verified_at|date:"M d, Y g:i A" }}
+                            </div>
+                            {% endif %}
+                        </dd>
+                        {% endif %}
                     </dl>
                 </div>
             </div>
@@ -379,6 +483,30 @@
             <div class="card bg-light mb-4">
                 <div class="card-body">
                     <h6 class="card-title">Quick Actions</h6>
+                    
+                    {% if service_request.status != 'cancelled' %}
+                    <a href="{% url 'service_requests_web:client_upload_screenshot' service_request.id %}" 
+                       class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-camera"></i> 
+                        {% if service_request.payment_screenshot %}
+                        Update Screenshot
+                        {% else %}
+                        Upload Payment Screenshot
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'service_requests_web:client_request_activity' service_request.id %}" 
+                       class="btn btn-outline-info w-100 mb-2">
+                        <i class="bi bi-clock-history"></i> View Activity Log
+                    </a>
+                    
+                    {% if service_request.status == 'pending' %}
+                    <a href="{% url 'service_requests_web:client_edit_request' service_request.id %}" 
+                       class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-pencil-square"></i> Edit Request
+                    </a>
+                    {% endif %}
                     
                     {% if service_request.status == 'pending' or service_request.status == 'assigned' %}
                     <a href="{% url 'service_requests_web:client_cancel_request' service_request.id %}" 
@@ -479,4 +607,62 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time updates via WebSocket
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.querySelector('[data-service-request-id]');
+        const requestId = container ? parseInt(container.getAttribute('data-service-request-id')) : null;
+        
+        // Listen for service request updates from WebSocket (initialized in base.html)
+        if (window.notificationWS && requestId) {
+            window.notificationWS.onNotification(function(data) {
+                // Check if this notification is about our current request
+                const notifData = data.data || data;
+                const extraData = notifData.extra_data || {};
+                const serviceRequestId = extraData.service_request_id || extraData.job_id;
+                
+                // Reload if notification is about this specific request
+                if (serviceRequestId && serviceRequestId === requestId) {
+                    const notifType = notifData.notification_type;
+                    
+                    if (notifType === 'job_assigned' || notifType === 'job_completed' ||
+                        notifType === 'job_application' || notifType === 'account_update') {
+                        console.log('Service request updated (' + notifType + '), refreshing page...');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                }
+            });
+        }
+        
+        // Fallback: Poll for updates every 30 seconds if WebSocket not available
+        if (!window.notificationWS) {
+            const pollInterval = setInterval(function() {
+                fetch(window.location.href, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Only reload if there might be changes (you could check modified timestamp)
+                        console.log('Polling update check...');
+                    }
+                })
+                .catch(error => {
+                    console.error('Polling error:', error);
+                });
+            }, 30000);
+            
+            // Clean up on page unload
+            window.addEventListener('beforeunload', function() {
+                clearInterval(pollInterval);
+            });
+        }
+    });
+</script>
 {% endblock %}

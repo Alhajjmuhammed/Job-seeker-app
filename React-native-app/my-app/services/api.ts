@@ -204,6 +204,30 @@ class ApiService {
     return response.data;
   }
 
+  // ============ Password Management Methods ============
+  async requestPasswordReset(email: string) {
+    const response = await this.api.post('/auth/password-reset/', {
+      email: email,
+    });
+    return response.data;
+  }
+
+  async confirmPasswordReset(token: string, password: string) {
+    const response = await this.api.post('/auth/password-reset/confirm/', {
+      token: token,
+      password: password,
+    });
+    return response.data;
+  }
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    const response = await this.api.post('/auth/change-password/', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    return response.data;
+  }
+
   // ============ Worker Methods ============
   async getWorkerProfile() {
     const response = await this.api.get('/workers/profile/');
@@ -452,6 +476,17 @@ class ApiService {
     return response.data;
   }
 
+  // ============ FAVORITES ============
+  async getFavorites(page: number = 1) {
+    const response = await this.api.get(`/clients/favorites/?page=${page}`);
+    return response.data;
+  }
+
+  async toggleFavorite(workerId: number) {
+    const response = await this.api.post(`/clients/favorites/toggle/${workerId}/`);
+    return response.data;
+  }
+
   // ============ SERVICE-BASED METHODS (No worker browsing) ============
   async getServices() {
     const response = await this.api.get('/clients/services/');
@@ -507,6 +542,7 @@ class ApiService {
     duration_type: 'daily' | 'monthly' | '3_months' | '6_months' | 'yearly' | 'custom';
     service_start_date?: string;
     service_end_date?: string;
+    workers_needed?: number;
     urgency?: string;
     client_notes?: string;
     payment_transaction_id?: string;
@@ -578,30 +614,34 @@ class ApiService {
   }
 
   // ============ WORKER SERVICE REQUEST API ============
+  // NEW: Using multi-worker assignment endpoints
   async getWorkerAssignments(status?: string) {
     const params = status ? { status } : {};
-    const response = await this.api.get('/v1/worker/service-requests/', { params });
+    const response = await this.api.get('/v1/worker/my-assignments/', { params });
     return response.data;
   }
 
   async getWorkerAssignmentDetail(assignmentId: number) {
-    const response = await this.api.get(`/v1/worker/service-requests/${assignmentId}/detail/`);
+    const response = await this.api.get(`/v1/worker/my-assignments/${assignmentId}/`);
     return response.data;
   }
 
   async getPendingAssignments() {
-    const response = await this.api.get('/v1/worker/service-requests/pending/');
+    const response = await this.api.get('/v1/worker/my-assignments/pending/');
     return response.data;
   }
 
   async getCurrentAssignment() {
-    const response = await this.api.get('/v1/worker/service-requests/current/');
+    // Get assignments filtered by in_progress status
+    const response = await this.api.get('/v1/worker/my-assignments/', { 
+      params: { status: 'in_progress' } 
+    });
     return response.data;
   }
 
   async acceptAssignment(assignmentId: number, notes?: string) {
     const response = await this.api.post(
-      `/v1/worker/service-requests/${assignmentId}/respond/`,
+      `/v1/worker/my-assignments/${assignmentId}/respond/`,
       { accepted: true, notes }
     );
     return response.data;
@@ -609,7 +649,7 @@ class ApiService {
 
   async rejectAssignment(assignmentId: number, reason: string) {
     const response = await this.api.post(
-      `/v1/worker/service-requests/${assignmentId}/respond/`,
+      `/v1/worker/my-assignments/${assignmentId}/respond/`,
       { accepted: false, rejection_reason: reason }
     );
     return response.data;
@@ -617,7 +657,7 @@ class ApiService {
 
   async clockIn(assignmentId: number, location?: { latitude: number; longitude: number }) {
     const response = await this.api.post(
-      `/v1/worker/service-requests/${assignmentId}/clock-in/`,
+      `/v1/worker/my-assignments/${assignmentId}/clock-in/`,
       { location: location ? `${location.latitude},${location.longitude}` : undefined }
     );
     return response.data;
@@ -625,7 +665,7 @@ class ApiService {
 
   async clockOut(assignmentId: number, location?: { latitude: number; longitude: number }, notes?: string) {
     const response = await this.api.post(
-      `/v1/worker/service-requests/${assignmentId}/clock-out/`,
+      `/v1/worker/my-assignments/${assignmentId}/clock-out/`,
       { 
         location: location ? `${location.latitude},${location.longitude}` : undefined,
         notes 
@@ -636,7 +676,7 @@ class ApiService {
 
   async completeService(assignmentId: number, completionNotes: string) {
     const response = await this.api.post(
-      `/v1/worker/service-requests/${assignmentId}/complete/`,
+      `/v1/worker/my-assignments/${assignmentId}/complete/`,
       { completion_notes: completionNotes }
     );
     return response.data;
@@ -648,7 +688,8 @@ class ApiService {
   }
 
   async getWorkerStatistics() {
-    const response = await this.api.get('/v1/worker/statistics/');
+    // NEW: Using multi-worker assignment stats endpoint
+    const response = await this.api.get('/v1/worker/my-assignments/stats/');
     return response.data;
   }
 
@@ -828,6 +869,123 @@ class ApiService {
   // Get FAQ
   async getFAQ() {
     const response = await this.api.get('/support/faq/');
+    return response.data;
+  }
+
+  // ============== GDPR API ==============
+  
+  // Export user data (GDPR Article 20 - Right to Data Portability)
+  async exportUserData() {
+    const response = await this.api.get('/v1/gdpr/export/', {
+      params: { format: 'json' }
+    });
+    return response.data;
+  }
+
+  // Get account deletion preview (shows what will be deleted)
+  async getAccountDeletionPreview() {
+    const response = await this.api.get('/v1/gdpr/delete/preview/');
+    return response.data.preview || {};
+  }
+
+  // Delete account permanently (GDPR Article 17 - Right to Erasure)
+  async deleteAccount() {
+    const response = await this.api.post('/v1/gdpr/delete/', {
+      confirm: true
+    });
+    return response.data;
+  }
+
+  // Anonymize account (soft delete - removes PII but keeps records)
+  async anonymizeAccount() {
+    const response = await this.api.post('/v1/gdpr/anonymize/', {
+      confirm: true
+    });
+    return response.data;
+  }
+
+  // Get data retention policy information
+  async getDataRetentionPolicy() {
+    const response = await this.api.get('/v1/gdpr/retention/');
+    return response.data;
+  }
+
+  // Get consent status
+  async getConsentStatus() {
+    const response = await this.api.get('/v1/gdpr/consent/');
+    return response.data;
+  }
+
+  // Get privacy settings
+  async getPrivacySettings() {
+    const response = await this.api.get('/v1/accounts/privacy-settings/');
+    return response.data;
+  }
+
+  // Update privacy settings
+  async updatePrivacySettings(settings: any) {
+    const response = await this.api.patch('/v1/accounts/privacy-settings/update/', settings);
+    return response.data;
+  }
+
+  // Get data retention information
+  async getDataRetention() {
+    const response = await this.api.get('/v1/gdpr/retention/');
+    return response.data;
+  }
+
+  // ============ PAYMENT METHODS ============
+  // Get saved cards (for clients)
+  async getPaymentMethods() {
+    const response = await this.api.get('/v1/payment-methods/cards/');
+    return response.data;
+  }
+
+  // Set default card
+  async setDefaultCard(cardId: string) {
+    const response = await this.api.post(`/v1/payment-methods/cards/${cardId}/set_default/`, {});
+    return response.data;
+  }
+
+  // Remove saved card
+  async removeCard(cardId: string) {
+    const response = await this.api.delete(`/v1/payment-methods/cards/${cardId}/`);
+    return response.data;
+  }
+
+  // Get bank accounts (for workers)
+  async getBankAccounts() {
+    const response = await this.api.get('/v1/payment-methods/bank-accounts/');
+    return response.data;
+  }
+
+  // Set default bank account
+  async setDefaultBankAccount(accountId: string) {
+    const response = await this.api.post(`/v1/payment-methods/bank-accounts/${accountId}/set_default/`, {});
+    return response.data;
+  }
+
+  // Remove bank account
+  async removeBankAccount(accountId: string) {
+    const response = await this.api.delete(`/v1/payment-methods/bank-accounts/${accountId}/`);
+    return response.data;
+  }
+
+  // Get mobile money accounts (for workers)
+  async getMobileMoneyAccounts() {
+    const response = await this.api.get('/v1/payment-methods/mobile-money/');
+    return response.data;
+  }
+
+  // Set default mobile money account
+  async setDefaultMobileMoneyAccount(accountId: string) {
+    const response = await this.api.post(`/v1/payment-methods/mobile-money/${accountId}/set_default/`, {});
+    return response.data;
+  }
+
+  // Remove mobile money account
+  async removeMobileMoneyAccount(accountId: string) {
+    const response = await this.api.delete(`/v1/payment-methods/mobile-money/${accountId}/`);
     return response.data;
   }
 }

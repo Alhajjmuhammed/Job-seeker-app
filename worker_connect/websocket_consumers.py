@@ -254,3 +254,148 @@ def broadcast_new_job(job_data: dict, location: str = None):
                     'data': job_data,
                 }
             )
+
+
+class ChatConsumer(AsyncJsonWebsocketConsumer):
+    """
+    WebSocket consumer for real-time chat/messaging.
+    
+    Connect: ws://host/ws/chat/{conversation_id}/?token=<auth_token>
+    """
+    
+    async def connect(self):
+        """Handle WebSocket connection."""
+        # Get token from query string
+        token = self.scope.get('query_string', b'').decode()
+        token = dict(x.split('=') for x in token.split('&') if '=' in x).get('token', '')
+        
+        # Authenticate user
+        self.user = await self.get_user_from_token(token)
+        
+        if self.user is None:
+            await self.close(code=4001)
+            return
+        
+        # Get conversation ID from URL
+        self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
+        self.room_group_name = f'chat_{self.conversation_id}'
+        
+        # Verify user is part of conversation
+        if not await self.user_in_conversation():
+            await self.close(code=4003)  # Forbidden
+            return
+        
+        # Join conversation group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        
+        await self.accept()
+        
+        await self.send_json({
+            'type': 'connection_established',
+            'conversation_id': self.conversation_id,
+        })
+        
+        logger.info(f"Chat WebSocket connected: user={self.user.id}, conversation={self.conversation_id}")
+    
+    async def disconnect(self, close_code):
+        """Handle WebSocket disconnection."""
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            logger.info(f"Chat WebSocket disconnected: user={self.user.id}")
+    
+    async def receive_json(self, content):
+        """Handle incoming messages."""
+        message_type = content.get('type', '')
+        
+        if message_type == 'ping':
+            await self.send_json({'type': 'pong'})
+        elif message_type == 'typing':
+            # Broadcast typing indicator to other users in conversation
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'typing_indicator',
+                    'user_id': self.user.id,
+                    'username': self.user.username,
+                    'is_typing': content.get('is_typing', True),
+                }
+            )
+    
+    async def chat_message(self, event):
+        """Send chat message to WebSocket."""
+        await self.send_json({
+            'type': 'message',
+            'data': event['data'],
+        })
+    
+    async def typing_indicator(self, event):
+        """Send typing indicator to WebSocket."""
+        # Don't send to the user who is typing
+        if event['user_id'] != self.user.id:
+            await self.send_json({
+                'type': 'typing',
+                'user_id': event['user_id'],
+                'username': event['username'],
+                'is_typing': event['is_typing'],
+            })
+    
+    @database_sync_to_async
+    def get_user_from_token(self, token):
+        """Authenticate user from token."""
+        from rest_framework.authtoken.models import Token
+        try:
+            token_obj = Token.objects.select_related('user').get(key=token)
+            return token_obj.user
+        except Token.DoesNotExist:
+            return None
+    
+    @database_sync_to_async
+    def user_in_conversation(self):
+        """Check if user is part of the conversation."""
+        try:
+            from jobs.models import Message
+            from django.db.models import Q
+            # Check if user has any messages in this conversation
+            return Message.objects.filter(
+                conversation_id=self.conversation_id
+            ).filter(
+                Q(sender=self.user) | Q(receiver=self.user)
+            ).exists()
+        except Exception as e:
+            logger.error(f"Error checking conversation membership: {e}")
+            return False
+
+
+def send_chat_message(conversation_id: int, message_data: dict):
+    """
+    Send chat message to all users in a conversation via WebSocket.
+    
+    Usage:
+        from worker_connect.websocket_consumers import send_chat_message
+        send_chat_message(conversation_id, {
+            'id': message.id,
+            'sender_id': message.sender.id,
+            'sender_name': message.sender.get_full_name(),
+            'text': message.text,
+            'timestamp': message.timestamp.isoformat(),
+        })
+    """
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    
+    channel_layer = get_channel_layer()
+    if channel_layer:
+        async_to_sync(channel_layer.group_send)(
+            f'chat_{conversation_id}',
+            {
+                'type': 'chat_message',
+                'data': message_data,
+            }
+        )
+

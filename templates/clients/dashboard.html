@@ -7,27 +7,42 @@
 {% block extra_css %}
 <style>
     .btn-primary {
-        background-color: #14b8a6;
-        border-color: #14b8a6;
+        background-color: #14b8a6 !important;
+        border-color: #14b8a6 !important;
+        color: white !important;
     }
     .btn-primary:hover {
-        background-color: #0f766e;
-        border-color: #0f766e;
+        background-color: #0f766e !important;
+        border-color: #0f766e !important;
+        color: white !important;
+    }
+    .btn-primary i {
+        color: white !important;
     }
     .btn-outline-primary {
         color: #14b8a6;
         border-color: #14b8a6;
     }
     .btn-outline-primary:hover {
-        background-color: #14b8a6;
-        border-color: #14b8a6;
-        color: white;
+        background-color: #14b8a6 !important;
+        border-color: #14b8a6 !important;
+        color: white !important;
     }
     .badge.bg-success {
         background-color: #14b8a6 !important;
+        color: white !important;
     }
     .badge.bg-primary {
         background-color: #0f766e !important;
+        color: white !important;
+    }
+    .badge.bg-info {
+        background-color: #06b6d4 !important;
+        color: white !important;
+    }
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+        color: white !important;
     }
     .card {
         border-radius: 12px;
@@ -232,4 +247,58 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time dashboard updates via WebSocket
+    document.addEventListener('DOMContentLoaded', function() {
+        // Listen for service request updates from WebSocket (initialized in base.html)
+        if (window.notificationWS) {
+            window.notificationWS.onNotification(function(data) {
+                // Refresh dashboard when relevant events occur
+                const notifData = data.data || data;
+                const notifType = notifData.notification_type;
+                
+                if (notifType === 'job_assigned' || 
+                    notifType === 'job_completed' || 
+                    notifType === 'job_application' ||
+                    notifType === 'payment_received') {
+                    console.log('Dashboard update detected:', notifType);
+                    // Show a subtle notification that content will refresh
+                    showUpdateNotification();
+                    // Reload after a short delay to batch updates
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                }
+            });
+        }
+        
+        // Function to show update notification
+        function showUpdateNotification() {
+            const existingNotif = document.getElementById('update-notification');
+            if (existingNotif) return; // Don't show multiple
+            
+            const notif = document.createElement('div');
+            notif.id = 'update-notification';
+            notif.className = 'alert alert-info alert-dismissible fade show position-fixed';
+            notif.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+            notif.innerHTML = `
+                <i class="bi bi-arrow-clockwise me-2"></i>
+                <strong>Update Available</strong>
+                <p class="mb-0 small">New data detected. Refreshing dashboard...</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notif);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(function() {
+                if (notif.parentNode) {
+                    notif.remove();
+                }
+            }, 5000);
+        }
+    });
+</script>
 {% endblock %}

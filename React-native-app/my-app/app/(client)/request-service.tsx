@@ -66,6 +66,7 @@ export default function RequestServiceScreen() {
   
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
+  const [workersNeeded, setWorkersNeeded] = useState<number>(1); // NEW: Number of workers needed
 
   const resetForm = () => {
     setSelectedCategory(null);
@@ -80,6 +81,7 @@ export default function RequestServiceScreen() {
     setServiceEndDate(new Date());
     setUrgency('normal');
     setClientNotes('');
+    setWorkersNeeded(1);
     setPriceCalculation(null);
     setPaymentData(null);
     setShowScreenshotModal(false);
@@ -175,6 +177,7 @@ export default function RequestServiceScreen() {
       formData.append('preferred_date', preferredDate.toISOString().split('T')[0]);
       formData.append('preferred_time', preferredTime.toTimeString().split(' ')[0].substring(0, 5));
       formData.append('duration_type', durationType);
+      formData.append('workers_needed', workersNeeded.toString());
       formData.append('urgency', urgency);
       if (clientNotes.trim()) {
         formData.append('client_notes', clientNotes.trim());
@@ -406,6 +409,38 @@ export default function RequestServiceScreen() {
             onChangeText={setCity}
             maxLength={100}
           />
+        </View>
+
+        {/* Number of Workers Needed */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Number of Workers Needed <Text style={styles.required}>*</Text>
+          </Text>
+          <View style={styles.workersSelector}>
+            <TouchableOpacity
+              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setWorkersNeeded(Math.max(1, workersNeeded - 1))}
+              disabled={workersNeeded <= 1}
+            >
+              <Ionicons name="remove" size={24} color={workersNeeded <= 1 ? theme.textSecondary : theme.primary} />
+            </TouchableOpacity>
+            <View style={[styles.workersCount, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.workersCountText, { color: theme.text }]}>{workersNeeded}</Text>
+              <Text style={[styles.workersLabel, { color: theme.textSecondary }]}>
+                {workersNeeded === 1 ? 'worker' : 'workers'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setWorkersNeeded(Math.min(100, workersNeeded + 1))}
+              disabled={workersNeeded >= 100}
+            >
+              <Ionicons name="add" size={24} color={workersNeeded >= 100 ? theme.textSecondary : theme.primary} />
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
+            💡 Price will be calculated as: daily_rate × days × {workersNeeded} workers
+          </Text>
         </View>
 
         {/* Preferred Date */}
@@ -782,6 +817,43 @@ const styles = StyleSheet.create({
   durationButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  workersSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginVertical: 8,
+  },
+  workerButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workersCount: {
+    minWidth: 120,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workersCountText: {
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  workersLabel: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  helperText: {
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
   },
   priceCard: {
     borderWidth: 2,

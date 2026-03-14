@@ -109,6 +109,14 @@ def request_service(request, category_id):
     
     if request.method == 'POST':
         try:
+            # Get workers_needed from POST or default to 1
+            workers_needed = request.POST.get('workers_needed', '1')
+            try:
+                workers_needed = int(workers_needed)
+                workers_needed = max(1, min(100, workers_needed))  # Clamp between 1 and 100
+            except (ValueError, TypeError):
+                workers_needed = 1
+            
             # Get form data
             title = request.POST.get('title', '').strip()
             description = request.POST.get('description', '').strip()
@@ -143,7 +151,13 @@ def request_service(request, category_id):
                 end_date = datetime.strptime(service_end_date, '%Y-%m-%d').date()
                 duration_days = (end_date - start_date).days + 1
             
-            total_price = duration_days * daily_rate
+            # Calculate total: daily_rate × duration_days × workers_needed
+            total_price = duration_days * daily_rate * workers_needed
+            
+            # Get payment data
+            payment_method = request.POST.get('payment_method', 'pending')
+            payment_transaction_id = request.POST.get('payment_transaction_id', '')
+            payment_screenshot = request.FILES.get('payment_screenshot')
             
             # Create service request
             service_request = ServiceRequest.objects.create(
@@ -163,9 +177,27 @@ def request_service(request, category_id):
                 service_start_date=service_start_date if service_start_date else None,
                 service_end_date=service_end_date if service_end_date else None,
                 client_notes=client_notes if client_notes else None,
+                workers_needed=workers_needed,
                 status='pending',
-                payment_status='pending'
+                payment_status='pending',
+                payment_method=payment_method,
+                payment_transaction_id=payment_transaction_id
             )
+            
+            # Save payment screenshot if provided
+            if payment_screenshot:
+                service_request.payment_screenshot = payment_screenshot
+                service_request.save()
+            
+            # Update client profile
+            if hasattr(request.user, 'client_profile'):
+                profile = request.user.client_profile
+                profile.total_jobs_posted += 1
+                profile.save()
+            
+            # Notify admin
+            from worker_connect.notification_service import NotificationService
+            NotificationService.notify_admin_new_service_request(service_request)
             
             messages.success(request, 
                 f'Your {category.name} service request has been submitted! '
@@ -244,8 +276,17 @@ def service_request_detail(request, request_id):
         client=request.user
     )
     
+    # Fetch worker assignments - only show accepted/in_progress/completed (not pending or rejected)
+    # Clients should only see workers who have accepted their request
+    assignments = service_request.assignments.filter(
+        status__in=['accepted', 'in_progress', 'completed']
+    ).select_related('worker__user').order_by('id')
+    assignments_count = assignments.count()
+    
     context = {
         'request': service_request,
+        'assignments': assignments,
+        'assignments_count': assignments_count,
     }
     return render(request, 'clients/service_request_detail.html', context)
 

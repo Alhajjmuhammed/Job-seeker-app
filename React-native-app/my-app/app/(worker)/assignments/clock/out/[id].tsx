@@ -12,9 +12,9 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useTheme } from '../../../../contexts/ThemeContext';
-import Header from '../../../../components/Header';
-import apiService from '../../../../services/api';
+import { useTheme } from '../../../../../contexts/ThemeContext';
+import Header from '../../../../../components/Header';
+import apiService from '../../../../../services/api';
 
 interface Assignment {
   id: number;
@@ -34,6 +34,7 @@ export default function ClockOutScreen() {
   const [notes, setNotes] = useState('');
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [workStartTime] = useState(new Date());
 
   useEffect(() => {
@@ -44,12 +45,17 @@ export default function ClockOutScreen() {
   const loadAssignment = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getCurrentAssignment();
-      if (response.service_request && response.service_request.id === Number(id)) {
-        setAssignment(response.service_request);
-      }
+      const response = await apiService.getWorkerAssignmentDetail(Number(id));
+      const assignmentData = response.assignment || response.service_request || response;
+      setAssignment(assignmentData);
+      
+      console.log('📋 Clock Out Screen Loaded:', {
+        assignmentId: assignmentData.id,
+        status: assignmentData.status,
+        workerAccepted: assignmentData.worker_accepted
+      });
     } catch (error: any) {
-      console.error('Error loading assignment:', error);
+      console.error('❌ Error loading assignment:', error);
       Alert.alert('Error', 'Failed to load assignment');
       router.back();
     } finally {
@@ -72,7 +78,8 @@ export default function ClockOutScreen() {
         });
       }
     } catch (error) {
-      console.error('Error getting location:', error);
+      console.error('❌ Error getting location:', error);
+      setLocationError('Could not get location. You can still clock out without it.');
     } finally {
       setLocationLoading(false);
     }
@@ -99,27 +106,36 @@ export default function ClockOutScreen() {
 
     try {
       setSubmitting(true);
-      await apiService.clockOut(
+      console.log('🕐 Clocking Out:', {
+        assignmentId: assignment.id,
+        hasLocation: !!currentLocation,
+        hasNotes: !!notes.trim()
+      });
+      
+      const result = await apiService.clockOut(
         assignment.id,
         currentLocation || undefined,
         notes.trim() || undefined
       );
+      console.log('✅ Clock Out Success:', result);
+      
+      // Navigate back with a slight delay to ensure state updates
+      setTimeout(() => {
+        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+      }, 300);
       
       Alert.alert(
         '✅ Clocked Out Successfully!',
-        'Your work session has been recorded. Great job!',
-        [
-          {
-            text: 'View Dashboard',
-            onPress: () => router.replace('/(worker)/dashboard'),
-          },
-        ]
+        'Your work session has been recorded. Great job!'
       );
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to clock out. Please try again.'
-      );
+      console.error('❌ Clock Out Error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to clock out. Please try again.';
+      Alert.alert('Clock Out Failed', errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -284,54 +300,6 @@ export default function ClockOutScreen() {
             multiline
             numberOfLines={5}
           />
-
-          <View style={styles.notesTips}>
-            <Text style={[styles.tipTitle, { color: theme.text }]}>💡 Tips:</Text>
-            <Text style={[styles.tipText, { color: theme.textSecondary }]}>
-              • Note any completed tasks
-            </Text>
-            <Text style={[styles.tipText, { color: theme.textSecondary }]}>
-              • Mention any issues or delays
-            </Text>
-            <Text style={[styles.tipText, { color: theme.textSecondary }]}>
-              • List materials used
-            </Text>
-          </View>
-        </View>
-
-        {/* Checklist */}
-        <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Before Clock Out
-          </Text>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkbox-outline" size={20} color={theme.textSecondary} />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Work area cleaned and organized
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkbox-outline" size={20} color={theme.textSecondary} />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Tools and equipment properly stored
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkbox-outline" size={20} color={theme.textSecondary} />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Communicated with client if needed
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkbox-outline" size={20} color={theme.textSecondary} />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Documented work in notes above
-            </Text>
-          </View>
         </View>
 
         {/* Clock Out Button */}
@@ -508,30 +476,6 @@ const styles = StyleSheet.create({
     minHeight: 120,
     textAlignVertical: 'top',
     marginBottom: 12,
-  },
-  notesTips: {
-    padding: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-  },
-  tipTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  tipText: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  checklistItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 10,
-  },
-  checklistText: {
-    fontSize: 14,
-    flex: 1,
   },
   actionContainer: {
     padding: 16,

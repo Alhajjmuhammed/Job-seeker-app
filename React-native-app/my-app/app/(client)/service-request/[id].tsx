@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -32,14 +32,23 @@ interface ServiceRequestDetail {
   estimated_duration_hours: number;
   client_notes?: string;
   created_at: string;
-  assigned_worker?: {
+  workers_needed?: number; // Number of workers needed
+  assignments?: { // Multiple worker assignments (only accepted workers shown)
     id: number;
-    full_name: string;
-    phone_number: string;
-    email: string;
-    profile_picture?: string;
-    rating: number;
-  };
+    assignment_number: number;
+    status: string;
+    worker: {
+      id: number;
+      full_name: string;
+      phone_number: string;
+      email: string;
+      profile_picture?: string;
+      rating?: number; // Optional - might be null
+    };
+    worker_response_at?: string; // When worker responded
+    worker_rejection_reason?: string; // Rejection reason if rejected
+    assigned_at: string; // When admin assigned
+  }[];
   worker_accepted?: boolean;
   rejection_reason?: string;
   client_rating?: number;
@@ -77,11 +86,28 @@ export default function ServiceRequestDetailScreen() {
   const loadRequestDetail = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('📋 Loading client service request detail for ID:', id);
       const response = await apiService.getServiceRequestDetail(Number(id));
-      setRequest(response.service_request || response);
-      setTimeLogs(response.time_logs || []);
+      console.log('✅ Service request detail loaded:', {
+        requestId: response.service_request?.id || response.id,
+        status: response.service_request?.status || response.status,
+        hasTimeLogs: !!response.time_logs,
+        timeLogsCount: response.time_logs?.length || 0,
+        assignmentsCount: response.service_request?.assignments?.length || response.assignments?.length || 0
+      });
+      const requestData = response.service_request || response;
+      const timeLogsData = response.time_logs || [];
+      console.log('📊 Time logs data:', timeLogsData.map((log: TimeLog) => ({
+        id: log.id,
+        duration: log.duration_hours,
+        clockIn: log.clock_in,
+        clockOut: log.clock_out
+      })));
+      setRequest(requestData);
+      setTimeLogs(timeLogsData);
     } catch (error: any) {
-      console.error('Error loading request detail:', error);
+      console.error('❌ Error loading request detail:', error);
+      console.error('Error details:', error.response?.data || error.message);
       Alert.alert('Error', 'Failed to load request details');
       router.back();
     } finally {
@@ -162,12 +188,6 @@ export default function ServiceRequestDetailScreen() {
       );
     } finally {
       setCompleting(false);
-    }
-  };
-
-  const handleCallWorker = () => {
-    if (request?.assigned_worker?.phone_number) {
-      Linking.openURL(`tel:${request.assigned_worker.phone_number}`);
     }
   };
 
@@ -280,19 +300,36 @@ export default function ServiceRequestDetailScreen() {
   };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
-  const calculateTotalHours = () => {
-    return timeLogs.reduce((sum, log) => sum + (log.duration_hours || 0), 0);
-  };
+  const totalHours = useMemo(() => {
+    if (!timeLogs || !Array.isArray(timeLogs) || timeLogs.length === 0) {
+      console.log('📊 Total hours: 0 (no time logs)');
+      return 0;
+    }
+    const total = timeLogs.reduce((sum, log) => {
+      const hours = Number(log.duration_hours) || 0;
+      return sum + hours;
+    }, 0);
+    const result = Number(total) || 0;
+    console.log('📊 Total hours calculated:', result, 'from', timeLogs.length, 'logs');
+    return result;
+  }, [timeLogs]);
 
   if (loading) {
     return (
@@ -507,77 +544,105 @@ export default function ServiceRequestDetailScreen() {
           </View>
         )}
 
-        {/* Assigned Worker */}
-        {request.assigned_worker && (
+        {/* Assigned Workers */}
+        {request.assignments && Array.isArray(request.assignments) && request.assignments.length > 0 && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Assigned Worker
+              {request.workers_needed && request.workers_needed > 1 
+                ? `Assigned Workers (${request.assignments.length}/${request.workers_needed})` 
+                : 'Assigned Worker'}
             </Text>
 
-            <View style={styles.workerCard}>
-              <View style={styles.workerHeader}>
-                <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                  <Text style={styles.avatarText}>
-                    {request.assigned_worker.full_name?.charAt(0) || 'W'}
-                  </Text>
-                </View>
-                <View style={styles.workerInfo}>
-                  <Text style={[styles.workerName, { color: theme.text }]}>
-                    {request.assigned_worker.full_name || 'Worker'}
-                  </Text>
-                  {request.assigned_worker.rating && request.assigned_worker.rating > 0 && (
-                    <View style={styles.ratingRow}>
-                      <Ionicons name="star" size={16} color="#FFA500" />
-                      <Text style={[styles.ratingText, { color: theme.textSecondary }]}>
-                        {request.assigned_worker.rating.toFixed(1)}
-                      </Text>
+            {/* Multiple Workers View - Only shows accepted workers */}
+            {request.assignments && request.assignments.length > 0 ? (
+              <>
+                {request.assignments.map((assignment, index) => {
+                  if (!assignment || !assignment.worker) return null;
+                  return (
+                  <View key={assignment.id} style={[styles.workerCard, index > 0 && styles.workerCardSpacing]}>
+                    <View style={styles.workerHeader}>
+                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                        <Text style={styles.avatarText}>
+                          {assignment.worker.full_name?.charAt(0) || 'W'}
+                        </Text>
+                      </View>
+                      <View style={styles.workerInfo}>
+                        <View style={styles.workerNameRow}>
+                          <Text style={[styles.workerName, { color: theme.text }]}>
+                            {assignment.worker.full_name || 'Worker'} 
+                          </Text>
+                          <Text style={[styles.assignmentNumber, { color: theme.textSecondary }]}>
+                            #{assignment.assignment_number}
+                          </Text>
+                        </View>
+                        {assignment.worker.rating != null && assignment.worker.rating > 0 && (
+                          <View style={styles.ratingRow}>
+                            <Ionicons name="star" size={16} color="#FFA500" />
+                            <Text style={[styles.ratingText, { color: theme.textSecondary }]}>
+                              {Number(assignment.worker.rating || 0).toFixed(1)}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
-                  )}
-                </View>
+
+                    {/* Assignment Status Badge */}
+                    {assignment.status === 'accepted' && (
+                      <View style={[styles.acceptedBadge, { backgroundColor: '#4CAF50' }]}>
+                        <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                        <Text style={styles.acceptedText}>Accepted</Text>
+                      </View>
+                    )}
+
+                    {assignment.status === 'in_progress' && (
+                      <View style={[styles.inProgressBadge, { backgroundColor: '#9C27B0' }]}>
+                        <Ionicons name="play-circle" size={16} color="#FFFFFF" />
+                        <Text style={styles.inProgressText}>In Progress</Text>
+                      </View>
+                    )}
+
+                    {assignment.status === 'completed' && (
+                      <View style={[styles.completedBadge, { backgroundColor: '#4CAF50' }]}>
+                        <Ionicons name="checkmark-done-circle" size={16} color="#FFFFFF" />
+                        <Text style={styles.completedText}>Completed</Text>
+                      </View>
+                    )}
+
+                    {/* Contact Button for Accepted Workers */}
+                    {assignment.status === 'accepted' || assignment.status === 'in_progress' ? (
+                      <TouchableOpacity
+                        style={[styles.callWorkerButton, { backgroundColor: theme.primary }]}
+                        onPress={() => {
+                          const phoneNumber = assignment.worker.phone_number;
+                          if (phoneNumber) {
+                            Linking.openURL(`tel:${phoneNumber}`);
+                          } else {
+                            Alert.alert('Error', 'Phone number not available');
+                          }
+                        }}
+                      >
+                        <Ionicons name="call" size={20} color="#FFFFFF" />
+                        <Text style={styles.callWorkerButtonText}>Call Worker</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                  );
+                })}
+              </>
+            ) : (
+              /* No workers assigned yet */
+              <View style={styles.noWorkersContainer}>
+                <Ionicons name="person-outline" size={48} color={theme.textSecondary} />
+                <Text style={[styles.noWorkersText, { color: theme.textSecondary }]}>
+                  No workers assigned yet
+                </Text>
               </View>
-
-              {request.worker_accepted === true && (
-                <View style={[styles.acceptedBadge, { backgroundColor: '#4CAF50' }]}>
-                  <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
-                  <Text style={styles.acceptedText}>Worker Accepted</Text>
-                </View>
-              )}
-
-              {request.worker_accepted === false && (
-                <View style={[styles.rejectedBadge, { backgroundColor: '#F44336' }]}>
-                  <Ionicons name="close-circle" size={16} color="#FFFFFF" />
-                  <Text style={styles.rejectedText}>Worker Rejected</Text>
-                  {request.rejection_reason && (
-                    <Text style={styles.rejectionReason}>
-                      Reason: {request.rejection_reason}
-                    </Text>
-                  )}
-                </View>
-              )}
-
-              {request.worker_accepted === null && (
-                <View style={[styles.pendingBadge, { backgroundColor: '#FFA500' }]}>
-                  <Ionicons name="time" size={16} color="#FFFFFF" />
-                  <Text style={styles.pendingText}>Awaiting Worker Response</Text>
-                </View>
-              )}
-
-              {/* Contact Button */}
-              {request.worker_accepted === true && (
-                <TouchableOpacity
-                  style={[styles.callWorkerButton, { backgroundColor: theme.primary }]}
-                  onPress={handleCallWorker}
-                >
-                  <Ionicons name="call" size={24} color="#FFFFFF" />
-                  <Text style={styles.callWorkerButtonText}>Call Worker</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            )}
           </View>
         )}
 
         {/* Time Logs */}
-        {timeLogs.length > 0 && (
+        {timeLogs && Array.isArray(timeLogs) && timeLogs.length > 0 && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Tracking</Text>
 
@@ -586,12 +651,14 @@ export default function ServiceRequestDetailScreen() {
                 Total Hours:
               </Text>
               <Text style={[styles.summaryValue, { color: theme.primary }]}>
-                {calculateTotalHours().toFixed(2)} hrs
+                {totalHours.toFixed(2)} hrs
               </Text>
             </View>
 
             <View style={styles.timeLogsList}>
-              {timeLogs.map((log) => (
+              {timeLogs.map((log) => {
+                if (!log || !log.id) return null;
+                return (
                 <View key={log.id} style={[styles.timeLogItem, { backgroundColor: theme.background }]}>
                   <View style={styles.timeLogHeader}>
                     <Ionicons name="time-outline" size={16} color={theme.primary} />
@@ -602,7 +669,7 @@ export default function ServiceRequestDetailScreen() {
                   {log.clock_out ? (
                     <>
                       <Text style={[styles.timeLogDuration, { color: theme.textSecondary }]}>
-                        Duration: {log.duration_hours?.toFixed(2)} hours
+                        Duration: {Number(log.duration_hours || 0).toFixed(2)} hours
                       </Text>
                       {log.notes && (
                         <Text style={[styles.timeLogNotes, { color: theme.textSecondary }]}>
@@ -618,7 +685,8 @@ export default function ServiceRequestDetailScreen() {
                     </View>
                   )}
                 </View>
-              ))}
+                );
+              })}
             </View>
           </View>
         )}
@@ -664,14 +732,14 @@ export default function ServiceRequestDetailScreen() {
         )}
 
         {/* Rate Worker Button */}
-        {request.status === 'completed' && request.assigned_worker && !request.client_rating && (
+        {request.status === 'completed' && request.assignments && request.assignments.length > 0 && !request.client_rating && (
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.rateButton, { backgroundColor: theme.primary }]}
               onPress={() => router.push(`/(client)/rate-worker/${request.id}` as any)}
             >
               <Ionicons name="star-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.rateButtonText}>Rate Worker</Text>
+              <Text style={styles.rateButtonText}>Rate Service</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -795,6 +863,12 @@ const styles = StyleSheet.create({
   workerCard: {
     padding: 12,
   },
+  workerCardSpacing: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingTop: 16,
+  },
   workerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -816,10 +890,23 @@ const styles = StyleSheet.create({
   workerInfo: {
     flex: 1,
   },
+  workerNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   workerName: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 4,
+  },
+  assignmentNumber: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  workerPayment: {
+    fontSize: 13,
+    marginTop: 2,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -828,6 +915,32 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 14,
+  },
+  inProgressBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 6,
+  },
+  inProgressText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 6,
+  },
+  completedText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   acceptedBadge: {
     flexDirection: 'row',
@@ -1063,5 +1176,15 @@ const styles = StyleSheet.create({
   screenshotUploaded: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  noWorkersContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  noWorkersText: {
+    fontSize: 16,
+    marginTop: 12,
+    textAlign: 'center',
   },
 });

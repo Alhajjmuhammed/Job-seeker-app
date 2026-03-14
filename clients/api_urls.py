@@ -32,6 +32,10 @@ urlpatterns = [
     # Categories (for display purposes only)
     path('categories/', api_views.categories_list, name='categories_list'),
     
+    # Favorites
+    path('favorites/', api_views.favorites_list, name='favorites_list'),
+    path('favorites/toggle/<int:worker_id>/', api_views.toggle_favorite, name='toggle_favorite'),
+    
     # Pricing & Payment (NEW)
     path('calculate-price/', pricing_api.calculate_price, name='calculate_price'),
     path('process-payment/', pricing_api.process_fake_payment, name='process_payment'),

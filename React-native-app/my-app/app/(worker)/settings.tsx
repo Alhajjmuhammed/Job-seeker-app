@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -16,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
+import apiService from '../../services/api';
 
 interface NotificationSettings {
   pushEnabled: boolean;
@@ -38,6 +40,7 @@ export default function SettingsScreen() {
   const { theme, isDark } = useTheme();
   const { user, logout } = useAuth();
   
+  const [loading, setLoading] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     pushEnabled: true,
     emailEnabled: true,
@@ -115,17 +118,110 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+      // First, get preview of what will be deleted
+      const preview = await apiService.getAccountDeletionPreview();
+      
+      Alert.alert(
+        'Delete Account',
+        `This will permanently delete:\n\n` +
+        `• Your profile and personal information\n` +
+        `• ${preview.jobs_applied || 0} job applications\n` +
+        `• ${preview.jobs_completed || 0} completed jobs\n` +
+        `• ${preview.reviews || 0} reviews\n` +
+        `• ${preview.messages || 0} messages\n` +
+        `• ${preview.earnings || 0} earnings records\n` +
+        `• All other associated data\n\n` +
+        `⚠️ THIS ACTION CANNOT BE UNDONE!`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete Permanently',
+            style: 'destructive',
+            onPress: confirmDeleteAccount,
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Error getting deletion preview:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load account information. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
+      'Final Confirmation',
+      'Are you absolutely sure? This will permanently delete your account and all data.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'I Understand - Delete',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('Coming Soon', 'Account deletion will be available soon');
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await apiService.deleteAccount();
+              Alert.alert(
+                'Account Deleted',
+                'Your account has been permanently deleted.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: async () => {
+                      await logout();
+                      router.replace('/(auth)/login');
+                    },
+                  },
+                ]
+              );
+            } catch (error: any) {
+              console.error('Error deleting account:', error);
+              Alert.alert(
+                'Deletion Error',
+                error.response?.data?.error || 'Failed to delete account. Please contact support.'
+              );
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleExportData = () => {
+    Alert.alert(
+      'Export My Data',
+      'We will prepare a complete export of all your data and email it to you. This may take a few minutes.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Export',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await apiService.exportUserData();
+              Alert.alert(
+                'Export Started',
+                'Your data export has been started. You will receive an email with a download link shortly.',
+                [{ text: 'OK' }]
+              );
+            } catch (error: any) {
+              console.error('Error exporting data:', error);
+              Alert.alert(
+                'Export Error',
+                error.response?.data?.error || 'Failed to start data export. Please try again.'
+              );
+            } finally {
+              setLoading(false);
+            }
           },
         },
       ]
@@ -174,11 +270,29 @@ export default function SettingsScreen() {
 
             <TouchableOpacity
               style={styles.settingRow}
-              onPress={() => Alert.alert('Coming Soon', 'Payment methods management coming soon')}
+              onPress={() => router.push('/(worker)/payout-methods')}
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="card-outline" size={24} color={theme.primary} />
                 <Text style={[styles.settingText, { color: theme.text }]}>Payment Methods</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Security Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Security</Text>
+          
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => router.push('/(worker)/change-password')}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="lock-closed-outline" size={24} color={theme.primary} />
+                <Text style={[styles.settingText, { color: theme.text }]}>Change Password</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -368,6 +482,55 @@ export default function SettingsScreen() {
                 thumbColor={privacySettings.allowDirectMessages ? '#0F766E' : '#9CA3AF'}
               />
             </View>
+          </View>
+        </View>
+
+        {/* GDPR & Data Rights */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Privacy & Data (GDPR)</Text>
+          
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => router.push('/(worker)/privacy-settings')}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="shield-checkmark-outline" size={24} color={theme.primary} />
+                <Text style={[styles.settingText, { color: theme.text }]}>Privacy Settings</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => router.push('/(worker)/data-retention')}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="time-outline" size={24} color={theme.primary} />
+                <Text style={[styles.settingText, { color: theme.text }]}>Data Retention Info</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={handleExportData}
+              disabled={loading}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="download-outline" size={24} color={theme.primary} />
+                <Text style={[styles.settingText, { color: theme.text }]}>Export My Data</Text>
+              </View>
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 

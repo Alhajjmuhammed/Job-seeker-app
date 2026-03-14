@@ -41,6 +41,12 @@
                             {% endif %}
                         </div>
                         
+                        <div class="text-end mb-3">
+                            <a href="{% url 'accounts:forgot_password' %}" class="text-muted small">
+                                <i class="bi bi-question-circle"></i> Forgot Password?
+                            </a>
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary w-100 btn-lg">
                             <i class="bi bi-box-arrow-in-right"></i> Login
                         </button>
