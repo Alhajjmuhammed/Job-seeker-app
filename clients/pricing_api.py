@@ -26,7 +26,8 @@ def calculate_price(request):
         "category_id": 1,
         "duration_type": "monthly",  # daily, monthly, 3_months, 6_months, yearly, custom
         "start_date": "2026-03-01",  # required for custom
-        "end_date": "2026-03-15"     # required for custom
+        "end_date": "2026-03-15",    # required for custom
+        "workers_needed": 2          # optional, defaults to 1
     }
     """
     try:
@@ -34,6 +35,15 @@ def calculate_price(request):
         duration_type = request.data.get('duration_type', 'daily')
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+        workers_needed = int(request.data.get('workers_needed', 1))
+        
+        # Validate workers_needed
+        if workers_needed < 1:
+            workers_needed = 1
+        if workers_needed > 100:
+            return Response({
+                'error': 'Maximum 100 workers allowed'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         if not category_id:
             return Response({
@@ -82,8 +92,8 @@ def calculate_price(request):
         else:
             duration_days = duration_map.get(duration_type, 1)
         
-        # Calculate total price
-        total_price = daily_rate * Decimal(str(duration_days))
+        # Calculate total price: daily_rate × duration_days × workers_needed
+        total_price = daily_rate * Decimal(str(duration_days)) * Decimal(str(workers_needed))
         
         return Response({
             'category_id': category.id,
@@ -91,8 +101,9 @@ def calculate_price(request):
             'duration_type': duration_type,
             'duration_days': duration_days,
             'daily_rate': float(daily_rate),
+            'workers_needed': workers_needed,
             'total_price': float(total_price),
-            'currency': 'USD',
+            'currency': 'TSH',
             'start_date': start_date if duration_type == 'custom' else None,
             'end_date': end_date if duration_type == 'custom' else None,
         })

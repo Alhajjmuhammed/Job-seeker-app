@@ -315,12 +315,18 @@
         
         .sidebar-nav-item.active {
             background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-            color: white;
+            color: white !important;
             box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
         }
         
         .sidebar-nav-item.active:hover {
-            color: white;
+            color: white !important;
+        }
+        
+        .sidebar-nav-item.active i,
+        .sidebar-nav-item.active .nav-text,
+        .sidebar-nav-item.active span {
+            color: white !important;
         }
         
         .sidebar-nav-item i {
@@ -564,12 +570,6 @@
             <a href="{% url 'admin_panel:reports' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
                 <i class="bi bi-graph-up"></i> 
                 <span class="nav-text">Reports & Analytics</span>
-            </a>
-            
-            <div class="sidebar-section-title section-title">SYSTEM</div>
-            <a href="{% url 'home' %}" class="sidebar-nav-item">
-                <i class="bi bi-arrow-left-circle"></i> 
-                <span class="nav-text">Back to Site</span>
             </a>
         </nav>
     </aside>

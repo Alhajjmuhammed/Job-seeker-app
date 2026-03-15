@@ -65,13 +65,13 @@
                         {% endif %}
                     </p>
                     <div class="btn-group">
-                        <a href="{% url 'service_requests_web:worker_assignment_detail' current_assignment.id %}" 
+                        <a href="{% url 'service_requests_web:worker_assignment_detail' current_assignment_obj.id %}" 
                            class="btn btn-primary">View Details</a>
                         {% if not is_clocked_in %}
-                        <a href="{% url 'service_requests_web:worker_clock_in' current_assignment.id %}" 
+                        <a href="{% url 'service_requests_web:worker_clock_in' current_assignment_obj.id %}" 
                            class="btn btn-success">⏰ Clock In</a>
                         {% else %}
-                        <a href="{% url 'service_requests_web:worker_clock_out' current_assignment.id %}" 
+                        <a href="{% url 'service_requests_web:worker_clock_out' current_assignment_obj.id %}" 
                            class="btn btn-danger">⏰ Clock Out</a>
                         {% endif %}
                     </div>

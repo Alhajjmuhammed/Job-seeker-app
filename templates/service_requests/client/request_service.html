@@ -179,23 +179,25 @@
                                 <!-- Number of Workers Needed -->
                                 <div class="mb-3">
                                     <label for="workers_needed" class="form-label">Number of Workers Needed</label>
-                                    <div class="input-group" style="max-width: 200px;">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(-1)">
+                                    <div class="d-flex align-items-center gap-2" style="max-width: 180px;">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adjustWorkers(-1)">
                                             <i class="bi bi-dash"></i>
                                         </button>
                                         <input type="number" 
-                                               class="form-control text-center" 
+                                               class="form-control form-control-sm text-center" 
                                                id="workers_needed" 
                                                name="workers_needed" 
                                                value="1" 
                                                min="1" 
                                                max="100"
-                                               required>
-                                        <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(1)">
+                                               required
+                                               style="width: 60px;">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adjustWorkers(1)">
                                             <i class="bi bi-plus"></i>
                                         </button>
+                                        <span class="text-muted small ms-1">workers</span>
                                     </div>
-                                    <small class="text-muted">Each additional worker increases the total cost</small>
+                                    <small class="text-muted d-block mt-1">💡 Each worker multiplies the total cost</small>
                                 </div>
                             </div>
 

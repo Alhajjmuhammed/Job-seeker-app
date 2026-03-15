@@ -29,6 +29,7 @@ interface ServiceCategory {
 interface PriceCalculation {
   duration_days: number;
   daily_rate: number;
+  workers_needed: number;
   total_price: number;
   duration_type_display: string;
 }
@@ -62,6 +63,7 @@ export default function RequestServiceScreen() {
   
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
+  const [workersNeeded, setWorkersNeeded] = useState<number>(1);
 
   const resetForm = () => {
     setDescription('');
@@ -74,6 +76,7 @@ export default function RequestServiceScreen() {
     setServiceEndDate(new Date());
     setUrgency('normal');
     setClientNotes('');
+    setWorkersNeeded(1);
   };
 
   useEffect(() => {
@@ -109,6 +112,7 @@ export default function RequestServiceScreen() {
       const data: any = {
         category_id: parseInt(categoryId as string),
         duration_type: durationType,
+        workers_needed: workersNeeded,
       };
 
       if (durationType === 'custom') {
@@ -124,7 +128,7 @@ export default function RequestServiceScreen() {
     } finally {
       setCalculatingPrice(false);
     }
-  }, [categoryId, durationType, serviceStartDate, serviceEndDate]);
+  }, [categoryId, durationType, serviceStartDate, serviceEndDate, workersNeeded]);
 
   useEffect(() => {
     if (categoryId) {
@@ -182,6 +186,7 @@ export default function RequestServiceScreen() {
         preferred_date: preferredDate.toISOString().split('T')[0],
         preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
         duration_type: durationType,
+        workers_needed: workersNeeded,
         urgency: urgency,
         client_notes: clientNotes.trim() || undefined,
         payment_method: paymentData.payment_method,
@@ -383,6 +388,35 @@ export default function RequestServiceScreen() {
           )}
         </View>
 
+        {/* Number of Workers Needed */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Number of Workers Needed <Text style={styles.required}>*</Text>
+          </Text>
+          <View style={styles.workersSelector}>
+            <TouchableOpacity
+              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setWorkersNeeded(Math.max(1, workersNeeded - 1))}
+              disabled={workersNeeded <= 1}
+            >
+              <Ionicons name="remove" size={20} color={workersNeeded <= 1 ? theme.textSecondary : theme.primary} />
+            </TouchableOpacity>
+            <View style={[styles.workersCount, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.workersCountText, { color: theme.text }]}>{workersNeeded}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setWorkersNeeded(Math.min(100, workersNeeded + 1))}
+              disabled={workersNeeded >= 100}
+            >
+              <Ionicons name="add" size={20} color={workersNeeded >= 100 ? theme.textSecondary : theme.primary} />
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
+            💡 {workersNeeded} {workersNeeded === 1 ? 'worker' : 'workers'} × duration × rate
+          </Text>
+        </View>
+
         {/* Duration Selector */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
@@ -479,6 +513,19 @@ export default function RequestServiceScreen() {
         {/* Price Display */}
         {priceCalculation && (
           <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
+            <View style={styles.priceHeader}>
+              <Ionicons name="calculator-outline" size={24} color={theme.primary} />
+              <Text style={[styles.priceHeaderText, { color: theme.text }]}>Price Breakdown</Text>
+            </View>
+            
+            <View style={styles.priceRow}>
+              <Ionicons name="people-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Workers:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                {priceCalculation.workers_needed || workersNeeded}
+              </Text>
+            </View>
+            
             <View style={styles.priceRow}>
               <Ionicons name="calendar-outline" size={20} color={theme.primary} />
               <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
@@ -486,20 +533,28 @@ export default function RequestServiceScreen() {
                 {priceCalculation.duration_days} days
               </Text>
             </View>
+            
             <View style={styles.priceRow}>
               <Ionicons name="cash-outline" size={20} color={theme.primary} />
-              <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Rate/Day/Worker:</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
-                TSH {priceCalculation.daily_rate}
+                TSH {priceCalculation.daily_rate.toLocaleString()}
               </Text>
             </View>
+            
+            <View style={styles.priceDivider} />
+            
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
               <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
-                TSH {priceCalculation.total_price}
+                TSH {priceCalculation.total_price.toLocaleString().toLocaleString()}
               </Text>
             </View>
+            
+            <Text style={[styles.priceFormula, { color: theme.textSecondary }]}>
+              💡 {priceCalculation.workers_needed || workersNeeded} workers × {priceCalculation.duration_days} days × TSH {priceCalculation.daily_rate.toLocaleString()} = TSH {priceCalculation.total_price.toLocaleString()}
+            </Text>
           </View>
         )}
 
@@ -704,16 +759,59 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  workersSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginVertical: 8,
+  },
+  workerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workersCount: {
+    minWidth: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workersCountText: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  helperText: {
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'center',
+  },
   priceCard: {
     borderWidth: 2,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
+  priceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  priceHeaderText: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
     gap: 8,
   },
   priceLabel: {
@@ -724,11 +822,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  priceDivider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 8,
+  },
   totalPriceRow: {
     marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    paddingTop: 4,
+  },
+  priceFormula: {
+    fontSize: 12,
+    marginTop: 12,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   totalPriceLabel: {
     fontSize: 18,

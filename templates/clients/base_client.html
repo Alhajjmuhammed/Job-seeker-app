@@ -307,12 +307,18 @@
         
         .sidebar-nav-item.active {
             background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-            color: white;
+            color: white !important;
             box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
         }
         
         .sidebar-nav-item.active:hover {
-            color: white;
+            color: white !important;
+        }
+        
+        .sidebar-nav-item.active i,
+        .sidebar-nav-item.active .nav-text,
+        .sidebar-nav-item.active span {
+            color: white !important;
         }
         
         .sidebar-nav-item i {
@@ -534,19 +540,19 @@
             </a>
             
             <div class="sidebar-section-title section-title">SERVICE REQUESTS</div>
-            <a href="{% url 'service_requests_web:client_dashboard' %}" class="sidebar-nav-item">
+            <a href="{% url 'service_requests_web:client_dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_dashboard' and request.resolver_match.namespace == 'service_requests_web' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i>
                 <span class="nav-text">SR Dashboard</span>
             </a>
-            <a href="{% url 'service_requests_web:client_request_service' %}" class="sidebar-nav-item">
+            <a href="{% url 'service_requests_web:client_request_service' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_request_service' %}active{% endif %}">
                 <i class="bi bi-plus-circle"></i>
                 <span class="nav-text">Request Service</span>
             </a>
-            <a href="{% url 'service_requests_web:client_my_requests' %}" class="sidebar-nav-item {% if 'service_request' in request.resolver_match.url_name or 'my_requests' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'service_requests_web:client_my_requests' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_my_requests' or request.resolver_match.url_name == 'client_request_detail' %}active{% endif %}">
                 <i class="bi bi-list-check"></i>
                 <span class="nav-text">My Requests</span>
             </a>
-            <a href="{% url 'service_requests_web:client_history' %}" class="sidebar-nav-item">
+            <a href="{% url 'service_requests_web:client_history' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_history' %}active{% endif %}">
                 <i class="bi bi-clock-history"></i>
                 <span class="nav-text">Request History</span>
             </a>
@@ -562,31 +568,17 @@
             </a>
             
             <div class="sidebar-section-title section-title">COMMUNICATION</div>
-            <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item">
+            <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> 
                 <span class="nav-text">Messages</span>
                 {% if unread_messages_count > 0 %}
                 <span class="stat-badge">{{ unread_messages_count }}</span>
                 {% endif %}
             </a>
-            <a href="{% url 'notification_center' %}" class="sidebar-nav-item">
+            <a href="{% url 'notification_center' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'notification_center' %}active{% endif %}">
                 <i class="bi bi-bell"></i> 
                 <span class="nav-text">Notifications</span>
                 <span class="stat-badge notification-badge" id="sidebar-notification-badge" style="display: none;">0</span>
-            </a>
-            
-            <div class="sidebar-section-title section-title">ACCOUNT</div>
-            <a href="{% url 'clients:profile' %}" class="sidebar-nav-item">
-                <i class="bi bi-person-circle"></i> 
-                <span class="nav-text">My Profile</span>
-            </a>
-            <a href="{% url 'home' %}" class="sidebar-nav-item">
-                <i class="bi bi-house-door"></i> 
-                <span class="nav-text">Home</span>
-            </a>
-            <a href="{% url 'accounts:logout' %}" class="sidebar-nav-item">
-                <i class="bi bi-box-arrow-right"></i> 
-                <span class="nav-text">Logout</span>
             </a>
         </nav>
     </aside>

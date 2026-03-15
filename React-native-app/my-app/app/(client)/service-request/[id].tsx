@@ -10,6 +10,7 @@ import {
   Linking,
   RefreshControl,
   Image,
+  Modal,
 } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -82,6 +83,9 @@ export default function ServiceRequestDetailScreen() {
   const [canceling, setCanceling] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedWorkerName, setSelectedWorkerName] = useState<string>('');
 
   const loadRequestDetail = useCallback(async () => {
     try {
@@ -561,11 +565,27 @@ export default function ServiceRequestDetailScreen() {
                   return (
                   <View key={assignment.id} style={[styles.workerCard, index > 0 && styles.workerCardSpacing]}>
                     <View style={styles.workerHeader}>
-                      <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                        <Text style={styles.avatarText}>
-                          {assignment.worker.full_name?.charAt(0) || 'W'}
-                        </Text>
-                      </View>
+                      {/* Worker Profile Picture or Avatar */}
+                      {assignment.worker.profile_picture ? (
+                        <TouchableOpacity 
+                          onPress={() => {
+                            setSelectedImage(assignment.worker.profile_picture || null);
+                            setSelectedWorkerName(assignment.worker.full_name || 'Worker');
+                            setImageViewerVisible(true);
+                          }}
+                        >
+                          <Image
+                            source={{ uri: assignment.worker.profile_picture }}
+                            style={[styles.avatar, styles.avatarImage]}
+                          />
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                          <Text style={styles.avatarText}>
+                            {assignment.worker.full_name?.charAt(0) || 'W'}
+                          </Text>
+                        </View>
+                      )}
                       <View style={styles.workerInfo}>
                         <View style={styles.workerNameRow}>
                           <Text style={[styles.workerName, { color: theme.text }]}>
@@ -768,6 +788,35 @@ export default function ServiceRequestDetailScreen() {
           </View>
         )}
       </ScrollView>
+      
+      {/* Full-Screen Image Viewer Modal */}
+      <Modal
+        visible={imageViewerVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setImageViewerVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity 
+            style={styles.modalClose}
+            onPress={() => setImageViewerVisible(false)}
+            activeOpacity={0.9}
+          >
+            <Ionicons name="close-circle" size={40} color="#FFFFFF" />
+          </TouchableOpacity>
+          
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{selectedWorkerName}</Text>
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.fullImage}
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -881,6 +930,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  avatarImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#14b8a6',
   },
   avatarText: {
     color: '#FFFFFF',
@@ -1186,5 +1242,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 12,
     textAlign: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  modalContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  fullImage: {
+    width: '100%',
+    height: '80%',
   },
 });

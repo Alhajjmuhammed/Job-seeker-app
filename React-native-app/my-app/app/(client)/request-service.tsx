@@ -29,6 +29,7 @@ interface Category {
 interface PriceCalculation {
   duration_days: number;
   daily_rate: number;
+  workers_needed: number;
   total_price: number;
   duration_type_display: string;
 }
@@ -113,6 +114,7 @@ export default function RequestServiceScreen() {
       const data: any = {
         category_id: selectedCategory,
         duration_type: durationType,
+        workers_needed: workersNeeded,
       };
 
       if (durationType === 'custom') {
@@ -128,7 +130,7 @@ export default function RequestServiceScreen() {
     } finally {
       setCalculatingPrice(false);
     }
-  }, [selectedCategory, durationType, serviceStartDate, serviceEndDate]);
+  }, [selectedCategory, durationType, serviceStartDate, serviceEndDate, workersNeeded]);
 
   // NEW: Calculate price when duration or category changes
   useEffect(() => {
@@ -411,38 +413,6 @@ export default function RequestServiceScreen() {
           />
         </View>
 
-        {/* Number of Workers Needed */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>
-            Number of Workers Needed <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.workersSelector}>
-            <TouchableOpacity
-              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
-              onPress={() => setWorkersNeeded(Math.max(1, workersNeeded - 1))}
-              disabled={workersNeeded <= 1}
-            >
-              <Ionicons name="remove" size={24} color={workersNeeded <= 1 ? theme.textSecondary : theme.primary} />
-            </TouchableOpacity>
-            <View style={[styles.workersCount, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              <Text style={[styles.workersCountText, { color: theme.text }]}>{workersNeeded}</Text>
-              <Text style={[styles.workersLabel, { color: theme.textSecondary }]}>
-                {workersNeeded === 1 ? 'worker' : 'workers'}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
-              onPress={() => setWorkersNeeded(Math.min(100, workersNeeded + 1))}
-              disabled={workersNeeded >= 100}
-            >
-              <Ionicons name="add" size={24} color={workersNeeded >= 100 ? theme.textSecondary : theme.primary} />
-            </TouchableOpacity>
-          </View>
-          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
-            💡 Price will be calculated as: daily_rate × days × {workersNeeded} workers
-          </Text>
-        </View>
-
         {/* Preferred Date */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>Preferred Date</Text>
@@ -488,6 +458,35 @@ export default function RequestServiceScreen() {
               }}
             />
           )}
+        </View>
+
+        {/* Number of Workers Needed */}
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Number of Workers Needed <Text style={styles.required}>*</Text>
+          </Text>
+          <View style={styles.workersSelector}>
+            <TouchableOpacity
+              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setWorkersNeeded(Math.max(1, workersNeeded - 1))}
+              disabled={workersNeeded <= 1}
+            >
+              <Ionicons name="remove" size={20} color={workersNeeded <= 1 ? theme.textSecondary : theme.primary} />
+            </TouchableOpacity>
+            <View style={[styles.workersCount, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.workersCountText, { color: theme.text }]}>{workersNeeded}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.workerButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setWorkersNeeded(Math.min(100, workersNeeded + 1))}
+              disabled={workersNeeded >= 100}
+            >
+              <Ionicons name="add" size={20} color={workersNeeded >= 100 ? theme.textSecondary : theme.primary} />
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
+            💡 {workersNeeded} {workersNeeded === 1 ? 'worker' : 'workers'} × duration × rate
+          </Text>
         </View>
 
         {/* Estimated Hours */}
@@ -586,6 +585,19 @@ export default function RequestServiceScreen() {
         {/* Price Calculation Display */}
         {priceCalculation && (
           <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
+            <View style={styles.priceHeader}>
+              <Ionicons name="calculator-outline" size={24} color={theme.primary} />
+              <Text style={[styles.priceHeaderText, { color: theme.text }]}>Price Breakdown</Text>
+            </View>
+            
+            <View style={styles.priceRow}>
+              <Ionicons name="people-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Workers:</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                {priceCalculation.workers_needed || workersNeeded}
+              </Text>
+            </View>
+            
             <View style={styles.priceRow}>
               <Ionicons name="calendar-outline" size={20} color={theme.primary} />
               <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
@@ -593,20 +605,28 @@ export default function RequestServiceScreen() {
                 {priceCalculation.duration_days} days
               </Text>
             </View>
+            
             <View style={styles.priceRow}>
               <Ionicons name="cash-outline" size={20} color={theme.primary} />
-              <Text style={[styles.priceLabel, { color: theme.text }]}>Daily Rate:</Text>
+              <Text style={[styles.priceLabel, { color: theme.text }]}>Rate/Day/Worker:</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
-                TSH {priceCalculation.daily_rate}
+                TSH {priceCalculation.daily_rate.toLocaleString()}
               </Text>
             </View>
+            
+            <View style={styles.priceDivider} />
+            
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
               <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
-                TSH {priceCalculation.total_price}
+                TSH {priceCalculation.total_price.toLocaleString()}
               </Text>
             </View>
+            
+            <Text style={[styles.priceFormula, { color: theme.textSecondary }]}>
+              💡 {priceCalculation.workers_needed || workersNeeded} workers × {priceCalculation.duration_days} days × TSH {priceCalculation.daily_rate.toLocaleString()} = TSH {priceCalculation.total_price.toLocaleString()}
+            </Text>
           </View>
         )}
 
@@ -745,7 +765,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -822,28 +842,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 12,
     marginVertical: 8,
   },
   workerButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   workersCount: {
-    minWidth: 120,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+    minWidth: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   workersCountText: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '700',
   },
   workersLabel: {
@@ -851,8 +871,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   helperText: {
-    fontSize: 12,
-    marginTop: 8,
+    fontSize: 11,
+    marginTop: 6,
     textAlign: 'center',
   },
   priceCard: {
@@ -861,10 +881,20 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
   },
+  priceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  priceHeaderText: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
     gap: 8,
   },
   priceLabel: {
@@ -875,11 +905,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  priceDivider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 8,
+  },
   totalPriceRow: {
     marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    paddingTop: 4,
   },
   totalPriceLabel: {
     fontSize: 18,
@@ -889,6 +922,12 @@ const styles = StyleSheet.create({
   totalPriceValue: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  priceFormula: {
+    fontSize: 12,
+    marginTop: 12,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   calculatingContainer: {
     flexDirection: 'row',

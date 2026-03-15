@@ -28,49 +28,50 @@ def worker_web_dashboard(request):
         messages.error(request, 'Worker profile not found.')
         return redirect('home')
     
-    # Get statistics
-    total_services = ServiceRequest.objects.filter(assigned_worker=worker_profile).count()
-    completed = ServiceRequest.objects.filter(assigned_worker=worker_profile, status='completed').count()
-    in_progress = ServiceRequest.objects.filter(assigned_worker=worker_profile, status='in_progress').count()
+    # Get statistics - NEW multi-worker system
+    total_services = ServiceRequestAssignment.objects.filter(worker=worker_profile).count()
+    completed = ServiceRequestAssignment.objects.filter(worker=worker_profile, status='completed').count()
+    in_progress = ServiceRequestAssignment.objects.filter(worker=worker_profile, status='in_progress').count()
     
-    # Earnings
-    earnings_data = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
+    # Earnings - NEW multi-worker system
+    earnings_data = ServiceRequestAssignment.objects.filter(
+        worker=worker_profile,
         status='completed'
     ).aggregate(
         total_hours=Sum('total_hours_worked'),
-        total_earned=Sum('total_amount')
+        total_earned=Sum('worker_payment')
     )
     
     total_hours = earnings_data['total_hours'] or 0
     total_earned = earnings_data['total_earned'] or 0
     
-    # This week
+    # This week - NEW multi-worker system
     week_start = datetime.now() - timedelta(days=7)
-    week_data = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
+    week_data = ServiceRequestAssignment.objects.filter(
+        worker=worker_profile,
         status='completed',
         work_completed_at__gte=week_start
     ).aggregate(
         week_hours=Sum('total_hours_worked'),
-        week_earned=Sum('total_amount')
+        week_earned=Sum('worker_payment')
     )
     
     week_hours = week_data['week_hours'] or 0
     week_earned = week_data['week_earned'] or 0
     
-    # Pending assignments
-    pending = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
-        status='assigned',
-        worker_accepted__isnull=True
+    # Pending assignments - NEW multi-worker system
+    pending = ServiceRequestAssignment.objects.filter(
+        worker=worker_profile,
+        status='pending'
     ).count()
     
-    # Current assignment
-    current_assignment = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
+    # Current assignment - NEW multi-worker system
+    current_assignment_obj = ServiceRequestAssignment.objects.filter(
+        worker=worker_profile,
         status='in_progress'
-    ).select_related('client', 'category').first()
+    ).select_related('service_request', 'service_request__client', 'service_request__category').first()
+    
+    current_assignment = current_assignment_obj.service_request if current_assignment_obj else None
     
     # Check if clocked in
     is_clocked_in = False
@@ -96,6 +97,7 @@ def worker_web_dashboard(request):
         'week_hours': week_hours,
         'week_earned': week_earned,
         'current_assignment': current_assignment,
+        'current_assignment_obj': current_assignment_obj,  # Assignment object with correct ID
         'is_clocked_in': is_clocked_in,
         'recent_activity': recent_activity,
         'active_menu': 'dashboard'

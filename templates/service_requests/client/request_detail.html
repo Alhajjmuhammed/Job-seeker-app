@@ -257,7 +257,33 @@
                 <div class="card-body">
                     {% for assignment in assignments %}
                     <div class="row mb-4 {% if not forloop.last %}pb-4 border-bottom{% endif %}">
-                        <div class="col-md-8">
+                        <div class="col-md-2 text-center">
+                            <!-- Worker Profile Image -->
+                            {% if assignment.worker.profile_image %}
+                            <img src="{{ assignment.worker.profile_image.url }}" 
+                                 alt="{{ assignment.worker.user.get_full_name }}" 
+                                 class="rounded-circle img-fluid mb-2 profile-image-clickable"
+                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #14b8a6; cursor: pointer;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#imageModal"
+                                 onclick="showFullImage('{{ assignment.worker.profile_image.url }}', '{{ assignment.worker.user.get_full_name }}')">
+                            {% elif assignment.worker.user.profile_picture %}
+                            <img src="{{ assignment.worker.user.profile_picture.url }}" 
+                                 alt="{{ assignment.worker.user.get_full_name }}" 
+                                 class="rounded-circle img-fluid mb-2 profile-image-clickable"
+                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #14b8a6; cursor: pointer;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#imageModal"
+                                 onclick="showFullImage('{{ assignment.worker.user.profile_picture.url }}', '{{ assignment.worker.user.get_full_name }}')">
+                            {% else %}
+                            <!-- Default Avatar with Initial -->
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                                {{ assignment.worker.user.get_full_name|first|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
                             <div class="d-flex align-items-start mb-2">
                                 <span class="badge bg-secondary me-2">#{{ assignment.assignment_number }}</span>
                                 <h5 class="mb-0">{{ assignment.worker.user.get_full_name }}</h5>
@@ -303,10 +329,6 @@
                                 <small class="text-muted">Average Rating</small>
                             </div>
                             {% endif %}
-                            <a href="{% url 'workers:public_profile' assignment.worker.user.id %}" 
-                               class="btn btn-outline-primary btn-sm mb-2" target="_blank">
-                                <i class="bi bi-box-arrow-up-right"></i> View Profile
-                            </a>
                             {% if assignment.status == 'accepted' or assignment.status == 'in_progress' %}
                             <a href="{% url 'jobs:conversation' assignment.worker.user.id %}" 
                                class="btn btn-outline-info btn-sm">
@@ -326,7 +348,33 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-2 text-center">
+                            <!-- Worker Profile Image -->
+                            {% if service_request.assigned_worker.profile_image %}
+                            <img src="{{ service_request.assigned_worker.profile_image.url }}" 
+                                 alt="{{ service_request.assigned_worker.user.get_full_name }}" 
+                                 class="rounded-circle img-fluid mb-2 profile-image-clickable"
+                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #14b8a6; cursor: pointer;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#imageModal"
+                                 onclick="showFullImage('{{ service_request.assigned_worker.profile_image.url }}', '{{ service_request.assigned_worker.user.get_full_name }}')">
+                            {% elif service_request.assigned_worker.user.profile_picture %}
+                            <img src="{{ service_request.assigned_worker.user.profile_picture.url }}" 
+                                 alt="{{ service_request.assigned_worker.user.get_full_name }}" 
+                                 class="rounded-circle img-fluid mb-2 profile-image-clickable"
+                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #14b8a6; cursor: pointer;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#imageModal"
+                                 onclick="showFullImage('{{ service_request.assigned_worker.user.profile_picture.url }}', '{{ service_request.assigned_worker.user.get_full_name }}')">
+                            {% else %}
+                            <!-- Default Avatar with Initial -->
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                                {{ service_request.assigned_worker.user.get_full_name|first|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
                             <h5>{{ service_request.assigned_worker.user.get_full_name }}</h5>
                             <p class="text-muted mb-2">
                                 <i class="bi bi-envelope"></i> {{ service_request.assigned_worker.user.email }}
@@ -353,10 +401,6 @@
                                 <small class="text-muted">Average Rating</small>
                             </div>
                             {% endif %}
-                            <a href="{% url 'workers:public_profile' service_request.assigned_worker.user.id %}" 
-                               class="btn btn-outline-primary btn-sm" target="_blank">
-                                <i class="bi bi-box-arrow-up-right"></i> View Profile
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -664,5 +708,26 @@
             });
         }
     });
+    
+    // Full Image Viewer Function
+    function showFullImage(imageUrl, workerName) {
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('imageModalLabel').textContent = workerName;
+    }
 </script>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="imageModalLabel">Worker Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="modalImage" src="" alt="Worker Profile" class="img-fluid" style="max-height: 80vh; width: auto;">
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

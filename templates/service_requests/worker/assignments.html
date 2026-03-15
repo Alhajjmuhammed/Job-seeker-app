@@ -6,115 +6,555 @@
 <style>
     /* Teal System Colors */
     .bg-primary { background-color: #14b8a6 !important; }
-    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
-    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
-    .btn-outline-primary { color: #14b8a6; border-color: #14b8a6; }
-    .btn-outline-primary:hover { background-color: #14b8a6; border-color: #14b8a6; color: white; }
+    .btn-primary { 
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        border: none;
+        box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+    }
+    .btn-primary:hover { 
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+    }
+    .btn-outline-primary { 
+        color: #14b8a6; 
+        border-color: #14b8a6; 
+        transition: all 0.3s ease;
+    }
+    .btn-outline-primary:hover { 
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        border-color: #14b8a6; 
+        color: white; 
+        transform: translateY(-1px);
+    }
     .text-primary { color: #14b8a6 !important; }
     
     /* Success - green */
-    .bg-success { background-color: #10b981 !important; }
+    .bg-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; }
     
     /* Info - lighter teal */
-    .bg-info { background-color: #06b6d4 !important; }
+    .bg-info { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important; }
     .btn-outline-info { color: #06b6d4; border-color: #06b6d4; }
     .btn-outline-info:hover { background-color: #06b6d4; border-color: #06b6d4; color: white; }
     
+    /* Warning - amber */
+    .bg-warning { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important; }
+    
+    /* Danger - red */
+    .bg-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; }
+    
+    /* Secondary - gray */
+    .bg-secondary { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important; }
+    
     /* Success outline button */
     .btn-outline-success:hover { background-color: #10b981; border-color: #10b981; }
+    
+    /* Enhanced Card Styles - Compact */
+    .assignment-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: white;
+    }
+    
+    .assignment-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .assignment-card .card-header {
+        border: none;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    .assignment-card .card-body {
+        padding: 1rem;
+    }
+    
+    .assignment-card .card-footer {
+        background: transparent;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Status Badge - Compact */
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    .card-header .status-badge {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Info Items - Compact */
+    .info-item {
+        display: flex;
+        align-items: start;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background: #f9fafb;
+        border-radius: 6px;
+        border-left: 2px solid #14b8a6;
+    }
+    
+    .info-item i {
+        color: #14b8a6;
+        margin-right: 0.5rem;
+        margin-top: 0.1rem;
+        font-size: 0.95rem;
+    }
+    
+    .info-item strong {
+        display: block;
+        color: #6b7280;
+        margin-bottom: 0.1rem;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-item-value {
+        color: #1f2937;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    /* Alert Box - Compact */
+    .status-alert {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+    
+    .status-alert i {
+        margin-right: 0.4rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Earnings Badge - Compact */
+    .earnings-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    
+    /* View Details Button - Compact */
+    .btn-view-details {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+    
+    .btn-view-details:hover {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(20, 184, 166, 0.4);
+        color: white;
+    }
+    
+    /* Filter Buttons */
+    .filter-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .filter-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .filter-btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .filter-btn-group .btn {
+        font-weight: 600;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        margin: 0.25rem;
+        transition: all 0.2s ease;
+    }
+    
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 16px rgba(20, 184, 166, 0.2);
+    }
+    
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        border-radius: 16px;
+        border: 2px dashed #14b8a6;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #14b8a6;
+        margin-bottom: 1rem;
+    }
+    
+    /* Pagination */
+    .pagination {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .pagination .page-link {
+        color: #14b8a6;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        margin: 0 0.25rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        padding: 0.5rem 0.75rem;
+        min-width: 40px;
+        text-align: center;
+    }
+    
+    .pagination .page-link:hover {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        color: white;
+        border-color: #14b8a6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(20, 184, 166, 0.3);
+    }
+    
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        border-color: #14b8a6;
+        color: white;
+        box-shadow: 0 4px 8px rgba(20, 184, 166, 0.3);
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        color: #9ca3af;
+        border-color: #e5e7eb;
+        background-color: #f9fafb;
+    }
+    
+    /* View Toggle */
+    .view-toggle {
+        background: white;
+        border-radius: 10px;
+        padding: 0.25rem;
+        display: inline-flex;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .view-toggle .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+    }
+    
+    .view-toggle .btn.active {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        color: white;
+        box-shadow: 0 2px 4px rgba(20, 184, 166, 0.3);
+    }
+    
+    /* Table View */
+    .table-view {
+        display: none;
+    }
+    
+    .table-view.active {
+        display: block;
+    }
+    
+    .card-view.active {
+        display: block;
+    }
+    
+    .card-view {
+        display: none;
+    }
+    
+    .assignments-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .assignments-table th {
+        background: #f3f4f6;
+        color: #1f2937;
+        font-weight: 600;
+        padding: 1rem;
+        border: none;
+        font-size: 0.875rem;
+        border-bottom: 2px solid #14b8a6;
+    }
+    
+    .assignments-table td {
+        padding: 0.875rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .assignments-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .assignments-table tbody tr:hover {
+        background: #f9fafb;
+        transform: scale(1.01);
+    }
+    
+    .table-status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .table-btn {
+        padding: 0.4rem 0.875rem;
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📋 My Assignments</h2>
-        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-2"><i class="bi bi-list-check"></i> My Assignments</h2>
+                <p class="mb-0 opacity-90">Manage and track all your service assignments</p>
+            </div>
+            <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-light">
+                <i class="bi bi-arrow-left"></i> Dashboard
+            </a>
+        </div>
     </div>
     
     <!-- Status Filter -->
-    <div class="card mb-4">
+    <div class="card filter-card mb-4">
         <div class="card-body">
-            <div class="btn-group" role="group" aria-label="Status filter">
-                <a href="{% url 'service_requests_web:worker_assignments' %}" 
-                   class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    All
-                </a>
-                <a href="?status=assigned" 
-                   class="btn {% if status_filter == 'assigned' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
-                    Assigned
-                </a>
-                <a href="?status=in_progress" 
-                   class="btn {% if status_filter == 'in_progress' %}btn-info{% else %}btn-outline-info{% endif %}">
-                    In Progress
-                </a>
-                <a href="?status=completed" 
-                   class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    Completed
-                </a>
-                <a href="?status=cancelled" 
-                   class="btn {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                    Cancelled
-                </a>
+            <div class="filter-container">
+                <div class="filter-btn-group" role="group" aria-label="Status filter">
+                    <a href="{% url 'service_requests_web:worker_assignments' %}" 
+                       class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-grid"></i> All
+                    </a>
+                    <a href="?status=pending" 
+                       class="btn {% if status_filter == 'pending' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+                        <i class="bi bi-clock"></i> Pending
+                    </a>
+                    <a href="?status=accepted" 
+                       class="btn {% if status_filter == 'accepted' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-check-circle"></i> Accepted
+                    </a>
+                    <a href="?status=in_progress" 
+                       class="btn {% if status_filter == 'in_progress' %}btn-info{% else %}btn-outline-info{% endif %}">
+                        <i class="bi bi-arrow-repeat"></i> In Progress
+                    </a>
+                    <a href="?status=completed" 
+                       class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                        <i class="bi bi-check-all"></i> Completed
+                    </a>
+                    <a href="?status=cancelled" 
+                       class="btn {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                        <i class="bi bi-x-circle"></i> Cancelled
+                    </a>
+                </div>
+                
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    <button class="btn active" id="cardViewBtn" onclick="switchView('card')">
+                        <i class="bi bi-grid-3x2-gap"></i> Cards
+                    </button>
+                    <button class="btn" id="tableViewBtn" onclick="switchView('table')">
+                        <i class="bi bi-table"></i> Table
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
     <!-- Assignments List -->
     {% if assignments %}
-    <div class="row">
-        {% for assignment in assignments %}
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header {% if assignment.status == 'completed' %}bg-success text-white{% elif assignment.status == 'in_progress' %}bg-info text-white{% elif assignment.status == 'accepted' %}bg-primary text-white{% elif assignment.status == 'pending' %}bg-warning{% else %}bg-secondary text-white{% endif %}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{ assignment.service_request.title }}</h5>
-                        <span class="badge bg-light text-dark">{{ assignment.get_status_display }}</span>
+    
+    <!-- Card View -->
+    <div class="card-view active">
+        <div class="row">
+            {% for assignment in assignments %}
+            <div class="col-md-6 mb-3">
+                <div class="card assignment-card h-100">
+                    <div class="card-header {% if assignment.status == 'completed' %}bg-success text-white{% elif assignment.status == 'in_progress' %}bg-info text-white{% elif assignment.status == 'accepted' %}bg-primary text-white{% elif assignment.status == 'pending' %}bg-warning{% else %}bg-secondary text-white{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-briefcase"></i> {{ assignment.service_request.title }}</h6>
+                            <span class="status-badge">
+                                {{ assignment.get_status_display }}
+                            </span>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <p><strong>Category:</strong> {{ assignment.service_request.category.name }}</p>
-                    <p><strong>Client:</strong> {{ assignment.service_request.client.get_full_name }}</p>
-                    <p><strong>Location:</strong> {{ assignment.service_request.location }}, {{ assignment.service_request.city }}</p>
-                    
-                    {% if assignment.status == 'pending' %}
-                    <div class="alert alert-warning mb-2">
-                        <i class="fas fa-exclamation-triangle"></i> Awaiting your response
+                    <div class="card-body">
+                        <div class="info-item">
+                            <i class="bi bi-tag"></i>
+                            <div>
+                                <strong>Category</strong>
+                                <div class="info-item-value">{{ assignment.service_request.category.name }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <i class="bi bi-person"></i>
+                            <div>
+                                <strong>Client</strong>
+                                <div class="info-item-value">{{ assignment.service_request.client.get_full_name }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <i class="bi bi-geo-alt"></i>
+                            <div>
+                                <strong>Location</strong>
+                                <div class="info-item-value">{{ assignment.service_request.location }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if assignment.status == 'pending' %}
+                        <div class="status-alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span>Awaiting response</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if assignment.status == 'completed' %}
+                        <div class="text-center mt-2 mb-2">
+                            <div class="earnings-badge">
+                                <i class="bi bi-trophy"></i> TSH {{ assignment.worker_payment|default:"20.00" }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-muted small mt-2">
+                            <i class="bi bi-calendar-event"></i> {{ assignment.assigned_at|timesince }} ago
+                        </div>
                     </div>
-                    {% endif %}
-                    
-                    {% if assignment.status == 'in_progress' or assignment.status == 'accepted' %}
-                    <p><strong>Hourly Rate:</strong> TSH {{ assignment.service_request.hourly_rate }}</p>
-                    {% endif %}
-                    
-                    {% if assignment.status == 'completed' %}
-                    <p><strong>Earned:</strong> <span class="text-success">TSH {{ assignment.worker_payment|default:"0" }}</span></p>
-                    {% endif %}
-                    
-                    <p class="text-muted small">
-                        <i class="fas fa-calendar"></i> Assigned {{ assignment.assigned_at|timesince }} ago
-                    </p>
-                </div>
-                <div class="card-footer bg-light">
-                    <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
-                       class="btn btn-primary btn-sm w-100">
-                        <i class="fas fa-eye"></i> View Details
-                    </a>
+                    <div class="card-footer">
+                        <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
+                           class="btn btn-view-details w-100">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     
-    <!-- Pagination -->
+    <!-- Table View -->
+    <div class="table-view">
+        <div class="table-responsive assignments-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Category</th>
+                        <th>Client</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Earned</th>
+                        <th>Assigned</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr>
+                        <td><strong>{{ assignment.service_request.title }}</strong></td>
+                        <td>{{ assignment.service_request.category.name }}</td>
+                        <td>{{ assignment.service_request.client.get_full_name }}</td>
+                        <td>{{ assignment.service_request.location }}</td>
+                        <td>
+                            <span class="table-status-badge {% if assignment.status == 'completed' %}bg-success text-white{% elif assignment.status == 'in_progress' %}bg-info text-white{% elif assignment.status == 'accepted' %}bg-primary text-white{% elif assignment.status == 'pending' %}bg-warning text-dark{% else %}bg-secondary text-white{% endif %}">
+                                {{ assignment.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if assignment.status == 'completed' %}
+                            <strong class="text-success">TSH {{ assignment.worker_payment|default:"20.00" }}</strong>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ assignment.assigned_at|timesince }} ago</td>
+                        <td>
+                            <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
+                               class="btn btn-primary table-btn">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination - Works for both Card and Table views -->
     {% if assignments.has_other_pages %}
-    <nav aria-label="Assignments pagination">
+    <nav aria-label="Assignments pagination" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if assignments.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ assignments.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+                <a class="page-link" href="?page={{ assignments.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" title="Previous page">
+                    <i class="bi bi-chevron-left"></i> Previous
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link"><i class="bi bi-chevron-left"></i> Previous</span>
             </li>
             {% endif %}
             
@@ -126,7 +566,13 @@
             
             {% if assignments.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ assignments.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+                <a class="page-link" href="?page={{ assignments.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" title="Next page">
+                    Next <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
             </li>
             {% endif %}
         </ul>
@@ -134,11 +580,19 @@
     {% endif %}
     
     {% else %}
-    <div class="alert alert-info text-center">
-        <h4 class="alert-heading">No Assignments Found</h4>
-        <p>{% if status_filter %}No assignments with status "{{ status_filter }}".{% else %}You don't have any assignments yet.{% endif %}</p>
-        <hr>
-        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">Return to Dashboard</a>
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h4 class="mt-3">No Assignments Found</h4>
+        <p class="text-muted mb-4">
+            {% if status_filter %}
+                No assignments with status "{{ status_filter }}".
+            {% else %}
+                You don't have any assignments yet. Check back soon for new opportunities!
+            {% endif %}
+        </p>
+        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-primary">
+            <i class="bi bi-speedometer2"></i> Go to Dashboard
+        </a>
     </div>
     {% endif %}
 </div>
@@ -146,6 +600,34 @@
 
 {% block extra_js %}
 <script>
+    // View Switching
+    function switchView(view) {
+        const cardView = document.querySelector('.card-view');
+        const tableView = document.querySelector('.table-view');
+        const cardBtn = document.getElementById('cardViewBtn');
+        const tableBtn = document.getElementById('tableViewBtn');
+        
+        if (view === 'card') {
+            cardView.classList.add('active');
+            tableView.classList.remove('active');
+            cardBtn.classList.add('active');
+            tableBtn.classList.remove('active');
+            localStorage.setItem('assignmentsView', 'card');
+        } else {
+            tableView.classList.add('active');
+            cardView.classList.remove('active');
+            tableBtn.classList.add('active');
+            cardBtn.classList.remove('active');
+            localStorage.setItem('assignmentsView', 'table');
+        }
+    }
+    
+    // Load saved view preference
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedView = localStorage.getItem('assignmentsView') || 'card';
+        switchView(savedView);
+    });
+    
     // Real-time updates for worker assignments list
     document.addEventListener('DOMContentLoaded', function() {
         // Listen for assignment updates from WebSocket
