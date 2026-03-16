@@ -297,16 +297,33 @@
                         {% for assignment in existing_assignments %}
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="mb-1">
-                                        <i class="bi bi-person-circle me-1"></i>
-                                        {{ assignment.worker.user.get_full_name }}
-                                        <span class="badge bg-secondary ms-1">Worker #{{ assignment.assignment_number }}</span>
-                                    </h6>
-                                    <small class="text-muted d-block">
-                                        <i class="bi bi-telephone-fill me-1"></i>
-                                        {{ assignment.worker.user.phone_number|default:"No phone" }}
-                                    </small>
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <!-- Profile Picture -->
+                                    <div class="me-3">
+                                        {% if assignment.worker.profile_image %}
+                                        <img src="{{ assignment.worker.profile_image.url }}" alt="{{ assignment.worker.user.get_full_name }}" 
+                                             class="rounded-circle" width="50" height="50" style="object-fit: cover; cursor: pointer;"
+                                             data-bs-toggle="modal" data-bs-target="#workerImageModal"
+                                             onclick="showWorkerImage('{{ assignment.worker.profile_image.url }}', '{{ assignment.worker.user.get_full_name }}')">
+                                        {% else %}
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
+                                            {{ assignment.worker.user.first_name|first }}{{ assignment.worker.user.last_name|first }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Worker Info -->
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ assignment.worker.user.get_full_name }}
+                                            <span class="badge bg-secondary ms-1">Worker #{{ assignment.assignment_number }}</span>
+                                        </h6>
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-telephone-fill me-1"></i>
+                                            {{ assignment.worker.user.phone_number|default:"No phone" }}
+                                        </small>
+                                    </div>
                                 </div>
                                 <div class="text-end">
                                     {% if assignment.status == 'pending' %}
@@ -530,13 +547,17 @@
                                     {% endif %}
                                     
                                     <!-- Profile Picture -->
-                                    <div class="me-3 worker-toggle-trigger" data-worker-id="{{ worker.id }}">
+                                    <div class="me-3">
                                         {% if worker.profile_image %}
                                         <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" 
-                                             class="rounded-circle" width="50" height="50" style="object-fit: cover;">
+                                             class="rounded-circle" width="50" height="50" style="object-fit: cover; cursor: pointer;"
+                                             data-bs-toggle="modal" data-bs-target="#workerImageModal"
+                                             onclick="showWorkerImage('{{ worker.profile_image.url }}', '{{ worker.user.get_full_name }}')">
                                         {% elif worker.user.profile_picture %}
                                         <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 
-                                             class="rounded-circle" width="50" height="50" style="object-fit: cover;">
+                                             class="rounded-circle" width="50" height="50" style="object-fit: cover; cursor: pointer;"
+                                             data-bs-toggle="modal" data-bs-target="#workerImageModal"
+                                             onclick="showWorkerImage('{{ worker.user.profile_picture.url }}', '{{ worker.user.get_full_name }}')">
                                         {% else %}
                                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
                                              style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
@@ -972,5 +993,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 });
+
+// Function to show worker image in full size (global scope for onclick handlers)
+function showWorkerImage(imageUrl, workerName) {
+    document.getElementById('workerModalImage').src = imageUrl;
+    document.getElementById('workerImageModalLabel').textContent = workerName + ' - Profile Photo';
+}
 </script>
+
+<!-- Worker Image Modal -->
+<div class="modal fade" id="workerImageModal" tabindex="-1" aria-labelledby="workerImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="workerImageModalLabel">Worker Profile Photo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="workerModalImage" src="" alt="Worker Profile" class="img-fluid" style="max-height: 80vh; width: auto;">
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

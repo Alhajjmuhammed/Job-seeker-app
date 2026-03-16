@@ -269,9 +269,10 @@ def client_web_request_detail(request, pk):
     ).select_related('worker', 'worker__user').order_by('assignment_number')
     
     context = {
-        'service_request': service_request,  # Changed from 'request' to avoid conflict
+        'service_request': service_request,
         'time_logs': time_logs,
         'assignments': assignments,
+        'assignments_count': assignments.count(),
         'active_menu': 'my_requests'
     }
     

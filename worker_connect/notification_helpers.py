@@ -32,9 +32,6 @@ def create_notification(user, title, message, notification_type, related_object=
         extra_data=extra_data or {}
     )
     
-    # Send push notification if enabled
-    NotificationService.send_push_notification(user, notification)
-    
     return notification
 
 
@@ -295,8 +292,5 @@ def broadcast_notification(users, title, message, notification_type, extra_data=
             extra_data=extra_data or {}
         )
         notifications.append(notification)
-        
-        # Send push notification
-        NotificationService.send_push_notification(user, notification)
     
     return notifications

@@ -1552,17 +1552,15 @@ def service_request_detail(request, request_id):
     if service_request.category:
         available_workers = WorkerProfile.objects.filter(
             categories=service_request.category,
-            verification_status='verified'
-        ).exclude(
-            availability='offline'
+            verification_status='verified',
+            availability='available'
         ).exclude(
             id__in=assigned_worker_ids
         ).select_related('user').order_by('-average_rating')[:15]
     else:
         available_workers = WorkerProfile.objects.filter(
-            verification_status='verified'
-        ).exclude(
-            availability='offline'
+            verification_status='verified',
+            availability='available'
         ).exclude(
             id__in=assigned_worker_ids
         ).select_related('user').order_by('-average_rating')[:15]
@@ -1632,12 +1630,14 @@ def view_request_workers(request, request_id):
     if service_request.category:
         available_workers = WorkerProfile.objects.filter(
             categories=service_request.category,
-            verification_status='verified'
+            verification_status='verified',
+            availability='available'
         ).select_related('user').prefetch_related('categories').order_by('-average_rating')
     else:
         # If no category, show all verified workers
         available_workers = WorkerProfile.objects.filter(
-            verification_status='verified'
+            verification_status='verified',
+            availability='available'
         ).select_related('user').prefetch_related('categories').order_by('-average_rating')
     
     context = {
@@ -1669,6 +1669,14 @@ def assign_worker_to_request(request, request_id):
         
         try:
             worker = WorkerProfile.objects.get(id=worker_id)
+            
+            # Check if worker is available
+            if worker.availability != 'available':
+                messages.error(
+                    request,
+                    f'{worker.user.get_full_name()} is {worker.availability} and cannot be assigned. Only available workers can be assigned.'
+                )
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
             
             # Check if worker is already assigned to this request
             existing_assignment = ServiceRequestAssignment.objects.filter(
@@ -1709,6 +1717,10 @@ def assign_worker_to_request(request, request_id):
                 worker_payment=individual_payment,
                 admin_notes=admin_notes
             )
+            
+            # AUTO-UPDATE: Set worker to busy when assigned
+            worker.availability = 'busy'
+            worker.save()
             
             # Log activity
             WorkerActivity.log_activity(
@@ -1753,9 +1765,20 @@ def unassign_worker_from_request(request, request_id, assignment_id):
         try:
             worker_name = assignment.worker.user.get_full_name()
             assignment_status = assignment.status
+            worker = assignment.worker
             
             # Delete the assignment
             assignment.delete()
+            
+            # Set worker back to available if they have no other active assignments
+            other_active_assignments = ServiceRequestAssignment.objects.filter(
+                worker=worker,
+                status__in=['pending', 'accepted', 'in_progress']
+            ).count()
+            
+            if other_active_assignments == 0:
+                worker.availability = 'available'
+                worker.save()
             
             # If this was the last/only assignment, update service request status back to pending
             remaining_assignments = ServiceRequestAssignment.objects.filter(

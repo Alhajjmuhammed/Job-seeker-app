@@ -78,9 +78,8 @@ def admin_service_request_detail(request, pk):
     if service_request.category:
         available_workers = WorkerProfile.objects.filter(
             categories=service_request.category,
-            verification_status='verified'
-        ).exclude(
-            availability='offline'
+            verification_status='verified',
+            availability='available'
         ).select_related('user')[:10]
         
         workers_data = [{
@@ -128,6 +127,13 @@ def admin_assign_worker(request, pk):
     try:
         worker = WorkerProfile.objects.get(id=worker_id)
         
+        # Check if worker is available
+        if worker.availability != 'available':
+            return Response(
+                {'error': f'Worker is {worker.availability} and cannot be assigned. Only available workers can be assigned.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         # Check if worker has this category
         if service_request.category and not worker.categories.filter(id=service_request.category.id).exists():
             return Response(
@@ -168,6 +174,10 @@ def admin_assign_worker(request, pk):
             worker_payment=individual_payment,
             admin_notes=admin_notes
         )
+        
+        # AUTO-UPDATE: Set worker to busy when assigned
+        worker.availability = 'busy'
+        worker.save()
         
         # Log activity
         WorkerActivity.log_activity(

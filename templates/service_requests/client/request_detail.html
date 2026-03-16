@@ -245,14 +245,18 @@
             </div>
             
             <!-- Worker Information -->
-            {% if service_request.workers_needed and service_request.workers_needed > 1 and assignments %}
-            <!-- Multiple Workers View -->
+            {% if assignments %}
+            <!-- Assigned Workers View -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
+                    {% if service_request.workers_needed and service_request.workers_needed > 1 %}
                     <h5 class="mb-0">
                         <i class="bi bi-people-fill"></i> Assigned Workers 
                         <span class="badge bg-light text-dark">{{ assignments|length }}/{{ service_request.workers_needed }}</span>
                     </h5>
+                    {% else %}
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Assigned Worker</h5>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     {% for assignment in assignments %}

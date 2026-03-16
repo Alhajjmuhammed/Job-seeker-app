@@ -629,6 +629,10 @@ class ServiceRequestAssignment(models.Model):
         self.status = 'accepted'
         self.save()
         
+        # AUTO-UPDATE: Set worker to busy when accepting assignment
+        self.worker.availability = 'busy'
+        self.worker.save()
+        
         # Check if this is the first acceptance - update main request status
         self._update_main_request_status()
         
@@ -651,6 +655,11 @@ class ServiceRequestAssignment(models.Model):
         self.worker_rejection_reason = reason
         self.status = 'rejected'
         self.save()
+        
+        # AUTO-UPDATE: Set worker to available if no other active jobs
+        if not self._worker_has_other_active_jobs():
+            self.worker.availability = 'available'
+            self.worker.save()
         
         # Note: Notifications are handled in the API view layer
         
@@ -675,6 +684,11 @@ class ServiceRequestAssignment(models.Model):
         
         # Update worker completed jobs count
         self.worker.completed_jobs += 1
+        
+        # AUTO-UPDATE: Set worker to available if no other active jobs
+        if not self._worker_has_other_active_jobs():
+            self.worker.availability = 'available'
+        
         self.worker.save()
         
         # Check if all assignments are completed
@@ -732,4 +746,11 @@ class ServiceRequestAssignment(models.Model):
             self.save()
             return self.worker_payment
         return Decimal('0.00')
-
+    
+    def _worker_has_other_active_jobs(self):
+        """Check if worker has other active assignments (excluding this one)"""
+        active_count = ServiceRequestAssignment.objects.filter(
+            worker=self.worker,
+            status__in=['pending', 'accepted', 'in_progress']
+        ).exclude(id=self.id).count()
+        return active_count > 0

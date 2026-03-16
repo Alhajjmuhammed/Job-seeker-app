@@ -244,17 +244,33 @@ class NotificationService:
     @staticmethod
     def notify_service_completed(service_request):
         """Notify client that service is completed"""
+        # Handle multiple workers system
+        worker_name = "the assigned worker(s)"
+        total_hours = str(service_request.total_hours_worked)
+        total_amount = str(service_request.total_amount)
+        
+        # Get worker info from assignments (new system)
+        assignments = service_request.assignments.filter(status='completed')
+        if assignments.exists():
+            if assignments.count() == 1:
+                worker_name = assignments.first().worker.user.get_full_name()
+            else:
+                worker_name = f"{assignments.count()} workers"
+        # Fallback to legacy assigned_worker if exists
+        elif service_request.assigned_worker:
+            worker_name = service_request.assigned_worker.user.get_full_name()
+        
         return NotificationService.create_notification(
             recipient=service_request.client,
             title="Service Completed! ✨",
-            message=f"Your service request '{service_request.title}' has been completed by {service_request.assigned_worker.user.get_full_name()}",
+            message=f"Your service request '{service_request.title}' has been completed by {worker_name}",
             notification_type='job_completed',
             content_object=service_request,
             extra_data={
                 'service_request_id': service_request.id,
-                'worker': service_request.assigned_worker.user.get_full_name(),
-                'total_hours': str(service_request.total_hours_worked),
-                'total_amount': str(service_request.total_amount)
+                'worker': worker_name,
+                'total_hours': total_hours,
+                'total_amount': total_amount
             }
         )
     
