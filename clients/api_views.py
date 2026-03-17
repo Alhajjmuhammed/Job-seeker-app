@@ -34,12 +34,14 @@ def services_list(request):
         services = []
         
         for category in categories:
-            # Count available workers in this category
+            # Count available workers in this category (exclude those with active assignments)
             available_workers = WorkerProfile.objects.filter(
                 categories=category,
                 availability='available',
-                status='approved'
-            ).count()
+                verification_status='verified'
+            ).exclude(
+                service_assignments__status__in=['pending', 'accepted', 'in_progress']
+            ).distinct().count()
             
             # Get completed projects in this category
             completed_projects = ServiceRequest.objects.filter(
@@ -162,12 +164,15 @@ def services_list(request):
         # Add service statistics without exposing worker details
         services_data = []
         for category in categories:
-            # Count available workers in this category (but don't expose who they are)
+            # Count TRULY available workers: status='available' AND not busy with active assignments
             available_workers_count = WorkerProfile.objects.filter(
                 categories=category,
                 verification_status='verified',
                 availability='available'
-            ).count()
+            ).exclude(
+                # Exclude workers with active assignments
+                service_assignments__status__in=['pending', 'accepted', 'in_progress']
+            ).distinct().count()
             
             # Get average completion time and price for this category
             category_stats = ServiceRequest.objects.filter(
@@ -227,6 +232,33 @@ def request_service(request, category_id):
         elif workers_needed > 100:
             workers_needed = 100
         
+        # Check worker availability in this category
+        from workers.models import WorkerProfile
+        from jobs.service_request_models import ServiceRequestAssignment
+        
+        # Count available workers: status='available' AND not busy with active assignments
+        available_workers = WorkerProfile.objects.filter(
+            categories=category,
+            availability='available',
+            verification_status='verified'
+        ).exclude(
+            # Exclude workers with active assignments (pending, accepted, in_progress)
+            service_assignments__status__in=['pending', 'accepted', 'in_progress']
+        ).distinct().count()
+        
+        # Prepare availability warning/info
+        availability_status = 'sufficient' if workers_needed <= available_workers else 'limited'
+        availability_message = ''
+        
+        if workers_needed > available_workers:
+            if available_workers == 0:
+                availability_message = f'No workers currently available in {category.name}. Your request will be queued.'
+                availability_status = 'queued'
+            else:
+                availability_message = f'Only {available_workers} worker(s) available (requested {workers_needed}). Request will be queued for admin review.'
+        else:
+            availability_message = f'{available_workers} worker(s) available. Your request will be processed quickly.'
+        
         # Calculate total price: daily_rate × duration_days × workers_needed
         total_price = daily_rate * int(duration_days) * workers_needed
         
@@ -275,11 +307,14 @@ def request_service(request, category_id):
             'message': f'Your {category.name} service request has been submitted successfully!',
             'details': f'Our admin will review your payment and assign {workers_needed} suitable worker(s). You will be notified once workers are assigned.' if workers_needed > 1 else 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.',
             'workers_needed': workers_needed,
+            'available_workers': available_workers,
+            'availability_status': availability_status,
+            'availability_message': availability_message,
             'status': 'pending_assignment',
             'payment_status': service_request.payment_status,
             'total_price': float(total_price),
             'has_screenshot': bool(service_request.payment_screenshot),
-            'estimated_response_time': '2-4 hours'
+            'estimated_response_time': '2-4 hours' if availability_status == 'sufficient' else '4-8 hours'
         }, status=status.HTTP_201_CREATED)
         
     except Category.DoesNotExist:

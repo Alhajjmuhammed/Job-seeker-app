@@ -110,11 +110,22 @@
                                     <select class="form-select" id="category" name="category" required>
                                         <option value="">-- Select Category --</option>
                                         {% for cat in categories %}
-                                        <option value="{{ cat.id }}" data-daily-rate="{{ cat.daily_rate }}">
+                                        <option value="{{ cat.id }}" 
+                                                data-daily-rate="{{ cat.daily_rate }}"
+                                                data-available-workers="{{ cat.available_workers|default:0 }}"
+                                                data-category-name="{{ cat.name }}">
                                             {% if cat.icon %}{{ cat.icon }}{% endif %} {{ cat.name }}
                                         </option>
                                         {% endfor %}
                                     </select>
+                                </div>
+                                
+                                <!-- Worker Availability Warning -->
+                                <div id="availabilityWarning" class="alert d-none mb-3" role="alert">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
+                                        <div id="availabilityBannerMessage"></div>
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -444,6 +455,38 @@
     </div>
 </div>
 
+<!-- Worker Availability Warning Modal -->
+<div class="modal fade" id="workerAvailabilityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="availabilityModalTitle">
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i> Worker Availability Notice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <div id="availabilityIcon" class="mb-3"></div>
+                </div>
+                
+                <div class="alert alert-light border" id="availabilityDetails">
+                    <div id="availabilityMessage" style="color: #dc3545; font-weight: 600; font-size: 1rem; margin-bottom: 15px;"></div>
+                    <small class="text-muted"></small>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="proceedAnywayBtn">
+                    <i class="bi bi-check-circle"></i> <span id="proceedBtnText">Proceed Anyway</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Screenshot Modal -->
 <div class="modal fade" id="screenshotModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -498,6 +541,42 @@
 let paymentData = null;
 let screenshotFile = null;
 let currentTotalPrice = 0;
+let currentAvailableWorkers = 0;
+let currentCategoryName = '';
+let availabilityModalInstance = null;
+
+function showAvailabilityModal(title, icon, iconClass, message, details, btnText) {
+    console.log('showAvailabilityModal called with:', { title, message, details });
+    
+    document.getElementById('availabilityModalTitle').innerHTML = 
+        '<i class="bi bi-exclamation-triangle-fill ' + iconClass + '"></i> ' + title;
+    document.getElementById('availabilityIcon').innerHTML = 
+        '<i class="bi bi-' + (icon === '⚠️' ? 'exclamation-triangle' : 'info-circle') + '-fill ' + iconClass + '" style="font-size: 3rem;"></i>';
+    
+    // Set main message with ALL styles explicitly
+    const messageEl = document.getElementById('availabilityMessage');
+    messageEl.innerHTML = message;
+    messageEl.style.cssText = 'color: #dc3545 !important; font-weight: 600; font-size: 1rem; margin-bottom: 15px; display: block !important; visibility: visible !important; opacity: 1 !important;';
+    console.log('Message element:', messageEl, 'Content:', messageEl.innerHTML);
+    
+    // Set details
+    document.querySelector('#availabilityDetails small').textContent = details;
+    document.getElementById('availabilityDetails').style.display = 'block'; // Show the details box
+    document.getElementById('proceedBtnText').textContent = btnText;
+    
+    const modal = new bootstrap.Modal(document.getElementById('workerAvailabilityModal'));
+    availabilityModalInstance = modal;
+    modal.show();
+    
+    // Set up proceed button
+    document.getElementById('proceedAnywayBtn').onclick = function() {
+        modal.hide();
+        // Continue with payment after modal closes
+        setTimeout(() => {
+            showPaymentModal();
+        }, 300);
+    };
+}
 
 function adjustWorkers(delta) {
     const input = document.getElementById('workers_needed');
@@ -508,6 +587,34 @@ function adjustWorkers(delta) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Category change handler - update availability
+    document.getElementById('category').addEventListener('change', function(e) {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        if (selectedOption.value) {
+            currentAvailableWorkers = parseInt(selectedOption.getAttribute('data-available-workers')) || 0;
+            currentCategoryName = selectedOption.getAttribute('data-category-name') || '';
+            
+            const warningDiv = document.getElementById('availabilityWarning');
+            const messageDiv = document.getElementById('availabilityBannerMessage');
+            
+            if (currentAvailableWorkers === 0) {
+                warningDiv.className = 'alert alert-warning border-warning mb-3';
+                messageDiv.innerHTML = '<h6 class="alert-heading mb-1">⚠️ No Workers Currently Available</h6>' +
+                    '<p class="mb-0">There are currently no available workers for <strong>' + currentCategoryName + '</strong>. ' +
+                    'Your request will be queued and processed as soon as workers become available.</p>';
+                warningDiv.classList.remove('d-none');
+            } else if (currentAvailableWorkers < 5) {
+                warningDiv.className = 'alert alert-info border-info mb-3';
+                messageDiv.innerHTML = '<h6 class="alert-heading mb-1">ℹ️ Limited Worker Availability</h6>' +
+                    '<p class="mb-0">Only <strong>' + currentAvailableWorkers + ' worker(s)</strong> currently available for ' + currentCategoryName + '. ' +
+                    'Your request will be prioritized.</p>';
+                warningDiv.classList.remove('d-none');
+            } else {
+                warningDiv.classList.add('d-none');
+            }
+        }
+    });
+    
     // Submit button handler
     document.getElementById('submitBtn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -516,6 +623,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('serviceRequestForm');
         if (!form.checkValidity()) {
             form.reportValidity();
+            return;
+        }
+        
+        // Check worker availability
+        const workersNeeded = parseInt(document.getElementById('workers_needed').value) || 1;
+        
+        if (currentAvailableWorkers === 0) {
+            // No workers available - show modal
+            showAvailabilityModal(
+                'No Workers Available',
+                '⚠️',
+                'text-warning',
+                'There are currently no available workers for this service.',
+                'Your request will be queued and processed when workers become available. You can still proceed with your request, and our admin will assign workers as soon as they become available.',
+                'Proceed Anyway'
+            );
+            return;
+        } else if (workersNeeded > currentAvailableWorkers) {
+            // Fewer workers than requested
+            showAvailabilityModal(
+                'Limited Availability',
+                'ℹ️',
+                'text-info',
+                'You requested ' + workersNeeded + ' worker(s), but only ' + currentAvailableWorkers + ' are currently available.',
+                'Your request will be accepted and prioritized. Our admin will review and assign the available workers to your request.',
+                'Continue'
+            );
             return;
         }
         

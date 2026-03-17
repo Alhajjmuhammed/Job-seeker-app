@@ -30,9 +30,8 @@ class WebSocketService {
         return;
       }
 
-      // Temporarily disable WebSocket until backend is configured with Django Channels
-      console.log('[WebSocket] WebSocket disabled - backend needs Django Channels configuration');
-      return;
+      // WebSocket is now enabled - Django Channels is configured on the backend
+      console.log('[WebSocket] Connecting to WebSocket server...');
 
       const token = await SecureStorage.getToken();
       if (!token) {
@@ -40,8 +39,9 @@ class WebSocketService {
         return;
       }
 
-      // Convert HTTP/HTTPS URL to WS/WSS
-      const wsUrl = API_CONFIG.API_URL.replace('http://', 'ws://').replace('https://', 'wss://');
+      // Convert HTTP/HTTPS URL to WS/WSS (use BASE_URL, not API_URL)
+      // WebSocket routes are at root level, not under /api/
+      const wsUrl = API_CONFIG.BASE_URL.replace('http://', 'ws://').replace('https://', 'wss://');
       const url = `${wsUrl}/ws/notifications/?token=${token}`;
 
       console.log('Connecting to WebSocket:', url);

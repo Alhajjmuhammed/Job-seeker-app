@@ -81,6 +81,36 @@ def client_create_service_request(request):
     except Category.DoesNotExist:
         return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
     
+    # Check worker availability before creating request
+    from workers.models import WorkerProfile
+    workers_needed = request.data.get('workers_needed', 1)
+    try:
+        workers_needed = int(workers_needed)
+        workers_needed = max(1, min(100, workers_needed))
+    except (ValueError, TypeError):
+        workers_needed = 1
+    
+    available_workers = WorkerProfile.objects.filter(
+        categories=category,
+        availability='available',
+        verification_status='verified'
+    ).exclude(
+        service_assignments__status__in=['pending', 'accepted', 'in_progress']
+    ).distinct().count()
+    
+    # Determine availability status
+    availability_status = 'sufficient' if workers_needed <= available_workers else 'limited'
+    availability_message = ''
+    
+    if workers_needed > available_workers:
+        if available_workers == 0:
+            availability_message = f'No workers currently available in {category.name}. Your request will be queued.'
+            availability_status = 'queued'
+        else:
+            availability_message = f'Only {available_workers} worker(s) available (requested {workers_needed}). Request will be queued for admin review.'
+    else:
+        availability_message = f'{available_workers} worker(s) available. Your request will be processed quickly.'
+    
     # Create service request with pricing
     service_request = serializer.save(
         client=request.user, 
@@ -115,6 +145,11 @@ def client_create_service_request(request):
             'status': 'paid',
             'amount': float(service_request.total_price),
             'transaction_id': payment_transaction_id
+        },
+        'availability': {
+            'available_workers': available_workers,
+            'availability_status': availability_status,
+            'availability_message': availability_message
         }
     }, status=status.HTTP_201_CREATED)
 

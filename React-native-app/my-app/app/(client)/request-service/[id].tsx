@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import PaymentModal from '../../../components/PaymentModal';
+import PaymentScreenshotModal from '../../../components/PaymentScreenshotModal';
 import apiService from '../../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -40,6 +41,8 @@ export default function RequestServiceScreen() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showScreenshotModal, setShowScreenshotModal] = useState(false);
+  const [paymentData, setPaymentData] = useState<any>(null);
   const [category, setCategory] = useState<ServiceCategory | null>(null);
   
   // Form state
@@ -64,6 +67,7 @@ export default function RequestServiceScreen() {
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
   const [workersNeeded, setWorkersNeeded] = useState<number>(1);
+  const [availableWorkers, setAvailableWorkers] = useState<number>(0);
 
   const resetForm = () => {
     setDescription('');
@@ -95,6 +99,19 @@ export default function RequestServiceScreen() {
       } else {
         Alert.alert('Error', 'Category not found');
         router.back();
+        return;
+      }
+      
+      // Fetch worker availability for this category
+      try {
+        const servicesResponse = await apiService.getServices();
+        const serviceData = servicesResponse.services?.find((s: any) => s.id === parseInt(categoryId as string));
+        if (serviceData && typeof serviceData.available_workers === 'number') {
+          setAvailableWorkers(serviceData.available_workers);
+        }
+      } catch (availError) {
+        console.error('Error loading worker availability:', availError);
+        // Continue even if this fails
       }
     } catch (error) {
       console.error('Error loading category:', error);
@@ -167,45 +184,104 @@ export default function RequestServiceScreen() {
   const handlePayAndSubmit = async () => {
     if (!validateForm()) return;
     
-    // Show payment modal instead of submitting directly
-    setShowPaymentModal(true);
+    // Check worker availability before proceeding to payment
+    if (availableWorkers === 0) {
+      Alert.alert(
+        '⚠️ No Workers Available',
+        `There are currently no available workers for ${category?.name}.\n\nYour request will be queued and processed when workers become available.\n\nDo you want to proceed anyway?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Proceed Anyway', 
+            onPress: () => setShowPaymentModal(true),
+            style: 'default'
+          }
+        ]
+      );
+    } else if (workersNeeded > availableWorkers) {
+      Alert.alert(
+        'ℹ️ Limited Availability',
+        `You requested ${workersNeeded} worker(s), but only ${availableWorkers} are currently available.\n\nYour request will be accepted and prioritized.\n\nDo you want to continue?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Continue', 
+            onPress: () => setShowPaymentModal(true),
+            style: 'default'
+          }
+        ]
+      );
+    } else {
+      // Sufficient workers available - proceed directly
+      setShowPaymentModal(true);
+    }
   };
 
-  const handlePaymentSuccess = async (paymentData: any) => {
+  const handlePaymentComplete = async (transactionData: any) => {
+    // Store payment data and show screenshot upload modal
+    console.log('Payment complete, showing screenshot modal');
+    setPaymentData(transactionData);
+    
+    // Use setTimeout to ensure state updates happen in sequence
+    setTimeout(() => {
+      setShowPaymentModal(false);
+      setTimeout(() => {
+        setShowScreenshotModal(true);
+      }, 100);
+    }, 100);
+  };
+
+  const handleScreenshotSubmit = async (screenshot: any) => {
     try {
       setSubmitting(true);
-      setShowPaymentModal(false);
 
-      // Submit service request with actual payment data
-      const requestData: any = {
-        category: parseInt(categoryId as string),
-        title: title.trim(),
-        description: description.trim(),
-        location: location.trim(),
-        city: city.trim(),
-        preferred_date: preferredDate.toISOString().split('T')[0],
-        preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
-        duration_type: durationType,
-        workers_needed: workersNeeded,
-        urgency: urgency,
-        client_notes: clientNotes.trim() || undefined,
-        payment_method: paymentData.payment_method,
-        payment_transaction_id: paymentData.transaction_id
-      };
+      // Submit service request with payment data and screenshot
+      const formData = new FormData();
+      formData.append('category', categoryId as string);
+      formData.append('title', title.trim());
+      formData.append('description', description.trim());
+      formData.append('location', location.trim());
+      formData.append('city', city.trim());
+      formData.append('preferred_date', preferredDate.toISOString().split('T')[0]);
+      formData.append('preferred_time', preferredTime.toTimeString().split(' ')[0].substring(0, 5));
+      formData.append('duration_type', durationType);
+      formData.append('workers_needed', workersNeeded.toString());
+      formData.append('urgency', urgency);
+      if (clientNotes.trim()) {
+        formData.append('client_notes', clientNotes.trim());
+      }
+      formData.append('payment_method', paymentData.payment_method);
+      formData.append('payment_transaction_id', paymentData.transaction_id);
 
       if (durationType === 'custom') {
-        requestData.service_start_date = serviceStartDate.toISOString().split('T')[0];
-        requestData.service_end_date = serviceEndDate.toISOString().split('T')[0];
+        formData.append('service_start_date', serviceStartDate.toISOString().split('T')[0]);
+        formData.append('service_end_date', serviceEndDate.toISOString().split('T')[0]);
       }
 
-      await apiService.requestService(parseInt(categoryId as string), requestData);
+      // Add screenshot if provided
+      if (screenshot) {
+        const localUri = screenshot.uri;
+        const filename = localUri.split('/').pop() || 'payment_screenshot.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formData.append('payment_screenshot', {
+          uri: localUri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      await apiService.requestService(parseInt(categoryId as string), formData);
       
-      // Reset form fields
+      // Close modal and reset everything
+      setShowScreenshotModal(false);
+      setPaymentData(null);
       resetForm();
       
       Alert.alert(
         'Success!',
-        `Your service request has been submitted and payment of TSH ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will assign a qualified worker soon.`,
+        `Your service request has been submitted and payment of TSH ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will review your payment and assign a qualified worker soon.`,
         [
           {
             text: 'View My Requests',
@@ -226,6 +302,17 @@ export default function RequestServiceScreen() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleScreenshotSkip = () => {
+    // Submit without screenshot
+    handleScreenshotSubmit(null);
+  };
+
+  const handleScreenshotModalClose = () => {
+    // Clear payment data and close modal
+    setShowScreenshotModal(false);
+    setPaymentData(null);
   };
 
   const formatDate = (date: Date) => {
@@ -275,6 +362,48 @@ export default function RequestServiceScreen() {
                 TSH {category.daily_rate}/day
               </Text>
             </View>
+          </View>
+        )}
+
+        {/* Worker Availability Info - Always Show */}
+        {availableWorkers === 0 ? (
+          <View style={[styles.warningCard, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }]}>
+            <View style={styles.warningHeader}>
+              <Ionicons name="warning" size={24} color="#F59E0B" />
+              <Text style={[styles.warningTitle, { color: '#92400E' }]}>
+                No Workers Currently Available
+              </Text>
+            </View>
+            <Text style={[styles.warningText, { color: '#78350F' }]}>
+              There are currently no available workers for {category?.name}.
+              Your request will be queued and processed as soon as workers become available.
+            </Text>
+          </View>
+        ) : availableWorkers < 5 ? (
+          <View style={[styles.warningCard, { backgroundColor: '#E0F2FE', borderColor: '#0EA5E9' }]}>
+            <View style={styles.warningHeader}>
+              <Ionicons name="information-circle" size={24} color="#0EA5E9" />
+              <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>
+                Limited Worker Availability
+              </Text>
+            </View>
+            <Text style={[styles.warningText, { color: '#075985' }]}>
+              Only {availableWorkers} worker(s) currently available for {category?.name}.
+              Your request will be prioritized.
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981' }]}>
+            <View style={styles.warningHeader}>
+              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+              <Text style={[styles.warningTitle, { color: '#065F46' }]}>
+                Workers Available
+              </Text>
+            </View>
+            <Text style={[styles.warningText, { color: '#047857' }]}>
+              {availableWorkers} worker(s) available for {category?.name}.
+              Your request will be processed quickly.
+            </Text>
           </View>
         )}
 
@@ -612,6 +741,45 @@ export default function RequestServiceScreen() {
           />
         </View>
 
+        {/* Worker Availability Info - Always Show Before Submit */}
+        {availableWorkers === 0 ? (
+          <View style={[styles.warningCard, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B', marginTop: 16 }]}>
+            <View style={styles.warningHeader}>
+              <Ionicons name="warning" size={24} color="#F59E0B" />
+              <Text style={[styles.warningTitle, { color: '#92400E' }]}>
+                ⚠️ No Workers Available
+              </Text>
+            </View>
+            <Text style={[styles.warningText, { color: '#78350F' }]}>
+              No available workers for {category?.name}. Your request will be queued.
+            </Text>
+          </View>
+        ) : availableWorkers < 5 ? (
+          <View style={[styles.warningCard, { backgroundColor: '#E0F2FE', borderColor: '#0EA5E9', marginTop: 16 }]}>
+            <View style={styles.warningHeader}>
+              <Ionicons name="information-circle" size={24} color="#0EA5E9" />
+              <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>
+                ℹ️ Limited Availability
+              </Text>
+            </View>
+            <Text style={[styles.warningText, { color: '#075985' }]}>
+              Only {availableWorkers} worker(s) available. Request will be prioritized.
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981', marginTop: 16 }]}>
+            <View style={styles.warningHeader}>
+              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+              <Text style={[styles.warningTitle, { color: '#065F46' }]}>
+                ✓ Workers Available
+              </Text>
+            </View>
+            <Text style={[styles.warningText, { color: '#047857' }]}>
+              {availableWorkers} worker(s) available for {category?.name}. Your request will be processed quickly.
+            </Text>
+          </View>
+        )}
+
         {/* Single Submit Button */}
         <TouchableOpacity
           style={[
@@ -642,8 +810,17 @@ export default function RequestServiceScreen() {
         amount={priceCalculation?.total_price || 0}
         currency="TSH"
         onClose={() => setShowPaymentModal(false)}
-        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentSuccess={handlePaymentComplete}
         processPayment={apiService.processPayment.bind(apiService)}
+      />
+
+      {/* Payment Screenshot Modal */}
+      <PaymentScreenshotModal
+        visible={showScreenshotModal}
+        paymentData={paymentData}
+        onClose={handleScreenshotModalClose}
+        onSubmit={handleScreenshotSubmit}
+        onSkip={handleScreenshotSkip}
       />
     </View>
   );
@@ -674,6 +851,28 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+  },
+  warningCard: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    flex: 1,
+  },
+  warningText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   content: {
     flex: 1,

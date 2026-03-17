@@ -26,7 +26,9 @@ def client_dashboard(request):
             categories=category,
             verification_status='verified',
             availability='available'
-        ).count()
+        ).exclude(
+            service_assignments__status__in=['pending', 'accepted', 'in_progress']
+        ).distinct().count()
         
         completed_projects = ServiceRequest.objects.filter(
             category=category,
@@ -68,7 +70,9 @@ def browse_services(request):
             categories=category,
             verification_status='verified',
             availability='available'
-        ).count()
+        ).exclude(
+            service_assignments__status__in=['pending', 'accepted', 'in_progress']
+        ).distinct().count()
         
         completed_projects = ServiceRequest.objects.filter(
             category=category,
@@ -159,6 +163,32 @@ def request_service(request, category_id):
             payment_transaction_id = request.POST.get('payment_transaction_id', '')
             payment_screenshot = request.FILES.get('payment_screenshot')
             
+            # Check worker availability before creating request
+            available_workers = WorkerProfile.objects.filter(
+                categories=category,
+                availability='available',
+                verification_status='verified'
+            ).exclude(
+                service_assignments__status__in=['pending', 'accepted', 'in_progress']
+            ).distinct().count()
+            
+            # Inform client about availability
+            if workers_needed > available_workers:
+                if available_workers == 0:
+                    messages.warning(request, 
+                        f'⚠️ Currently no available workers for {category.name}. '
+                        'Your request will be queued and processed when workers become available.'
+                    )
+                else:
+                    messages.info(request, 
+                        f'ℹ️ You requested {workers_needed} worker(s), but only {available_workers} '
+                        f'available. Your request is accepted and will be prioritized.'
+                    )
+            else:
+                messages.success(request, 
+                    f'✅ {available_workers} worker(s) available for your request.'
+                )
+            
             # Create service request
             service_request = ServiceRequest.objects.create(
                 client=request.user,
@@ -214,7 +244,9 @@ def request_service(request, category_id):
         categories=category,
         verification_status='verified',
         availability='available'
-    ).count()
+    ).exclude(
+        service_assignments__status__in=['pending', 'accepted', 'in_progress']
+    ).distinct().count()
     
     completed_projects = ServiceRequest.objects.filter(
         category=category,

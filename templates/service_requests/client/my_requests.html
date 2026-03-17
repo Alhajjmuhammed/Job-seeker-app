@@ -274,13 +274,35 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if request.assigned_worker %}
-                                <i class="bi bi-person-check text-success"></i>
-                                <span class="d-block">{{ request.assigned_worker.user.get_full_name }}</span>
+                                {% with accepted_assignments=request.assignments.all %}
+                                {% if accepted_assignments %}
+                                    {% for assignment in accepted_assignments %}
+                                        {% if assignment.worker_accepted %}
+                                        <i class="bi bi-person-check text-success"></i>
+                                        <span class="d-block">{{ assignment.worker.user.get_full_name }}</span>
+                                        {% if assignment.assignment_number > 1 or request.workers_needed > 1 %}
+                                        <small class="badge bg-secondary">Worker #{{ assignment.assignment_number }}</small>
+                                        {% endif %}
+                                        {% elif assignment.status == 'pending' %}
+                                        <i class="bi bi-hourglass-split text-warning"></i>
+                                        <small class="text-muted d-block">{{ assignment.worker.user.get_full_name }}</small>
+                                        <small class="badge bg-warning text-dark">Awaiting Response</small>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% elif request.assigned_worker %}
+                                    {% if request.worker_accepted %}
+                                    <i class="bi bi-person-check text-success"></i>
+                                    <span class="d-block">{{ request.assigned_worker.user.get_full_name }}</span>
+                                    {% else %}
+                                    <i class="bi bi-hourglass-split text-warning"></i>
+                                    <small class="text-muted d-block">{{ request.assigned_worker.user.get_full_name }}</small>
+                                    <small class="badge bg-warning text-dark">Awaiting Response</small>
+                                    {% endif %}
                                 {% else %}
                                 <i class="bi bi-person-x text-muted"></i>
                                 <small class="text-muted">Not assigned</small>
                                 {% endif %}
+                                {% endwith %}
                             </td>
                             <td>
                                 <i class="bi bi-calendar text-muted"></i>

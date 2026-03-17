@@ -79,6 +79,42 @@ def client_web_request_service(request):
             except (ValueError, TypeError):
                 workers_needed = 1
             
+            # Check worker availability in this category
+            from workers.models import WorkerProfile
+            from jobs.service_request_models import ServiceRequestAssignment
+            
+            # Count available workers: status='available' AND not busy with active assignments
+            available_workers = WorkerProfile.objects.filter(
+                categories=category,
+                availability='available',
+                verification_status='verified'
+            ).exclude(
+                # Exclude workers with active assignments (pending, accepted, in_progress)
+                service_assignments__status__in=['pending', 'accepted', 'in_progress']
+            ).distinct().count()
+            
+            # Warn if not enough workers available (but still allow request)
+            if workers_needed > available_workers:
+                if available_workers == 0:
+                    messages.warning(
+                        request,
+                        f'⚠️ No workers currently available in {category.name}. '
+                        f'Your request will be queued and admin will assign workers when available.'
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        f'⚠️ You requested {workers_needed} worker(s), but only {available_workers} '
+                        f'currently available in {category.name}. Your request will be queued for admin review.'
+                    )
+            else:
+                # Inform client that workers are available
+                messages.info(
+                    request,
+                    f'✅ {available_workers} worker(s) available in {category.name}. '
+                    f'Your request for {workers_needed} worker(s) will be processed quickly.'
+                )
+            
             # Get form data
             title = request.POST.get('title', '').strip()
             description = request.POST.get('description', '').strip()
@@ -172,8 +208,23 @@ def client_web_request_service(request):
         except Exception as e:
             messages.error(request, f'Error creating service request: {str(e)}')
     
+    # Get worker availability counts for each category (for display)
+    from workers.models import WorkerProfile
+    
+    # Annotate each category with its available worker count
+    categories_list = list(categories)
+    for category in categories_list:
+        available_count = WorkerProfile.objects.filter(
+            categories=category,
+            availability='available',
+            verification_status='verified'
+        ).exclude(
+            service_assignments__status__in=['pending', 'accepted', 'in_progress']
+        ).distinct().count()
+        category.available_workers = available_count
+    
     context = {
-        'categories': categories,
+        'categories': categories_list,
         'active_menu': 'request_service'
     }
     
@@ -193,7 +244,13 @@ def client_web_my_requests(request):
     # Get all requests
     requests_list = ServiceRequest.objects.filter(
         client=request.user
-    ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')
+    ).select_related(
+        'category', 
+        'assigned_worker', 
+        'assigned_worker__user'
+    ).prefetch_related(
+        'assignments__worker__user'  # Prefetch multiple worker assignments
+    ).order_by('-created_at')
     
     # Get filter parameters
     status_filter = request.GET.get('status')

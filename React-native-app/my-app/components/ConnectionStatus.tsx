@@ -8,10 +8,7 @@ export default function ConnectionStatus() {
   const { connected, connectionState } = useWebSocket();
   const { theme } = useTheme();
 
-  // Don't show anything - WebSocket is intentionally disabled in current setup
-  // The app works fully without real-time WebSocket features
-  return null;
-
+  // WebSocket is now enabled - show connection status when not connected
   const getStatusColor = () => {
     switch (connectionState) {
       case 'connecting':
@@ -44,6 +41,11 @@ export default function ConnectionStatus() {
         return 'cloud-done-outline';
     }
   };
+
+  // Only show when not connected (to avoid clutter when everything is working)
+  if (connectionState === 'connected') {
+    return null;
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: getStatusColor() }]}>

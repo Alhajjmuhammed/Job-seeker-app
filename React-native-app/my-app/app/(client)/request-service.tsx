@@ -68,6 +68,7 @@ export default function RequestServiceScreen() {
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal');
   const [clientNotes, setClientNotes] = useState('');
   const [workersNeeded, setWorkersNeeded] = useState<number>(1); // NEW: Number of workers needed
+  const [availableWorkers, setAvailableWorkers] = useState<number>(0); // Worker availability
 
   const resetForm = () => {
     setSelectedCategory(null);
@@ -87,6 +88,7 @@ export default function RequestServiceScreen() {
     setPaymentData(null);
     setShowScreenshotModal(false);
     setShowPaymentModal(false);
+    setAvailableWorkers(0);
   };
 
   useEffect(() => {
@@ -136,14 +138,68 @@ export default function RequestServiceScreen() {
   useEffect(() => {
     if (selectedCategory) {
       calculatePrice();
+      fetchWorkerAvailability();
     }
   }, [selectedCategory, calculatePrice]);
+
+  // Fetch worker availability when category is selected
+  const fetchWorkerAvailability = async () => {
+    if (!selectedCategory) {
+      setAvailableWorkers(0);
+      return;
+    }
+    
+    try {
+      const servicesResponse = await apiService.getServices();
+      const serviceData = servicesResponse.services?.find((s: any) => s.id === selectedCategory);
+      if (serviceData && typeof serviceData.available_workers === 'number') {
+        setAvailableWorkers(serviceData.available_workers);
+      } else {
+        setAvailableWorkers(0);
+      }
+    } catch (error) {
+      console.error('Error loading worker availability:', error);
+      setAvailableWorkers(0);
+    }
+  };
 
   const handlePayAndSubmit = async () => {
     if (!validateForm()) return;
     
-    // Show payment modal instead of submitting directly
-    setShowPaymentModal(true);
+    // Check worker availability before proceeding to payment
+    const selectedCat = categories.find(c => c.id === selectedCategory);
+    const categoryName = selectedCat?.name || 'this service';
+    
+    if (availableWorkers === 0) {
+      Alert.alert(
+        '⚠️ No Workers Available',
+        `There are currently no available workers for ${categoryName}.\n\nYour request will be queued and processed when workers become available.\n\nDo you want to proceed anyway?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Proceed Anyway', 
+            onPress: () => setShowPaymentModal(true),
+            style: 'default'
+          }
+        ]
+      );
+    } else if (workersNeeded > availableWorkers) {
+      Alert.alert(
+        'ℹ️ Limited Availability',
+        `You requested ${workersNeeded} worker(s), but only ${availableWorkers} are currently available.\n\nYour request will be accepted and prioritized.\n\nDo you want to continue?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Continue', 
+            onPress: () => setShowPaymentModal(true),
+            style: 'default'
+          }
+        ]
+      );
+    } else {
+      // Sufficient workers available - proceed directly
+      setShowPaymentModal(true);
+    }
   };
 
   const handlePaymentSuccess = async (transactionData: any) => {
@@ -345,6 +401,50 @@ export default function RequestServiceScreen() {
             ))}
           </View>
         </View>
+
+        {/* Worker Availability Info - Show After Category Selection */}
+        {selectedCategory && (
+          availableWorkers === 0 ? (
+            <View style={[styles.warningCard, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }]}>
+              <View style={styles.warningHeader}>
+                <Ionicons name="warning" size={24} color="#F59E0B" />
+                <Text style={[styles.warningTitle, { color: '#92400E' }]}>
+                  No Workers Currently Available
+                </Text>
+              </View>
+              <Text style={[styles.warningText, { color: '#78350F' }]}>
+                There are currently no available workers for {categories.find(c => c.id === selectedCategory)?.name}.
+                Your request will be queued and processed as soon as workers become available.
+              </Text>
+            </View>
+          ) : availableWorkers < 5 ? (
+            <View style={[styles.warningCard, { backgroundColor: '#E0F2FE', borderColor: '#0EA5E9' }]}>
+              <View style={styles.warningHeader}>
+                <Ionicons name="information-circle" size={24} color="#0EA5E9" />
+                <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>
+                  Limited Worker Availability
+                </Text>
+              </View>
+              <Text style={[styles.warningText, { color: '#075985' }]}>
+                Only {availableWorkers} worker(s) currently available for {categories.find(c => c.id === selectedCategory)?.name}.
+                Your request will be prioritized.
+              </Text>
+            </View>
+          ) : (
+            <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981' }]}>
+              <View style={styles.warningHeader}>
+                <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                <Text style={[styles.warningTitle, { color: '#065F46' }]}>
+                  Workers Available
+                </Text>
+              </View>
+              <Text style={[styles.warningText, { color: '#047857' }]}>
+                {availableWorkers} worker(s) available for {categories.find(c => c.id === selectedCategory)?.name}.
+                Your request will be processed quickly.
+              </Text>
+            </View>
+          )
+        )}
 
         {/* Title */}
         <View style={styles.section}>
@@ -688,6 +788,47 @@ export default function RequestServiceScreen() {
           />
         </View>
 
+        {/* Worker Availability Info - Always Show Before Submit */}
+        {selectedCategory && (
+          availableWorkers === 0 ? (
+            <View style={[styles.warningCard, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B', marginTop: 16, marginBottom: 8 }]}>
+              <View style={styles.warningHeader}>
+                <Ionicons name="warning" size={24} color="#F59E0B" />
+                <Text style={[styles.warningTitle, { color: '#92400E' }]}>
+                  ⚠️ No Workers Available
+                </Text>
+              </View>
+              <Text style={[styles.warningText, { color: '#78350F' }]}>
+                No available workers for {categories.find(c => c.id === selectedCategory)?.name}. Your request will be queued.
+              </Text>
+            </View>
+          ) : availableWorkers < 5 ? (
+            <View style={[styles.warningCard, { backgroundColor: '#E0F2FE', borderColor: '#0EA5E9', marginTop: 16, marginBottom: 8 }]}>
+              <View style={styles.warningHeader}>
+                <Ionicons name="information-circle" size={24} color="#0EA5E9" />
+                <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>
+                  ℹ️ Limited Availability
+                </Text>
+              </View>
+              <Text style={[styles.warningText, { color: '#075985' }]}>
+                Only {availableWorkers} worker(s) available. Request will be prioritized.
+              </Text>
+            </View>
+          ) : (
+            <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981', marginTop: 16, marginBottom: 8 }]}>
+              <View style={styles.warningHeader}>
+                <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                <Text style={[styles.warningTitle, { color: '#065F46' }]}>
+                  ✓ Workers Available
+                </Text>
+              </View>
+              <Text style={[styles.warningText, { color: '#047857' }]}>
+                {availableWorkers} worker(s) available for {categories.find(c => c.id === selectedCategory)?.name}. Your request will be processed quickly.
+              </Text>
+            </View>
+          )
+        )}
+
         {/* Single Submit Button */}
         <TouchableOpacity
           style={[
@@ -1004,6 +1145,26 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  warningCard: {
+    borderRadius: 12,
+    borderWidth: 2,
+    padding: 16,
+    marginHorizontal: 0,
+  },
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  warningText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   bottomSpacer: {
     height: 40,
