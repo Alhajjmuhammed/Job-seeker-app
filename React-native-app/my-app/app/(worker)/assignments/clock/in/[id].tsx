@@ -17,13 +17,16 @@ import apiService from '../../../../../services/api';
 
 interface Assignment {
   id: number;
+  assignment_number: number;
+  status?: string;
+  worker_accepted?: boolean;
+  service_request: number; // Just the ID
+  // Flattened service request fields from serializer
   title: string;
   category_name: string;
   location: string;
   city: string;
   client_name: string;
-  status?: string;
-  worker_accepted?: boolean;
 }
 
 export default function ClockInScreen() {
@@ -35,6 +38,9 @@ export default function ClockInScreen() {
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  
+  // 🛡️ Prevent double-tap/concurrent execution
+  const isProcessingRef = React.useRef(false);
 
   useEffect(() => {
     loadAssignment();
@@ -46,12 +52,31 @@ export default function ClockInScreen() {
       setLoading(true);
       const response = await apiService.getWorkerAssignmentDetail(Number(id));
       const assignmentData = response.assignment || response;
+      const isClockedIn = response.is_clocked_in === true;
+      
+      // Check if worker is already clocked in
+      if (isClockedIn) {
+        console.log('⚠️ Worker is already clocked in - redirecting back');
+        Alert.alert(
+          'Already Clocked In',
+          'You are already clocked in. Please clock out first before clocking in again.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.back()
+            }
+          ]
+        );
+        return;
+      }
+      
       setAssignment(assignmentData);
       
       console.log('📋 Clock In Screen Loaded:', {
         assignmentId: assignmentData.id,
         status: assignmentData.status,
-        workerAccepted: assignmentData.worker_accepted
+        workerAccepted: assignmentData.worker_accepted,
+        isClockedIn: isClockedIn
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
@@ -118,38 +143,65 @@ export default function ClockInScreen() {
 
   const confirmClockIn = async () => {
     if (!assignment) return;
+    
+    // 🛡️ PREVENT CONCURRENT EXECUTION - Guard against double-tap
+    if (isProcessingRef.current) {
+      console.log('⚠️ Already processing clock in - ignoring duplicate request');
+      return;
+    }
+    
+    isProcessingRef.current = true;
 
     try {
       setSubmitting(true);
-      console.log('⏰ Clocking In:', {
-        assignmentId: assignment.id,
-        status: assignment.status,
-        workerAccepted: assignment.worker_accepted,
-        hasLocation: !!currentLocation
-      });
+      
+      // ✅ DOUBLE CHECK: Verify clock status RIGHT BEFORE API call
+      console.log('🔍 Double-checking clock status before clock in...');
+      const checkResponse = await apiService.getWorkerAssignmentDetail(assignment.id);
+      const isAlreadyClockedIn = checkResponse.is_clocked_in === true;
+      
+      if (isAlreadyClockedIn) {
+        console.log('⚠️ Clock status changed! Worker is ALREADY clocked in');
+        Alert.alert(
+          'Already Clocked In',
+          'You have already clocked in. This may have happened from another action or if you clicked too quickly.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Go back to assignment detail which will show correct state
+                router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+              }
+            }
+          ]
+        );
+        return;
+      }
       
       const result = await apiService.clockIn(assignment.id, currentLocation || undefined);
       console.log('✅ Clock In Success:', result);
-      
-      // Navigate back with a slight delay to ensure state updates
+
+      // Redirect immediately, show success after
+      router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
       setTimeout(() => {
-        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
-      }, 300);
-      
-      Alert.alert(
-        '⏰ Clocked In Successfully!',
-        'Your work session has started. Time tracking is now active.'
-      );
+        Alert.alert('⏰ Clocked In Successfully!', 'Your work session has started. Time tracking is now active.');
+      }, 100);
     } catch (error: any) {
-      console.error('❌ Clock In Error:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to clock in. Please try again.';
-      Alert.alert('Clock In Failed', errorMessage);
+      const isAlreadyClockedIn = error.response?.data?.error?.toLowerCase().includes('already clocked in');
+
+      if (isAlreadyClockedIn) {
+        // Worker is already clocked in — redirect silently, no error shown
+        console.log('ℹ️ Clock in: already clocked in, redirecting');
+        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+      } else {
+        // Genuine error — show it
+        console.error('❌ Clock In Error:', error.response?.data || error.message);
+        const errorMessage = error.response?.data?.error || error.message || 'Failed to clock in. Please try again.';
+        Alert.alert('Clock In Failed', errorMessage);
+      }
     } finally {
       setSubmitting(false);
+      isProcessingRef.current = false;
     }
   };
 

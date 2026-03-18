@@ -18,6 +18,11 @@ import apiService from '../../../../../services/api';
 
 interface Assignment {
   id: number;
+  assignment_number: number;
+  status: string;
+  worker_accepted: boolean;
+  service_request: number; // Just the ID
+  // Flattened service request fields from serializer
   title: string;
   category_name: string;
   location: string;
@@ -36,6 +41,9 @@ export default function ClockOutScreen() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [workStartTime] = useState(new Date());
+  
+  // 🛡️ Prevent double-tap/concurrent execution
+  const isProcessingRef = React.useRef(false);
 
   useEffect(() => {
     loadAssignment();
@@ -46,13 +54,33 @@ export default function ClockOutScreen() {
     try {
       setLoading(true);
       const response = await apiService.getWorkerAssignmentDetail(Number(id));
-      const assignmentData = response.assignment || response.service_request || response;
+      const assignmentData = response.assignment || response;
+      const isClockedIn = response.is_clocked_in === true;
+      
+      // Check if worker is actually clocked in
+      if (!isClockedIn) {
+        console.log('⚠️ Worker is not clocked in - redirecting back');
+        Alert.alert(
+          'Not Clocked In',
+          'You are not currently clocked in. Please clock in first before you can clock out.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.back()
+            }
+          ]
+        );
+        return;
+      }
+      
       setAssignment(assignmentData);
       
       console.log('📋 Clock Out Screen Loaded:', {
         assignmentId: assignmentData.id,
         status: assignmentData.status,
-        workerAccepted: assignmentData.worker_accepted
+        workerAccepted: assignmentData.worker_accepted,
+        serviceRequestTitle: assignmentData.title,
+        isClockedIn: isClockedIn
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
@@ -104,40 +132,41 @@ export default function ClockOutScreen() {
   const confirmClockOut = async () => {
     if (!assignment) return;
 
+    // 🛡️ Prevent concurrent execution (double-tap guard)
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     try {
       setSubmitting(true);
-      console.log('🕐 Clocking Out:', {
-        assignmentId: assignment.id,
-        hasLocation: !!currentLocation,
-        hasNotes: !!notes.trim()
-      });
-      
+
       const result = await apiService.clockOut(
         assignment.id,
         currentLocation || undefined,
         notes.trim() || undefined
       );
       console.log('✅ Clock Out Success:', result);
-      
-      // Navigate back with a slight delay to ensure state updates
+
+      // Redirect immediately, show success after
+      router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
       setTimeout(() => {
-        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
-      }, 300);
-      
-      Alert.alert(
-        '✅ Clocked Out Successfully!',
-        'Your work session has been recorded. Great job!'
-      );
+        Alert.alert('✅ Clocked Out Successfully!', 'Your work session has been recorded.');
+      }, 100);
     } catch (error: any) {
-      console.error('❌ Clock Out Error:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to clock out. Please try again.';
-      Alert.alert('Clock Out Failed', errorMessage);
+      const isNotClockedIn = error.response?.data?.error?.toLowerCase().includes('not clocked in');
+
+      if (isNotClockedIn) {
+        // Worker is already clocked out — redirect silently, no error shown
+        console.log('ℹ️ Clock out: already clocked out, redirecting');
+        router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+      } else {
+        // Genuine error — show it
+        console.error('❌ Clock Out Error:', error.response?.data || error.message);
+        const errorMessage = error.response?.data?.error || error.message || 'Failed to clock out. Please try again.';
+        Alert.alert('Clock Out Failed', errorMessage);
+      }
     } finally {
       setSubmitting(false);
+      isProcessingRef.current = false;
     }
   };
 

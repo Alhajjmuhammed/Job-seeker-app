@@ -9,6 +9,10 @@ class ApiService {
   private api: AxiosInstance;
   private maxRetries = 3;
   private retryDelay = 1000; // Base retry delay in ms
+  
+  // 🛡️ Lock-based guards to prevent concurrent clock in/out calls
+  private isClockingIn: { [key: number]: boolean } = {};
+  private isClockingOut: { [key: number]: boolean } = {};
 
   constructor() {
     this.api = axios.create({
@@ -656,22 +660,50 @@ class ApiService {
   }
 
   async clockIn(assignmentId: number, location?: { latitude: number; longitude: number }) {
-    const response = await this.api.post(
-      `/v1/worker/my-assignments/${assignmentId}/clock-in/`,
-      { location: location ? `${location.latitude},${location.longitude}` : undefined }
-    );
-    return response.data;
+    // 🛡️ LOCK: Prevent concurrent calls
+    if (this.isClockingIn[assignmentId]) {
+      console.log('⚠️ API LOCK: Clock in already in progress - rejecting duplicate');
+      throw new Error('Clock in already in progress');
+    }
+    
+    this.isClockingIn[assignmentId] = true;
+    console.log('🔒 API LOCK ACQUIRED: Clock in');
+    
+    try {
+      const response = await this.api.post(
+        `/v1/worker/my-assignments/${assignmentId}/clock-in/`,
+        { location: location ? `${location.latitude},${location.longitude}` : undefined }
+      );
+      return response.data;
+    } finally {
+      this.isClockingIn[assignmentId] = false;
+      console.log('🔓 API LOCK RELEASED: Clock in');
+    }
   }
 
   async clockOut(assignmentId: number, location?: { latitude: number; longitude: number }, notes?: string) {
-    const response = await this.api.post(
-      `/v1/worker/my-assignments/${assignmentId}/clock-out/`,
-      { 
-        location: location ? `${location.latitude},${location.longitude}` : undefined,
-        notes 
-      }
-    );
-    return response.data;
+    // 🛡️ LOCK: Prevent concurrent calls
+    if (this.isClockingOut[assignmentId]) {
+      console.log('⚠️ API LOCK: Clock out already in progress - rejecting duplicate');
+      throw new Error('Clock out already in progress');
+    }
+    
+    this.isClockingOut[assignmentId] = true;
+    console.log('🔒 API LOCK ACQUIRED: Clock out');
+    
+    try {
+      const response = await this.api.post(
+        `/v1/worker/my-assignments/${assignmentId}/clock-out/`,
+        { 
+          location: location ? `${location.latitude},${location.longitude}` : undefined,
+          notes 
+        }
+      );
+      return response.data;
+    } finally {
+      this.isClockingOut[assignmentId] = false;
+      console.log('🔓 API LOCK RELEASED: Clock out');
+    }
   }
 
   async completeService(assignmentId: number, completionNotes: string) {
