@@ -4,93 +4,141 @@
 {% block title %}Agent Registration - Worker Connect{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-person-workspace display-3" style="color:#14b8a6"></i>
-                        <h2 class="fw-bold mt-3">Agent Registration</h2>
-                        <p class="text-muted">Recruit workers and earn commission</p>
-                    </div>
 
-                    <div class="alert alert-info small mb-4">
-                        <i class="bi bi-info-circle me-2"></i>
-                        After registration your account will be reviewed by admin. Once approved you will receive a unique <strong>Agent Code</strong> to share with workers.
-                    </div>
+<style>
+    .reg-wrap {
+        min-height: calc(100vh - 80px);
+        display: flex; align-items: center; justify-content: center;
+        background: #f1f5f9;
+        padding: 2rem 1rem;
+    }
+    .reg-card {
+        display: flex;
+        width: 100%; max-width: 920px;
+        overflow: hidden;
+    }
+    .reg-left {
+        background: linear-gradient(145deg, #7c3aed 0%, #8b5cf6 40%, #1e3a5f 100%);
+        flex: 0 0 280px;
+        display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+        padding: 3rem 2rem;
+        position: relative; overflow: hidden;
+    }
+    .reg-left::before { content:''; position:absolute; bottom:-60px; left:-60px; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,0.08); }
+    .reg-left::after  { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.06); }
+    .reg-left .brand-icon { width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:white;margin-bottom:1.2rem; }
+    .reg-left h2 { color:white;font-size:1.65rem;font-weight:800;letter-spacing:0.03em;text-transform:uppercase;margin-bottom:0.4rem; }
+    .reg-left .sub { color:rgba(255,255,255,0.7);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.12em;font-weight:600;margin-bottom:1.2rem; }
+    .reg-left p { color:rgba(255,255,255,0.7);font-size:0.88rem;line-height:1.7; }
+    .reg-left ul { list-style:none;padding:0;margin:1rem 0 0; }
+    .reg-left ul li { color:rgba(255,255,255,0.8);font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:8px; }
+    .reg-left ul li i { color:#ddd6fe;font-size:0.9rem; }
+    .reg-right { background:white;flex:1;padding:2.5rem 2.5rem;overflow-y:auto; }
+    .reg-right h3 { font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:0.2rem; }
+    .reg-right .sub-text { font-size:0.84rem;color:#94a3b8;margin-bottom:1rem; }
+    .reg-right label { font-size:0.82rem;font-weight:600;color:#475569;margin-bottom:4px; }
+    .reg-right .form-control { border:1.5px solid #e2e8f0;border-radius:10px;padding:0.65rem 1rem;font-size:0.92rem;color:#1e293b;transition:border-color 0.2s; }
+    .reg-right .form-control:focus { border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,0.12); }
+    .btn-reg { background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;color:white;font-weight:600;font-size:1rem;border-radius:10px;padding:0.75rem;transition:opacity 0.2s; }
+    .btn-reg:hover { opacity:0.9;color:white; }
+    @media(max-width:640px){ .reg-left{display:none;} .reg-right{padding:2rem 1.5rem;} }
+</style>
 
-                    <form method="post" novalidate>
-                        {% csrf_token %}
+<div class="reg-wrap">
+  <div class="reg-card">
 
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                        {% endif %}
-
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                            {% render_field form.username class="form-control" %}
-                            {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
-                                {% render_field form.first_name class="form-control" %}
-                                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                                {% render_field form.last_name class="form-control" %}
-                                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                            {% render_field form.email class="form-control" type="email" %}
-                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
-                            {% render_field form.phone_number class="form-control" %}
-                            {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.business_name.id_for_label }}" class="form-label">
-                                Business Name <span class="text-muted fw-normal">(optional)</span>
-                            </label>
-                            {% render_field form.business_name class="form-control" %}
-                            <div class="form-text text-muted">{{ form.business_name.help_text }}</div>
-                            {% if form.business_name.errors %}<div class="text-danger small">{{ form.business_name.errors }}</div>{% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                            {% render_field form.password1 class="form-control" type="password" %}
-                            {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors }}</div>{% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                            {% render_field form.password2 class="form-control" type="password" %}
-                            {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors }}</div>{% endif %}
-                        </div>
-
-                        <button type="submit" class="btn w-100 btn-lg fw-bold text-white" style="background:#14b8a6;border-color:#14b8a6">
-                            <i class="bi bi-person-plus"></i> Submit Application
-                        </button>
-                    </form>
-
-                    <div class="text-center mt-4">
-                        <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}">Login here</a></p>
-                        <p class="text-muted"><a href="{% url 'accounts:register_choice' %}">Choose different account type</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Left Panel -->
+    <div class="reg-left">
+      <div class="brand-icon"><i class="bi bi-diagram-3-fill"></i></div>
+      <div class="sub">Worker Connect</div>
+      <h2>Agent<br>Account</h2>
+      <p>Recruit workers, manage your team, and earn commission on every completed job.</p>
+      <ul>
+        <li><i class="bi bi-check-circle-fill"></i> Get a unique agent code</li>
+        <li><i class="bi bi-check-circle-fill"></i> Recruit &amp; manage workers</li>
+        <li><i class="bi bi-check-circle-fill"></i> Track worker performance</li>
+      </ul>
     </div>
+
+    <!-- Right Panel -->
+    <div class="reg-right">
+      <h3>Create Account</h3>
+      <p class="sub-text">Fill in your details to apply as an Agent</p>
+
+      <div class="alert alert-info rounded-3 py-2 px-3 mb-3" style="font-size:0.84rem;">
+        <i class="bi bi-info-circle me-1"></i>
+        After registration your account will be reviewed. Once approved you'll receive a unique <strong>Agent Code</strong> to share with workers.
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger rounded-3 py-2 px-3" style="font-size:0.88rem;">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label for="{{ form.username.id_for_label }}">Username</label>
+          {% render_field form.username class="form-control" %}
+          {% if form.username.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.username.errors }}</div>{% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.first_name.id_for_label }}">First Name</label>
+            {% render_field form.first_name class="form-control" %}
+            {% if form.first_name.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.first_name.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+            {% render_field form.last_name class="form-control" %}
+            {% if form.last_name.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.last_name.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {% render_field form.email class="form-control" type="email" %}
+          {% if form.email.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.email.errors }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+          {% render_field form.phone_number class="form-control" %}
+          {% if form.phone_number.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.phone_number.errors }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.business_name.id_for_label }}">Business Name <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+          {% render_field form.business_name class="form-control" %}
+          {% if form.business_name.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.business_name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <label for="{{ form.password1.id_for_label }}">Password</label>
+            {% render_field form.password1 class="form-control" type="password" %}
+            {% if form.password1.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.password1.errors }}</div>{% endif %}
+          </div>
+          <div class="col-6">
+            <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+            {% render_field form.password2 class="form-control" type="password" %}
+            {% if form.password2.errors %}<div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.password2.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-reg w-100">
+          <i class="bi bi-person-plus me-1"></i> Submit Application
+        </button>
+      </form>
+
+      <p class="text-center mt-3 mb-0" style="font-size:0.87rem;color:#64748b;">
+        Already have an account? <a href="{% url 'accounts:login' %}" style="color:#8b5cf6;font-weight:600;text-decoration:none;">Sign In</a>
+        &nbsp;&middot;&nbsp;
+        <a href="{% url 'accounts:register_choice' %}" style="color:#8b5cf6;font-weight:600;text-decoration:none;">Change role</a>
+      </p>
+
+    </div>
+  </div>
 </div>
 {% endblock %}

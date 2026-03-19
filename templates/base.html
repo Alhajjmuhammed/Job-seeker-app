@@ -121,20 +121,170 @@
     </style>
     
     {% block extra_css %}{% endblock %}
+
+    <style>
+        /* ── Navbar ── */
+        .main-nav {
+            background: linear-gradient(135deg, #0f172a 0%, #134e4a 60%, #0f766e 100%);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+        }
+        .main-nav::after {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, #14b8a6, #10b981, #14b8a6);
+        }
+        .main-nav .navbar-brand {
+            color: white !important;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 0;
+        }
+        .main-nav .brand-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        .main-nav .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 8px 14px !important;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .main-nav .nav-link:hover,
+        .main-nav .nav-link.active {
+            color: white !important;
+            background: rgba(255,255,255,0.12);
+        }
+        .main-nav .nav-link i { font-size: 0.95rem; }
+        .main-nav .navbar-toggler {
+            border-color: rgba(255,255,255,0.3);
+            padding: 6px 10px;
+        }
+        .main-nav .navbar-toggler-icon {
+            filter: invert(1);
+        }
+        /* Notification badge */
+        .main-nav .notification-badge {
+            position: absolute;
+            top: 0px; right: 4px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            min-width: 18px; height: 18px;
+            font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4px;
+        }
+        /* Guest buttons */
+        .main-nav .btn-nav-login {
+            color: rgba(255,255,255,0.85) !important;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 7px 18px;
+            font-size: 0.875rem; font-weight: 500;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .main-nav .btn-nav-login:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.6);
+            color: white !important;
+        }
+        .main-nav .btn-nav-signup {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: white !important;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 20px;
+            font-size: 0.875rem; font-weight: 600;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .main-nav .btn-nav-signup:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            color: white !important;
+        }
+        /* Theme toggle */
+        .main-nav #theme-toggle {
+            color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            width: 36px; height: 36px;
+            padding: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .main-nav #theme-toggle:hover {
+            background: rgba(255,255,255,0.18);
+            color: white;
+        }
+        /* User dropdown */
+        .main-nav .dropdown-menu {
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 6px;
+            margin-top: 6px;
+            min-width: 180px;
+        }
+        .main-nav .dropdown-item {
+            color: rgba(255,255,255,0.8);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.875rem;
+        }
+        .main-nav .dropdown-item:hover {
+            background: rgba(20,184,166,0.15);
+            color: #14b8a6;
+        }
+        .main-nav .dropdown-divider { border-color: rgba(255,255,255,0.1); }
+        .main-nav .nav-link.dropdown-toggle { color: rgba(255,255,255,0.9) !important; }
+        /* Home link highlight */
+        .main-nav .nav-home { color: #5eead4 !important; }
+        .main-nav .nav-home:hover { color: white !important; background: rgba(94,234,212,0.12); }
+    </style>
 </head>
 <body>
-    
+
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <nav class="main-nav navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{% url 'home' %}">
-                <i class="bi bi-people-fill"></i> Worker Connect
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <div class="brand-icon"><i class="bi bi-people-fill"></i></div>
+                Worker Connect
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
+                    <!-- Home link always visible -->
+                    <li class="nav-item">
+                        <a class="nav-link nav-home" href="{% url 'home' %}">
+                            <i class="bi bi-house-fill"></i> Home
+                        </a>
+                    </li>
+
                     {% if user.is_authenticated %}
                         {% if user.is_worker %}
                             <li class="nav-item">
@@ -170,7 +320,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'clients:browse_services' %}">
-                                    <i class="fas fa-search"></i> Browse Services
+                                    <i class="bi bi-search"></i> Browse Services
                                 </a>
                             </li>
                         {% elif user.is_admin_user %}
@@ -180,51 +330,62 @@
                                 </a>
                             </li>
                         {% endif %}
-                        
+
                         <!-- Notifications -->
                         <li class="nav-item">
                             <a class="nav-link position-relative" href="{% url 'notification_center' %}">
-                                <i class="bi bi-bell"></i> Notifications
-                                <span class="notification-badge" id="navbar-notification-badge" style="display: none;">0</span>
+                                <i class="bi bi-bell"></i>
+                                <span class="notification-badge" id="navbar-notification-badge" style="display:none;">0</span>
                             </a>
                         </li>
-                        
+
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'jobs:inbox' %}">
-                                <i class="bi bi-envelope"></i> Messages
+                                <i class="bi bi-envelope"></i>
                             </a>
                         </li>
-                        
+
                         <!-- Theme Toggle -->
                         <li class="nav-item d-flex align-items-center">
-                            <button id="theme-toggle" class="btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+                            <button id="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
                                 <i class="bi bi-moon-fill" id="theme-icon"></i>
                             </button>
                         </li>
-                        
+
+                        <!-- User dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#"
+                               id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span style="width:28px;height:28px;background:linear-gradient(135deg,#14b8a6,#0d9488);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:white;font-weight:700;flex-shrink:0;">
+                                    {{ user.username|first|upper }}
+                                </span>
+                                {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">My Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}">Edit Profile</a></li>
+                                <li>
+                                    <div style="padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:4px;">
+                                        <div style="color:white;font-weight:600;font-size:0.88rem;">{{ user.get_full_name|default:user.username }}</div>
+                                        <div style="color:#94a3b8;font-size:0.78rem;">{{ user.email }}</div>
+                                    </div>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}" style="color:#f87171 !important;"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                            <a class="btn-nav-login" href="{% url 'accounts:login' %}">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-primary text-white px-3" href="{% url 'accounts:register_choice' %}">
-                                Sign Up
+                            <a class="btn-nav-signup" href="{% url 'accounts:register_choice' %}">
+                                <i class="bi bi-person-plus me-1"></i>Sign Up
                             </a>
                         </li>
                         <!-- Theme Toggle for guests -->
                         <li class="nav-item d-flex align-items-center">
-                            <button id="theme-toggle" class="btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+                            <button id="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
                                 <i class="bi bi-moon-fill" id="theme-icon"></i>
                             </button>
                         </li>

@@ -4,326 +4,694 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worker Connect - Connect. Work. Grow.</title>
+    <title>Worker Connect - Tanzania's #1 Job Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        :root { --teal:#14b8a6; --teal-dark:#0f766e; --dark:#111827; --dark2:#1f2937; }
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#111827;overflow-x:hidden;}
+        :root{--teal:#14b8a6;--teal-dark:#0f766e;--dark:#0f172a;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--light:#f8fafc;}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#fff;color:var(--text);overflow-x:hidden;}
+        a{text-decoration:none;}
+        img{max-width:100%;display:block;}
 
         /* NAVBAR */
-        .site-nav{position:absolute;top:0;left:0;right:0;z-index:100;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;}
-        .nav-logo{display:flex;align-items:center;gap:.625rem;text-decoration:none;}
-        .nav-logo-icon{width:38px;height:38px;border-radius:6px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;}
-        .nav-logo-text{font-size:1.2rem;font-weight:700;color:#fff;}
-        .nav-links{display:flex;align-items:center;gap:1rem;}
-        .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.9375rem;font-weight:500;transition:color .2s;padding:.25rem .5rem;}
-        .nav-links a:hover{color:#fff;}
-        .nav-btn{background:var(--teal)!important;color:#fff!important;padding:.5rem 1.375rem!important;border-radius:6px;font-weight:600!important;}
-        .nav-btn:hover{background:var(--teal-dark)!important;}
+        .wc-nav{position:absolute;top:0;left:0;right:0;z-index:100;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+        .wc-logo{display:flex;align-items:center;gap:.625rem;}
+        .wc-logo-badge{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.9375rem;}
+        .wc-logo-name{font-weight:700;font-size:1.125rem;color:#fff;letter-spacing:-.01em;}
+        .wc-nav-links{display:flex;align-items:center;gap:1rem;}
+        .wc-nav-link{color:rgba(255,255,255,.8);font-size:.9375rem;font-weight:500;transition:color .2s;padding:.25rem .4rem;}
+        .wc-nav-link:hover{color:#fff;}
+        .wc-btn-login{color:rgba(255,255,255,.9);font-size:.9375rem;font-weight:600;border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:.45rem 1.125rem;transition:all .2s;}
+        .wc-btn-login:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.6);}
+        .wc-btn-signup{background:var(--teal);color:#fff;font-size:.9375rem;font-weight:600;border-radius:7px;padding:.45rem 1.25rem;transition:all .2s;}
+        .wc-btn-signup:hover{background:var(--teal-dark);}
 
         /* HERO */
-        .hero{position:relative;min-height:92vh;background:linear-gradient(135deg,rgba(11,30,45,.84) 0%,rgba(15,118,110,.55) 100%),url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80') center/cover no-repeat;display:flex;align-items:center;}
-        .hero-content{max-width:1200px;margin:0 auto;padding:8rem 2rem 5rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
-        .hero-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(20,184,166,.2);border:1px solid rgba(20,184,166,.4);color:#5eead4;padding:.375rem 1rem;border-radius:20px;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1.5rem;}
-        .hero-tag-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;animation:blink 2s infinite;}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-        .hero-title{font-size:clamp(2.25rem,5vw,3.5rem);font-weight:800;color:#fff;line-height:1.15;margin-bottom:1.25rem;}
-        .hero-title span{color:var(--teal);}
-        .hero-desc{font-size:1.0625rem;color:rgba(255,255,255,.8);line-height:1.7;max-width:520px;margin-bottom:2rem;}
-        .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;}
-        .btn-primary-hero{background:var(--teal);color:#fff;padding:.875rem 2rem;border-radius:6px;font-weight:700;font-size:1rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;}
-        .btn-primary-hero:hover{background:var(--teal-dark);color:#fff;transform:translateY(-2px);box-shadow:0 8px 24px rgba(20,184,166,.35);}
-        .btn-outline-hero{background:transparent;color:#fff;padding:.875rem 2rem;border-radius:6px;font-weight:600;font-size:1rem;text-decoration:none;transition:all .2s;border:2px solid rgba(255,255,255,.5);display:inline-flex;align-items:center;gap:.5rem;}
-        .btn-outline-hero:hover{border-color:#fff;background:rgba(255,255,255,.1);color:#fff;}
-        .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
-        .stat-box{background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:1.5rem 1.25rem;text-align:center;}
-        .stat-box-num{font-size:2.25rem;font-weight:800;color:var(--teal);line-height:1;}
-        .stat-box-label{font-size:.875rem;color:rgba(255,255,255,.75);margin-top:.375rem;}
+        .hero{position:relative;min-height:100vh;background:linear-gradient(135deg,rgba(7,22,35,.9) 0%,rgba(10,95,84,.65) 100%),url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80') center/cover no-repeat;display:flex;align-items:center;}
+        .hero-container{max-width:1200px;width:100%;margin:0 auto;padding:8rem 2rem 5rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(20,184,166,.18);border:1px solid rgba(20,184,166,.4);color:#5eead4;padding:.35rem 1rem;border-radius:100px;font-size:.8125rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:1.5rem;}
+        .hero-badge-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite;}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        .hero-h1{font-size:clamp(2.4rem,4.5vw,3.75rem);font-weight:800;color:#fff;line-height:1.12;margin-bottom:1.375rem;letter-spacing:-.02em;}
+        .hero-h1 em{color:var(--teal);font-style:normal;}
+        .hero-subtext{font-size:1.0625rem;color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:2.5rem;max-width:500px;}
+        .hero-actions{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;}
+        .btn-hero-primary{background:var(--teal);color:#fff;padding:.875rem 2rem;border-radius:8px;font-weight:700;font-size:1rem;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 4px 20px rgba(20,184,166,.35);}
+        .btn-hero-primary:hover{background:var(--teal-dark);color:#fff;transform:translateY(-2px);box-shadow:0 8px 30px rgba(20,184,166,.45);}
+        .btn-hero-outline{color:#fff;padding:.875rem 2rem;border-radius:8px;font-weight:600;font-size:1rem;border:2px solid rgba(255,255,255,.45);display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;}
+        .btn-hero-outline:hover{border-color:#fff;background:rgba(255,255,255,.1);color:#fff;}
+        .hero-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+        .hero-stat-card{background:rgba(255,255,255,.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.75rem 1.5rem;text-align:center;}
+        .hero-stat-num{font-size:2.375rem;font-weight:800;color:var(--teal);line-height:1;}
+        .hero-stat-label{font-size:.875rem;color:rgba(255,255,255,.7);margin-top:.5rem;font-weight:500;}
 
-        /* FEATURES STRIP */
-        .features-strip{background:var(--dark);padding:0;}
-        .features-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
-        .feat-item{padding:2.5rem 1.75rem;border-right:1px solid rgba(255,255,255,.06);display:flex;align-items:flex-start;gap:1rem;transition:background .2s;}
-        .feat-item:last-child{border-right:none;}
-        .feat-item:hover{background:rgba(20,184,166,.06);}
-        .feat-icon{width:48px;height:48px;border-radius:10px;flex-shrink:0;background:rgba(20,184,166,.15);display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:1.25rem;}
-        .feat-title{font-size:1rem;font-weight:700;color:#fff;margin-bottom:.375rem;}
-        .feat-desc{font-size:.84rem;color:rgba(255,255,255,.55);line-height:1.55;}
+        /* TRUST BAR */
+        .trust-bar{background:#0f172a;border-bottom:1px solid rgba(255,255,255,.06);}
+        .trust-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+        .trust-item{padding:2rem 1.5rem;text-align:center;border-right:1px solid rgba(255,255,255,.06);transition:background .2s;}
+        .trust-item:last-child{border-right:none;}
+        .trust-item:hover{background:rgba(20,184,166,.05);}
+        .trust-icon{width:44px;height:44px;background:rgba(20,184,166,.15);border-radius:10px;margin:0 auto .875rem;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:1.2rem;}
+        .trust-title{font-size:.9375rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+        .trust-desc{font-size:.8125rem;color:rgba(255,255,255,.5);line-height:1.55;}
 
-        /* HOW WE HELP */
-        .help-section{padding:6rem 0;background:#fff;}
-        .help-inner{max-width:1200px;margin:0 auto;padding:0 2rem;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
-        .help-img-wrap{position:relative;}
-        .help-img{width:100%;border-radius:16px;background:linear-gradient(135deg,var(--dark2) 0%,#374151 100%);height:420px;display:flex;align-items:center;justify-content:center;}
-        .help-img-inner{text-align:center;}
-        .help-img-icon{font-size:5rem;color:var(--teal);display:block;margin-bottom:1rem;}
-        .help-img-label{color:rgba(255,255,255,.6);font-size:1rem;font-weight:500;}
-        .help-badge{position:absolute;bottom:-1.5rem;right:-1.5rem;background:var(--teal);color:#fff;border-radius:12px;padding:1rem 1.5rem;text-align:center;box-shadow:0 8px 24px rgba(20,184,166,.4);}
-        .help-badge-num{font-size:2rem;font-weight:800;display:block;line-height:1;}
-        .help-badge-text{font-size:.75rem;font-weight:600;opacity:.9;}
-        .help-eyebrow{font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:1rem;display:block;}
-        .help-title{font-size:2.25rem;font-weight:800;color:var(--dark);line-height:1.2;margin-bottom:1.25rem;}
-        .help-desc{font-size:1rem;color:#6b7280;line-height:1.75;margin-bottom:2rem;}
-        .help-list{list-style:none;padding:0;margin-bottom:2.25rem;}
-        .help-list li{display:flex;align-items:center;gap:.875rem;padding:.625rem 0;border-bottom:1px solid #f3f4f6;font-size:.9375rem;color:#374151;}
-        .help-list li i{color:var(--teal);font-size:1.125rem;flex-shrink:0;}
-        .btn-help{background:var(--dark);color:#fff;padding:.875rem 2rem;border-radius:6px;font-weight:700;font-size:.9375rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;}
-        .btn-help:hover{background:var(--teal);color:#fff;}
+        /* HOW IT WORKS */
+        .how-section{background:#fff;padding:6rem 0;}
+        .how-inner{max-width:1200px;margin:0 auto;padding:0 2rem;}
+        .sec-eyebrow{font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);display:block;text-align:center;margin-bottom:.75rem;}
+        .sec-title{font-size:clamp(1.75rem,3vw,2.25rem);font-weight:800;color:var(--text);text-align:center;margin-bottom:1rem;letter-spacing:-.02em;}
+        .sec-sub{font-size:1rem;color:var(--muted);text-align:center;max-width:540px;margin:0 auto 4rem;line-height:1.7;}
+        .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;}
+        .how-card{background:var(--light);border-radius:16px;padding:2rem 1.75rem;border:1px solid var(--border);transition:all .25s;}
+        .how-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.07);border-color:var(--teal);}
+        .how-step-num{width:40px;height:40px;background:var(--teal);border-radius:10px;color:#fff;font-size:.875rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;}
+        .how-card-title{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:.625rem;}
+        .how-card-desc{font-size:.9rem;color:var(--muted);line-height:1.7;}
 
         /* PORTALS */
-        .portals-section{background:#f8fafc;padding:5rem 0;}
-        .portals-inner{max-width:1200px;margin:0 auto;padding:0 2rem;}
-        .section-eyebrow{font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);display:block;text-align:center;margin-bottom:.75rem;}
-        .section-title{font-size:2rem;font-weight:800;color:var(--dark);text-align:center;margin-bottom:.75rem;}
-        .section-sub{font-size:1rem;color:#6b7280;text-align:center;max-width:520px;margin:0 auto 3rem;}
-        .portals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
-        .portal-card{background:#fff;border-radius:14px;padding:2rem 1.75rem;border:1px solid #e5e7eb;transition:all .25s;}
-        .portal-card:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(0,0,0,.08);border-color:var(--teal);}
-        .portal-icon{width:56px;height:56px;border-radius:12px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
-        .portal-icon.workers{background:rgba(20,184,166,.1);color:var(--teal);}
-        .portal-icon.clients{background:rgba(245,158,11,.1);color:#d97706;}
-        .portal-icon.agents{background:rgba(99,102,241,.1);color:#6366f1;}
-        .portal-title{font-size:1.125rem;font-weight:700;color:var(--dark);margin-bottom:.5rem;}
-        .portal-desc{font-size:.9rem;color:#6b7280;line-height:1.65;margin-bottom:1.5rem;}
-        .portal-link{display:inline-flex;align-items:center;gap:.375rem;font-size:.9rem;font-weight:600;text-decoration:none;color:var(--teal);transition:gap .2s;}
-        .portal-link:hover{gap:.625rem;}
+        .roles-section{background:#fff;padding:6rem 0;border-top:1px solid #f1f5f9;}
+        .roles-inner{max-width:1200px;margin:0 auto;padding:0 2rem;}
+        .roles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;}
+        .role-card{background:#fff;border-radius:20px;padding:2.5rem 2rem 2rem;border:1px solid #e2e8f0;border-top:4px solid #e2e8f0;box-shadow:0 2px 16px rgba(0,0,0,.05);transition:all .3s;position:relative;overflow:hidden;}
+        .role-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0;transition:opacity .3s;opacity:1;}
+        .role-card.worker-card{border-top-color:var(--teal);}
+        .role-card.worker-card::before{background:linear-gradient(90deg,#14b8a6,#10b981);}
+        .role-card.client-card{border-top-color:#f59e0b;}
+        .role-card.client-card::before{background:linear-gradient(90deg,#f59e0b,#ef4444);}
+        .role-card.agent-card{border-top-color:#6366f1;}
+        .role-card.agent-card::before{background:linear-gradient(90deg,#6366f1,#8b5cf6);}
+        .role-card:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.1);border-color:transparent;}
+        .role-card.worker-card:hover{box-shadow:0 20px 50px rgba(20,184,166,.15);}
+        .role-card.client-card:hover{box-shadow:0 20px 50px rgba(245,158,11,.15);}
+        .role-card.agent-card:hover{box-shadow:0 20px 50px rgba(99,102,241,.15);}
+        .role-icon-wrap{width:64px;height:64px;border-radius:16px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:center;font-size:1.625rem;}
+        .role-icon-wrap.worker{background:linear-gradient(135deg,rgba(20,184,166,.15),rgba(16,185,129,.15));color:var(--teal);}
+        .role-icon-wrap.client{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(239,68,68,.1));color:#d97706;}
+        .role-icon-wrap.agent{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));color:#6366f1;}
+        .role-title{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:.75rem;}
+        .role-desc{font-size:.9275rem;color:var(--muted);line-height:1.75;margin-bottom:1.75rem;}
+        .role-link{display:inline-flex;align-items:center;gap:.375rem;font-size:.9275rem;font-weight:700;color:var(--teal);transition:gap .2s;}
+        .role-card.client-card .role-link{color:#d97706;}
+        .role-card.agent-card .role-link{color:#6366f1;}
+        .role-link:hover{gap:.625rem;}
+
+        /* ABOUT */
+        .about-section{background:#0f172a;padding:6rem 0;overflow:hidden;position:relative;}
+        .about-section::before{content:'';position:absolute;top:-100px;right:-100px;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(20,184,166,.1) 0%,transparent 70%);pointer-events:none;}
+        .about-inner{max-width:1200px;margin:0 auto;padding:0 2rem;position:relative;z-index:1;}
+        .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;margin-bottom:4.5rem;}
+        .about-eyebrow{font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:1rem;display:flex;align-items:center;gap:.625rem;}
+        .about-eyebrow::before{content:'';width:20px;height:2px;background:var(--teal);display:inline-block;}
+        .about-h2{font-size:clamp(1.75rem,3vw,2.25rem);font-weight:800;color:#fff;line-height:1.2;margin-bottom:1.25rem;letter-spacing:-.02em;}
+        .about-h2 span{color:var(--teal);}
+        .about-p{font-size:1rem;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:2rem;}
+        .about-features{display:flex;flex-direction:column;gap:.875rem;margin-bottom:2rem;}
+        .about-feat{display:flex;align-items:flex-start;gap:1rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem 1.25rem;transition:border-color .2s;}
+        .about-feat:hover{border-color:rgba(20,184,166,.3);}
+        .about-feat-icon{width:34px;height:34px;background:rgba(20,184,166,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:.9rem;flex-shrink:0;}
+        .about-feat-title{font-size:.9rem;font-weight:700;color:#fff;margin-bottom:.2rem;}
+        .about-feat-desc{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5;}
+        .about-img-col{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:260px 160px;gap:12px;}
+        .aimg{border-radius:14px;overflow:hidden;position:relative;}
+        .aimg.main{grid-column:1/3;}
+        .aimg img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+        .aimg:hover img{transform:scale(1.04);}
+        .aimg-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.55) 100%);}
+        .aimg-label{position:absolute;bottom:12px;left:14px;color:#fff;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.4rem;}
+        .aimg-label i{color:var(--teal);}
+        .about-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.07);border-radius:14px;overflow:hidden;}
+        .astat{background:#111827;padding:2rem 1.5rem;text-align:center;transition:background .2s;}
+        .astat:hover{background:#1a2744;}
+        .astat-num{font-size:2.25rem;font-weight:800;color:var(--teal);line-height:1;}
+        .astat-label{font-size:.875rem;color:rgba(255,255,255,.55);margin-top:.4rem;font-weight:500;}
+
+        /* APP DOWNLOAD SECTION */
+        .app-section{background:#fff;padding:3.5rem 2rem 5rem;}
+        .app-inner{max-width:1200px;margin:0 auto;padding:4rem 3.5rem;background:linear-gradient(135deg,#07192a 0%,#0c3330 45%,#0f172a 100%);border-radius:28px;overflow:hidden;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;box-shadow:0 30px 80px rgba(0,0,0,.18),0 4px 24px rgba(20,184,166,.1);}
+        .app-inner::before{content:'';position:absolute;top:-100px;right:-100px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(20,184,166,.18) 0%,transparent 65%);pointer-events:none;}
+        .app-inner::after{content:'';position:absolute;bottom:-80px;left:-40px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.12) 0%,transparent 65%);pointer-events:none;}
+        .app-eyebrow{font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:1rem;display:flex;align-items:center;gap:.625rem;}
+        .app-eyebrow::before{content:'';width:20px;height:2px;background:var(--teal);display:inline-block;}
+        .app-h2{font-size:clamp(1.75rem,3vw,2.375rem);font-weight:800;color:#fff;line-height:1.2;margin-bottom:1.125rem;letter-spacing:-.02em;}
+        .app-h2 span{color:var(--teal);}
+        .app-p{font-size:1rem;color:rgba(255,255,255,.65);line-height:1.8;margin-bottom:2rem;}
+        .app-audience{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:2.25rem;}
+        .app-pill{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:.4rem 1rem;font-size:.8375rem;font-weight:600;color:rgba(255,255,255,.85);transition:all .2s;}
+        .app-pill:hover{background:rgba(255,255,255,.14);}
+        .app-pill i{font-size:1rem;}
+        .app-pill.worker i{color:var(--teal);}
+        .app-pill.client i{color:#fbbf24;}
+        .app-badges{display:flex;gap:1rem;flex-wrap:wrap;}
+        .app-badge-btn{display:inline-flex;align-items:center;gap:.875rem;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;padding:.875rem 1.5rem;color:#fff;transition:all .25s;cursor:pointer;text-decoration:none;min-width:175px;backdrop-filter:blur(8px);}
+        .app-badge-btn:hover{background:rgba(20,184,166,.18);border-color:var(--teal);color:#fff;transform:translateY(-3px);box-shadow:0 12px 32px rgba(20,184,166,.3);}
+        .app-badge-btn i{font-size:2rem;flex-shrink:0;}
+        .app-badge-btn i.apple{color:#fff;}
+        .app-badge-btn i.android{color:#3ddc84;}
+        .app-badge-label{display:flex;flex-direction:column;gap:.125rem;}
+        .app-badge-label small{font-size:.7rem;color:rgba(255,255,255,.5);font-weight:400;text-transform:uppercase;letter-spacing:.04em;}
+        .app-badge-label strong{font-size:1.05rem;font-weight:700;line-height:1;}
+        .app-phones{position:relative;display:flex;justify-content:center;align-items:flex-end;gap:-1rem;height:360px;}
+        .app-phone{position:absolute;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.1);}
+        .app-phone img{width:100%;height:100%;object-fit:cover;display:block;}
+        .app-phone-main{width:175px;height:340px;bottom:0;left:50%;transform:translateX(-50%);z-index:3;}
+        .app-phone-left{width:145px;height:290px;bottom:0;left:50%;transform:translateX(-140%);z-index:2;opacity:.85;}
+        .app-phone-right{width:145px;height:290px;bottom:0;left:50%;transform:translateX(40%);z-index:2;opacity:.85;}
+        .app-phone-main-inner{width:100%;height:100%;background:linear-gradient(160deg,#0f172a 0%,#134e4a 40%,#0f766e 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;}
+        .app-phone-screen{background:linear-gradient(160deg,#1e293b 0%,#0f2d2a 100%);border-radius:20px;padding:1.25rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.875rem;width:100%;height:100%;}
+        .app-screen-logo{width:52px;height:52px;background:var(--teal);border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1.125rem;margin-bottom:.25rem;box-shadow:0 6px 20px rgba(20,184,166,.4);}
+        .app-screen-title{font-size:.8rem;font-weight:700;color:#fff;}
+        .app-screen-sub{font-size:.7rem;color:rgba(255,255,255,.5);text-align:center;line-height:1.5;}
+        .app-screen-bars{width:80%;display:flex;flex-direction:column;gap:.375rem;margin-top:.5rem;}
+        .app-screen-bar{height:7px;border-radius:4px;background:rgba(20,184,166,.2);}
+        .app-screen-bar:nth-child(1){width:90%;background:rgba(20,184,166,.4);}
+        .app-screen-bar:nth-child(2){width:70%;background:rgba(20,184,166,.25);}
+        .app-screen-bar:nth-child(3){width:55%;background:rgba(20,184,166,.15);}
+        .app-screen-tag{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:rgba(20,184,166,.2);color:var(--teal);padding:.2rem .6rem;border-radius:100px;}
+        @keyframes phoneFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-12px)}}
+        @keyframes phoneSideL{0%,100%{transform:translateX(-140%) translateY(0) rotate(-4deg)}50%{transform:translateX(-140%) translateY(-8px) rotate(-4deg)}}
+        @keyframes phoneSideR{0%,100%{transform:translateX(40%) translateY(0) rotate(4deg)}50%{transform:translateX(40%) translateY(-8px) rotate(4deg)}}
+        .app-phone-main{animation:phoneFloat 5s ease-in-out infinite;}
+        .app-phone-left{transform:translateX(-140%) rotate(-4deg);animation:phoneSideL 6s .5s ease-in-out infinite;}
+        .app-phone-right{transform:translateX(40%) rotate(4deg);animation:phoneSideR 6s 1s ease-in-out infinite;}
+        .app-store-note{font-size:.8125rem;color:rgba(255,255,255,.4);margin-top:1.25rem;display:flex;align-items:center;gap:.4rem;}
+        .app-store-note i{color:var(--teal);font-size:.875rem;}
+        @media(max-width:991px){.app-inner{grid-template-columns:1fr;gap:3rem;padding:3rem 2rem;}.app-phones{height:280px;}.app-phone-main{width:145px;height:280px;}.app-phone-left{width:120px;height:235px;}.app-phone-right{width:120px;height:235px;}}
+        @media(max-width:767px){.app-section{padding:2rem 1.25rem 3.5rem;}}
+        @media(max-width:576px){.app-inner{padding:2.5rem 1.5rem;border-radius:20px;}.app-badges{flex-direction:column;}.app-badge-btn{justify-content:center;}.app-phones{height:240px;}}
 
         /* FOOTER */
-        .site-footer{background:var(--dark);padding:3rem 2rem;}
-        .footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;}
-        .footer-logo{display:flex;align-items:center;gap:.625rem;}
-        .footer-logo-icon{width:34px;height:34px;background:var(--teal);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.875rem;}
-        .footer-logo-text{font-size:1.1rem;font-weight:700;color:#fff;}
-        .footer-copy{font-size:.875rem;color:rgba(255,255,255,.5);}
-        .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
-        .footer-links a{font-size:.875rem;color:rgba(255,255,255,.6);text-decoration:none;transition:color .2s;}
+        .wc-footer{background:#0a0f1a;color:rgba(255,255,255,.7);}
+        .footer-accent{height:3px;background:linear-gradient(90deg,#0d9488,#14b8a6,#10b981);}
+        .footer-main{max-width:1200px;margin:0 auto;padding:3.5rem 2rem 2rem;display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:2.5rem;}
+        .footer-brand-logo{display:flex;align-items:center;gap:.625rem;margin-bottom:1rem;}
+        .footer-brand-badge{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),#10b981);border-radius:9px;display:flex;align-items:center;justify-content:center;}
+        .footer-brand-name{font-weight:700;font-size:1.0625rem;color:#fff;}
+        .footer-about{font-size:.9rem;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:1.25rem;}
+        .footer-socials{display:flex;gap:.5rem;}
+        .footer-social{width:34px;height:34px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);transition:all .2s;}
+        .footer-social:hover{background:var(--teal);color:#fff;}
+        .footer-col-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#fff;margin-bottom:1rem;}
+        .footer-links{list-style:none;}
+        .footer-links li{margin-bottom:.625rem;}
+        .footer-links a{font-size:.9rem;color:rgba(255,255,255,.5);transition:color .2s;display:inline-flex;align-items:center;gap:.375rem;}
         .footer-links a:hover{color:var(--teal);}
+        .footer-contact-list{list-style:none;}
+        .footer-contact-item{display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:rgba(255,255,255,.55);margin-bottom:.875rem;}
+        .footer-contact-icon{width:28px;height:28px;background:#1e293b;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal);font-size:.8rem;}
+        .footer-bottom{max-width:1200px;margin:0 auto;padding:1rem 2rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
+        .footer-copy{font-size:.84rem;color:rgba(255,255,255,.4);}
+
+        /* === ANIMATIONS === */
+        html{scroll-behavior:smooth;}
+        /* Scroll reveal */
+        .reveal{opacity:0;transform:translateY(28px);transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1);}
+        .reveal.visible{opacity:1;transform:none;}
+        .reveal-l{opacity:0;transform:translateX(-38px);transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1);}
+        .reveal-l.visible{opacity:1;transform:none;}
+        .reveal-r{opacity:0;transform:translateX(38px);transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1);}
+        .reveal-r.visible{opacity:1;transform:none;}
+        .reveal-children>*{opacity:0;transform:translateY(22px);transition:opacity .55s ease,transform .55s ease;}
+        .reveal-children.visible>*{opacity:1;transform:none;}
+        .reveal-children.visible>*:nth-child(1){transition-delay:.05s;}
+        .reveal-children.visible>*:nth-child(2){transition-delay:.15s;}
+        .reveal-children.visible>*:nth-child(3){transition-delay:.25s;}
+        .reveal-children.visible>*:nth-child(4){transition-delay:.35s;}
+        .reveal-children.visible>*:nth-child(5){transition-delay:.45s;}
+        .reveal-children.visible>*:nth-child(6){transition-delay:.55s;}
+        /* Hero entrance */
+        @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+        .hero-badge{animation:fadeUp .7s .1s both;}
+        .hero-h1{animation:fadeUp .75s .25s both;}
+        .hero-subtext{animation:fadeUp .7s .4s both;}
+        .hero-actions{animation:fadeUp .7s .55s both;}
+        .hero-stats-grid{animation:fadeUp .8s .45s both;}
+        /* About ambient orbs */
+        .about-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(75px);}
+        @keyframes floatA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-22px,28px) scale(1.09)}}
+        @keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-22px) scale(1.07)}}
+        @keyframes floatC{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-16px,20px) scale(1.11)}}
+        .about-orb-1{width:320px;height:320px;background:rgba(20,184,166,.15);top:-80px;right:-80px;animation:floatA 9s ease-in-out infinite;}
+        .about-orb-2{width:250px;height:250px;background:rgba(16,185,129,.1);bottom:40px;left:-60px;animation:floatB 11s ease-in-out infinite;}
+        .about-orb-3{width:200px;height:200px;background:rgba(99,102,241,.09);top:42%;right:5%;animation:floatC 13s ease-in-out infinite;}
+        /* About title shimmer */
+        @keyframes shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+        .about-h2 span{background:linear-gradient(90deg,#14b8a6,#5eead4,#10b981,#14b8a6);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite;}
+        /* About feat hover glow */
+        .about-feat-icon{transition:background .25s,box-shadow .25s;}
+        .about-feat:hover .about-feat-icon{box-shadow:0 0 18px rgba(20,184,166,.55);background:rgba(20,184,166,.3);}
+        /* Image float */
+        @keyframes imgFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+        .aimg.main{animation:imgFloat 6s ease-in-out infinite;}
+        .aimg:nth-child(2){animation:imgFloat 7s .6s ease-in-out infinite;}
+        .aimg:nth-child(3){animation:imgFloat 8s 1.2s ease-in-out infinite;}
+        /* Stat glow */
+        .astat-num{transition:color .3s,text-shadow .3s;}
+        .astat:hover .astat-num{text-shadow:0 0 24px rgba(20,184,166,.7);}
+        /* About CTA */
+        @keyframes btnPulse{0%,100%{box-shadow:0 4px 20px rgba(20,184,166,.35)}50%{box-shadow:0 8px 32px rgba(20,184,166,.65)}}
+        .about-cta-btn{display:inline-flex;align-items:center;gap:.5rem;background:#14b8a6;color:#fff;padding:.875rem 2rem;border-radius:8px;font-weight:700;font-size:.9375rem;transition:background .2s,transform .2s;animation:btnPulse 3s ease-in-out infinite;}
+        .about-cta-btn:hover{background:#0d9488;color:#fff;transform:translateY(-2px);}
+        /* How step pop */
+        @keyframes numPop{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+        .how-card:hover .how-step-num{animation:numPop .35s ease;}
+        /* Trust icon hover */
+        .trust-icon{transition:box-shadow .25s,background .25s;}
+        .trust-item:hover .trust-icon{box-shadow:0 0 18px rgba(20,184,166,.45);background:rgba(20,184,166,.28);}
+        /* Role card shine */
+        .role-card{position:relative;overflow:hidden;}
+        .role-card::after{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.08) 50%,transparent 62%);transition:left .55s ease;pointer-events:none;}
+        .role-card:hover::after{left:160%;}
 
         /* RESPONSIVE */
         @media(max-width:991px){
-            .hero-content{grid-template-columns:1fr;gap:3rem;padding-top:7rem;}
-            .hero-stats{display:none;}
-            .features-inner{grid-template-columns:repeat(2,1fr);}
-            .feat-item:nth-child(2){border-right:none;}
-            .feat-item:nth-child(3){border-top:1px solid rgba(255,255,255,.06);}
-            .help-inner{grid-template-columns:1fr;gap:3rem;}
-            .help-img-wrap{order:-1;}
-            .help-badge{right:1rem;}
-            .portals-grid{grid-template-columns:1fr;}
+            .hero-container{grid-template-columns:1fr;padding-top:7rem;gap:2.5rem;}
+            .hero-stats-grid{display:none;}
+            .trust-inner{grid-template-columns:repeat(2,1fr);}
+            .trust-item:nth-child(2){border-right:none;}
+            .trust-item:nth-child(3){border-top:1px solid rgba(255,255,255,.06);}
+            .how-grid{grid-template-columns:1fr 1fr;}
+            .roles-grid{grid-template-columns:1fr 1fr;}
+            .about-grid{grid-template-columns:1fr;gap:3rem;}
+            .footer-main{grid-template-columns:1fr 1fr;}
+            .about-stats{grid-template-columns:repeat(2,1fr);}
+        }
+        @media(max-width:767px){
+            .wc-nav{padding:1rem 1.25rem;}
+            .hero-container{padding:6rem 1.25rem 3rem;}
+            .hero-h1{font-size:clamp(1.9rem,6vw,2.6rem);}
+            .hero-subtext{font-size:1rem;}
+            .hero-actions{flex-direction:column;}
+            .btn-hero-primary,.btn-hero-outline{justify-content:center;}
+            .how-section{padding:4rem 0;}
+            .how-grid{grid-template-columns:1fr;}
+            .roles-section{padding:4rem 0;}
+            .roles-grid{grid-template-columns:1fr;}
+            .about-section{padding:4rem 0;}
+            .about-img-col{grid-template-columns:1fr;grid-template-rows:auto;}
+            .aimg.main{grid-column:1;height:220px;}
+            .aimg{height:150px;}
         }
         @media(max-width:576px){
-            .features-inner{grid-template-columns:1fr;}
-            .feat-item{border-right:none;border-top:1px solid rgba(255,255,255,.06);}
-            .feat-item:first-child{border-top:none;}
+            .trust-inner{grid-template-columns:1fr;}
+            .trust-item{border-right:none;border-top:1px solid rgba(255,255,255,.06);}
+            .trust-item:first-child{border-top:none;}
+            .about-stats{grid-template-columns:1fr 1fr;}
+            .footer-main{grid-template-columns:1fr;}
+            .footer-bottom{flex-direction:column;text-align:center;}
         }
     </style>
 </head>
 <body>
 
 <!-- NAVBAR -->
-<nav class="site-nav">
-    <a href="/" class="nav-logo">
-        <div class="nav-logo-icon">WC</div>
-        <span class="nav-logo-text">Worker Connect</span>
+<nav class="wc-nav">
+    <a href="/" class="wc-logo">
+        <div class="wc-logo-badge">WC</div>
+        <span class="wc-logo-name">Worker Connect</span>
     </a>
-    <div class="nav-links">
-        <a href="{% url 'accounts:login' %}">Login</a>
-        <a href="{% url 'accounts:register_choice' %}" class="nav-btn">Get Started</a>
+    <div class="wc-nav-links">
+        <a href="/" class="wc-nav-link">Home</a>
+        <a href="{% url 'accounts:login' %}" class="wc-btn-login">Login</a>
+        <a href="{% url 'accounts:register_choice' %}" class="wc-btn-signup">Get Started</a>
     </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-    <div class="hero-content">
+    <div class="hero-container">
         <div>
-            <div class="hero-tag">
-                <span class="hero-tag-dot"></span>
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
                 Tanzania's #1 Worker Platform
             </div>
-            <h1 class="hero-title">We Connect <span>Skilled Workers</span><br>with Opportunity</h1>
-            <p class="hero-desc">Find trusted professionals for your project or discover new job opportunities. Worker Connect brings clients, workers and agents together on one powerful platform.</p>
-            <div class="hero-cta">
-                <a href="{% url 'accounts:register_choice' %}" class="btn-primary-hero">
-                    <i class="bi bi-person-plus"></i> Join Platform
+            <h1 class="hero-h1">Connect With <em>Skilled Workers</em><br>You Can Trust</h1>
+            <p class="hero-subtext">Post a job, hire a verified professional or find new work opportunities. Worker Connect brings clients, workers and agents together on one secure platform.</p>
+            <div class="hero-actions">
+                <a href="{% url 'accounts:register_choice' %}" class="btn-hero-primary">
+                    <i class="bi bi-person-plus-fill"></i> Join for Free
                 </a>
-                <a href="{% url 'accounts:login' %}" class="btn-outline-hero">
+                <a href="{% url 'accounts:login' %}" class="btn-hero-outline">
                     <i class="bi bi-briefcase"></i> Request Service
                 </a>
             </div>
         </div>
-        <div class="hero-stats">
-            <div class="stat-box"><div class="stat-box-num">500+</div><div class="stat-box-label">Skilled Workers</div></div>
-            <div class="stat-box"><div class="stat-box-num">300+</div><div class="stat-box-label">Jobs Posted</div></div>
-            <div class="stat-box"><div class="stat-box-num">98%</div><div class="stat-box-label">Satisfaction Rate</div></div>
-            <div class="stat-box"><div class="stat-box-num">50+</div><div class="stat-box-label">Categories</div></div>
+        <div class="hero-stats-grid">
+            <div class="hero-stat-card">
+                <div class="hero-stat-num">500+</div>
+                <div class="hero-stat-label">Skilled Workers</div>
+            </div>
+            <div class="hero-stat-card">
+                <div class="hero-stat-num">300+</div>
+                <div class="hero-stat-label">Jobs Completed</div>
+            </div>
+            <div class="hero-stat-card">
+                <div class="hero-stat-num">50+</div>
+                <div class="hero-stat-label">Service Categories</div>
+            </div>
+            <div class="hero-stat-card">
+                <div class="hero-stat-num">98%</div>
+                <div class="hero-stat-label">Satisfaction Rate</div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- FEATURES STRIP -->
-<div class="features-strip">
-    <div class="features-inner">
-        <div class="feat-item">
-            <div class="feat-icon"><i class="bi bi-search"></i></div>
-            <div><div class="feat-title">Smart Job Matching</div><div class="feat-desc">Browse jobs tailored to your skills and location</div></div>
+<!-- TRUST BAR -->
+<div class="trust-bar">
+    <div class="trust-inner reveal-children">
+        <div class="trust-item">
+            <div class="trust-icon"><i class="bi bi-shield-check"></i></div>
+            <div class="trust-title">Verified Workers</div>
+            <div class="trust-desc">Every worker is ID-verified and approved by our admin team before going live</div>
         </div>
-        <div class="feat-item">
-            <div class="feat-icon"><i class="bi bi-shield-check"></i></div>
-            <div><div class="feat-title">Verified Professionals</div><div class="feat-desc">Every worker is document-verified by our admin team</div></div>
+        <div class="trust-item">
+            <div class="trust-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="trust-title">Daily Tracking</div>
+            <div class="trust-desc">Workers clock in and out — clients see progress in real time</div>
         </div>
-        <div class="feat-item">
-            <div class="feat-icon"><i class="bi bi-chat-dots"></i></div>
-            <div><div class="feat-title">Direct Messaging</div><div class="feat-desc">Communicate with clients and workers in real-time</div></div>
+        <div class="trust-item">
+            <div class="trust-icon"><i class="bi bi-star-fill"></i></div>
+            <div class="trust-title">Honest Reviews</div>
+            <div class="trust-desc">Clients rate workers after each job, building a trusted, safe network</div>
         </div>
-        <div class="feat-item">
-            <div class="feat-icon"><i class="bi bi-star"></i></div>
-            <div><div class="feat-title">Ratings &amp; Reviews</div><div class="feat-desc">Build your reputation with an honest review system</div></div>
+        <div class="trust-item">
+            <div class="trust-icon"><i class="bi bi-phone"></i></div>
+            <div class="trust-title">Manage Anywhere</div>
+            <div class="trust-desc">Full mobile support — post jobs and manage requests on the go</div>
         </div>
     </div>
 </div>
 
-<!-- HOW WE HELP -->
-<section class="help-section">
-    <div class="help-inner">
-        <div class="help-img-wrap">
-            <div class="help-img">
-                <div class="help-img-inner">
-                    <i class="bi bi-people-fill help-img-icon"></i>
-                    <span class="help-img-label">Workers &amp; Clients United</span>
-                </div>
+<!-- HOW IT WORKS -->
+<section class="how-section">
+    <div class="how-inner">
+        <span class="sec-eyebrow">How It Works</span>
+        <h2 class="sec-title">Simple, Transparent and Safe</h2>
+        <p class="sec-sub">From registration to review, every step is built to protect workers and clients alike.</p>
+        <div class="how-grid reveal-children">
+            <div class="how-card">
+                <div class="how-step-num">1</div>
+                <div class="how-card-title">Register &amp; Build Your Profile</div>
+                <div class="how-card-desc">Workers upload their national ID and skills. Clients set up company details. Takes just a few minutes to get started.</div>
             </div>
-            <div class="help-badge">
-                <span class="help-badge-num">24/7</span>
-                <span class="help-badge-text">Platform Support</span>
+            <div class="how-card">
+                <div class="how-step-num">2</div>
+                <div class="how-card-title">Admin Verifies Workers</div>
+                <div class="how-card-desc">Every worker goes through our review process before appearing as available for hire. No unverified talent on the platform.</div>
             </div>
-        </div>
-        <div>
-            <span class="help-eyebrow">How it works</span>
-            <h2 class="help-title">How Can We<br>Help You?</h2>
-            <p class="help-desc">Whether you need a skilled worker for today or you're a professional looking for steady income, Worker Connect makes the process fast, safe and transparent.</p>
-            <ul class="help-list">
-                <li><i class="bi bi-check-circle-fill"></i> Create your free profile in minutes</li>
-                <li><i class="bi bi-check-circle-fill"></i> Post jobs or browse available work</li>
-                <li><i class="bi bi-check-circle-fill"></i> Connect directly — no middleman fees</li>
-                <li><i class="bi bi-check-circle-fill"></i> Pay and review after work is complete</li>
-            </ul>
-            <a href="{% url 'accounts:register_choice' %}" class="btn-help">
-                Get Started Free <i class="bi bi-arrow-right"></i>
-            </a>
+            <div class="how-card">
+                <div class="how-step-num">3</div>
+                <div class="how-card-title">Post a Service Request</div>
+                <div class="how-card-desc">Clients describe the job, choose a category, set the location, date and duration — daily, monthly or custom.</div>
+            </div>
+            <div class="how-card">
+                <div class="how-step-num">4</div>
+                <div class="how-card-title">Admin Assigns the Right Worker</div>
+                <div class="how-card-desc">Our team matches the best verified worker to your request and notifies both parties instantly.</div>
+            </div>
+            <div class="how-card">
+                <div class="how-step-num">5</div>
+                <div class="how-card-title">Work Tracked Daily</div>
+                <div class="how-card-desc">Assigned workers clock in and out each day. Progress is fully visible to clients and admin at all times.</div>
+            </div>
+            <div class="how-card">
+                <div class="how-step-num">6</div>
+                <div class="how-card-title">Review After Completion</div>
+                <div class="how-card-desc">Once the job is done, clients rate the worker. Reviews help surface the best professionals on the platform.</div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- PORTALS SECTION -->
-<section class="portals-section">
-    <div class="portals-inner">
-        <span class="section-eyebrow">Portals</span>
-        <h2 class="section-title">Choose Your Role</h2>
-        <p class="section-sub">One platform built for three types of users — each with their own dedicated experience.</p>
-        <div class="portals-grid">
-            <div class="portal-card">
-                <div class="portal-icon workers"><i class="bi bi-person-gear"></i></div>
-                <div class="portal-title">For Workers</div>
-                <p class="portal-desc">Register, complete your profile, upload documents and start getting hired by verified clients today.</p>
-                <a href="{% url 'accounts:register_choice' %}" class="portal-link">Get Started <i class="bi bi-arrow-right"></i></a>
+<!-- ABOUT -->
+<section class="about-section">
+    <div class="about-orb about-orb-1"></div>
+    <div class="about-orb about-orb-2"></div>
+    <div class="about-orb about-orb-3"></div>
+    <div class="about-inner">
+        <div class="about-grid">
+            <div class="reveal-l">
+                <div class="about-eyebrow">About Worker Connect</div>
+                <h2 class="about-h2">Built for Tanzania's<br><span>Growing Workforce</span></h2>
+                <p class="about-p">Worker Connect is Tanzania's first dedicated platform bridging the gap between skilled professionals and the clients who need them — built to solve a real problem with a real digital solution.</p>
+                <div class="about-features">
+                    <div class="about-feat">
+                        <div class="about-feat-icon"><i class="bi bi-shield-check"></i></div>
+                        <div>
+                            <div class="about-feat-title">Fully Verified Network</div>
+                            <div class="about-feat-desc">Every worker is reviewed and approved by admin before going live on the platform.</div>
+                        </div>
+                    </div>
+                    <div class="about-feat">
+                        <div class="about-feat-icon"><i class="bi bi-lightning-charge"></i></div>
+                        <div>
+                            <div class="about-feat-title">Fast Job Matching</div>
+                            <div class="about-feat-desc">Clients post a job and receive a qualified, verified worker within hours.</div>
+                        </div>
+                    </div>
+                    <div class="about-feat">
+                        <div class="about-feat-icon"><i class="bi bi-people"></i></div>
+                        <div>
+                            <div class="about-feat-title">Agent-Powered Network</div>
+                            <div class="about-feat-desc">Agents recruit and support workers, building stronger local teams across Tanzania.</div>
+                        </div>
+                    </div>
+                    <div class="about-feat">
+                        <div class="about-feat-icon"><i class="bi bi-phone"></i></div>
+                        <div>
+                            <div class="about-feat-title">Mobile Ready</div>
+                            <div class="about-feat-desc">Manage jobs, messages and requests from any device, anywhere in Tanzania.</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'accounts:register_choice' %}" class="about-cta-btn">
+                    Join the Platform <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
-            <div class="portal-card">
-                <div class="portal-icon clients"><i class="bi bi-building"></i></div>
-                <div class="portal-title">For Clients</div>
-                <p class="portal-desc">Post job requests, browse verified workers, send hire requests and manage your projects all in one place.</p>
-                <a href="{% url 'accounts:login' %}" class="portal-link">Post a Job <i class="bi bi-arrow-right"></i></a>
+            <div class="about-img-col reveal-r">
+                <div class="aimg main">
+                    <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80" alt="Workers and clients collaborating">
+                    <div class="aimg-overlay"></div>
+                    <div class="aimg-label"><i class="bi bi-people-fill"></i> Workers &amp; Clients United</div>
+                </div>
+                <div class="aimg">
+                    <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80" alt="Skilled worker on site">
+                    <div class="aimg-overlay"></div>
+                    <div class="aimg-label"><i class="bi bi-hammer"></i> Skilled Trades</div>
+                </div>
+                <div class="aimg">
+                    <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80" alt="Professional using platform">
+                    <div class="aimg-overlay"></div>
+                    <div class="aimg-label"><i class="bi bi-phone"></i> Manage Anywhere</div>
+                </div>
             </div>
-            <div class="portal-card">
-                <div class="portal-icon agents"><i class="bi bi-person-workspace"></i></div>
-                <div class="portal-title">For Agents</div>
-                <p class="portal-desc">Manage your team of workers, track their performance, earn commissions and grow your workforce network.</p>
-                <a href="{% url 'accounts:login' %}" class="portal-link">Agent Portal <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="about-stats reveal">
+            <div class="astat"><div class="astat-num">500+</div><div class="astat-label">Registered Workers</div></div>
+            <div class="astat"><div class="astat-num">300+</div><div class="astat-label">Jobs Completed</div></div>
+            <div class="astat"><div class="astat-num">50+</div><div class="astat-label">Service Categories</div></div>
+            <div class="astat"><div class="astat-num">98%</div><div class="astat-label">Client Satisfaction</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- APP DOWNLOAD -->
+<section class="app-section">
+    <div class="app-inner">
+        <div class="reveal-l">
+            <div class="app-eyebrow">Mobile App</div>
+            <h2 class="app-h2">Take Worker Connect<br><span>Everywhere You Go</span></h2>
+            <p class="app-p">Manage jobs, track work in real time, receive notifications and communicate with your team — all from your phone. Available free for both workers and clients.</p>
+            <div class="app-audience">
+                <div class="app-pill worker"><i class="bi bi-person-badge"></i> For Workers</div>
+                <div class="app-pill client"><i class="bi bi-building"></i> For Clients</div>
+            </div>
+            <div class="app-badges">
+                <a href="#" class="app-badge-btn">
+                    <i class="bi bi-apple apple"></i>
+                    <div class="app-badge-label">
+                        <small>Download on the</small>
+                        <strong>App Store</strong>
+                    </div>
+                </a>
+                <a href="#" class="app-badge-btn">
+                    <i class="bi bi-google-play android"></i>
+                    <div class="app-badge-label">
+                        <small>Get it on</small>
+                        <strong>Google Play</strong>
+                    </div>
+                </a>
+            </div>
+            <div class="app-store-note">
+                <i class="bi bi-info-circle"></i> App coming soon — join the web platform today
+            </div>
+        </div>
+        <div class="reveal-r">
+            <div class="app-phones">
+                <div class="app-phone app-phone-left">
+                    <div class="app-phone-screen">
+                        <div class="app-screen-logo">WC</div>
+                        <div class="app-screen-title">My Request</div>
+                        <div class="app-screen-bars">
+                            <div class="app-screen-bar"></div>
+                            <div class="app-screen-bar"></div>
+                            <div class="app-screen-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-phone app-phone-main">
+                    <div class="app-phone-screen">
+                        <div class="app-screen-logo">WC</div>
+                        <div class="app-screen-title">Worker Connect</div>
+                        <div class="app-screen-sub">Tanzania's #1<br>Job Platform</div>
+                        <div class="app-screen-tag">Now Available</div>
+                        <div class="app-screen-bars">
+                            <div class="app-screen-bar"></div>
+                            <div class="app-screen-bar"></div>
+                            <div class="app-screen-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-phone app-phone-right">
+                    <div class="app-phone-screen">
+                        <div class="app-screen-logo">WC</div>
+                        <div class="app-screen-title">Request Service</div>
+                        <div class="app-screen-bars">
+                            <div class="app-screen-bar"></div>
+                            <div class="app-screen-bar"></div>
+                            <div class="app-screen-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CHOOSE YOUR ROLE -->
+<section class="roles-section">
+    <div class="roles-inner">
+        <span class="sec-eyebrow">Portals</span>
+        <h2 class="sec-title">Choose Your Role</h2>
+        <p class="sec-sub">One platform built for three types of users — each with their own dedicated experience.</p>
+        <div class="roles-grid reveal-children">
+            <div class="role-card worker-card">
+                <div class="role-icon-wrap worker"><i class="bi bi-person-badge"></i></div>
+                <div class="role-title">For Workers</div>
+                <p class="role-desc">Register, upload your documents, get verified by admin and start receiving job assignments from real clients.</p>
+                <a href="{% url 'accounts:register_choice' %}" class="role-link">Get Started <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="role-card client-card">
+                <div class="role-icon-wrap client"><i class="bi bi-building"></i></div>
+                <div class="role-title">For Clients</div>
+                <p class="role-desc">Post service requests, get matched with a verified worker, and track daily progress — all in one dashboard.</p>
+                <a href="{% url 'accounts:login' %}" class="role-link">Post a Job <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="role-card agent-card">
+                <div class="role-icon-wrap agent"><i class="bi bi-diagram-3-fill"></i></div>
+                <div class="role-title">For Agents</div>
+                <p class="role-desc">Recruit workers, manage your team, earn commissions and grow your network through the dedicated agent portal.</p>
+                <a href="{% url 'accounts:login' %}" class="role-link">Agent Portal <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
 </section>
 
 <!-- FOOTER -->
-<footer style="background:#0f172a;color:white;">
-    <!-- Top accent bar -->
-    <div style="height:4px;background:linear-gradient(90deg,#0d9488,#14b8a6,#10b981);"></div>
-
-    <div style="max-width:1200px;margin:0 auto;padding:3rem 2rem 2rem;">
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:2.5rem;flex-wrap:wrap;">
-
-            <!-- Brand Column -->
-            <div>
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
-                    <div style="width:38px;height:38px;background:linear-gradient(135deg,#14b8a6,#10b981);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-                        <i class="bi bi-people-fill" style="color:white;"></i>
-                    </div>
-                    <span style="font-weight:700;font-size:1.1rem;">Worker Connect</span>
-                </div>
-                <p style="color:white;font-size:0.92rem;line-height:1.7;margin-bottom:1rem;">
-                    Tanzania's trusted platform connecting clients with verified, skilled professionals for every job — big or small.
-                </p>
-                <div style="display:flex;gap:8px;">
-                    <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-facebook"></i></a>
-                    <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-instagram"></i></a>
-                    <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-linkedin"></i></a>
-                </div>
+<footer class="wc-footer">
+    <div class="footer-accent"></div>
+    <div class="footer-main">
+        <div>
+            <div class="footer-brand-logo">
+                <div class="footer-brand-badge"><i class="bi bi-people-fill" style="color:#fff;font-size:.9rem;"></i></div>
+                <span class="footer-brand-name">Worker Connect</span>
             </div>
-
-            <!-- Platform Links -->
-            <div>
-                <h6 style="font-weight:600;color:white;margin-bottom:1rem;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;">Platform</h6>
-                <ul style="list-style:none;padding:0;margin:0;color:white;font-size:0.91rem;">
-                    <li style="margin-bottom:8px;"><a href="/" style="color:white;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-house me-1"></i>Home</a></li>
-                    <li style="margin-bottom:8px;"><a href="{% url 'clients:browse_services' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-grid me-1"></i>Browse Services</a></li>
-                    <li style="margin-bottom:8px;"><a href="{% url 'jobs:job_list' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-briefcase me-1"></i>Browse Jobs</a></li>
-                    <li style="margin-bottom:8px;"><a href="{% url 'accounts:register_choice' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-person-plus me-1"></i>Register</a></li>
-                    <li><a href="{% url 'accounts:login' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a></li>
-                </ul>
+            <p class="footer-about">Tanzania's trusted platform connecting clients with verified, skilled professionals for every job — big or small.</p>
+            <div class="footer-socials">
+                <a href="#" class="footer-social"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="footer-social"><i class="bi bi-twitter-x"></i></a>
+                <a href="#" class="footer-social"><i class="bi bi-instagram"></i></a>
+                <a href="#" class="footer-social"><i class="bi bi-linkedin"></i></a>
             </div>
-
-            <!-- Join As -->
-            <div>
-                <h6 style="font-weight:600;color:white;margin-bottom:1rem;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;">Join As</h6>
-                <ul style="list-style:none;padding:0;margin:0;color:white;font-size:0.91rem;">
-                    <li style="margin-bottom:8px;"><a href="{% url 'accounts:worker_register' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-person-badge me-1"></i>Worker</a></li>
-                    <li style="margin-bottom:8px;"><a href="{% url 'accounts:client_register' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-briefcase me-1"></i>Client</a></li>
-                    <li><a href="{% url 'accounts:agent_register' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-diagram-3 me-1"></i>Agent</a></li>
-                </ul>
-            </div>
-
-            <!-- Contact -->
-            <div>
-                <h6 style="font-weight:600;color:white;margin-bottom:1rem;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;">Contact Us</h6>
-                <ul style="list-style:none;padding:0;margin:0;font-size:0.91rem;">
-                    <li style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">
-                        <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-envelope-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                        <span style="color:white;">support@workerconnect.co.tz</span>
-                    </li>
-                    <li style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">
-                        <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-telephone-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                        <span style="color:white;">+255 XXX XXX XXX</span>
-                    </li>
-                    <li style="display:flex;align-items:center;gap:10px;">
-                        <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-geo-alt-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                        <span style="color:white;">Dar es Salaam, Tanzania</span>
-                    </li>
-                </ul>
-            </div>
-
+        </div>
+        <div>
+            <div class="footer-col-title">Platform</div>
+            <ul class="footer-links">
+                <li><a href="/"><i class="bi bi-house"></i>Home</a></li>
+                <li><a href="{% url 'clients:browse_services' %}"><i class="bi bi-grid"></i>Browse Services</a></li>
+                <li><a href="{% url 'jobs:job_list' %}"><i class="bi bi-briefcase"></i>Browse Jobs</a></li>
+                <li><a href="{% url 'accounts:register_choice' %}"><i class="bi bi-person-plus"></i>Register</a></li>
+                <li><a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i>Login</a></li>
+            </ul>
+        </div>
+        <div>
+            <div class="footer-col-title">Join As</div>
+            <ul class="footer-links">
+                <li><a href="{% url 'accounts:worker_register' %}"><i class="bi bi-person-badge"></i>Worker</a></li>
+                <li><a href="{% url 'accounts:client_register' %}"><i class="bi bi-briefcase"></i>Client</a></li>
+                <li><a href="{% url 'accounts:agent_register' %}"><i class="bi bi-diagram-3"></i>Agent</a></li>
+            </ul>
+        </div>
+        <div>
+            <div class="footer-col-title">Contact Us</div>
+            <ul class="footer-contact-list">
+                <li class="footer-contact-item">
+                    <span class="footer-contact-icon"><i class="bi bi-envelope-fill"></i></span>
+                    support@workerconnect.co.tz
+                </li>
+                <li class="footer-contact-item">
+                    <span class="footer-contact-icon"><i class="bi bi-telephone-fill"></i></span>
+                    +255 XXX XXX XXX
+                </li>
+                <li class="footer-contact-item">
+                    <span class="footer-contact-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                    Dar es Salaam, Tanzania
+                </li>
+            </ul>
         </div>
     </div>
-
-    <!-- Bottom Bar -->
-    <div style="border-top:1px solid #1e293b;">
-        <div style="max-width:1200px;margin:0 auto;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
-            <span style="color:white;font-size:0.85rem;">&copy; 2026 Worker Connect. All rights reserved.</span>
-            <span style="color:white;font-size:0.85rem;">Made with <i class="bi bi-heart-fill" style="color:#14b8a6;font-size:0.75rem;"></i> in Tanzania</span>
-        </div>
+    <div class="footer-bottom">
+        <span class="footer-copy">&copy; 2026 Worker Connect. All rights reserved.</span>
+        <span class="footer-copy">Made with <i class="bi bi-heart-fill" style="color:#14b8a6;font-size:.75rem;"></i> in Tanzania</span>
     </div>
 </footer>
 
+<script>
+(function(){
+    // Scroll reveal observer
+    var obs=new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+            if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}
+        });
+    },{threshold:0.1});
+    document.querySelectorAll('.reveal,.reveal-l,.reveal-r,.reveal-children').forEach(function(el){obs.observe(el);});
+
+    // Count-up animation for stats
+    function countUp(el,duration){
+        var raw=el.textContent.trim();
+        var plus=raw.indexOf('+')>-1, pct=raw.indexOf('%')>-1;
+        var target=parseInt(raw,10);
+        var start=0, step=target/(duration/16);
+        var t=setInterval(function(){
+            start=Math.min(start+step,target);
+            el.textContent=Math.floor(start)+(plus?'+':pct?'%':'');
+            if(start>=target)clearInterval(t);
+        },16);
+    }
+    var statsEl=document.querySelector('.about-stats');
+    if(statsEl){
+        var sobs=new IntersectionObserver(function(entries){
+            entries.forEach(function(e){
+                if(e.isIntersecting){
+                    e.target.querySelectorAll('.astat-num').forEach(function(n){countUp(n,1400);});
+                    sobs.unobserve(e.target);
+                }
+            });
+        },{threshold:0.3});
+        sobs.observe(statsEl);
+    }
+})();
+</script>
 </body>
 </html>

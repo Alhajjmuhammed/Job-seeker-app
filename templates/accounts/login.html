@@ -3,61 +3,235 @@
 {% block title %}Login - Worker Connect{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-5">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-person-circle display-3 text-primary"></i>
-                        <h2 class="fw-bold mt-3">Welcome Back</h2>
-                        <p class="text-muted">Login to your account</p>
-                    </div>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if request.GET.next %}
-                            <input type="hidden" name="next" value="{{ request.GET.next }}">
-                        {% endif %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="text-danger small">{{ form.username.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-4">
-                            {{ form.password }}
-                            {% if form.password.errors %}
-                                <div class="text-danger small">{{ form.password.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="text-end mb-3">
-                            <a href="{% url 'accounts:forgot_password' %}" class="text-muted small">
-                                <i class="bi bi-question-circle"></i> Forgot Password?
-                            </a>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </button>
-                    </form>
-                    
-                    <div class="text-center mt-4">
-                        <p class="text-muted">Don't have an account? <a href="{% url 'accounts:register_choice' %}">Sign up here</a></p>
-                    </div>
-                </div>
+
+<style>
+    .login-wrap {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        padding: 2rem 1rem;
+    }
+    .login-card {
+        display: flex;
+        width: 100%;
+        max-width: 860px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+        min-height: 500px;
+    }
+    /* Left panel */
+    .login-left {
+        background: linear-gradient(145deg, #0d9488 0%, #14b8a6 40%, #1e3a5f 100%);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 3rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .login-left::before {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: -60px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+    }
+    .login-left::after {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 180px; height: 180px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.06);
+    }
+    .login-left .brand-icon {
+        width: 50px; height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        color: white;
+        margin-bottom: 1.5rem;
+    }
+    .login-left h2 {
+        color: white;
+        font-size: 1.9rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+    .login-left .sub {
+        color: rgba(255,255,255,0.75);
+        font-size: 0.88rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+    .login-left p {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.92rem;
+        line-height: 1.7;
+        max-width: 280px;
+    }
+
+    /* Right panel */
+    .login-right {
+        background: white;
+        flex: 1.1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 3rem 2.5rem;
+    }
+    .login-right h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 0.3rem;
+    }
+    .login-right .sub-text {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 1.8rem;
+    }
+    .login-right .form-control {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        font-size: 0.93rem;
+        color: #1e293b;
+        transition: border-color 0.2s;
+    }
+    .login-right .form-control:focus {
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 3px rgba(20,184,166,0.12);
+    }
+    .login-right label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 5px;
+    }
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+        position: absolute;
+        right: 12px; top: 50%;
+        transform: translateY(-50%);
+        background: none; border: none;
+        color: #94a3b8; font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        display: flex; align-items: center;
+    }
+    .pw-toggle:hover { color: #14b8a6; }
+    .btn-signin {
+        background: linear-gradient(135deg, #14b8a6, #0d9488);
+        border: none; color: white;
+        font-weight: 600; font-size: 1rem;
+        border-radius: 10px;
+        padding: 0.75rem;
+        letter-spacing: 0.02em;
+        transition: opacity 0.2s;
+    }
+    .btn-signin:hover { opacity: 0.9; color: white; }
+
+    @media (max-width: 640px) {
+        .login-left { display: none; }
+        .login-right { padding: 2.5rem 1.5rem; border-radius: 20px; }
+        .login-card { border-radius: 20px; }
+    }
+</style>
+
+<div class="login-wrap">
+    <div class="login-card">
+
+        <!-- Left: Welcome Panel -->
+        <div class="login-left">
+            <div class="brand-icon">
+                <i class="bi bi-people-fill"></i>
             </div>
+            <div class="sub">Worker Connect</div>
+            <h2>Welcome<br>Back</h2>
+            <p>Sign in to access your dashboard, manage requests, and connect with workers or clients.</p>
         </div>
+
+        <!-- Right: Sign In Form -->
+        <div class="login-right">
+            <h3>Sign in</h3>
+            <p class="sub-text">Enter your credentials to continue</p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger rounded-3 py-2 px-3" style="font-size:0.88rem;">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Username -->
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="mb-2">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <div class="pw-wrap">
+                        {{ form.password }}
+                        <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePw()" title="Show/Hide password"><i class="bi bi-eye" id="pwIcon"></i></button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Remember me + Forgot -->
+                <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="rememberMe" style="accent-color:#14b8a6;">
+                        <label class="form-check-label" for="rememberMe" style="font-size:0.83rem;color:#64748b;">Remember me</label>
+                    </div>
+                    <a href="{% url 'accounts:forgot_password' %}" style="font-size:0.83rem;color:#14b8a6;text-decoration:none;font-weight:500;">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-signin w-100">Sign In</button>
+            </form>
+
+            <p class="text-center mt-4 mb-0" style="font-size:0.87rem;color:#64748b;">
+                Don't have an account?
+                <a href="{% url 'accounts:register_choice' %}" style="color:#14b8a6;font-weight:600;text-decoration:none;">Sign Up</a>
+            </p>
+        </div>
+
     </div>
 </div>
+
+<script>
+function togglePw() {
+    const pw = document.getElementById('{{ form.password.id_for_label }}');
+    const btn = document.getElementById('pwToggle');
+    const icon = document.getElementById('pwIcon');
+    if (pw.type === 'password') { pw.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+    else { pw.type = 'password'; icon.className = 'bi bi-eye'; }
+}
+</script>
+
 {% endblock %}
