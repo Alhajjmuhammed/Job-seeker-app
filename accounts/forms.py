@@ -8,16 +8,43 @@ class WorkerRegistrationForm(UserCreationForm):
     first_name = forms.CharField(required=True, max_length=30)
     last_name = forms.CharField(required=True, max_length=30)
     phone_number = forms.CharField(required=True, max_length=17)
-    
+    agent_code = forms.CharField(
+        required=False, max_length=10,
+        help_text="Optional: Enter the agent code if you were referred by an agent.",
+        widget=forms.TextInput(attrs={'placeholder': 'Agent code (optional)', 'style': 'text-transform:uppercase'})
+    )
+
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'password1', 'password2']
-    
+
+    def clean_agent_code(self):
+        code = self.cleaned_data.get('agent_code', '').strip().upper()
+        if code:
+            from agents.models import AgentProfile
+            try:
+                AgentProfile.objects.get(agent_code=code, is_verified=True)
+            except AgentProfile.DoesNotExist:
+                raise forms.ValidationError("Invalid or unrecognised agent code.")
+        return code
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.user_type = 'worker'
         if commit:
             user.save()
+            # Link worker to agent if a valid code was entered
+            agent_code = self.cleaned_data.get('agent_code', '').strip().upper()
+            from workers.models import WorkerProfile
+            profile, _ = WorkerProfile.objects.get_or_create(user=user)
+            if agent_code:
+                from agents.models import AgentProfile
+                try:
+                    agent = AgentProfile.objects.get(agent_code=agent_code, is_verified=True)
+                    profile.agent = agent
+                    profile.save()
+                except AgentProfile.DoesNotExist:
+                    pass  # code was valid at clean() time but no longer — skip silently
         return user
 
 

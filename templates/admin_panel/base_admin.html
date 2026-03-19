@@ -535,6 +535,10 @@
                 <span class="stat-badge">{{ pending_documents_count }}</span>
                 {% endif %}
             </a>
+            <a href="{% url 'admin_panel:agent_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'agent_list' or request.resolver_match.url_name == 'agent_detail' %}active{% endif %}">
+                <i class="bi bi-person-workspace"></i>
+                <span class="nav-text">Agent Approvals</span>
+            </a>
             
             <div class="sidebar-section-title section-title">MANAGEMENT</div>
             <a href="{% url 'admin_panel:manage_users' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'manage_users' or request.resolver_match.url_name == 'user_detail' %}active{% endif %}">

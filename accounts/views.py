@@ -16,6 +16,7 @@ from .forms import (
     ProfileUpdateForm, PasswordResetRequestForm, PasswordResetConfirmForm,
     ChangePasswordForm
 )
+from agents.forms import AgentRegistrationForm
 from .models import User
 
 
@@ -54,6 +55,20 @@ def client_register(request):
     return render(request, 'accounts/client_register.html', {'form': form})
 
 
+def agent_register(request):
+    """Agent registration view"""
+    if request.method == 'POST':
+        form = AgentRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Registration successful! Your application is under review by admin.')
+            return redirect('agents:dashboard')
+    else:
+        form = AgentRegistrationForm()
+    return render(request, 'accounts/agent_register.html', {'form': form})
+
+
 def user_login(request):
     """Login view for all users"""
     if request.method == 'POST':
@@ -79,6 +94,8 @@ def user_login(request):
                     return redirect('clients:dashboard')
                 elif user.is_admin_user:
                     return redirect('admin_panel:dashboard')
+                elif user.is_agent:
+                    return redirect('agents:dashboard')
                 else:
                     return redirect('home')
     else:
@@ -104,6 +121,8 @@ def profile_view(request):
         return redirect('clients:dashboard')
     elif request.user.is_staff:
         return redirect('admin_panel:dashboard')
+    elif request.user.is_agent:
+        return redirect('agents:dashboard')
     else:
         return redirect('home')
 

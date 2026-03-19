@@ -85,13 +85,6 @@ def register_view(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    # Check if user already exists
-    if User.objects.filter(email=serializer.validated_data['email']).exists():
-        return Response(
-            {'message': 'User with this email already exists'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
     user = serializer.save()
     
     # Create token for the new user

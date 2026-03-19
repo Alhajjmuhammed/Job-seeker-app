@@ -174,6 +174,7 @@ class ApiService {
     password: string;
     userType: 'worker' | 'client';
     workerType?: 'professional' | 'non-academic';
+    agentCode?: string;
   }) {
     const response = await this.api.post('/auth/register/', {
       firstName: userData.firstName,
@@ -183,6 +184,7 @@ class ApiService {
       password: userData.password,
       userType: userData.userType,
       workerType: userData.workerType,
+      agentCode: userData.agentCode,
     });
     
     if (response.data.token) {

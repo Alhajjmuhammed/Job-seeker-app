@@ -29,6 +29,7 @@ export default function RegisterScreen() {
     phone: '',
     password: '',
     confirmPassword: '',
+    agentCode: '',
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -54,6 +55,7 @@ export default function RegisterScreen() {
         password: formData.password,
         userType: userType,
         workerType: userType === 'worker' ? workerType : undefined,
+        agentCode: userType === 'worker' && formData.agentCode.trim() ? formData.agentCode.trim().toUpperCase() : undefined,
       });
       // Navigation is handled by AuthContext based on user type
     } catch (error: any) {
@@ -248,6 +250,20 @@ export default function RegisterScreen() {
               secureTextEntry
             />
           </View>
+
+          {userType === 'worker' && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Agent Code <Text style={{ color: '#9CA3AF', fontFamily: 'Poppins_400Regular' }}>(optional)</Text></Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter agent code if you have one"
+                value={formData.agentCode}
+                onChangeText={(text) => setFormData({ ...formData, agentCode: text.toUpperCase() })}
+                autoCapitalize="characters"
+                maxLength={10}
+              />
+            </View>
+          )}
 
           <TouchableOpacity
             style={[styles.registerButton, loading && styles.registerButtonDisabled]}

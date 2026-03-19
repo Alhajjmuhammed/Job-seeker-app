@@ -10,6 +10,7 @@ class User(AbstractUser):
         ('worker', 'Worker'),
         ('client', 'Client'),
         ('admin', 'Admin'),
+        ('agent', 'Agent'),
     )
     
     # Make email required and unique
@@ -60,3 +61,7 @@ class User(AbstractUser):
     @property
     def is_admin_user(self):
         return self.user_type == 'admin' or self.is_staff
+
+    @property
+    def is_agent(self):
+        return self.user_type == 'agent'

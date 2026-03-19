@@ -1,0 +1,237 @@
+{% extends 'agents/base_agents.html' %}
+{% load widget_tweaks %}
+
+{% block title %}My Workers{% endblock %}
+{% block page_title %}My Workers{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h5 class="fw-bold mb-0">Workers Under My Team</h5>
+    {% if agent.is_verified %}
+    <button type="button" class="btn btn-teal fw-semibold" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
+        <i class="bi bi-person-plus me-1"></i> Add New Worker
+    </button>
+    {% endif %}
+</div>
+</div>
+
+
+
+<div class="card stat-card">
+    <div class="card-body p-0">
+        {% if workers %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width:50px">SN</th>
+                        <th>Worker</th>
+                        <th>Phone</th>
+                        <th>City</th>
+                        <th>Verification</th>
+                        <th>Completed Jobs</th>
+                        <th>Rating</th>
+                        <th>Joined</th>
+                        <th class="pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for worker in workers %}
+                    <tr>
+                        <td class="ps-4 text-muted">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ worker.user.get_full_name|default:worker.user.username }}</div>
+                            <div class="text-muted small">{{ worker.user.email }}</div>
+                        </td>
+                        <td>{{ worker.user.phone_number|default:"—" }}</td>
+                        <td>{{ worker.city|default:"—" }}</td>
+                        <td>
+                            {% if worker.verification_status == 'verified' %}
+                                <span class="badge bg-success">Verified</span>
+                            {% elif worker.verification_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ worker.verification_status|capfirst }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ worker.completed_jobs }}</td>
+                        <td>
+                            {% if worker.average_rating %}
+                                <i class="bi bi-star-fill text-warning"></i> {{ worker.average_rating|floatformat:1 }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ worker.created_at|date:"d M Y" }}</td>
+                        <td class="pe-4">
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal" data-bs-target="#removeWorkerModal"
+                                    data-action="{% url 'agents:remove_worker' worker.id %}"
+                                    data-name="{{ worker.user.get_full_name|default:worker.user.username }}">
+                                <i class="bi bi-person-dash"></i> Remove
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-people fs-1 d-block mb-3 opacity-25"></i>
+            <p class="mb-1 fw-semibold">No workers in your team yet.</p>
+            {% if agent.is_verified %}
+            <p class="small mb-3">Add a new worker directly, or share your agent code so workers can join during registration.</p>
+            <button type="button" class="btn btn-teal" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
+                <i class="bi bi-person-plus me-1"></i> Add New Worker
+            </button>
+            {% else %}
+            <p class="small">Your account is still pending approval.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Remove Worker Confirmation Modal ── -->
+<div class="modal fade" id="removeWorkerModal" tabindex="-1" aria-labelledby="removeWorkerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden">
+            <div class="modal-header border-0 px-4 pt-4 pb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle p-2 d-flex" style="background:rgba(239,68,68,.1)">
+                        <i class="bi bi-person-dash fs-5" style="color:#ef4444"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-0" id="removeWorkerModalLabel">Remove Worker</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <p class="mb-1" style="color:#374151">Are you sure you want to remove</p>
+                <p class="fw-bold mb-1" id="removeWorkerName" style="color:#111827;font-size:1.05rem"></p>
+                <p class="text-muted small mb-0">from your team? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 px-4 py-3 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="removeWorkerForm">
+                    {% csrf_token %}
+                    <button type="submit" class="btn fw-semibold text-white px-4" style="background:#ef4444;border-color:#ef4444">
+                        <i class="bi bi-person-dash me-1"></i> Yes, Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Create Worker Modal ── -->
+{% if agent.is_verified %}
+<div class="modal fade" id="createWorkerModal" tabindex="-1" aria-labelledby="createWorkerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden">
+
+            <!-- Header -->
+            <div class="modal-header border-0 px-4 pt-4 pb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle p-2 d-flex" style="background:rgba(20,184,166,.12)">
+                        <i class="bi bi-person-plus fs-5" style="color:#14b8a6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="createWorkerModalLabel">Create New Worker</h5>
+                        <p class="text-muted small mb-0">Fill in the details — worker will be linked to your team immediately.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body px-4 pb-0">
+                <form method="post" action="{% url 'agents:create_worker' %}" id="createWorkerForm" novalidate>
+                    {% csrf_token %}
+
+                    {% if create_form.non_field_errors %}
+                        <div class="alert alert-danger py-2 small">{{ create_form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">First Name</label>
+                            {% render_field create_form.first_name class="form-control" placeholder="First name" %}
+                            {% if create_form.first_name.errors %}<div class="text-danger small mt-1">{{ create_form.first_name.errors.as_text }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Last Name</label>
+                            {% render_field create_form.last_name class="form-control" placeholder="Last name" %}
+                            {% if create_form.last_name.errors %}<div class="text-danger small mt-1">{{ create_form.last_name.errors.as_text }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Username</label>
+                            {% render_field create_form.username class="form-control" placeholder="Choose a username" %}
+                            {% if create_form.username.errors %}<div class="text-danger small mt-1">{{ create_form.username.errors.as_text }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Email</label>
+                            {% render_field create_form.email class="form-control" placeholder="Email address" type="email" %}
+                            {% if create_form.email.errors %}<div class="text-danger small mt-1">{{ create_form.email.errors.as_text }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Phone Number</label>
+                            {% render_field create_form.phone_number class="form-control" placeholder="+255..." %}
+                            {% if create_form.phone_number.errors %}<div class="text-danger small mt-1">{{ create_form.phone_number.errors.as_text }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Password</label>
+                            {% render_field create_form.password1 class="form-control" placeholder="Set a password" type="password" %}
+                            {% if create_form.password1.errors %}<div class="text-danger small mt-1">{{ create_form.password1.errors.as_text }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Confirm Password</label>
+                            {% render_field create_form.password2 class="form-control" placeholder="Confirm password" type="password" %}
+                            {% if create_form.password2.errors %}<div class="text-danger small mt-1">{{ create_form.password2.errors.as_text }}</div>{% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 px-4 py-3 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="createWorkerForm" class="btn fw-semibold text-white px-4" style="background:#14b8a6;border-color:#14b8a6">
+                    <i class="bi bi-person-check me-1"></i> Create Worker & Add to Team
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var removeModal = document.getElementById('removeWorkerModal');
+        if (removeModal) {
+            removeModal.addEventListener('show.bs.modal', function (event) {
+                var btn = event.relatedTarget;
+                document.getElementById('removeWorkerName').textContent = btn.getAttribute('data-name');
+                document.getElementById('removeWorkerForm').action = btn.getAttribute('data-action');
+            });
+        }
+    });
+</script>
+{% if show_create_modal %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('createWorkerModal')).show();
+    });
+</script>
+{% endif %}
+<script>
+    if (new URLSearchParams(window.location.search).get('add') === '1') {
+        document.addEventListener('DOMContentLoaded', function () {
+            var el = document.getElementById('createWorkerModal');
+            if (el) new bootstrap.Modal(el).show();
+        });
+    }
+</script>
+{% endblock %}
+

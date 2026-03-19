@@ -1910,3 +1910,116 @@ def worker_ratings(request, worker_id):
     }
     
     return render(request, 'admin_panel/worker_ratings.html', context)
+
+
+# ============================================================
+# Agent Management Views
+# ============================================================
+
+@staff_member_required
+def agent_list(request):
+    """List all agent applications / approved agents."""
+    from agents.models import AgentProfile
+
+    filter_status = request.GET.get('status', 'all')
+    agents = AgentProfile.objects.select_related('user').all()
+    if filter_status == 'pending':
+        agents = agents.filter(is_verified=False)
+    elif filter_status == 'verified':
+        agents = agents.filter(is_verified=True)
+
+    paginator = Paginator(agents, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'filter_status': filter_status,
+        'total_agents': AgentProfile.objects.count(),
+        'pending_count': AgentProfile.objects.filter(is_verified=False).count(),
+        'verified_count': AgentProfile.objects.filter(is_verified=True).count(),
+    }
+    return render(request, 'admin_panel/agent_list.html', context)
+
+
+@staff_member_required
+def agent_detail(request, agent_id):
+    """View/manage a single agent."""
+    from agents.models import AgentProfile
+
+    agent = get_object_or_404(AgentProfile, id=agent_id)
+    workers = agent.workers.select_related('user').all()
+    context = {'agent': agent, 'workers': workers}
+    return render(request, 'admin_panel/agent_detail.html', context)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def approve_agent(request, agent_id):
+    """Approve a pending agent and generate their unique code."""
+    from agents.models import AgentProfile
+
+    agent = get_object_or_404(AgentProfile, id=agent_id)
+    commission_rate = request.POST.get('commission_rate')
+    if commission_rate:
+        try:
+            agent.commission_rate = float(commission_rate)
+        except ValueError:
+            pass
+    agent.approve()
+    messages.success(request, f"Agent {agent.display_name} approved. Code: {agent.agent_code}")
+    return redirect('admin_panel:agent_detail', agent_id=agent_id)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def reject_agent(request, agent_id):
+    """Reject (delete) a pending agent application."""
+    from agents.models import AgentProfile
+
+    agent = get_object_or_404(AgentProfile, id=agent_id)
+    name = agent.display_name
+    agent.user.delete()  # cascades to AgentProfile
+    messages.success(request, f"Agent application for {name} has been removed.")
+    return redirect('admin_panel:agent_list')
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def update_agent_commission(request, agent_id):
+    """Update an agent's commission rate."""
+    from agents.models import AgentProfile
+
+    agent = get_object_or_404(AgentProfile, id=agent_id)
+    commission_rate = request.POST.get('commission_rate')
+    if commission_rate:
+        try:
+            agent.commission_rate = float(commission_rate)
+            agent.save()
+            messages.success(request, f"Commission rate updated to {agent.commission_rate}%")
+        except ValueError:
+            messages.error(request, "Invalid commission rate.")
+    return redirect('admin_panel:agent_detail', agent_id=agent_id)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def reassign_worker_agent(request, worker_id):
+    """Reassign a worker to a different agent (or remove from agent)."""
+    from agents.models import AgentProfile
+
+    worker = get_object_or_404(WorkerProfile, id=worker_id)
+    new_agent_id = request.POST.get('agent_id')
+    if new_agent_id == '0' or not new_agent_id:
+        worker.agent = None
+        worker.save()
+        messages.success(request, f"Worker {worker.user.get_full_name()} removed from agent.")
+    else:
+        new_agent = get_object_or_404(AgentProfile, id=new_agent_id, is_verified=True)
+        worker.agent = new_agent
+        worker.save()
+        messages.success(request, f"Worker assigned to agent {new_agent.display_name}.")
+
+    next_url = request.POST.get('next', 'admin_panel:agent_list')
+    return redirect(next_url)
+

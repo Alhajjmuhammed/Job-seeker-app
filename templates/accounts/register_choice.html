@@ -1,70 +1,256 @@
 {% extends 'base.html' %}
 
-{% block title %}Choose Account Type - Worker Connect{% endblock %}
+{% block title %}Create Your Account - Worker Connect{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="text-center mb-5">
-                <h1 class="display-5 fw-bold">Join Worker Connect</h1>
-                <p class="lead text-muted">Choose your account type to get started</p>
-            </div>
-            
-            <div class="row g-4">
-                <!-- Worker Registration -->
-                <div class="col-md-6">
-                    <div class="card h-100 shadow-lg border-0 hover-card">
-                        <div class="card-body p-5 text-center">
-                            <div class="mb-4">
-                                <i class="bi bi-person-badge display-1 text-primary"></i>
+
+<style>
+    /* ── Register Choice Page ── */
+    .role-card {
+        border-radius: 18px;
+        border: 2px solid transparent;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .role-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+    }
+    .role-card.worker::before  { background: linear-gradient(90deg, #14b8a6, #06b6d4); }
+    .role-card.client::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+    .role-card.agent::before   { background: linear-gradient(90deg, #8b5cf6, #14b8a6); }
+
+    .role-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.13) !important;
+    }
+    .role-card.worker:hover  { border-color: #14b8a6; }
+    .role-card.client:hover  { border-color: #10b981; }
+    .role-card.agent:hover   { border-color: #8b5cf6; }
+
+    .role-icon-wrap {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.2rem;
+        font-size: 2rem;
+    }
+    .worker .role-icon-wrap  { background: linear-gradient(135deg, #ccfbf1, #a7f3d0); color: #0d9488; }
+    .client .role-icon-wrap  { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #059669; }
+    .agent  .role-icon-wrap  { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #7c3aed; }
+
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 7px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-item i { font-size: 1rem; margin-top: 2px; flex-shrink: 0; }
+
+    .btn-register-worker {
+        background: linear-gradient(135deg, #14b8a6, #06b6d4);
+        border: none; color: white;
+    }
+    .btn-register-worker:hover { background: linear-gradient(135deg, #0d9488, #0891b2); color: white; }
+
+    .btn-register-client {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        border: none; color: white;
+    }
+    .btn-register-client:hover { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+
+    .btn-register-agent {
+        background: linear-gradient(135deg, #8b5cf6, #14b8a6);
+        border: none; color: white;
+    }
+    .btn-register-agent:hover { background: linear-gradient(135deg, #7c3aed, #0d9488); color: white; }
+
+    .trust-strip {
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+    .trust-item i { font-size: 1.6rem; }
+</style>
+
+<!-- Cards Section -->
+<section class="py-5" style="background:#f8fafc;">
+    <div class="container">
+
+        <!-- Back to Home -->
+        <div class="mb-4">
+            <a href="{% url 'home' %}" class="text-decoration-none d-inline-flex align-items-center gap-2" style="color:#14b8a6;font-weight:500;">
+                <i class="bi bi-arrow-left-circle-fill fs-5"></i> Back to Home
+            </a>
+        </div>
+
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark mb-1">Choose Your Account Type</h2>
+            <p class="text-muted">Select the role that best describes you</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+
+            <!-- Worker Card -->
+            <div class="col-md-4">
+                <div class="card role-card worker h-100 shadow border-0 bg-white">
+                    <div class="card-body p-4 p-lg-5 text-center d-flex flex-column">
+                        <div class="role-icon-wrap">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">I'm a Worker</h3>
+                        <p class="text-muted small mb-4">Showcase your skills and get hired by verified clients</p>
+
+                        <div class="text-start mb-4">
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Build a professional profile</span>
                             </div>
-                            <h3 class="card-title fw-bold mb-3">I'm a Worker</h3>
-                            <p class="card-text text-muted mb-4">
-                                Create a profile, showcase your skills, and find great job opportunities
-                            </p>
-                            <ul class="list-unstyled text-start mb-4">
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Create professional profile</li>
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Upload credentials & certificates</li>
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Apply for jobs</li>
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Get hired by verified clients</li>
-                            </ul>
-                            <a href="{% url 'accounts:worker_register' %}" class="btn btn-primary btn-lg w-100">
-                                Register as Worker
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Upload credentials &amp; certificates</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Receive job assignments</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Track earnings &amp; time</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <a href="{% url 'accounts:worker_register' %}" class="btn btn-register-worker btn-lg w-100 fw-semibold">
+                                <i class="bi bi-person-plus-fill me-2"></i>Register as Worker
                             </a>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Client Registration -->
-                <div class="col-md-6">
-                    <div class="card h-100 shadow-lg border-0 hover-card">
-                        <div class="card-body p-5 text-center">
-                            <div class="mb-4">
-                                <i class="bi bi-briefcase display-1 text-success"></i>
+            </div>
+
+            <!-- Client Card -->
+            <div class="col-md-4">
+                <div class="card role-card client h-100 shadow border-0 bg-white">
+                    <div class="card-body p-4 p-lg-5 text-center d-flex flex-column">
+                        <div class="role-icon-wrap">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">I'm a Client</h3>
+                        <p class="text-muted small mb-4">Find and hire skilled workers for any task or project</p>
+
+                        <div class="text-start mb-4">
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Browse verified workers</span>
                             </div>
-                            <h3 class="card-title fw-bold mb-3">I'm a Client</h3>
-                            <p class="card-text text-muted mb-4">
-                                Find and hire skilled workers for your projects and daily needs
-                            </p>
-                            <ul class="list-unstyled text-start mb-4">
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Search verified workers</li>
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Post job requests</li>
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Review and rate workers</li>
-                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Direct communication</li>
-                            </ul>
-                            <a href="{% url 'accounts:client_register' %}" class="btn btn-success btn-lg w-100">
-                                Register as Client
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Post service requests easily</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Rate and review workers</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Secure payment &amp; invoicing</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <a href="{% url 'accounts:client_register' %}" class="btn btn-register-client btn-lg w-100 fw-semibold">
+                                <i class="bi bi-person-plus-fill me-2"></i>Register as Client
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="text-center mt-4">
-                <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}" class="text-decoration-none">Login here</a></p>
+
+            <!-- Agent Card -->
+            <div class="col-md-4">
+                <div class="card role-card agent h-100 shadow border-0 bg-white">
+                    <div class="card-body p-4 p-lg-5 text-center d-flex flex-column">
+                        <div class="role-icon-wrap">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">I'm an Agent</h3>
+                        <p class="text-muted small mb-4">Recruit workers, manage teams, and earn commission</p>
+
+                        <div class="text-start mb-4">
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Get a unique agent code</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Recruit &amp; manage workers</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Earn commission per job</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span class="small">Track worker performance</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <a href="{% url 'accounts:agent_register' %}" class="btn btn-register-agent btn-lg w-100 fw-semibold">
+                                <i class="bi bi-person-plus-fill me-2"></i>Register as Agent
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center mt-5">
+            <p class="text-muted mb-0">
+                Already have an account?
+                <a href="{% url 'accounts:login' %}" class="fw-semibold text-decoration-none" style="color:#14b8a6;">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Login here
+                </a>
+            </p>
+        </div>
+
+    </div>
+</section>
+
+<!-- Trust Strip -->
+<section class="trust-strip py-4">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3 trust-item">
+                <i class="bi bi-shield-fill-check d-block mb-1" style="color:#14b8a6;"></i>
+                <div class="fw-semibold small">Verified Workers</div>
+                <div class="text-muted" style="font-size:0.78rem;">Background-checked professionals</div>
+            </div>
+            <div class="col-6 col-md-3 trust-item">
+                <i class="bi bi-lock-fill d-block mb-1" style="color:#14b8a6;"></i>
+                <div class="fw-semibold small">Secure Platform</div>
+                <div class="text-muted" style="font-size:0.78rem;">Your data is safe with us</div>
+            </div>
+            <div class="col-6 col-md-3 trust-item">
+                <i class="bi bi-star-fill d-block mb-1" style="color:#14b8a6;"></i>
+                <div class="fw-semibold small">Rated &amp; Reviewed</div>
+                <div class="text-muted" style="font-size:0.78rem;">Transparent quality ratings</div>
+            </div>
+            <div class="col-6 col-md-3 trust-item">
+                <i class="bi bi-headset d-block mb-1" style="color:#14b8a6;"></i>
+                <div class="fw-semibold small">24/7 Support</div>
+                <div class="text-muted" style="font-size:0.78rem;">We're here when you need us</div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
 {% endblock %}

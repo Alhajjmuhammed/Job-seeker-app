@@ -116,6 +116,15 @@ class WorkerProfile(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(5)]
     )
     total_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0.0)
+
+    # Agent relationship - worker may be recruited by an agent
+    agent = models.ForeignKey(
+        'agents.AgentProfile',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='workers',
+        help_text="Agent who recruited this worker (optional)"
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

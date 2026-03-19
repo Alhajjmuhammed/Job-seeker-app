@@ -38,4 +38,12 @@ urlpatterns = [
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
     path('users/<int:user_id>/toggle-status/', views.toggle_user_status, name='toggle_user_status'),
     path('system-overview/', views.system_overview, name='system_overview'),
+
+    # Agent management URLs
+    path('agents/', views.agent_list, name='agent_list'),
+    path('agents/<int:agent_id>/', views.agent_detail, name='agent_detail'),
+    path('agents/<int:agent_id>/approve/', views.approve_agent, name='approve_agent'),
+    path('agents/<int:agent_id>/reject/', views.reject_agent, name='reject_agent'),
+    path('agents/<int:agent_id>/commission/', views.update_agent_commission, name='update_agent_commission'),
+    path('workers/<int:worker_id>/reassign-agent/', views.reassign_worker_agent, name='reassign_worker_agent'),
 ]

@@ -740,6 +740,48 @@ export default function WorkerDashboard() {
           />
         </View>
 
+        {/* Profile Verification Alert */}
+        {user?.verificationStatus && user.verificationStatus !== 'verified' && (
+          <View style={{
+            marginBottom: 16,
+            borderRadius: 12,
+            borderWidth: 1.5,
+            borderColor: user.verificationStatus === 'rejected' ? '#FCA5A5' : '#FCD34D',
+            backgroundColor: user.verificationStatus === 'rejected' ? '#FEF2F2' : '#FFFBEB',
+            padding: 14,
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: 10,
+          }}>
+            <Ionicons
+              name={user.verificationStatus === 'rejected' ? 'close-circle' : 'time'}
+              size={22}
+              color={user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706'}
+              style={{ marginTop: 1 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 14,
+                fontFamily: theme.fontSemiBold,
+                color: user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
+                marginBottom: 2,
+              }}>
+                Profile Verification: {user.verificationStatus === 'rejected' ? 'Rejected' : 'Under Review'}
+              </Text>
+              <Text style={{
+                fontSize: 13,
+                fontFamily: theme.fontRegular,
+                color: '#6B7280',
+                lineHeight: 18,
+              }}>
+                {user.verificationStatus === 'rejected'
+                  ? 'Your profile was rejected. Please update your documents and try again.'
+                  : 'Your profile is under review. You\'ll be notified once verified.'}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Pending Assignments Alert */}
         {pendingAssignments.length > 0 && (
           <TouchableOpacity

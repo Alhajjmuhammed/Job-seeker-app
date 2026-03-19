@@ -136,6 +136,7 @@ urlpatterns = [
     path('clients/', include('clients.urls')),
     path('jobs/', include('jobs.urls')),
     path('dashboard/', include('admin_panel.urls')),
+    path('agents/', include('agents.urls')),
     
     # Service Request Web Interface (NEW)
     path('services/', include('jobs.service_request_web_urls')),

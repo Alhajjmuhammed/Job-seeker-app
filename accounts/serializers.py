@@ -23,6 +23,7 @@ class RegisterSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, min_length=8)
     userType = serializers.ChoiceField(choices=['worker', 'client'])
     workerType = serializers.ChoiceField(choices=['professional', 'non-academic'], required=False, allow_null=True)
+    agentCode = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=10)
 
     def validate_email(self, value):
         """Check that email is not already in use"""
@@ -38,8 +39,19 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(list(e.messages))
         return value
 
+    def validate_agentCode(self, value):
+        """Validate agent code if provided."""
+        if not value or not value.strip():
+            return None
+        code = value.strip().upper()
+        from agents.models import AgentProfile
+        if not AgentProfile.objects.filter(agent_code=code, is_verified=True).exists():
+            raise serializers.ValidationError("Invalid or unverified agent code.")
+        return code
+
     def create(self, validated_data):
         worker_type = validated_data.pop('workerType', None)
+        agent_code = validated_data.pop('agentCode', None)
         email = validated_data['email']
         
         # Use email as username since Django requires it
@@ -54,13 +66,21 @@ class RegisterSerializer(serializers.Serializer):
         )
         
         # Create worker profile with worker_type if user is a worker
-        if validated_data['userType'] == 'worker' and worker_type:
+        if validated_data['userType'] == 'worker':
             from workers.models import WorkerProfile
+            from agents.models import AgentProfile
+            agent = None
+            if agent_code:
+                try:
+                    agent = AgentProfile.objects.get(agent_code=agent_code, is_verified=True)
+                except AgentProfile.DoesNotExist:
+                    pass
             WorkerProfile.objects.create(
                 user=user,
-                worker_type='non_academic' if worker_type == 'non-academic' else 'professional',
+                worker_type='non_academic' if worker_type == 'non-academic' else ('professional' if worker_type else 'non_academic'),
                 profile_completion_percentage=0,
                 is_profile_complete=False,
+                agent=agent,
             )
         
         return user

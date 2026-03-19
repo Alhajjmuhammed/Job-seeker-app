@@ -252,33 +252,90 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white mt-5 py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <h5><i class="bi bi-people-fill"></i> Worker Connect</h5>
-                    <p class="text-muted">Connecting clients with skilled workers across various fields.</p>
+    <footer style="background:#0f172a;" class="text-white mt-5">
+        <!-- Top accent bar -->
+        <div style="height:4px;background:linear-gradient(90deg,#0d9488,#14b8a6,#10b981);"></div>
+
+        <div class="container py-5">
+            <div class="row g-4">
+
+                <!-- Brand Column -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div style="width:38px;height:38px;background:linear-gradient(135deg,#14b8a6,#10b981);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-people-fill text-white"></i>
+                        </div>
+                        <span class="fw-bold fs-5">Worker Connect</span>
+                    </div>
+                    <p style="color:white;font-size:0.92rem;line-height:1.7;">
+                        Tanzania's trusted platform connecting clients with verified, skilled professionals for every job &mdash; big or small.
+                    </p>
+                    <!-- Social Icons -->
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-facebook"></i></a>
+                        <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-instagram"></i></a>
+                        <a href="#" style="width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;" onmouseover="this.style.background='#14b8a6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='white'"><i class="bi bi-linkedin"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'home' %}" class="text-muted text-decoration-none">Home</a></li>
-                        <li><a href="{% url 'clients:browse_services' %}" class="text-muted text-decoration-none">Browse Services</a></li>
-                        <li><a href="{% url 'jobs:job_list' %}" class="text-muted text-decoration-none">Browse Jobs</a></li>
-                        <li><a href="{% url 'accounts:register_choice' %}" class="text-muted text-decoration-none">Register</a></li>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="fw-semibold text-white mb-3 text-uppercase" style="font-size:0.78rem;letter-spacing:0.08em;">Platform</h6>
+                    <ul class="list-unstyled mb-0" style="color:white;font-size:0.91rem;">
+                        <li class="mb-2"><a href="{% url 'home' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-house me-1"></i>Home</a></li>
+                        <li class="mb-2"><a href="{% url 'clients:browse_services' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-grid me-1"></i>Browse Services</a></li>
+                        <li class="mb-2"><a href="{% url 'jobs:job_list' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-briefcase me-1"></i>Browse Jobs</a></li>
+                        <li class="mb-2"><a href="{% url 'accounts:register_choice' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-person-plus me-1"></i>Register</a></li>
+                        <li class="mb-2"><a href="{% url 'accounts:login' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h5>Contact</h5>
-                    <p class="text-muted">
-                        <i class="bi bi-envelope"></i> support@workerconnect.com<br>
-                        <i class="bi bi-telephone"></i> +249 XXX XXX XXX
-                    </p>
+
+                <!-- For Users -->
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="fw-semibold text-white mb-3 text-uppercase" style="font-size:0.78rem;letter-spacing:0.08em;">Join As</h6>
+                    <ul class="list-unstyled mb-0" style="color:white;font-size:0.91rem;">
+                        <li class="mb-2"><a href="{% url 'accounts:worker_register' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-person-badge me-1"></i>Worker</a></li>
+                        <li class="mb-2"><a href="{% url 'accounts:client_register' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-briefcase me-1"></i>Client</a></li>
+                        <li class="mb-2"><a href="{% url 'accounts:agent_register' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-diagram-3 me-1"></i>Agent</a></li>
+                    </ul>
                 </div>
+
+                <!-- Contact -->
+                <div class="col-lg-4 col-md-6">
+                    <h6 class="fw-semibold text-white mb-3 text-uppercase" style="font-size:0.78rem;letter-spacing:0.08em;">Contact Us</h6>
+                    <ul class="list-unstyled mb-0" style="font-size:0.91rem;">
+                        <li class="mb-3 d-flex align-items-start gap-2">
+                            <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-envelope-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
+                            <span style="color:white;">support@workerconnect.co.tz</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start gap-2">
+                            <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-telephone-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
+                            <span style="color:white;">+255 XXX XXX XXX</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2">
+                            <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-geo-alt-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
+                            <span style="color:white;">Dar es Salaam, Tanzania</span>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
-            <hr class="bg-secondary">
-            <div class="text-center">
-                <p class="mb-0">&copy; 2025 Worker Connect. All rights reserved.</p>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div style="border-top:1px solid #1e293b;">
+            <div class="container py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                        <span style="color:white;font-size:0.85rem;">&copy; 2026 Worker Connect. All rights reserved.</span>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <span style="color:white;font-size:0.85rem;">
+                            Made with <i class="bi bi-heart-fill" style="color:#14b8a6;font-size:0.75rem;"></i> in Tanzania
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>

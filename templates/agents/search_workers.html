@@ -1,0 +1,97 @@
+{% extends 'agents/base_agents.html' %}
+
+{% block title %}Search Workers{% endblock %}
+{% block page_title %}Search & Add Workers{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'agents:workers' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to My Workers
+    </a>
+</div>
+
+<div class="card stat-card mb-4">
+    <div class="card-body">
+        <h6 class="fw-semibold mb-3">Search for a Worker</h6>
+        <p class="text-muted small mb-3">
+            Find workers who are not yet linked to any agent. Search by name, username, or email address.
+        </p>
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" value="{{ query }}" placeholder="Name, username or email..."
+                   class="form-control" autofocus>
+            <button type="submit" class="btn btn-teal px-4 fw-semibold flex-shrink-0">
+                <i class="bi bi-search me-1"></i> Search
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if query %}
+    {% if results %}
+    <div class="card stat-card">
+        <div class="card-header bg-white py-3">
+            <h6 class="mb-0 fw-semibold">{{ results|length }} worker{{ results|length|pluralize }} found</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Worker</th>
+                            <th>City</th>
+                            <th>Category</th>
+                            <th>Verification</th>
+                            <th>Completed Jobs</th>
+                            <th class="pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for worker in results %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-semibold">{{ worker.user.get_full_name|default:worker.user.username }}</div>
+                                <div class="text-muted small">{{ worker.user.email }}</div>
+                            </td>
+                            <td>{{ worker.city|default:"—" }}</td>
+                            <td>
+                                {% with worker.categories.all as cats %}
+                                    {% if cats %}{{ cats.0.name }}{% if cats.count > 1 %} +{{ cats.count|add:"-1" }}{% endif %}
+                                    {% else %}—{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% if worker.verification_status == 'verified' %}
+                                    <span class="badge bg-success">Verified</span>
+                                {% elif worker.verification_status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ worker.verification_status|capfirst }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ worker.completed_jobs }}</td>
+                            <td class="pe-4">
+                                <form method="post" action="{% url 'agents:add_worker' worker.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-teal fw-semibold">
+                                        <i class="bi bi-person-plus me-1"></i> Add to Team
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card stat-card">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-search fs-1 d-block mb-3 opacity-25"></i>
+            <p class="fw-semibold mb-1">No workers found for "{{ query }}"</p>
+            <p class="small">Workers may already be linked to another agent, or no matching worker exists.</p>
+        </div>
+    </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

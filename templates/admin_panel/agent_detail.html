@@ -1,0 +1,167 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Agent: {{ agent.display_name }}{% endblock %}
+{% block page_title %}Agent Detail{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'admin_panel:agent_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Agents
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Agent info card -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-warning bg-opacity-10 mx-auto d-flex align-items-center justify-content-center mb-3" style="width:72px;height:72px">
+                    <i class="bi bi-person-workspace fs-2 text-warning"></i>
+                </div>
+                <h5 class="fw-bold mb-1">{{ agent.display_name }}</h5>
+                <div class="text-muted small mb-2">{{ agent.user.email }}</div>
+                {% if agent.is_verified %}
+                    <span class="badge bg-success mb-3">Verified</span>
+                    <div class="mt-2 mb-3">
+                        <p class="text-muted small mb-1">Agent Code</p>
+                        <span class="badge bg-warning text-dark fs-5 px-4 py-2 font-monospace">{{ agent.agent_code }}</span>
+                    </div>
+                {% else %}
+                    <span class="badge bg-warning text-dark mb-3">Pending Approval</span>
+                {% endif %}
+                <hr>
+                <dl class="row text-start mb-0 small">
+                    <dt class="col-5 text-muted">Phone</dt>
+                    <dd class="col-7">{{ agent.user.phone_number|default:"—" }}</dd>
+                    <dt class="col-5 text-muted">Commission</dt>
+                    <dd class="col-7">{{ agent.commission_rate }}%</dd>
+                    <dt class="col-5 text-muted">Workers</dt>
+                    <dd class="col-7">{{ agent.total_workers }}</dd>
+                    <dt class="col-5 text-muted">Registered</dt>
+                    <dd class="col-7">{{ agent.created_at|date:"d M Y" }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Bio -->
+        {% if agent.bio %}
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6 class="fw-semibold">Bio</h6>
+                <p class="text-muted small mb-0">{{ agent.bio }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6 class="fw-semibold mb-3">Actions</h6>
+
+                {% if not agent.is_verified %}
+                <!-- Approve form -->
+                <form method="post" action="{% url 'admin_panel:approve_agent' agent.id %}" class="mb-3">
+                    {% csrf_token %}
+                    <label class="form-label small fw-semibold">Commission Rate (%)</label>
+                    <div class="input-group mb-2">
+                        <input type="number" name="commission_rate" class="form-control form-control-sm"
+                               value="{{ agent.commission_rate }}" min="0" max="100" step="0.5">
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm w-100">
+                        <i class="bi bi-check-circle me-1"></i> Approve Agent
+                    </button>
+                </form>
+
+                <form method="post" action="{% url 'admin_panel:reject_agent' agent.id %}"
+                      onsubmit="return confirm('Remove this agent application? This cannot be undone.')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                        <i class="bi bi-x-circle me-1"></i> Reject Application
+                    </button>
+                </form>
+
+                {% else %}
+                <!-- Update commission -->
+                <form method="post" action="{% url 'admin_panel:update_agent_commission' agent.id %}">
+                    {% csrf_token %}
+                    <label class="form-label small fw-semibold">Update Commission Rate (%)</label>
+                    <div class="input-group mb-2">
+                        <input type="number" name="commission_rate" class="form-control form-control-sm"
+                               value="{{ agent.commission_rate }}" min="0" max="100" step="0.5">
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-save me-1"></i> Update Commission
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Workers table -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-semibold mb-0">Workers Under This Agent ({{ workers.count }})</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if workers %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Worker</th>
+                                <th>City</th>
+                                <th>Status</th>
+                                <th>Jobs Done</th>
+                                <th class="pe-4">Reassign</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for worker in workers %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-semibold">{{ worker.user.get_full_name|default:worker.user.username }}</div>
+                                    <div class="text-muted small">{{ worker.user.email }}</div>
+                                </td>
+                                <td>{{ worker.city|default:"—" }}</td>
+                                <td>
+                                    {% if worker.verification_status == 'verified' %}
+                                        <span class="badge bg-success">Verified</span>
+                                    {% elif worker.verification_status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ worker.verification_status|capfirst }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ worker.completed_jobs }}</td>
+                                <td class="pe-4">
+                                    <form method="post" action="{% url 'admin_panel:reassign_worker_agent' worker.id %}"
+                                          class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="agent_id" value="0">
+                                        <input type="hidden" name="next" value="{% url 'admin_panel:agent_detail' agent.id %}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Remove this worker from agent?')">
+                                            <i class="bi bi-person-dash"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
+                    No workers assigned yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends 'agents/base_agents.html' %}
+
+{% block title %}Agent Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+{% if not agent.is_verified %}
+<div class="pending-banner d-flex align-items-center gap-3">
+    <i class="bi bi-hourglass-split fs-4" style="color:#14b8a6"></i>
+    <div>
+        <strong>Application Under Review</strong>
+        <p class="mb-0 small text-muted">Your agent application is being reviewed by admin. Once approved you will receive a unique Agent Code to share with workers.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Agent Code card (only shown once verified) -->
+{% if agent.is_verified %}
+<div class="agent-code-box mb-4">
+    <p class="mb-1 text-white-50 small fw-semibold text-uppercase">Your Agent Code</p>
+    <div class="code">{{ agent.agent_code }}</div>
+    <p class="mt-2 mb-0 small text-white-50">Share this code with workers during their registration so they are linked to you automatically.</p>
+</div>
+{% endif %}
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3" style="background:rgba(20,184,166,.1)">
+                    <i class="bi bi-people fs-4" style="color:#14b8a6"></i>
+                </div>
+                <div>
+                    <div class="fs-2 fw-bold">{{ total_workers }}</div>
+                    <div class="text-muted small">Total Workers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                    <i class="bi bi-person-check fs-4 text-success"></i>
+                </div>
+                <div>
+                    <div class="fs-2 fw-bold">{{ verified_workers }}</div>
+                    <div class="text-muted small">Verified Workers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-secondary bg-opacity-10 p-3">
+                    <i class="bi bi-clock-history fs-4 text-secondary"></i>
+                </div>
+                <div>
+                    <div class="fs-2 fw-bold">{{ pending_workers }}</div>
+                    <div class="text-muted small">Pending Verification</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                    <i class="bi bi-percent fs-4 text-primary"></i>
+                </div>
+                <div>
+                    <div class="fs-2 fw-bold">{{ agent.commission_rate }}%</div>
+                    <div class="text-muted small">Commission Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Charts -->
+<div class="row g-3 mb-4">
+    <!-- Donut: Verification Status -->
+    <div class="col-md-4">
+        <div class="card stat-card h-100">
+            <div class="card-header bg-white py-3 px-4 border-bottom">
+                <h6 class="fw-semibold mb-0">Worker Verification</h6>
+                <p class="text-muted small mb-0">Breakdown by status</p>
+            </div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center py-4">
+                <div style="position:relative;width:180px;height:180px">
+                    <canvas id="verificationChart"></canvas>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                        <span style="font-size:1.75rem;font-weight:700;color:#111827">{{ total_workers }}</span>
+                        <span style="font-size:.75rem;color:#6b7280">Total</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mt-3 flex-wrap justify-content-center" style="font-size:.8rem">
+                    <span class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span> Verified ({{ verified_workers }})</span>
+                    <span class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span> Pending ({{ pending_workers }})</span>
+                    <span class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span> Rejected ({{ rejected_workers }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar: Top Workers by Jobs -->
+    <div class="col-md-8">
+        <div class="card stat-card h-100">
+            <div class="card-header bg-white py-3 px-4 border-bottom">
+                <h6 class="fw-semibold mb-0">Top Workers by Jobs Completed</h6>
+                <p class="text-muted small mb-0">Performance overview</p>
+            </div>
+            <div class="card-body py-3 px-4">
+                <canvas id="topWorkersChart" style="max-height:220px"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Line: Workers Joined per Month -->
+<div class="card stat-card mb-4">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-semibold mb-0">Workers Joined</h6>
+            <p class="text-muted small mb-0">Last 6 months</p>
+        </div>
+        <a href="{% url 'agents:workers' %}" class="btn btn-sm btn-teal">View All Workers</a>
+    </div>
+    <div class="card-body py-3 px-4">
+        <canvas id="joinedChart" style="max-height:180px"></canvas>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+{# Data passed as JSON blobs — avoids Django-tag linting errors in the JS block #}
+<script type="application/json" id="cd-donut">{{ donut_data }}</script>
+<script type="application/json" id="cd-top-labels">{{ top_labels }}</script>
+<script type="application/json" id="cd-top-jobs">{{ top_jobs }}</script>
+<script type="application/json" id="cd-months">{{ months_labels }}</script>
+<script type="application/json" id="cd-joined">{{ joined_counts }}</script>
+
+<script>
+(function () {
+    function jd(id) { return JSON.parse(document.getElementById(id).textContent); }
+
+    const teal = '#14b8a6', tealLight = 'rgba(20,184,166,.12)';
+    const donutData   = jd('cd-donut');
+    const topLabels   = jd('cd-top-labels');
+    const topJobs     = jd('cd-top-jobs');
+    const monthLabels = jd('cd-months');
+    const joinedData  = jd('cd-joined');
+
+    // 1. Donut — Verification Status
+    new Chart(document.getElementById('verificationChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Verified', 'Pending', 'Rejected'],
+            datasets: [{
+                data: donutData,
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            cutout: '72%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: function(ctx) { return ' ' + ctx.label + ': ' + ctx.parsed; } } }
+            }
+        }
+    });
+
+    // 2. Bar — Top Workers by Jobs
+    new Chart(document.getElementById('topWorkersChart'), {
+        type: 'bar',
+        data: {
+            labels: topLabels,
+            datasets: [{
+                label: 'Jobs Completed',
+                data: topJobs,
+                backgroundColor: teal,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3f4f6' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 3. Line — Workers Joined per Month
+    new Chart(document.getElementById('joinedChart'), {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Workers Joined',
+                data: joinedData,
+                borderColor: teal,
+                backgroundColor: tealLight,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: teal,
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3f4f6' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

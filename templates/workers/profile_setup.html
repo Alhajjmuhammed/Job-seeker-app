@@ -1,183 +1,192 @@
-{% extends 'base.html' %}
+{% extends 'workers/base_worker.html' %}
 {% load widget_tweaks %}
 
 {% block title %}Complete Profile - Worker Connect{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-person-check display-3 text-primary"></i>
-                        <h2 class="fw-bold mt-3">Complete Your Profile</h2>
-                        <p class="text-muted">Fill in your professional details to get started</p>
-                    </div>
-                    
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
-                            </div>
-                        {% endif %}
-                        
-                        <!-- Personal Information -->
-                        <div class="mb-4">
-                            <h5 class="fw-bold text-primary mb-3">
-                                <i class="bi bi-person"></i> Personal Information
-                            </h5>
-                            
-                            <div class="mb-3">
-                                <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
-                                {% render_field form.bio class="form-control" rows="4" placeholder="Tell us about your experience and skills..." %}
-                                {% if form.bio.errors %}
-                                    <div class="text-danger small">{{ form.bio.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
+<style>
+    .setup-section {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    .setup-section-title {
+        font-size: .8125rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #0f766e;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: .75rem;
+        border-bottom: 1px solid #f0fdfa;
+    }
+    .setup-section-title i { font-size: 1rem; }
+    .form-label { font-size: .875rem; font-weight: 600; color: #374151; margin-bottom: .375rem; }
+    .form-control, .form-select {
+        border-color: #d1d5db;
+        border-radius: 8px;
+        font-size: .9375rem;
+        background: #f9fafb;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 3px rgba(20,184,166,.12);
+        background: #fff;
+    }
+    .category-check {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .5rem .75rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        cursor: pointer;
+        transition: all .15s;
+    }
+    .category-check:has(input:checked) {
+        background: #f0fdfa;
+        border-color: #14b8a6;
+    }
+    .category-check input { accent-color: #14b8a6; }
+</style>
 
-                        <!-- Location -->
-                        <div class="mb-4">
-                            <h5 class="fw-bold text-primary mb-3">
-                                <i class="bi bi-geo-alt"></i> Location
-                            </h5>
-                            
-                            <div class="row">
-                                <div class="col-12 mb-3">
-                                    <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
-                                    {% render_field form.address class="form-control" %}
-                                    {% if form.address.errors %}
-                                        <div class="text-danger small">{{ form.address.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
-                                    {% render_field form.city class="form-control" %}
-                                    {% if form.city.errors %}
-                                        <div class="text-danger small">{{ form.city.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.state.id_for_label }}" class="form-label">State/Province</label>
-                                    {% render_field form.state class="form-control" %}
-                                    {% if form.state.errors %}
-                                        <div class="text-danger small">{{ form.state.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
-                                    {% render_field form.country class="form-control" %}
-                                    {% if form.country.errors %}
-                                        <div class="text-danger small">{{ form.country.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code</label>
-                                    {% render_field form.postal_code class="form-control" %}
-                                    {% if form.postal_code.errors %}
-                                        <div class="text-danger small">{{ form.postal_code.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
+<!-- Page header -->
+<div class="d-flex align-items-center gap-3 mb-4">
+    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+         style="width:44px;height:44px;background:rgba(20,184,166,.12)">
+        <i class="bi bi-person-check fs-5" style="color:#14b8a6"></i>
+    </div>
+    <div>
+        <h4 class="fw-bold mb-0">Complete Your Profile</h4>
+        <p class="text-muted small mb-0">Fill in your professional details to get started</p>
+    </div>
+</div>
 
-                            <!-- Religion and Work Flexibility -->
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.religion.id_for_label }}" class="form-label">Religion</label>
-                                    {% render_field form.religion class="form-select" %}
-                                    <div class="form-text text-muted">Optional: Select your religion or prefer not to say</div>
-                                    {% if form.religion.errors %}
-                                        <div class="text-danger small">{{ form.religion.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Work Flexibility</label>
-                                    <div class="form-check mt-2">
-                                        {% render_field form.can_work_everywhere class="form-check-input" %}
-                                        <label class="form-check-label" for="{{ form.can_work_everywhere.id_for_label }}">
-                                            Can work everywhere (any location)
-                                        </label>
-                                    </div>
-                                    <div class="form-text text-muted">Check if you're willing to work at any location</div>
-                                    {% if form.can_work_everywhere.errors %}
-                                        <div class="text-danger small">{{ form.can_work_everywhere.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2 small mb-3">{{ form.non_field_errors }}</div>
+    {% endif %}
 
-                        <!-- Professional Details -->
-                        <div class="mb-4">
-                            <h5 class="fw-bold text-primary mb-3">
-                                <i class="bi bi-briefcase"></i> Professional Details
-                            </h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.experience_years.id_for_label }}" class="form-label">Years of Experience</label>
-                                    {% render_field form.experience_years class="form-control" %}
-                                    {% if form.experience_years.errors %}
-                                        <div class="text-danger small">{{ form.experience_years.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.hourly_rate.id_for_label }}" class="form-label">Hourly Rate (USD)</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        {% render_field form.hourly_rate class="form-control" %}
-                                    </div>
-                                    {% if form.hourly_rate.errors %}
-                                        <div class="text-danger small">{{ form.hourly_rate.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-12 mb-3">
-                                    <label for="{{ form.availability.id_for_label }}" class="form-label">Availability</label>
-                                    {% render_field form.availability class="form-select" %}
-                                    {% if form.availability.errors %}
-                                        <div class="text-danger small">{{ form.availability.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+    <!-- Personal Information -->
+    <div class="setup-section">
+        <div class="setup-section-title">
+            <i class="bi bi-person"></i> Personal Information
+        </div>
+        <div class="mb-0">
+            <label class="form-label">Bio</label>
+            {% render_field form.bio class="form-control" rows="4" placeholder="Tell us about your experience and skills..." %}
+            {% if form.bio.errors %}<div class="text-danger small mt-1">{{ form.bio.errors }}</div>{% endif %}
+        </div>
+    </div>
 
-                        <!-- Categories -->
-                        <div class="mb-4">
-                            <h5 class="fw-bold text-primary mb-3">
-                                <i class="bi bi-tags"></i> Categories
-                            </h5>
-                            <p class="text-muted small mb-3">Select the categories you work in</p>
-                            
-                            <div class="row">
-                                {% for checkbox in form.categories %}
-                                    <div class="col-md-6 col-lg-4 mb-2">
-                                        <div class="form-check">
-                                            {{ checkbox.tag }}
-                                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                                                {{ checkbox.choice_label }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            {% if form.categories.errors %}
-                                <div class="text-danger small">{{ form.categories.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">
-                            <i class="bi bi-check-circle"></i> Complete Profile
-                        </button>
-                    </form>
-                    
-                    <div class="text-center mt-4">
-                        <p class="text-muted">You can always edit your profile later from your dashboard</p>
+    <!-- Location -->
+    <div class="setup-section">
+        <div class="setup-section-title">
+            <i class="bi bi-geo-alt"></i> Location
+        </div>
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label">Address</label>
+                {% render_field form.address class="form-control" %}
+                {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">City</label>
+                {% render_field form.city class="form-control" %}
+                {% if form.city.errors %}<div class="text-danger small mt-1">{{ form.city.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">State / Province</label>
+                {% render_field form.state class="form-control" %}
+                {% if form.state.errors %}<div class="text-danger small mt-1">{{ form.state.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Country</label>
+                {% render_field form.country class="form-control" %}
+                {% if form.country.errors %}<div class="text-danger small mt-1">{{ form.country.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Postal Code</label>
+                {% render_field form.postal_code class="form-control" %}
+                {% if form.postal_code.errors %}<div class="text-danger small mt-1">{{ form.postal_code.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Religion <span class="text-muted fw-normal">(optional)</span></label>
+                {% render_field form.religion class="form-select" %}
+                {% if form.religion.errors %}<div class="text-danger small mt-1">{{ form.religion.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="category-check w-100 mt-3">
+                    {% render_field form.can_work_everywhere class="form-check-input flex-shrink-0" %}
+                    <div>
+                        <label class="form-check-label fw-semibold small" for="{{ form.can_work_everywhere.id_for_label }}">Can work everywhere</label>
+                        <div class="text-muted" style="font-size:.75rem">Willing to work at any location</div>
                     </div>
                 </div>
+                {% if form.can_work_everywhere.errors %}<div class="text-danger small mt-1">{{ form.can_work_everywhere.errors }}</div>{% endif %}
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Professional Details -->
+    <div class="setup-section">
+        <div class="setup-section-title">
+            <i class="bi bi-briefcase"></i> Professional Details
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Years of Experience</label>
+                {% render_field form.experience_years class="form-control" %}
+                {% if form.experience_years.errors %}<div class="text-danger small mt-1">{{ form.experience_years.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Daily Rate (TSH)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white" style="border-color:#d1d5db;font-size:.85rem">TSH</span>
+                    {% render_field form.hourly_rate class="form-control" %}
+                </div>
+                {% if form.hourly_rate.errors %}<div class="text-danger small mt-1">{{ form.hourly_rate.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Availability</label>
+                {% render_field form.availability class="form-select" %}
+                {% if form.availability.errors %}<div class="text-danger small mt-1">{{ form.availability.errors }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="setup-section">
+        <div class="setup-section-title">
+            <i class="bi bi-tags"></i> Work Categories
+        </div>
+        <p class="text-muted small mb-3">Select the categories that match your skills</p>
+        <div class="row g-2">
+            {% for checkbox in form.categories %}
+            <div class="col-md-4 col-sm-6">
+                <label class="category-check w-100">
+                    {{ checkbox.tag }}
+                    <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        {% if form.categories.errors %}<div class="text-danger small mt-2">{{ form.categories.errors }}</div>{% endif %}
+    </div>
+
+    <!-- Submit -->
+    <div class="d-flex align-items-center justify-content-between">
+        <p class="text-muted small mb-0">You can update your profile anytime from the dashboard.</p>
+        <button type="submit" class="btn fw-semibold text-white px-4" style="background:#14b8a6;border-color:#14b8a6;border-radius:8px">
+            <i class="bi bi-check-circle me-1"></i> Complete Profile
+        </button>
+    </div>
+</form>
 {% endblock %}

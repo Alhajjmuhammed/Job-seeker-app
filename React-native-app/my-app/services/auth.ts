@@ -39,6 +39,8 @@ export const authService = {
     phone: string;
     password: string;
     userType: 'worker' | 'client';
+    workerType?: 'professional' | 'non-academic';
+    agentCode?: string;
   }): Promise<AuthResponse> {
     try {
       const response = await apiService.register(userData);

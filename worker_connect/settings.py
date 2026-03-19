@@ -83,6 +83,7 @@ INSTALLED_APPS += [
     'clients',
     'jobs',
     'admin_panel',
+    'agents',
 ]
 
 MIDDLEWARE = [
