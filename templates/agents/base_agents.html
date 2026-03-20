@@ -30,9 +30,10 @@
             color: #111827; text-decoration: none; font-size: 1.125rem; font-weight: 700;
         }
         .agent-sidebar .brand-icon {
-            width: 32px; height: 32px; border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; font-size: 1rem;
-            background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%); color: #fff;
+            width: 48px; height: 48px; object-fit: cover; border-radius: 50%; background: white; padding: 1px;
+        }
+        .agent-sidebar .brand img {
+            width: 48px; height: 48px; object-fit: cover; border-radius: 50%; background: white; padding: 1px;
         }
         .agent-sidebar .nav-link {
             color: #6b7280; padding: .75rem 1.25rem;
@@ -150,7 +151,7 @@
 <!-- Sidebar -->
 <nav class="agent-sidebar" id="agentSidebar">
     <a href="{% url 'agents:dashboard' %}" class="brand" style="text-decoration:none">
-        <span class="brand-icon"><i class="bi bi-person-workspace"></i></span>
+        <img src="{% static 'images/logo.png' %}" alt="Worker Connect">
         <span class="brand-text">Agent Portal</span>
     </a>
     <ul class="nav flex-column mt-2 pb-4">
