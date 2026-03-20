@@ -17,6 +17,7 @@ import apiService from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceAssignmentDetail {
   id: number;
@@ -53,6 +54,7 @@ interface TimeLog {
 }
 
 export default function ServiceAssignmentDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
@@ -88,7 +90,7 @@ export default function ServiceAssignmentDetail() {
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Failed to load assignment details');
+      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to load assignment details');
       router.back();
     } finally {
       setLoading(false);
@@ -124,13 +126,13 @@ export default function ServiceAssignmentDetail() {
             try {
               setSubmitting(true);
               await apiService.acceptAssignment(assignment.id, notes || undefined);
-              Alert.alert('Success', 'Assignment accepted successfully', [
+              Alert.alert(t('common.success'), 'Assignment accepted successfully', [
                 { text: 'OK', onPress: () => router.back() }
               ]);
             } catch (error: any) {
               console.error('Error accepting assignment:', error);
               const errorMessage = error.response?.data?.error || 'Failed to accept assignment';
-              Alert.alert('Error', errorMessage);
+              Alert.alert(t('common.error'), errorMessage);
             } finally {
               setSubmitting(false);
             }
@@ -144,7 +146,7 @@ export default function ServiceAssignmentDetail() {
     if (!assignment) return;
     
     if (!rejectionReason.trim()) {
-      Alert.alert('Required', 'Please provide a reason for rejection');
+      Alert.alert(t('worker.required'), 'Please provide a reason for rejection');
       return;
     }
 
@@ -160,13 +162,13 @@ export default function ServiceAssignmentDetail() {
             try {
               setSubmitting(true);
               await apiService.rejectAssignment(assignment.id, rejectionReason);
-              Alert.alert('Rejected', 'Assignment rejected', [
+              Alert.alert(t('assignments.rejected'), 'Assignment rejected', [
                 { text: 'OK', onPress: () => router.back() }
               ]);
             } catch (error: any) {
               console.error('Error rejecting assignment:', error);
               const errorMessage = error.response?.data?.error || 'Failed to reject assignment';
-              Alert.alert('Error', errorMessage);
+              Alert.alert(t('common.error'), errorMessage);
             } finally {
               setSubmitting(false);
             }
@@ -269,7 +271,7 @@ export default function ServiceAssignmentDetail() {
 
         {/* Client Info */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Client Information</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('assignments.clientInformation')}</Text>
           
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={theme.textSecondary} />
@@ -294,7 +296,7 @@ export default function ServiceAssignmentDetail() {
           <View style={styles.infoRow}>
             <Ionicons name="mail-outline" size={20} color={theme.textSecondary} />
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Email</Text>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('auth.email')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
                 {assignment.client_email || 'N/A'}
               </Text>
@@ -310,7 +312,7 @@ export default function ServiceAssignmentDetail() {
                   onPress={handleCallClient}
                 >
                   <Ionicons name="call" size={20} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>Call Client</Text>
+                  <Text style={styles.contactButtonText}>{t('assignments.callClient')}</Text>
                 </TouchableOpacity>
               )}
               {assignment.client_email && (
@@ -338,9 +340,7 @@ export default function ServiceAssignmentDetail() {
             <View style={styles.detailItem}>
               <Ionicons name="location-outline" size={20} color={theme.textSecondary} />
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                  Location
-                </Text>
+                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('jobs.location')}</Text>
                 <Text style={[styles.detailValue, { color: theme.text }]}>
                   {assignment.city}, {assignment.location}
                 </Text>
@@ -351,9 +351,7 @@ export default function ServiceAssignmentDetail() {
               <View style={styles.detailItem}>
                 <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Preferred Date
-                  </Text>
+                  <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('requestService.preferredDate')}</Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {new Date(assignment.preferred_date).toLocaleDateString()}
                   </Text>
@@ -365,9 +363,7 @@ export default function ServiceAssignmentDetail() {
               <View style={styles.detailItem}>
                 <Ionicons name="time-outline" size={20} color={theme.textSecondary} />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Preferred Time
-                  </Text>
+                  <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('requestService.preferredTime')}</Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {assignment.preferred_time}
                   </Text>
@@ -441,7 +437,7 @@ export default function ServiceAssignmentDetail() {
                     ) : (
                       <>
                         <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                        <Text style={styles.acceptButtonText}>Accept Assignment</Text>
+                        <Text style={styles.acceptButtonText}>{t('assignments.acceptAssignment')}</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -452,9 +448,7 @@ export default function ServiceAssignmentDetail() {
                     disabled={submitting}
                   >
                     <Ionicons name="close-circle" size={20} color={theme.error} />
-                    <Text style={[styles.rejectButtonText, { color: theme.error }]}>
-                      Reject
-                    </Text>
+                    <Text style={[styles.rejectButtonText, { color: theme.error }]}>{t('common.reject')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -493,7 +487,7 @@ export default function ServiceAssignmentDetail() {
                     ) : (
                       <>
                         <Ionicons name="close-circle" size={20} color="#fff" />
-                        <Text style={styles.acceptButtonText}>Confirm Rejection</Text>
+                        <Text style={styles.acceptButtonText}>{t('common.confirm')}</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -506,9 +500,7 @@ export default function ServiceAssignmentDetail() {
                     }}
                     disabled={submitting}
                   >
-                    <Text style={[styles.cancelButtonText, { color: theme.text }]}>
-                      Cancel
-                    </Text>
+                    <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('common.cancel')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -538,7 +530,7 @@ export default function ServiceAssignmentDetail() {
                 }}
               >
                 <Ionicons name="log-out-outline" size={20} color="#fff" />
-                <Text style={styles.actionButtonText}>Clock Out</Text>
+                <Text style={styles.actionButtonText}>{t('assignments.clockOut')}</Text>
               </TouchableOpacity>
             ) : (
               // Show Clock In and Complete buttons when clocked out
@@ -551,7 +543,7 @@ export default function ServiceAssignmentDetail() {
                   }}
                 >
                   <Ionicons name="log-in-outline" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Clock In</Text>
+                  <Text style={styles.actionButtonText}>{t('assignments.clockIn')}</Text>
                 </TouchableOpacity>
 
                 {!isClockedIn && (
@@ -563,7 +555,7 @@ export default function ServiceAssignmentDetail() {
                     }}
                   >
                     <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>Mark as Complete</Text>
+                    <Text style={styles.actionButtonText}>{t('assignments.markComplete')}</Text>
                   </TouchableOpacity>
                 )}
               </>
@@ -576,7 +568,7 @@ export default function ServiceAssignmentDetail() {
           <View style={[styles.card, { backgroundColor: theme.success || '#10b981' }]}>
             <View style={styles.completedContent}>
               <Ionicons name="checkmark-circle" size={32} color="#fff" />
-              <Text style={styles.completedText}>Service Completed!</Text>
+              <Text style={styles.completedText}>{t('assignments.completed')}</Text>
               {assignment.work_completed_at && (
                 <Text style={styles.completedDate}>
                   Completed on {new Date(assignment.work_completed_at).toLocaleDateString()}

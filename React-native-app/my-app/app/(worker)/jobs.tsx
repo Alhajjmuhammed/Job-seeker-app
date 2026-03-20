@@ -16,6 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface AssignedJob {
   id: number;
@@ -32,6 +33,7 @@ interface AssignedJob {
 }
 
 export default function WorkerJobsScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function WorkerJobsScreen() {
       } catch (error) {
         console.error('Error loading assigned jobs:', error);
         if (mounted) {
-          Alert.alert('Error', 'Failed to load assigned jobs. Please try again.');
+          Alert.alert(t('common.error'), t('jobs.failedLoadJobs'));
         }
       } finally {
         if (mounted) {
@@ -76,7 +78,7 @@ export default function WorkerJobsScreen() {
       setAssignedJobs(response.results || []);
     } catch (error) {
       console.error('Error refreshing assigned jobs:', error);
-      Alert.alert('Error', 'Failed to refresh assigned jobs.');
+      Alert.alert(t('common.error'), t('jobs.failedRefreshJobs'));
     } finally {
       setRefreshing(false);
     }
@@ -305,7 +307,7 @@ export default function WorkerJobsScreen() {
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading your jobs...</Text>
+          <Text style={styles.loadingText}>{t('jobs.loadingJobs')}</Text>
         </View>
       </View>
     );
@@ -446,7 +448,7 @@ export default function WorkerJobsScreen() {
                 {job.status === 'completed' && (
                   <View style={[styles.actionButton, styles.disabledButton]}>
                     <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Completed</Text>
+                    <Text style={styles.actionButtonText}>{t('assignments.completed')}</Text>
                   </View>
                 )}
               </View>

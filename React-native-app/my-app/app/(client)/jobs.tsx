@@ -12,6 +12,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Job {
   id: number;
@@ -25,6 +26,7 @@ interface Job {
 }
 
 export default function ClientJobsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
@@ -129,7 +131,7 @@ export default function ClientJobsScreen() {
           onPress={() => router.push('/(client)/post-job' as any)}
         >
           <Ionicons name="add" size={20} color={theme.textLight} />
-          <Text style={[styles.postJobButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Post New Job</Text>
+          <Text style={[styles.postJobButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>{t('jobs.postNewJob')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -148,9 +150,7 @@ export default function ClientJobsScreen() {
               { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
               activeTab === 'active' && { color: theme.primary },
             ]}
-          >
-            Active & In Progress
-          </Text>
+          >{t('jobs.activeInProgress')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -165,9 +165,7 @@ export default function ClientJobsScreen() {
               { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
               activeTab === 'completed' && { color: theme.primary },
             ]}
-          >
-            Completed
-          </Text>
+          >{t('favoriteWorkers.completedJobs')}</Text>
         </TouchableOpacity>
       </View>
 

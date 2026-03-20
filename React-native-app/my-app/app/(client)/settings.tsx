@@ -16,8 +16,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ClientSettingsScreen() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
@@ -182,18 +184,14 @@ export default function ClientSettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Account Settings */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>
-          Account Settings
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.accountSettings')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
             onPress={() => router.push('/(client)/profile-edit')}
           >
             <Ionicons name="person-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Edit Profile
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.editProfile')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
@@ -202,62 +200,48 @@ export default function ClientSettingsScreen() {
             onPress={() => router.push('/(client)/payment-methods')}
           >
             <Ionicons name="card-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Payment Methods
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('paymentMethods.paymentMethodsTitle')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
-            onPress={() => Alert.alert('Coming Soon', 'Address management will be available soon')}
+            onPress={() => Alert.alert(t('profile.comingSoon'), t('clientSettings.addressManagementComingSoon'))}
           >
             <Ionicons name="location-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Saved Addresses
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.savedAddresses')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Security */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>
-          Security
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('clientSettings.security')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
             onPress={() => router.push('/(client)/change-password')}
           >
             <Ionicons name="lock-closed-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Change Password
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('security.changePassword')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Notifications */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>
-          Notifications
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('settings.notifications')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
             onPress={() => router.push('/(client)/notifications')}
           >
             <Ionicons name="list-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Notification History
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.notificationHistory')}</Text>
             <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
           </TouchableOpacity>
 
           <View style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <Ionicons name="mail-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Email Notifications
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('privacy.emailNotifications')}</Text>
             <Switch
               value={emailNotifications}
               onValueChange={setEmailNotifications}
@@ -267,9 +251,7 @@ export default function ClientSettingsScreen() {
 
           <View style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <Ionicons name="notifications-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Push Notifications
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('privacy.pushNotifications')}</Text>
             <Switch
               value={pushNotifications}
               onValueChange={setPushNotifications}
@@ -279,9 +261,7 @@ export default function ClientSettingsScreen() {
 
           <View style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
             <Ionicons name="chatbox-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              SMS Notifications
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('privacy.smsNotifications')}</Text>
             <Switch
               value={smsNotifications}
               onValueChange={setSmsNotifications}
@@ -291,15 +271,11 @@ export default function ClientSettingsScreen() {
         </View>
 
         {/* Appearance */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>
-          Appearance
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('clientSettings.appearance')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <View style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
             <Ionicons name={isDark ? "moon" : "sunny"} size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Dark Mode
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.darkMode')}</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
@@ -309,9 +285,7 @@ export default function ClientSettingsScreen() {
         </View>
 
         {/* Privacy & Data */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>
-          Privacy & Data (GDPR)
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('clientSettings.privacyDataGDPR')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
@@ -319,9 +293,7 @@ export default function ClientSettingsScreen() {
             disabled={exportingData}
           >
             <Ionicons name="download-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Export My Data
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.exportDataTitle')}</Text>
             {exportingData ? (
               <ActivityIndicator size="small" color={theme.primary} />
             ) : (
@@ -334,9 +306,7 @@ export default function ClientSettingsScreen() {
             onPress={() => router.push('/(client)/privacy-settings')}
           >
             <Ionicons name="shield-checkmark-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Privacy Settings
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('privacy.privacySettings')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
@@ -345,9 +315,7 @@ export default function ClientSettingsScreen() {
             onPress={() => router.push('/(client)/data-retention')}
           >
             <Ionicons name="time-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Data Retention Info
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.dataRetentionInfo')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
@@ -357,9 +325,7 @@ export default function ClientSettingsScreen() {
             disabled={loading}
           >
             <Ionicons name="eye-off-outline" size={22} color="#F59E0B" style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: '#F59E0B', fontFamily: 'Poppins_500Medium' }]}>
-              Anonymize Account
-            </Text>
+            <Text style={[styles.menuText, { color: '#F59E0B', fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.anonymizeAccount')}</Text>
             {loading ? (
               <ActivityIndicator size="small" color="#F59E0B" />
             ) : (
@@ -369,48 +335,38 @@ export default function ClientSettingsScreen() {
         </View>
 
         {/* Support */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>
-          Support
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('clientSettings.supportSection')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
-            onPress={() => Alert.alert('Coming Soon', 'Help center will be available soon')}
+            onPress={() => Alert.alert(t('profile.comingSoon'), t('clientSettings.helpCenterComingSoon'))}
           >
             <Ionicons name="help-circle-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Help Center
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.helpCenter')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
-            onPress={() => Alert.alert('Coming Soon', 'Contact support will be available soon')}
+            onPress={() => Alert.alert(t('profile.comingSoon'), t('clientSettings.contactSupportComingSoon'))}
           >
             <Ionicons name="mail-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Contact Support
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('clientSettings.contactSupport')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
-            onPress={() => Alert.alert('Coming Soon', 'Terms & privacy page will be available soon')}
+            onPress={() => Alert.alert(t('profile.comingSoon'), t('clientSettings.termsPrivacyComingSoon'))}
           >
             <Ionicons name="document-text-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Terms & Privacy
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.termsPrivacy')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Danger Zone */}
-        <Text style={[styles.sectionTitle, { color: '#EF4444', fontFamily: 'Poppins_600SemiBold' }]}>
-          Danger Zone
-        </Text>
+        <Text style={[styles.sectionTitle, { color: '#EF4444', fontFamily: 'Poppins_600SemiBold' }]}>{t('clientSettings.dangerZone')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card, borderColor: '#EF4444', borderWidth: 1 }]}>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
@@ -418,9 +374,7 @@ export default function ClientSettingsScreen() {
             disabled={loading}
           >
             <Ionicons name="trash-outline" size={22} color="#EF4444" style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: '#EF4444', fontFamily: 'Poppins_600SemiBold' }]}>
-              Delete Account
-            </Text>
+            <Text style={[styles.menuText, { color: '#EF4444', fontFamily: 'Poppins_600SemiBold' }]}>{t('clientSettings.deleteAccountTitle')}</Text>
             {loading ? (
               <ActivityIndicator size="small" color="#EF4444" />
             ) : (
@@ -429,9 +383,7 @@ export default function ClientSettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.version, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-          Version 1.0.0
-        </Text>
+        <Text style={[styles.version, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('profile.version')}</Text>
       </ScrollView>
     </View>
   );

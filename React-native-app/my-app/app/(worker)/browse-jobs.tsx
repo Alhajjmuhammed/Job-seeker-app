@@ -17,6 +17,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Job {
   id: number;
@@ -36,6 +37,7 @@ interface Category {
 }
 
 export default function BrowseJobsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -241,7 +243,7 @@ export default function BrowseJobsScreen() {
               style={[styles.searchInput, { color: theme.text }]}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search jobs..."
+              placeholder={t('jobs.searchJobs')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
@@ -263,7 +265,7 @@ export default function BrowseJobsScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading jobs...</Text>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('nav.jobs')}</Text>
           </View>
         ) : (
           <ScrollView
@@ -281,10 +283,8 @@ export default function BrowseJobsScreen() {
             {filteredJobs.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="briefcase-outline" size={56} color={theme.textSecondary} style={{ marginBottom: 16 }} />
-                <Text style={[styles.emptyTitle, { color: theme.text }]}>No Jobs Found</Text>
-                <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                  Try adjusting your search or filters
-                </Text>
+                <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('jobs.noJobsFound')}</Text>
+                <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('jobs.adjustFilters')}</Text>
               </View>
             ) : (
               <>
@@ -308,7 +308,7 @@ export default function BrowseJobsScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Filters</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>{t('jobs.filters')}</Text>
               <TouchableOpacity onPress={() => setShowFilters(false)}>
                 <Ionicons name="close" size={28} color={theme.text} />
               </TouchableOpacity>
@@ -317,7 +317,7 @@ export default function BrowseJobsScreen() {
             <ScrollView style={styles.filterScroll} contentContainerStyle={styles.filterScrollContent}>
               {/* Category Filter */}
               <View style={styles.filterSection}>
-                <Text style={[styles.filterLabel, { color: theme.text }]}>Category</Text>
+                <Text style={[styles.filterLabel, { color: theme.text }]}>{t('jobs.category')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={styles.chipContainer}>
                     <TouchableOpacity
@@ -328,9 +328,7 @@ export default function BrowseJobsScreen() {
                       ]}
                       onPress={() => setSelectedCategory(null)}
                     >
-                      <Text style={[styles.chipText, { color: !selectedCategory ? '#FFFFFF' : theme.text }]}>
-                        All
-                      </Text>
+                      <Text style={[styles.chipText, { color: !selectedCategory ? '#FFFFFF' : theme.text }]}>{t('notifications.all')}</Text>
                     </TouchableOpacity>
                     {categories.map(category => (
                       <TouchableOpacity
@@ -353,22 +351,22 @@ export default function BrowseJobsScreen() {
 
               {/* Budget Range */}
               <View style={styles.filterSection}>
-                <Text style={[styles.filterLabel, { color: theme.text }]}>Budget Range</Text>
+                <Text style={[styles.filterLabel, { color: theme.text }]}>{t('jobs.budgetRange')}</Text>
                 <View style={styles.rangeInputs}>
                   <TextInput
                     style={[styles.rangeInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text }]}
                     value={minBudget}
                     onChangeText={setMinBudget}
-                    placeholder="Min"
+                    placeholder={t('jobs.min')}
                     placeholderTextColor={theme.textSecondary}
                     keyboardType="numeric"
                   />
-                  <Text style={[styles.rangeSeparator, { color: theme.textSecondary }]}>to</Text>
+                  <Text style={[styles.rangeSeparator, { color: theme.textSecondary }]}>{t('jobs.to')}</Text>
                   <TextInput
                     style={[styles.rangeInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text }]}
                     value={maxBudget}
                     onChangeText={setMaxBudget}
-                    placeholder="Max"
+                    placeholder={t('jobs.max')}
                     placeholderTextColor={theme.textSecondary}
                     keyboardType="numeric"
                   />
@@ -377,7 +375,7 @@ export default function BrowseJobsScreen() {
 
               {/* Duration Type */}
               <View style={styles.filterSection}>
-                <Text style={[styles.filterLabel, { color: theme.text }]}>Duration Type</Text>
+                <Text style={[styles.filterLabel, { color: theme.text }]}>{t('jobs.durationType')}</Text>
                 <View style={styles.chipContainer}>
                   {['hourly', 'daily', 'weekly', 'monthly', 'project'].map(type => (
                     <TouchableOpacity
@@ -399,12 +397,12 @@ export default function BrowseJobsScreen() {
 
               {/* Location */}
               <View style={styles.filterSection}>
-                <Text style={[styles.filterLabel, { color: theme.text }]}>Location</Text>
+                <Text style={[styles.filterLabel, { color: theme.text }]}>{t('jobs.location')}</Text>
                 <TextInput
                   style={[styles.locationInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text }]}
                   value={location}
                   onChangeText={setLocation}
-                  placeholder="Enter city or location"
+                  placeholder={t('jobs.enterLocation')}
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>
@@ -416,14 +414,14 @@ export default function BrowseJobsScreen() {
                 style={[styles.clearButton, { borderColor: theme.border }]}
                 onPress={clearFilters}
               >
-                <Text style={[styles.clearButtonText, { color: theme.textSecondary }]}>Clear All</Text>
+                <Text style={[styles.clearButtonText, { color: theme.textSecondary }]}>{t('jobs.clearAll')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.applyButton, { backgroundColor: theme.primary }]}
                 onPress={applyFilters}
               >
-                <Text style={styles.applyButtonText}>Apply Filters</Text>
+                <Text style={styles.applyButtonText}>{t('jobs.applyFilters')}</Text>
               </TouchableOpacity>
             </View>
           </View>

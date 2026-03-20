@@ -10,8 +10,10 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function TermsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [termsContent, setTermsContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -26,7 +28,7 @@ export default function TermsScreen() {
       setTermsContent(response.content || 'Terms of service not available.');
     } catch (error) {
       console.error('Error loading terms:', error);
-      Alert.alert('Error', 'Failed to load terms of service');
+      Alert.alert(t('common.error'), t('terms.failedLoadTerms'));
       setTermsContent('Failed to load terms of service. Please try again later.');
     } finally {
       setLoading(false);
@@ -37,9 +39,7 @@ export default function TermsScreen() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[styles.loadingText, { color: theme.text }]}>
-          Loading terms of service...
-        </Text>
+        <Text style={[styles.loadingText, { color: theme.text }]}>{t('terms.loadingTerms')}</Text>
       </View>
     );
   }
@@ -50,9 +50,7 @@ export default function TermsScreen() {
       
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={[styles.contentContainer, { backgroundColor: theme.card }]}>
-          <Text style={[styles.title, { color: theme.text }]}>
-            Terms of Service
-          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('terms.termsOfService')}</Text>
           
           <Text style={[styles.lastUpdated, { color: theme.textSecondary }]}>
             Last updated: {new Date().toLocaleDateString()}

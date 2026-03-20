@@ -17,6 +17,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Document {
   id: number;
@@ -36,6 +37,7 @@ interface DocumentTypeOption {
 }
 
 export default function DocumentsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -54,7 +56,7 @@ export default function DocumentsScreen() {
       setHasNationalId(response.has_national_id || false);
     } catch (error) {
       console.error('Error loading documents:', error);
-      Alert.alert('Error', 'Failed to load documents');
+      Alert.alert(t('common.error'), t('documents.failedLoadDocuments'));
     } finally {
       setLoading(false);
     }
@@ -112,7 +114,7 @@ export default function DocumentsScreen() {
       await uploadFile(file, documentType);
     } catch (error) {
       console.error('Error picking document:', error);
-      Alert.alert('Error', 'Failed to pick document');
+      Alert.alert(t('common.error'), 'Failed to pick document');
     }
   };
 
@@ -127,11 +129,11 @@ export default function DocumentsScreen() {
       };
 
       await apiService.uploadDocument(fileToUpload, documentType);
-      Alert.alert('Success', 'Document uploaded successfully!');
+      Alert.alert(t('common.success'), t('documents.documentUploadedSuccess'));
       loadDocuments(); // Reload the list
     } catch (error: any) {
       console.error('Upload error:', error);
-      Alert.alert('Upload Failed', error.response?.data?.error || 'Failed to upload document');
+      Alert.alert(t('worker.uploadFailed'), error.response?.data?.error || 'Failed to upload document');
     } finally {
       setLoading(false);
     }
@@ -150,11 +152,11 @@ export default function DocumentsScreen() {
             try {
               setLoading(true);
               await apiService.deleteDocument(doc.id);
-              Alert.alert('Success', 'Document deleted successfully');
+              Alert.alert(t('common.success'), t('documents.documentDeletedSuccess'));
               loadDocuments(); // Reload the list
             } catch (error: any) {
               console.error('Delete error:', error);
-              Alert.alert('Error', error.response?.data?.error || 'Failed to delete document');
+              Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to delete document');
             } finally {
               setLoading(false);
             }
@@ -167,7 +169,7 @@ export default function DocumentsScreen() {
   const handleViewDocument = (doc: Document) => {
     if (doc.file_url) {
       Linking.openURL(doc.file_url).catch(() => {
-        Alert.alert('Error', 'Unable to open document');
+        Alert.alert(t('common.error'), t('documents.unableOpenDocument'));
       });
     }
   };
@@ -222,14 +224,14 @@ export default function DocumentsScreen() {
       <Header 
         showNotifications 
         showSearch 
-        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
-        onSearchPress={() => Alert.alert('Search', 'Search coming soon')}
+        onNotificationPress={() => Alert.alert(t('settings.notifications'), t('nav.notifications'))}
+        onSearchPress={() => Alert.alert(t('client.search'), 'Search coming soon')}
       />
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading documents...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('documents.loadingDocuments')}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -245,19 +247,17 @@ export default function DocumentsScreen() {
           {/* Upload Button */}
           <TouchableOpacity style={[styles.uploadButton, { backgroundColor: theme.primary }]} onPress={handleUploadDocument}>
             <Ionicons name="cloud-upload-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <Text style={styles.uploadButtonText}>Upload Document</Text>
+            <Text style={styles.uploadButtonText}>{t('documents.uploadDocument')}</Text>
           </TouchableOpacity>
 
           {/* Documents List */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Uploaded Documents</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('documents.uploadedDocuments')}</Text>
             {documents.length === 0 ? (
               <View style={[styles.emptyState, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
                 <Ionicons name="document-text-outline" size={48} color={theme.textSecondary} />
-                <Text style={[styles.emptyText, { color: theme.text }]}>No documents uploaded</Text>
-                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-                  Upload documents to verify your profile
-                </Text>
+                <Text style={[styles.emptyText, { color: theme.text }]}>{t('documents.noDocumentsUploaded')}</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('documents.uploadToVerify')}</Text>
               </View>
             ) : (
               documents.map((doc) => (
@@ -294,7 +294,7 @@ export default function DocumentsScreen() {
                       style={styles.deleteButton}
                       onPress={() => handleDeleteDocument(doc)}
                     >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
+                      <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -304,26 +304,26 @@ export default function DocumentsScreen() {
 
           {/* Document Guidelines */}
           <View style={[styles.guideSection, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
-            <Text style={[styles.guideTitle, { color: theme.text }]}>Document Guidelines</Text>
+            <Text style={[styles.guideTitle, { color: theme.text }]}>{t('documents.documentGuidelines')}</Text>
             
-            <Text style={[styles.guideSectionTitle, { color: theme.text }]}>🔴 Required (Must Upload)</Text>
+            <Text style={[styles.guideSectionTitle, { color: theme.text }]}>{t('documents.requiredMustUpload')}</Text>
             <View style={styles.guideItem}>
               <Ionicons name="checkmark" size={16} color={theme.primary} style={{ marginRight: 8 }} />
-              <Text style={[styles.guideText, { color: theme.textSecondary }]}>National ID or Passport</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>{t('documents.nationalIDPassport')}</Text>
             </View>
 
-            <Text style={[styles.guideSectionTitle, { color: theme.text }]}>⚪ Optional (Recommended)</Text>
+            <Text style={[styles.guideSectionTitle, { color: theme.text }]}>{t('documents.optionalRecommended')}</Text>
             <View style={styles.guideItem}>
               <Text style={[styles.guideIcon, { color: theme.textSecondary }]}>•</Text>
-              <Text style={[styles.guideText, { color: theme.textSecondary }]}>Professional Certificates (for professionals)</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>{t('documents.professionalCerts')}</Text>
             </View>
             <View style={styles.guideItem}>
               <Text style={[styles.guideIcon, { color: theme.textSecondary }]}>•</Text>
-              <Text style={[styles.guideText, { color: theme.textSecondary }]}>University Degrees (for professionals)</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>{t('documents.universityDegrees')}</Text>
             </View>
             <View style={styles.guideItem}>
               <Text style={[styles.guideIcon, { color: theme.textSecondary }]}>•</Text>
-              <Text style={[styles.guideText, { color: theme.textSecondary }]}>Proof of Experience (for non-academic workers)</Text>
+              <Text style={[styles.guideText, { color: theme.textSecondary }]}>{t('documents.proofExperience')}</Text>
             </View>
           </View>
         </ScrollView>
@@ -343,7 +343,7 @@ export default function DocumentsScreen() {
         >
           <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Select Document Type</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>{t('documents.selectDocumentType')}</Text>
               <TouchableOpacity onPress={() => setShowTypeSelector(false)}>
                 <Ionicons name="close" size={24} color={theme.text} />
               </TouchableOpacity>
@@ -364,7 +364,7 @@ export default function DocumentsScreen() {
                       {docType.label}
                     </Text>
                     {docType.required && (
-                      <Text style={[styles.requiredBadge, { color: '#DC2626' }]}>Required</Text>
+                      <Text style={[styles.requiredBadge, { color: '#DC2626' }]}>{t('worker.required')}</Text>
                     )}
                   </View>
                   <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />

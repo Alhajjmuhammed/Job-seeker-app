@@ -16,6 +16,7 @@ import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { useTranslation } from 'react-i18next';
 
 interface CurrentAssignment {
   id: number;
@@ -33,6 +34,7 @@ interface CurrentAssignment {
 }
 
 export default function ActiveService() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -50,18 +52,18 @@ export default function ActiveService() {
       if (response.service_request) {
         setAssignment(response.service_request);
       } else {
-        Alert.alert('No Active Service', 'You don\'t have any active service assignment', [
+        Alert.alert(t('assignments.noActiveService'), 'You don\'t have any active service assignment', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       }
     } catch (error: any) {
       console.error('Error loading current assignment:', error);
       if (error.response?.status === 404) {
-        Alert.alert('No Active Service', 'You don\'t have any active service assignment', [
+        Alert.alert(t('assignments.noActiveService'), 'You don\'t have any active service assignment', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       } else {
-        Alert.alert('Error', error.response?.data?.error || 'Failed to load active service');
+        Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to load active service');
       }
     } finally {
       setLoading(false);
@@ -115,12 +117,8 @@ export default function ActiveService() {
               color={theme.primary}
             />
             <View style={styles.statusContent}>
-              <Text style={[styles.statusTitle, { color: theme.text }]}>
-                Active Service
-              </Text>
-              <Text style={[styles.statusSubtitle, { color: theme.textSecondary }]}>
-                You are currently working on this service
-              </Text>
+              <Text style={[styles.statusTitle, { color: theme.text }]}>{t('assignments.activeService')}</Text>
+              <Text style={[styles.statusSubtitle, { color: theme.textSecondary }]}>{t('assignments.currentlyWorking')}</Text>
             </View>
           </View>
         </View>
@@ -149,7 +147,7 @@ export default function ActiveService() {
 
         {/* Client Info */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Client</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('assignments.client')}</Text>
           
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={theme.textSecondary} />
@@ -182,20 +180,16 @@ export default function ActiveService() {
 
         {/* Contact Client Actions */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Client Contact
-          </Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('assignments.clientContact')}</Text>
           
-          <Text style={[styles.infoText, { color: theme.textSecondary, marginBottom: 16 }]}>
-            Need to reach the client? Use the button below to call them directly.
-          </Text>
+          <Text style={[styles.infoText, { color: theme.textSecondary, marginBottom: 16 }]}>{t('assignments.needReachClient')}</Text>
 
           <TouchableOpacity
             style={[styles.callButton, { backgroundColor: theme.primary }]}
             onPress={handleCallClient}
           >
             <Ionicons name="call" size={24} color="#fff" />
-            <Text style={styles.callButtonText}>Call Client</Text>
+            <Text style={styles.callButtonText}>{t('assignments.callClient')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -203,12 +197,8 @@ export default function ActiveService() {
         <View style={[styles.infoCard, { backgroundColor: theme.primary + '15' }]}>
           <Ionicons name="information-circle" size={24} color={theme.primary} />
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[styles.infoCardTitle, { color: theme.primary }]}>
-              Work in Progress
-            </Text>
-            <Text style={[styles.infoCardText, { color: theme.text }]}>
-              Continue working on this service. The client will mark it as finished when they are satisfied with the work completed.
-            </Text>
+            <Text style={[styles.infoCardTitle, { color: theme.primary }]}>{t('assignments.workInProgress')}</Text>
+            <Text style={[styles.infoCardText, { color: theme.text }]}>{t('assignments.continueWorking')}</Text>
           </View>
         </View>
       </ScrollView>

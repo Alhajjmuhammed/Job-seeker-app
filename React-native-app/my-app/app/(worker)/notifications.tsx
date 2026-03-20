@@ -15,6 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: number;
@@ -27,6 +28,7 @@ interface Notification {
 }
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { refreshUnreadCount } = useNotifications();
   const [loading, setLoading] = useState(true);
@@ -166,7 +168,7 @@ export default function NotificationsScreen() {
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <Ionicons name="notifications" size={28} color={theme.primary} />
-            <Text style={[styles.title, { color: theme.text }]}>Notifications</Text>
+            <Text style={[styles.title, { color: theme.text }]}>{t('nav.notifications')}</Text>
           </View>
           
           {unreadCount > 0 && (
@@ -174,7 +176,7 @@ export default function NotificationsScreen() {
               style={[styles.markAllButton, { backgroundColor: theme.primary }]}
               onPress={handleMarkAllAsRead}
             >
-              <Text style={styles.markAllButtonText}>Mark all read</Text>
+              <Text style={styles.markAllButtonText}>{t('notifications.markAllRead')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -220,9 +222,7 @@ export default function NotificationsScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-              Loading notifications...
-            </Text>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('notifications.loadingNotifications')}</Text>
           </View>
         ) : (
           <ScrollView

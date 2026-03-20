@@ -613,3 +613,282 @@ msgstr "Parcourir les emplois"
 
 msgid "Join As"
 msgstr "Rejoindre en tant que"
+
+msgid "Our Partners"
+msgstr "Nos Partenaires"
+
+msgid "Trusted by"
+msgstr "Fait confiance par"
+
+msgid "Leading Organizations"
+msgstr "Organisations de Premier Plan"
+
+msgid "We collaborate with top companies, agencies, and institutions across Tanzania to deliver the best workforce solutions."
+msgstr "Nous collaborons avec les meilleures entreprises, agences et institutions de Tanzanie pour proposer les meilleures solutions de main-d'œuvre."
+
+msgid "Partner Companies"
+msgstr "Entreprises Partenaires"
+
+msgid "Industries"
+msgstr "Secteurs"
+
+msgid "Regions"
+msgstr "Régions"
+
+msgid "Partner Satisfaction"
+msgstr "Satisfaction des Partenaires"
+
+msgid "Construction"
+msgstr "Construction"
+
+msgid "Hospitality"
+msgstr "Hôtellerie"
+
+msgid "Cleaning Services"
+msgstr "Services de Nettoyage"
+
+msgid "Security"
+msgstr "Sécurité"
+
+msgid "Engineering"
+msgstr "Ingénierie"
+
+msgid "Telecom"
+msgstr "Télécommunications"
+
+msgid "Finance"
+msgstr "Finance"
+
+msgid "FMCG"
+msgstr "Grande Consommation"
+
+msgid "Energy"
+msgstr "Énergie"
+
+msgid "Partner With Us"
+msgstr "Partenariat avec Nous"
+
+msgid "Grow Your Business"
+msgstr "Développez Votre Activité"
+
+msgid "With Worker Connect"
+msgstr "Avec Worker Connect"
+
+msgid "Join our network of trusted partners. Get access to a verified workforce, co-marketing opportunities, and a dedicated partner dashboard."
+msgstr "Rejoignez notre réseau de partenaires de confiance. Accédez à une main-d'œuvre vérifiée, des opportunités de co-marketing et un tableau de bord partenaire dédié."
+
+msgid "Become a Partner"
+msgstr "Devenir Partenaire"
+
+msgid "Learn More"
+msgstr "En Savoir Plus"
+
+msgid "Create Your Account"
+msgstr "Créer Votre Compte"
+
+msgid "Back to Home"
+msgstr "Retour à l'accueil"
+
+msgid "Choose Your Account Type"
+msgstr "Choisissez votre type de compte"
+
+msgid "Select the role that best describes you"
+msgstr "Sélectionnez le rôle qui vous décrit le mieux"
+
+msgid "I'm a Worker"
+msgstr "Je suis un Travailleur"
+
+msgid "Showcase your skills and get hired by verified clients"
+msgstr "Montrez vos compétences et soyez embauché par des clients vérifiés"
+
+msgid "Build a professional profile"
+msgstr "Créez un profil professionnel"
+
+msgid "Upload credentials & certificates"
+msgstr "Téléchargez vos diplômes et certificats"
+
+msgid "Receive job assignments"
+msgstr "Recevez des offres d'emploi"
+
+msgid "Track earnings & time"
+msgstr "Suivez vos gains et votre temps"
+
+msgid "Register as Worker"
+msgstr "S'inscrire comme Travailleur"
+
+msgid "I'm a Client"
+msgstr "Je suis un Client"
+
+msgid "Find and hire skilled workers for any task or project"
+msgstr "Trouvez et engagez des travailleurs qualifiés pour toute tâche"
+
+msgid "Browse verified workers"
+msgstr "Parcourir les travailleurs vérifiés"
+
+msgid "Post service requests easily"
+msgstr "Publiez des demandes de service facilement"
+
+msgid "Rate and review workers"
+msgstr "Notez et évaluez les travailleurs"
+
+msgid "Secure payment & invoicing"
+msgstr "Paiement sécurisé et facturation"
+
+msgid "Register as Client"
+msgstr "S'inscrire comme Client"
+
+msgid "I'm an Agent"
+msgstr "Je suis un Agent"
+
+msgid "Recruit workers, manage teams, and earn commission"
+msgstr "Recrutez des travailleurs, gérez des équipes et gagnez des commissions"
+
+msgid "Get a unique agent code"
+msgstr "Obtenez un code agent unique"
+
+msgid "Recruit & manage workers"
+msgstr "Recruter et gérer les travailleurs"
+
+msgid "Earn commission per job"
+msgstr "Gagnez une commission par travail"
+
+msgid "Track worker performance"
+msgstr "Suivez les performances des travailleurs"
+
+msgid "Register as Agent"
+msgstr "S'inscrire comme Agent"
+
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+msgid "Login here"
+msgstr "Connectez-vous ici"
+
+msgid "Verified Workers"
+msgstr "Travailleurs Vérifiés"
+
+msgid "Background-checked professionals"
+msgstr "Professionnels vérifiés"
+
+msgid "Secure Platform"
+msgstr "Plateforme Sécurisée"
+
+msgid "Your data is safe with us"
+msgstr "Vos données sont en sécurité"
+
+msgid "Rated & Reviewed"
+msgstr "Noté & Évalué"
+
+msgid "Transparent quality ratings"
+msgstr "Notes de qualité transparentes"
+
+msgid "24/7 Support"
+msgstr "Support 24h/24 7j/7"
+
+msgid "We're here when you need us"
+msgstr "Nous sommes là quand vous avez besoin"
+
+msgid "Worker Registration"
+msgstr "Inscription Travailleur"
+
+msgid "Worker"
+msgstr "Travailleur"
+
+msgid "Account"
+msgstr "Compte"
+
+msgid "Build your professional profile and start getting hired by verified clients."
+msgstr "Créez votre profil professionnel et commencez à être embauché par des clients vérifiés."
+
+msgid "Upload credentials"
+msgstr "Télécharger les diplômes"
+
+msgid "Create Account"
+msgstr "Créer un compte"
+
+msgid "Fill in your details to get started as a Worker"
+msgstr "Remplissez vos informations pour commencer en tant que Travailleur"
+
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "Last Name"
+msgstr "Nom de famille"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Phone Number"
+msgstr "Numéro de téléphone"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Confirm Password"
+msgstr "Confirmer le mot de passe"
+
+msgid "Agent Code"
+msgstr "Code agent"
+
+msgid "optional"
+msgstr "optionnel"
+
+msgid "Create Worker Account"
+msgstr "Créer un compte Travailleur"
+
+msgid "Client Registration"
+msgstr "Inscription Client"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "Post jobs and hire verified skilled workers for any task or project."
+msgstr "Publiez des offres et embauchez des travailleurs qualifiés vérifiés pour toute tâche ou projet."
+
+msgid "Browse verified workers"
+msgstr "Parcourir les travailleurs vérifiés"
+
+msgid "Post service requests"
+msgstr "Publier des demandes de service"
+
+msgid "Secure payment & invoicing"
+msgstr "Paiement sécurisé et facturation"
+
+msgid "Fill in your details to get started as a Client"
+msgstr "Remplissez vos informations pour commencer en tant que Client"
+
+msgid "Create Client Account"
+msgstr "Créer un compte Client"
+
+msgid "Agent Registration"
+msgstr "Inscription Agent"
+
+msgid "Agent"
+msgstr "Agent"
+
+msgid "Recruit workers, manage your team, and earn commission on every completed job."
+msgstr "Recrutez des travailleurs, gérez votre équipe et gagnez une commission sur chaque travail terminé."
+
+msgid "Get a unique agent code"
+msgstr "Obtenez un code agent unique"
+
+msgid "Recruit & manage workers"
+msgstr "Recruter et gérer les travailleurs"
+
+msgid "Track worker performance"
+msgstr "Suivre les performances des travailleurs"
+
+msgid "Fill in your details to apply as an Agent"
+msgstr "Remplissez vos informations pour postuler en tant qu'Agent"
+
+msgid "After registration your account will be reviewed. Once approved you'll receive a unique Agent Code to share with workers."
+msgstr "Après inscription votre compte sera examiné. Une fois approuvé vous recevrez un Code Agent unique à partager avec les travailleurs."
+
+msgid "Business Name"
+msgstr "Nom de l'entreprise"
+
+msgid "Submit Application"
+msgstr "Soumettre la candidature"

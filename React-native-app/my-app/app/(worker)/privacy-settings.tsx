@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface ConsentSettings {
   marketing_emails: boolean;
@@ -23,6 +24,7 @@ interface ConsentSettings {
 }
 
 export default function PrivacySettingsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,12 +60,12 @@ export default function PrivacySettingsScreen() {
       
       await apiService.updateConsentSettings({ [key]: value });
       
-      Alert.alert('Success', 'Privacy setting updated');
+      Alert.alert(t('common.success'), t('privacy.privacySettingUpdated'));
     } catch (error) {
       console.error('Error updating consent:', error);
       // Revert on error
       setConsents(consents);
-      Alert.alert('Error', 'Failed to update privacy setting');
+      Alert.alert(t('common.error'), t('privacy.failedUpdatePrivacy'));
     } finally {
       setSaving(false);
     }
@@ -90,7 +92,7 @@ export default function PrivacySettingsScreen() {
                   'Your data export has been initiated. You will receive an email shortly.'
                 );
               } catch (error) {
-                Alert.alert('Error', 'Failed to export data');
+                Alert.alert(t('common.error'), t('privacy.failedExportData'));
               }
             },
           },
@@ -116,23 +118,17 @@ export default function PrivacySettingsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
           <Ionicons name="shield-checkmark" size={32} color={theme.primary} />
-          <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-            Control how your data is used and shared. Changes take effect immediately.
-          </Text>
+          <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('privacy.controlDataUsage')}</Text>
         </View>
 
         {/* Data Consent Settings */}
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Data Usage Consent</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy.dataUsageConsent')}</Text>
         
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, { color: theme.text }]}>
-                Marketing Emails
-              </Text>
-              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>
-                Receive promotional emails and special offers
-              </Text>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.marketingEmails')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.receivePromotional')}</Text>
             </View>
             <Switch
               value={consents.marketing_emails}
@@ -147,12 +143,8 @@ export default function PrivacySettingsScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, { color: theme.text }]}>
-                Analytics
-              </Text>
-              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>
-                Help us improve by sharing anonymous usage data
-              </Text>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.analyticsData')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.helpImprove')}</Text>
             </View>
             <Switch
               value={consents.analytics}
@@ -167,12 +159,8 @@ export default function PrivacySettingsScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, { color: theme.text }]}>
-                Personalization
-              </Text>
-              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>
-                Customize your experience based on your activity
-              </Text>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.personalization')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.customizeExperience')}</Text>
             </View>
             <Switch
               value={consents.personalization}
@@ -187,12 +175,8 @@ export default function PrivacySettingsScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, { color: theme.text }]}>
-                Third-Party Sharing
-              </Text>
-              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>
-                Share data with partner services (payment, verification)
-              </Text>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.thirdPartySharing')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.shareWithPartners')}</Text>
             </View>
             <Switch
               value={consents.third_party_sharing}
@@ -205,7 +189,7 @@ export default function PrivacySettingsScreen() {
         </View>
 
         {/* Data Management */}
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Data Management</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy.dataManagement')}</Text>
         
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <TouchableOpacity
@@ -215,12 +199,8 @@ export default function PrivacySettingsScreen() {
             <View style={styles.menuLeft}>
               <Ionicons name="time-outline" size={24} color={theme.primary} />
               <View style={styles.menuText}>
-                <Text style={[styles.menuTitle, { color: theme.text }]}>
-                  Data Retention Policy
-                </Text>
-                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>
-                  View how long we keep your data
-                </Text>
+                <Text style={[styles.menuTitle, { color: theme.text }]}>{t('privacy.dataRetentionPolicy')}</Text>
+                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>{t('privacy.viewDataRetention')}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
@@ -235,12 +215,8 @@ export default function PrivacySettingsScreen() {
             <View style={styles.menuLeft}>
               <Ionicons name="download-outline" size={24} color={theme.primary} />
               <View style={styles.menuText}>
-                <Text style={[styles.menuTitle, { color: theme.text }]}>
-                  Export My Data
-                </Text>
-                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>
-                  Download a copy of your personal data
-                </Text>
+                <Text style={[styles.menuTitle, { color: theme.text }]}>{t('clientSettings.exportDataTitle')}</Text>
+                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>{t('privacy.downloadPersonalData')}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
@@ -255,12 +231,8 @@ export default function PrivacySettingsScreen() {
             <View style={styles.menuLeft}>
               <Ionicons name="trash-outline" size={24} color="#EF4444" />
               <View style={styles.menuText}>
-                <Text style={[styles.menuTitle, { color: '#EF4444' }]}>
-                  Delete Account
-                </Text>
-                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>
-                  Permanently remove your account
-                </Text>
+                <Text style={[styles.menuTitle, { color: '#EF4444' }]}>{t('clientSettings.deleteAccountTitle')}</Text>
+                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>{t('privacy.permanentlyRemove')}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
@@ -269,7 +241,7 @@ export default function PrivacySettingsScreen() {
 
         {/* GDPR Rights Info */}
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
-          <Text style={[styles.infoTitle, { color: theme.text }]}>Your GDPR Rights</Text>
+          <Text style={[styles.infoTitle, { color: theme.text }]}>{t('privacy.yourGDPRRights')}</Text>
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>
             • Right to Access - View your personal data{'\n'}
             • Right to Rectification - Correct inaccurate data{'\n'}

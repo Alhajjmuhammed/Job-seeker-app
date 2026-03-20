@@ -16,6 +16,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceRequestDetail {
   id: number;
@@ -56,6 +57,7 @@ function formatDate(date: Date): string {
 }
 
 export default function EditServiceRequestScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -132,7 +134,7 @@ export default function EditServiceRequestScreen() {
       }
     } catch (error: any) {
       console.error('Error loading request:', error);
-      Alert.alert('Error', 'Failed to load request details');
+      Alert.alert(t('common.error'), 'Failed to load request details');
       router.back();
     } finally {
       setLoading(false);
@@ -172,31 +174,31 @@ export default function EditServiceRequestScreen() {
 
   const validateForm = (): boolean => {
     if (!selectedCategory) {
-      Alert.alert('Validation Error', 'Please select a service category');
+      Alert.alert(t('client.validationError'), t('requestService.selectCategory'));
       return false;
     }
     if (!title.trim()) {
-      Alert.alert('Validation Error', 'Please enter a title');
+      Alert.alert(t('client.validationError'), t('requestService.enterTitle'));
       return false;
     }
     if (!description.trim()) {
-      Alert.alert('Validation Error', 'Please enter a description');
+      Alert.alert(t('client.validationError'), t('requestService.enterDescription'));
       return false;
     }
     if (!location.trim()) {
-      Alert.alert('Validation Error', 'Please enter a location');
+      Alert.alert(t('client.validationError'), t('requestService.enterLocationField'));
       return false;
     }
     if (!city.trim()) {
-      Alert.alert('Validation Error', 'Please enter a city');
+      Alert.alert(t('client.validationError'), t('requestService.enterCityField'));
       return false;
     }
     if (!priceCalculation) {
-      Alert.alert('Error', 'Price calculation is required');
+      Alert.alert(t('common.error'), t('requestService.priceCalculationRequired'));
       return false;
     }
     if (durationType === 'custom' && serviceEndDate <= serviceStartDate) {
-      Alert.alert('Validation Error', 'End date must be after start date');
+      Alert.alert(t('client.validationError'), t('requestService.endDateAfterStart'));
       return false;
     }
     return true;
@@ -245,7 +247,7 @@ export default function EditServiceRequestScreen() {
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
                           'Failed to update service request';
-      Alert.alert('Error', errorMessage);
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -272,7 +274,7 @@ export default function EditServiceRequestScreen() {
         <Header title="Edit Service Request" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('requestService.loading')}</Text>
         </View>
       </View>
     );
@@ -299,9 +301,7 @@ export default function EditServiceRequestScreen() {
         {/* Info Banner */}
         <View style={[styles.infoBanner, { backgroundColor: theme.primary + '15' }]}>
           <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
-          <Text style={[styles.infoBannerText, { color: theme.primary }]}>
-            Only pending requests can be edited
-          </Text>
+          <Text style={[styles.infoBannerText, { color: theme.primary }]}>{t('assignments.pending')}</Text>
         </View>
 
         {/* Category Selection */}
@@ -340,7 +340,7 @@ export default function EditServiceRequestScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="E.g., Fix leaking kitchen faucet"
+            placeholder={t('requestService.titlePlaceholder')}
             placeholderTextColor={theme.textSecondary}
             value={title}
             onChangeText={setTitle}
@@ -359,7 +359,7 @@ export default function EditServiceRequestScreen() {
               styles.textArea,
               { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
             ]}
-            placeholder="Describe what you need help with..."
+            placeholder={t('requestService.descriptionPlaceholder')}
             placeholderTextColor={theme.textSecondary}
             value={description}
             onChangeText={setDescription}
@@ -377,7 +377,7 @@ export default function EditServiceRequestScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="Street address or area"
+            placeholder={t('requestService.locationStreet')}
             placeholderTextColor={theme.textSecondary}
             value={location}
             onChangeText={setLocation}
@@ -392,7 +392,7 @@ export default function EditServiceRequestScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="City name"
+            placeholder={t('requestService.cityName')}
             placeholderTextColor={theme.textSecondary}
             value={city}
             onChangeText={setCity}
@@ -402,7 +402,7 @@ export default function EditServiceRequestScreen() {
 
         {/* Preferred Date */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Preferred Date</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.preferredDate')}</Text>
           <TouchableOpacity
             style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowDatePicker(true)}
@@ -426,7 +426,7 @@ export default function EditServiceRequestScreen() {
 
         {/* Preferred Time */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Preferred Time</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.preferredTime')}</Text>
           <TouchableOpacity
             style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowTimePicker(true)}
@@ -545,7 +545,7 @@ export default function EditServiceRequestScreen() {
           <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
             <View style={styles.priceRow}>
               <Ionicons name="calendar-outline" size={20} color={theme.primary} />
-              <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
+              <Text style={[styles.priceLabel, { color: theme.text }]}>{t('requestService.duration')}</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
                 {priceCalculation.duration_days} days
               </Text>
@@ -559,7 +559,7 @@ export default function EditServiceRequestScreen() {
             </View>
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
-              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
+              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>{t('requestService.totalPrice')}</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
                 TSH {priceCalculation.total_price}
               </Text>
@@ -570,15 +570,13 @@ export default function EditServiceRequestScreen() {
         {calculatingPrice && (
           <View style={styles.calculatingContainer}>
             <ActivityIndicator size="small" color={theme.primary} />
-            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>
-              Calculating price...
-            </Text>
+            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>{t('requestService.calculatingPrice')}</Text>
           </View>
         )}
 
         {/* Urgency */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Urgency Level</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.urgencyLevel')}</Text>
           <View style={styles.urgencyButtons}>
             {(['normal', 'urgent', 'emergency'] as const).map((level) => (
               <TouchableOpacity
@@ -607,14 +605,14 @@ export default function EditServiceRequestScreen() {
 
         {/* Additional Notes */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Additional Notes</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.additionalNotes')}</Text>
           <TextInput
             style={[
               styles.input,
               styles.textArea,
               { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
             ]}
-            placeholder="Any additional information..."
+            placeholder={t('requestService.anyAdditionalInfo')}
             placeholderTextColor={theme.textSecondary}
             value={clientNotes}
             onChangeText={setClientNotes}
@@ -632,7 +630,7 @@ export default function EditServiceRequestScreen() {
             onPress={() => router.back()}
             disabled={submitting}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.text }]}>Cancel</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

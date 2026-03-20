@@ -19,8 +19,10 @@ import Header from '../../../../components/Header';
 import apiService from '../../../../services/api';
 // @ts-ignore - Package is installed but TypeScript may not resolve types immediately
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 export default function EditExperienceScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ export default function EditExperienceScreen() {
       const experience = experiences.find((exp: any) => exp.id === parseInt(id as string));
       
       if (!experience) {
-        Alert.alert('Error', 'Experience not found', [
+        Alert.alert(t('common.error'), 'Experience not found', [
           { text: 'OK', onPress: () => router.back() }
         ]);
         return;
@@ -65,7 +67,7 @@ export default function EditExperienceScreen() {
       setDescription(experience.description || '');
     } catch (error) {
       console.error('Failed to load experience:', error);
-      Alert.alert('Error', 'Failed to load experience data', [
+      Alert.alert(t('common.error'), 'Failed to load experience data', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } finally {
@@ -76,11 +78,11 @@ export default function EditExperienceScreen() {
   const handleSave = async () => {
     // Validation
     if (!jobTitle.trim()) {
-      Alert.alert('Validation Error', 'Job title is required');
+      Alert.alert(t('client.validationError'), 'Job title is required');
       return;
     }
     if (!company.trim()) {
-      Alert.alert('Validation Error', 'Company name is required');
+      Alert.alert(t('client.validationError'), 'Company name is required');
       return;
     }
 
@@ -98,12 +100,12 @@ export default function EditExperienceScreen() {
       };
 
       await apiService.updateWorkExperience(parseInt(id as string), data);
-      Alert.alert('Success', 'Experience updated successfully!', [
+      Alert.alert(t('common.success'), 'Experience updated successfully!', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error: any) {
       console.error('Failed to update experience:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Failed to update experience');
+      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to update experience');
     } finally {
       setSaving(false);
     }
@@ -134,7 +136,7 @@ export default function EditExperienceScreen() {
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text }]}>Edit Experience</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('common.edit')}</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Update your work history details
           </Text>
@@ -168,7 +170,7 @@ export default function EditExperienceScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Location</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('jobs.location')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={location}
@@ -261,7 +263,7 @@ export default function EditExperienceScreen() {
             onPress={() => router.back()}
             disabled={saving}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

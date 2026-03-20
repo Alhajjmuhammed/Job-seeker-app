@@ -83,7 +83,7 @@ export default function LoginScreen() {
             <Text style={styles.label}>{t('auth.password')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your password"
+              placeholder={t('auth.enterPassword')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry

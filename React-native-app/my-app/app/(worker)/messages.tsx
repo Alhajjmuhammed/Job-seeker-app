@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Conversation {
   id: number;
@@ -29,6 +30,7 @@ interface Conversation {
 }
 
 export default function WorkerMessagesScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +50,7 @@ export default function WorkerMessagesScreen() {
       } catch (error: any) {
         console.error('Error loading conversations:', error);
         if (mounted && error.response?.status !== 404) {
-          Alert.alert('Error', 'Failed to load conversations');
+          Alert.alert(t('common.error'), t('messages.failedLoadConversations'));
         }
       } finally {
         if (mounted) {
@@ -74,7 +76,7 @@ export default function WorkerMessagesScreen() {
     } catch (error: any) {
       console.error('Error loading conversations:', error);
       if (checkMounted() && error.response?.status !== 404) {
-        Alert.alert('Error', 'Failed to load conversations');
+        Alert.alert(t('common.error'), t('messages.failedLoadConversations'));
       }
     } finally {
       if (checkMounted()) {
@@ -127,7 +129,7 @@ export default function WorkerMessagesScreen() {
       <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <TextInput
           style={[styles.searchInput, { backgroundColor: theme.background, color: theme.text }]}
-          placeholder="Search messages..."
+          placeholder={t('messages.searchMessages')}
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -137,7 +139,7 @@ export default function WorkerMessagesScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading conversations...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('messages.loadingConversations')}</Text>
         </View>
       ) : (
       <ScrollView 
@@ -149,8 +151,8 @@ export default function WorkerMessagesScreen() {
         {filteredConversations.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
-            <Text style={[styles.emptyText, { color: theme.text }]}>No conversations yet</Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Start chatting with clients and admins</Text>
+            <Text style={[styles.emptyText, { color: theme.text }]}>{t('messages.noConversations')}</Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('messages.startChatting')}</Text>
           </View>
         ) : (
           filteredConversations.map((conv) => (

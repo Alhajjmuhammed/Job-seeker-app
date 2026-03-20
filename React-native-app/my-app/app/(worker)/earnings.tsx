@@ -93,7 +93,7 @@ export default function EarningsScreen() {
       `Available balance: TSH ${(Number(pendingAmount) || 0).toFixed(2)}`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Withdraw', onPress: () => Alert.alert('Coming Soon', 'Withdrawal feature coming soon!') },
+        { text: 'Withdraw', onPress: () => Alert.alert(t('profile.comingSoon'), 'Withdrawal feature coming soon!') },
       ]
     );
   };
@@ -140,7 +140,7 @@ export default function EarningsScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading earnings...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('nav.earnings')}</Text>
         </View>
       ) : (
         <ScrollView 
@@ -188,13 +188,13 @@ export default function EarningsScreen() {
             onPress={handleWithdraw}
           >
             <Ionicons name="download-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.withdrawButtonText}>Withdraw Funds</Text>
+            <Text style={styles.withdrawButtonText}>{t('earnings.withdraw')}</Text>
           </TouchableOpacity>
 
           {/* Earnings Chart */}
           {earningsData && earningsData.length > 0 && (
             <View style={[styles.chartCard, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Earnings Trend</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('analytics.earningsTrend')}</Text>
               <LineChart
                 data={prepareChartData()}
                 width={screenWidth - 60}

@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import Header from '../../../../components/Header';
 import apiService from '../../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Assignment {
   id: number;
@@ -28,6 +29,7 @@ interface Assignment {
 }
 
 export default function CompleteServiceScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -48,11 +50,11 @@ export default function CompleteServiceScreen() {
       // Check if assignment is already completed
       if (assignmentData.status === 'completed') {
         Alert.alert(
-          'Already Completed',
-          'This service has already been marked as complete.',
+          t('assignments.alreadyCompleted'),
+          t('assignments.alreadyCompletedMsg'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => {
                 router.replace(`/(worker)/service-assignment/${id}` as any);
               }
@@ -65,7 +67,7 @@ export default function CompleteServiceScreen() {
       setAssignment(assignmentData);
     } catch (error: any) {
       console.error('Error loading assignment:', error);
-      Alert.alert('Error', 'Failed to load assignment');
+      Alert.alert(t('common.error'), t('assignments.failedLoadAssignments'));
       router.back();
     } finally {
       setLoading(false);
@@ -77,19 +79,19 @@ export default function CompleteServiceScreen() {
 
     if (!completionNotes.trim()) {
       Alert.alert(
-        'Completion Notes Required',
-        'Please provide notes about the completed work. This helps the client understand what was done.'
+        t('assignments.completionNotesRequired'),
+        t('assignments.provideCompletionNotes')
       );
       return;
     }
 
     Alert.alert(
-      'Complete Service',
-      'Are you sure you want to mark this service as complete? This action cannot be undone.',
+      t('assignments.completeService'),
+      t('assignments.markAsComplete'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Yes, Complete',
+          text: t('assignments.yesComplete'),
           onPress: confirmComplete,
         },
       ]
@@ -115,8 +117,8 @@ export default function CompleteServiceScreen() {
       }, 300);
       
       Alert.alert(
-        '🎉 Service Completed!',
-        'Excellent work! The service has been marked as complete. The client will be notified.'
+        t('assignments.serviceCompletedSuccess'),
+        t('assignments.excellentWork')
       );
     } catch (error: any) {
       const errorData = error.response?.data?.error || error.message || '';
@@ -125,11 +127,11 @@ export default function CompleteServiceScreen() {
       if (errorData.toLowerCase().includes('already completed')) {
         console.log('ℹ️ Assignment already completed, redirecting back');
         Alert.alert(
-          'Already Completed',
-          'This service has already been marked as complete.',
+          t('assignments.alreadyCompleted'),
+          t('assignments.alreadyCompletedMsg'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => {
                 router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
               }
@@ -142,8 +144,8 @@ export default function CompleteServiceScreen() {
           response: error.response?.data,
           status: error.response?.status
         });
-        const errorMessage = error.response?.data?.error || error.message || 'Failed to complete service. Please try again.';
-        Alert.alert('Complete Failed', errorMessage);
+        const errorMessage = error.response?.data?.error || error.message || t('assignments.failedCompleteService');
+        Alert.alert(t('assignments.completeFailed'), errorMessage);
       }
     } finally {
       setSubmitting(false);
@@ -153,12 +155,10 @@ export default function CompleteServiceScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Complete Service" showBack />
+        <Header title={t('assignments.completeService')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('requestService.loading')}</Text>
         </View>
       </View>
     );
@@ -167,10 +167,10 @@ export default function CompleteServiceScreen() {
   if (!assignment) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Complete Service" showBack />
+        <Header title={t('assignments.completeService')} showBack />
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-            Assignment not found
+            {t('assignments.assignmentNotFound')}
           </Text>
         </View>
       </View>
@@ -179,22 +179,22 @@ export default function CompleteServiceScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Complete Service" showBack />
+      <Header title={t('assignments.completeService')} showBack />
 
       <ScrollView style={styles.content}>
         {/* Success Banner */}
         <View style={[styles.banner, { backgroundColor: '#4CAF50' }]}>
           <Ionicons name="checkmark-circle" size={64} color="#FFFFFF" />
-          <Text style={styles.bannerTitle}>Ready to Complete!</Text>
+          <Text style={styles.bannerTitle}>{t('assignments.readyToComplete')}</Text>
           <Text style={styles.bannerSubtitle}>
-            Mark this service as finished
+            {t('assignments.markAsFinished')}
           </Text>
         </View>
 
         {/* Assignment Summary */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Service Summary
+            {t('assignments.serviceSummary')}
           </Text>
           
           <Text style={[styles.title, { color: theme.text }]}>
@@ -239,18 +239,16 @@ export default function CompleteServiceScreen() {
         {/* Completion Notes */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Completion Notes *
+            {t('assignments.completionNotes')}
           </Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Describe what was completed, any issues encountered, and recommendations
-          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>{t('assignments.describeWorkCompleted')}</Text>
 
           <TextInput
             style={[
               styles.textArea,
               { backgroundColor: theme.background, color: theme.text },
             ]}
-            placeholder="Example:&#10;• Completed all plumbing repairs&#10;• Replaced kitchen faucet with new model&#10;• Fixed leaky pipe under sink&#10;• Cleaned work area thoroughly&#10;• Recommend annual maintenance check"
+            placeholder={t('assignments.completed')}
             placeholderTextColor={theme.textSecondary}
             value={completionNotes}
             onChangeText={setCompletionNotes}
@@ -261,12 +259,11 @@ export default function CompleteServiceScreen() {
           <View style={[styles.tipsBox, { backgroundColor: '#E3F2FD' }]}>
             <Ionicons name="bulb-outline" size={20} color="#2196F3" />
             <View style={styles.tipsContent}>
-              <Text style={styles.tipsTitle}>What to Include:</Text>
-              <Text style={styles.tipText}>✓ All completed tasks</Text>
-              <Text style={styles.tipText}>✓ Materials used</Text>
-              <Text style={styles.tipText}>✓ Any issues resolved</Text>
-              <Text style={styles.tipText}>✓ Maintenance recommendations</Text>
-              <Text style={styles.tipText}>✓ Follow-up actions needed</Text>
+              <Text style={styles.tipsTitle}>{t('assignments.whatToInclude')}</Text>
+              <Text style={styles.tipText}>{t('assignments.materialsUsed')}</Text>
+              <Text style={styles.tipText}>{t('assignments.issuesResolved')}</Text>
+              <Text style={styles.tipText}>{t('assignments.maintenanceRecommendations')}</Text>
+              <Text style={styles.tipText}>{t('assignments.followUpActions')}</Text>
             </View>
           </View>
         </View>
@@ -274,48 +271,46 @@ export default function CompleteServiceScreen() {
         {/* Completion Checklist */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Completion Checklist
+            {t('assignments.completionChecklist')}
           </Text>
 
           <View style={styles.checklistItem}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+            <Text style={[styles.checklistText, { color: theme.text }]}>{t('assignments.workCompleted')}</Text>
+          </View>
+
+          <View style={styles.checklistItem}>
+            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={[styles.checklistText, { color: theme.text }]}>
-              All work completed as requested
+              {t('assignments.qualityChecked')}
             </Text>
           </View>
 
           <View style={styles.checklistItem}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={[styles.checklistText, { color: theme.text }]}>
-              Quality checked and verified
+              {t('assignments.areaClean')}
             </Text>
           </View>
 
           <View style={styles.checklistItem}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={[styles.checklistText, { color: theme.text }]}>
-              Work area cleaned
+              {t('assignments.clientSatisfied')}
             </Text>
           </View>
 
           <View style={styles.checklistItem}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={[styles.checklistText, { color: theme.text }]}>
-              Client satisfied with results
+              {t('assignments.notesDocumented')}
             </Text>
           </View>
 
           <View style={styles.checklistItem}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={[styles.checklistText, { color: theme.text }]}>
-              Completion notes documented
-            </Text>
-          </View>
-
-          <View style={styles.checklistItem}>
-            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-            <Text style={[styles.checklistText, { color: theme.text }]}>
-              Photos taken (if applicable)
+              {t('assignments.photosTaken')}
             </Text>
           </View>
         </View>
@@ -324,18 +319,18 @@ export default function CompleteServiceScreen() {
         <View style={[styles.noticeBox, { backgroundColor: '#FFF3CD' }]}>
           <Ionicons name="warning" size={24} color="#856404" />
           <View style={styles.noticeContent}>
-            <Text style={styles.noticeTitle}>Important</Text>
+            <Text style={styles.noticeTitle}>{t('assignments.important')}</Text>
             <Text style={styles.noticeText}>
-              • Make sure client is satisfied before marking complete
+              {t('assignments.ensureClientSatisfied')}
             </Text>
             <Text style={styles.noticeText}>
-              • This action cannot be undone
+              {t('assignments.actionCannotUndo')}
             </Text>
             <Text style={styles.noticeText}>
-              • Client will be notified immediately
+              {t('assignments.clientNotified')}
             </Text>
             <Text style={styles.noticeText}>
-              • Payment will be processed after client confirmation
+              {t('assignments.paymentProcessed')}
             </Text>
           </View>
         </View>
@@ -352,9 +347,7 @@ export default function CompleteServiceScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-done" size={28} color="#FFFFFF" />
-                <Text style={styles.completeButtonText}>
-                  Mark as Complete
-                </Text>
+                <Text style={styles.completeButtonText}>{t('assignments.markComplete')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -364,7 +357,7 @@ export default function CompleteServiceScreen() {
             onPress={() => router.back()}
           >
             <Text style={[styles.cancelButtonText, { color: theme.text }]}>
-              Not Yet
+              {t('assignments.notYet')}
             </Text>
           </TouchableOpacity>
         </View>

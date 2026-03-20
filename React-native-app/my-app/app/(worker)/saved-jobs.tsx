@@ -16,6 +16,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface SavedJob {
   saved_id: number;
@@ -35,6 +36,7 @@ interface SavedJob {
 }
 
 export default function SavedJobsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -131,7 +133,7 @@ export default function SavedJobsScreen() {
           {!is_available && (
             <View style={[styles.unavailableBadge, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
               <Ionicons name="close-circle" size={16} color="#EF4444" />
-              <Text style={[styles.unavailableText, { color: '#EF4444' }]}>No longer available</Text>
+              <Text style={[styles.unavailableText, { color: '#EF4444' }]}>{t('savedJobs.noLongerAvailable')}</Text>
             </View>
           )}
 
@@ -155,7 +157,7 @@ export default function SavedJobsScreen() {
 
           {job.budget && (
             <View style={styles.budgetRow}>
-              <Text style={[styles.budgetLabel, { color: theme.textSecondary }]}>Budget:</Text>
+              <Text style={[styles.budgetLabel, { color: theme.textSecondary }]}>{t('savedJobs.budget')}</Text>
               <Text style={[styles.budgetAmount, { color: theme.primary }]}>TSH {job.budget}</Text>
             </View>
           )}
@@ -191,13 +193,13 @@ export default function SavedJobsScreen() {
       <View style={styles.content}>
         <View style={styles.titleContainer}>
           <Ionicons name="heart" size={28} color={theme.primary} />
-          <Text style={[styles.title, { color: theme.text }]}>Saved Jobs</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('savedJobs.savedJobs')}</Text>
         </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading saved jobs...</Text>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('savedJobs.loadingSavedJobs')}</Text>
           </View>
         ) : (
           <ScrollView
@@ -215,15 +217,13 @@ export default function SavedJobsScreen() {
             {savedJobs.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="heart-outline" size={56} color={theme.textSecondary} style={{ marginBottom: 16 }} />
-                <Text style={[styles.emptyTitle, { color: theme.text }]}>No Saved Jobs</Text>
-                <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                  Save jobs to view them later
-                </Text>
+                <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('savedJobs.noSavedJobs')}</Text>
+                <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('savedJobs.saveJobsLater')}</Text>
                 <TouchableOpacity
                   style={[styles.browseButton, { backgroundColor: theme.primary }]}
                   onPress={() => router.push('/browse-jobs' as any)}
                 >
-                  <Text style={styles.browseButtonText}>Browse Jobs</Text>
+                  <Text style={styles.browseButtonText}>{t('applications.browseJobs')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (

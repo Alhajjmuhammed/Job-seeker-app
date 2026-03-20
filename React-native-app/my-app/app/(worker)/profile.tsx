@@ -19,8 +19,10 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useRatingRefresh } from '../../contexts/RatingContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function WorkerProfileScreen() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, isDark } = useTheme();
   const { refreshTrigger } = useRatingRefresh();
@@ -82,7 +84,7 @@ export default function WorkerProfileScreen() {
       });
     } catch (error) {
       console.error('Error loading profile:', error);
-      Alert.alert('Error', 'Failed to load profile data');
+      Alert.alert(t('common.error'), t('profile.failedLoadProfile'));
     } finally {
       setLoading(false);
     }
@@ -105,12 +107,12 @@ export default function WorkerProfileScreen() {
       );
     } catch (error) {
       console.error('Error updating availability:', error);
-      Alert.alert('Error', 'Failed to update availability');
+      Alert.alert(t('common.error'), t('profile.failedUpdateAvailability'));
     }
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    Alert.alert(t('nav.logout'), t('profile.sureLogout'), [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
@@ -130,7 +132,7 @@ export default function WorkerProfileScreen() {
       {loading ? (
         <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading profile...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('profile.loadingProfile')}</Text>
         </View>
       ) : (
       <ScrollView 
@@ -223,7 +225,7 @@ export default function WorkerProfileScreen() {
           <View style={[styles.completionCard, { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.1)' : '#F0FDF4', borderColor: theme.primary }]}>
             <View style={styles.completionHeader}>
               <View>
-                <Text style={[styles.completionTitle, { color: theme.text }]}>Complete Your Profile</Text>
+                <Text style={[styles.completionTitle, { color: theme.text }]}>{t('profile.completeProfile')}</Text>
                 <Text style={[styles.completionSubtitle, { color: theme.textSecondary }]}>
                   {profile.profile_completion_percentage}% completed
                 </Text>
@@ -241,7 +243,7 @@ export default function WorkerProfileScreen() {
               style={[styles.completeButton, { backgroundColor: theme.primary }]}
               onPress={() => router.push('/(worker)/profile-edit')}
             >
-              <Text style={[styles.completeButtonText, { color: '#FFF' }]}>Complete Profile</Text>
+              <Text style={[styles.completeButtonText, { color: '#FFF' }]}>{t('profile.completeProfileButton')}</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -253,19 +255,19 @@ export default function WorkerProfileScreen() {
             <Text style={[styles.statValue, { color: theme.primary }]}>
               {(Number(stats.rating) || 0) > 0 ? (Number(stats.rating) || 0).toFixed(1) : 'N/A'}
             </Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Rating</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{t('profile.rating')}</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: theme.primary }]}>{stats.completedJobs}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Jobs Done</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{t('profile.jobsDone')}</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: theme.primary }]}>
               {stats.responseRate > 0 ? `${stats.responseRate}%` : 'N/A'}
             </Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Response</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{t('profile.response')}</Text>
           </View>
         </View>
 
@@ -273,10 +275,8 @@ export default function WorkerProfileScreen() {
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.availabilityRow}>
             <View>
-              <Text style={[styles.settingTitle, { color: theme.text }]}>Available for Work</Text>
-              <Text style={[styles.settingSubtitle, { color: theme.textSecondary }]}>
-                Clients can see your profile
-              </Text>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('profile.availableForWork')}</Text>
+              <Text style={[styles.settingSubtitle, { color: theme.textSecondary }]}>{t('profile.clientsCanSee')}</Text>
             </View>
             <Switch
               value={isAvailable}
@@ -294,7 +294,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/(worker)/profile-edit')}
           >
             <Ionicons name="person-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Edit Profile</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('profile.editProfile')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -302,7 +302,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/(worker)/profile-edit')}
           >
             <Ionicons name="briefcase-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Skills & Categories</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('profile.skillsCategories')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -310,7 +310,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/(worker)/documents')}
           >
             <Ionicons name="document-text-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Documents</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('profile.documents')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -318,7 +318,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/(worker)/earnings')}
           >
             <Ionicons name="cash-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Earnings & Payments</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('profile.earningsPayments')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </View>
@@ -329,7 +329,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/settings' as any)}
           >
             <Ionicons name="settings-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Settings</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('nav.settings')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -337,25 +337,25 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/support' as any)}
           >
             <Ionicons name="help-circle-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Help & Support</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('help.helpSupport')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
-            onPress={() => Alert.alert('Coming Soon', 'Terms & Privacy page is coming soon!')}
+            onPress={() => Alert.alert(t('profile.comingSoon'), t('profile.termsComingSoon'))}
           >
             <Ionicons name="document-text-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>Terms & Privacy</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('profile.termsPrivacy')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity style={[styles.logoutButton, { backgroundColor: theme.error }]} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('nav.logout')}</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.version, { color: theme.textTertiary }]}>Version 1.0.0</Text>
+        <Text style={[styles.version, { color: theme.textTertiary }]}>{t('profile.version')}</Text>
       </ScrollView>
       )}
     </View>

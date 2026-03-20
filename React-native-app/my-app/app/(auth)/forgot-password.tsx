@@ -12,22 +12,24 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Link, router } from 'expo-router';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
   const handleResetRequest = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert(t('common.error'), t('auth.enterEmail'));
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert(t('common.error'), t('auth.validEmail'));
       return;
     }
 
@@ -76,16 +78,14 @@ export default function ForgotPasswordScreen() {
           <View style={styles.iconContainer}>
             <Text style={styles.icon}>🔑</Text>
           </View>
-          <Text style={styles.title}>Forgot Password?</Text>
-          <Text style={styles.subtitle}>
-            No worries! Enter your email and we'll send you reset instructions.
-          </Text>
+          <Text style={styles.title}>{t('auth.forgotPassword')}</Text>
+          <Text style={styles.subtitle}>{t('auth.forgotPasswordSubtitle')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={styles.label}>{t('auth.emailAddress')}</Text>
             <TextInput
               style={styles.input}
               placeholder="your@email.com"
@@ -109,10 +109,10 @@ export default function ForgotPasswordScreen() {
           </TouchableOpacity>
 
           <View style={styles.backContainer}>
-            <Text style={styles.backText}>Remember your password? </Text>
+            <Text style={styles.backText}>{t('auth.rememberPassword')}</Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text style={styles.backLink}>Back to Login</Text>
+                <Text style={styles.backLink}>{t('auth.backToLogin')}</Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -120,7 +120,7 @@ export default function ForgotPasswordScreen() {
 
         {/* Help Text */}
         <View style={styles.helpContainer}>
-          <Text style={styles.helpTitle}>Need Help?</Text>
+          <Text style={styles.helpTitle}>{t('auth.needHelp')}</Text>
           <Text style={styles.helpText}>
             • Check your spam folder if you don't receive the email{'\n'}
             • Reset link expires in 24 hours{'\n'}

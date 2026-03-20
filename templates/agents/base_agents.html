@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -297,5 +297,31 @@
         }
     })();
 </script>
+
+<!-- Footer Language Switcher -->
+{% get_current_language as CURRENT_LANGUAGE %}
+<div style="background:#0f172a;border-top:1px solid #1e293b;padding:.75rem 2rem;display:flex;align-items:center;justify-content:center;gap:10px;">
+    <span style="color:#64748b;font-size:.8rem;">🌐</span>
+    <form action="{% url 'set_language' %}" method="post" id="agent-footer-lang-form" style="display:inline-flex;align-items:center;gap:8px;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <div class="dropdown">
+            <button type="button" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                style="background:#1e293b;color:rgba(255,255,255,.75);border:1px solid #334155;border-radius:6px;padding:4px 10px;font-size:.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;">
+                {% if CURRENT_LANGUAGE == 'sw' %}<img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" alt="Tanzania" style="border-radius:2px;"> Kiswahili
+                {% elif CURRENT_LANGUAGE == 'fr' %}<img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" alt="France" style="border-radius:2px;"> Français
+                {% elif CURRENT_LANGUAGE == 'it' %}<img src="https://flagcdn.com/20x15/it.png" width="20" height="15" alt="Italy" style="border-radius:2px;"> Italiano
+                {% else %}<img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" alt="English" style="border-radius:2px;"> English{% endif %}
+            </button>
+            <ul class="dropdown-menu dropup" style="min-width:155px;border-radius:10px;background:#1e293b;border-color:#334155;">
+                <li><button class="dropdown-item" type="submit" name="language" value="en" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> English</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="sw" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> Kiswahili</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="fr" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> Français</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="it" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/it.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> Italiano</button></li>
+            </ul>
+        </div>
+    </form>
+</div>
+
 </body>
 </html>

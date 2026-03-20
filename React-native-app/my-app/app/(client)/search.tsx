@@ -15,6 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Service {
   id: number;
@@ -29,6 +30,7 @@ interface Service {
 }
 
 export default function ClientServicesScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const { refresh, category } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +62,7 @@ export default function ClientServicesScreen() {
       } catch (error) {
         console.error('Error loading services:', error);
         if (mounted) {
-          Alert.alert('Error', 'Failed to load available services');
+          Alert.alert(t('common.error'), t('search.failedLoadServices'));
         }
       } finally {
         if (mounted) {
@@ -115,11 +117,11 @@ export default function ClientServicesScreen() {
         </View>
         {service.is_available ? (
           <View style={[styles.availableBadge, { backgroundColor: '#D1FAE5' }]}>
-            <Text style={styles.availableBadgeText}>Available</Text>
+            <Text style={styles.availableBadgeText}>{t('profile.available')}</Text>
           </View>
         ) : (
           <View style={[styles.unavailableBadge, { backgroundColor: '#FEE2E2' }]}>
-            <Text style={styles.unavailableBadgeText}>Unavailable</Text>
+            <Text style={styles.unavailableBadgeText}>{t('search.unavailable')}</Text>
           </View>
         )}
       </View>
@@ -170,7 +172,7 @@ export default function ClientServicesScreen() {
           <Ionicons name="search" size={20} color={theme.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search services..."
+            placeholder={t('search.searchServices')}
             placeholderTextColor={theme.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -185,17 +187,13 @@ export default function ClientServicesScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-              Loading available services...
-            </Text>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('search.loadingServices')}</Text>
           </View>
         ) : (
           <>
             <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
               <Ionicons name="information-circle" size={24} color={theme.primary} />
-              <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-                Select a service below and our team will assign the most qualified worker to handle your request.
-              </Text>
+              <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('search.selectServiceMessage')}</Text>
             </View>
 
             <Text style={[styles.resultsText, { color: theme.textSecondary }]}>

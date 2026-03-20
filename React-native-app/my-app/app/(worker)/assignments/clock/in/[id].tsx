@@ -14,6 +14,7 @@ import * as Location from 'expo-location';
 import { useTheme } from '../../../../../contexts/ThemeContext';
 import Header from '../../../../../components/Header';
 import apiService from '../../../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Assignment {
   id: number;
@@ -30,6 +31,7 @@ interface Assignment {
 }
 
 export default function ClockInScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ export default function ClockInScreen() {
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
-      Alert.alert('Error', 'Failed to load assignment');
+      Alert.alert(t('common.error'), 'Failed to load assignment');
       router.back();
     } finally {
       setLoading(false);
@@ -184,7 +186,7 @@ export default function ClockInScreen() {
       // Redirect immediately, show success after
       router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
       setTimeout(() => {
-        Alert.alert('⏰ Clocked In Successfully!', 'Your work session has started. Time tracking is now active.');
+        Alert.alert('⏰ Clocked In Successfully!', t('assignments.active'));
       }, 100);
     } catch (error: any) {
       const isAlreadyClockedIn = error.response?.data?.error?.toLowerCase().includes('already clocked in');
@@ -269,9 +271,7 @@ export default function ClockInScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={20} color={theme.textSecondary} />
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>
-                Location
-              </Text>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('jobs.location')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
                 {assignment.location}, {assignment.city}
               </Text>
@@ -281,9 +281,7 @@ export default function ClockInScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={theme.textSecondary} />
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>
-                Client
-              </Text>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('assignments.client')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
                 {assignment.client_name}
               </Text>
@@ -328,7 +326,7 @@ export default function ClockInScreen() {
                 style={[styles.retryButton, { backgroundColor: theme.primary }]}
                 onPress={requestLocationPermission}
               >
-                <Text style={styles.retryButtonText}>Retry</Text>
+                <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -342,16 +340,14 @@ export default function ClockInScreen() {
         <View style={[styles.infoBox, { backgroundColor: '#E3F2FD' }]}>
           <Ionicons name="information-circle" size={24} color="#2196F3" />
           <View style={styles.infoBoxContent}>
-            <Text style={styles.infoBoxTitle}>Important</Text>
+            <Text style={styles.infoBoxTitle}>{t('assignments.important')}</Text>
             <Text style={styles.infoBoxText}>
               • Remember to clock out when you finish
             </Text>
             <Text style={styles.infoBoxText}>
               • Time tracking starts immediately after clock in
             </Text>
-            <Text style={styles.infoBoxText}>
-              • You can take breaks by clocking out and back in
-            </Text>
+            <Text style={styles.infoBoxText}>{t('common.back')}</Text>
           </View>
         </View>
 
@@ -376,9 +372,7 @@ export default function ClockInScreen() {
             style={[styles.cancelButton, { borderColor: theme.border }]}
             onPress={() => router.back()}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.text }]}>
-              Cancel
-            </Text>
+            <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

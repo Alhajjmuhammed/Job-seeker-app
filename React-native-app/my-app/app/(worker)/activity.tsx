@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Activity {
   id: number;
@@ -28,6 +29,7 @@ interface Activity {
 }
 
 export default function ActivityHistoryScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,7 +72,7 @@ export default function ActivityHistoryScreen() {
       });
     } catch (error: any) {
       console.error('Error loading activity:', error);
-      Alert.alert('Error', 'Failed to load activity history');
+      Alert.alert(t('common.error'), t('activity.failedLoadActivity'));
     } finally {
       setLoading(false);
     }
@@ -166,9 +168,7 @@ export default function ActivityHistoryScreen() {
         <Header title="Activity History" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading activity...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('activity.loadingActivity')}</Text>
         </View>
       </View>
     );
@@ -186,27 +186,21 @@ export default function ActivityHistoryScreen() {
           <Text style={[styles.statValue, { color: theme.primary }]}>
             {stats.total}
           </Text>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-            Total
-          </Text>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{t('activity.total')}</Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: theme.card }]}>
           <Text style={[styles.statValue, { color: theme.primary }]}>
             {stats.thisWeek}
           </Text>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-            This Week
-          </Text>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{t('activity.thisWeek')}</Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: theme.card }]}>
           <Text style={[styles.statValue, { color: theme.primary }]}>
             {stats.thisMonth}
           </Text>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-            This Month
-          </Text>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{t('activity.thisMonth')}</Text>
         </View>
       </View>
 
@@ -219,12 +213,8 @@ export default function ActivityHistoryScreen() {
         {activities.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={64} color={theme.textSecondary} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No activity yet
-            </Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-              Your work history will appear here
-            </Text>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>{t('activity.noActivity')}</Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('activity.workHistoryWillAppear')}</Text>
           </View>
         ) : (
           <View style={styles.activityList}>

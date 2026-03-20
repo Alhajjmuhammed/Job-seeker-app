@@ -15,8 +15,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ClientProfileScreen() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -50,14 +52,14 @@ export default function ClientProfileScreen() {
       });
     } catch (error) {
       console.error('Error loading profile:', error);
-      Alert.alert('Error', 'Failed to load profile data');
+      Alert.alert(t('common.error'), t('profile.failedLoadProfile'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    Alert.alert(t('nav.logout'), t('profile.sureLogout'), [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
@@ -75,9 +77,7 @@ export default function ClientProfileScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-            Loading profile...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('profile.loadingProfile')}</Text>
         </View>
       ) : (
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -100,27 +100,21 @@ export default function ClientProfileScreen() {
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
               {stats.activeJobs}
             </Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Active Jobs
-            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.activeJobs')}</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
               {stats.completedJobs}
             </Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Completed
-            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('favoriteWorkers.completedJobs')}</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
               {stats.favorites}
             </Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Favorites
-            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.favorites')}</Text>
           </View>
         </View>
 
@@ -131,9 +125,7 @@ export default function ClientProfileScreen() {
             onPress={() => router.push('/(client)/profile-edit')}
           >
             <Ionicons name="person-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Edit Profile
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.editProfile')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
@@ -141,23 +133,17 @@ export default function ClientProfileScreen() {
             onPress={() => router.push('/(client)/favorites')}
           >
             <Ionicons name="heart-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Favorite Workers
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('favoriteWorkers.favoriteWorkersTitle')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <Ionicons name="card-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Payment Methods
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('paymentMethods.paymentMethodsTitle')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
             <Ionicons name="location-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Saved Addresses
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.savedAddresses')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -168,23 +154,17 @@ export default function ClientProfileScreen() {
             onPress={() => router.push('/(client)/settings')}
           >
             <Ionicons name="settings-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Settings
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('settings.title')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <Ionicons name="help-circle-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Help & Support
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('help.helpSupport')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
             <Ionicons name="document-text-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Terms & Privacy
-            </Text>
+            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.termsPrivacy')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -195,12 +175,10 @@ export default function ClientProfileScreen() {
           onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={20} color="#EF4444" style={{ marginRight: 8 }} />
-          <Text style={[styles.logoutText, { fontFamily: 'Poppins_600SemiBold' }]}>Logout</Text>
+          <Text style={[styles.logoutText, { fontFamily: 'Poppins_600SemiBold' }]}>{t('nav.logout')}</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.version, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-          Version 1.0.0
-        </Text>
+        <Text style={[styles.version, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('profile.version')}</Text>
       </ScrollView>
       )}
     </View>

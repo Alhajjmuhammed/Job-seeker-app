@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Application {
   id: number;
@@ -31,6 +32,7 @@ interface Application {
 type FilterType = 'all' | 'pending' | 'accepted' | 'rejected';
 
 export default function ApplicationsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,7 +50,7 @@ export default function ApplicationsScreen() {
       setApplications(data || []);
     } catch (error) {
       console.error('Error loading applications:', error);
-      Alert.alert('Error', 'Failed to load applications');
+      Alert.alert(t('common.error'), t('applications.failedLoadApplications'));
     } finally {
       setLoading(false);
     }
@@ -78,12 +80,12 @@ export default function ApplicationsScreen() {
   const withdrawApplication = async (applicationId: number) => {
     try {
       // TODO: Implement withdraw API endpoint
-      Alert.alert('Coming Soon', 'Withdraw functionality will be available soon');
+      Alert.alert(t('profile.comingSoon'), t('applications.withdrawComingSoon'));
       // await apiService.withdrawApplication(applicationId);
       // await loadApplications();
     } catch (error) {
       console.error('Error withdrawing application:', error);
-      Alert.alert('Error', 'Failed to withdraw application');
+      Alert.alert(t('common.error'), t('applications.failedWithdraw'));
     }
   };
 
@@ -220,9 +222,7 @@ export default function ApplicationsScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading applications...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('applications.loadingApplications')}</Text>
         </View>
       ) : (
         <ScrollView
@@ -252,7 +252,7 @@ export default function ApplicationsScreen() {
                   style={[styles.browseButton, { backgroundColor: theme.primary }]}
                   onPress={() => router.push('/browse-jobs' as any)}
                 >
-                  <Text style={styles.browseButtonText}>Browse Jobs</Text>
+                  <Text style={styles.browseButtonText}>{t('applications.browseJobs')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -316,9 +316,7 @@ export default function ApplicationsScreen() {
 
                   {application.cover_letter && (
                     <View style={[styles.coverLetterContainer, { backgroundColor: theme.background }]}>
-                      <Text style={[styles.coverLetterLabel, { color: theme.textSecondary }]}>
-                        Cover Letter:
-                      </Text>
+                      <Text style={[styles.coverLetterLabel, { color: theme.textSecondary }]}>{t('applications.coverLetter')}</Text>
                       <Text style={[styles.coverLetterText, { color: theme.text }]} numberOfLines={3}>
                         {application.cover_letter}
                       </Text>
@@ -331,7 +329,7 @@ export default function ApplicationsScreen() {
                     style={[styles.viewButton, { borderColor: theme.border }]}
                     onPress={() => router.push(`/(worker)/job/${application.job_id}` as any)}
                   >
-                    <Text style={[styles.viewButtonText, { color: theme.primary }]}>View Job</Text>
+                    <Text style={[styles.viewButtonText, { color: theme.primary }]}>{t('applications.viewJob')}</Text>
                     <Ionicons name="arrow-forward" size={16} color={theme.primary} />
                   </TouchableOpacity>
 
@@ -340,7 +338,7 @@ export default function ApplicationsScreen() {
                       style={[styles.withdrawButton, { backgroundColor: '#EF444420', borderColor: '#EF4444' }]}
                       onPress={() => handleWithdrawApplication(application.id)}
                     >
-                      <Text style={[styles.withdrawButtonText, { color: '#EF4444' }]}>Withdraw</Text>
+                      <Text style={[styles.withdrawButtonText, { color: '#EF4444' }]}>{t('applications.withdraw')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>

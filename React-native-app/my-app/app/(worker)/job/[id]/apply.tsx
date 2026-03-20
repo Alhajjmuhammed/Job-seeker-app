@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import Header from '../../../../components/Header';
 import apiService from '../../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface JobDetail {
   id: number;
@@ -30,6 +31,7 @@ interface JobDetail {
 }
 
 export default function ApplyForJobScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,7 @@ export default function ApplyForJobScreen() {
       setJob(jobData);
     } catch (error) {
       console.error('Error loading job:', error);
-      Alert.alert('Error', 'Failed to load job details', [
+      Alert.alert(t('common.error'), 'Failed to load job details', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } finally {
@@ -62,12 +64,12 @@ export default function ApplyForJobScreen() {
   const handleSubmit = async () => {
     // Validation
     if (coverLetter.trim().length < 50) {
-      Alert.alert('Validation Error', 'Please write a cover letter with at least 50 characters to stand out');
+      Alert.alert(t('client.validationError'), 'Please write a cover letter with at least 50 characters to stand out');
       return;
     }
 
     if (proposedRate && (isNaN(parseFloat(proposedRate)) || parseFloat(proposedRate) <= 0)) {
-      Alert.alert('Validation Error', 'Please enter a valid hourly rate');
+      Alert.alert(t('client.validationError'), 'Please enter a valid hourly rate');
       return;
     }
 
@@ -95,7 +97,7 @@ export default function ApplyForJobScreen() {
       );
     } catch (error: any) {
       console.error('Failed to apply:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Failed to submit application');
+      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to submit application');
     } finally {
       setSubmitting(false);
     }
@@ -247,7 +249,7 @@ export default function ApplyForJobScreen() {
           ) : (
             <>
               <Ionicons name="paper-plane" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Submit Application</Text>
+              <Text style={styles.submitButtonText}>{t('common.submit')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -257,7 +259,7 @@ export default function ApplyForJobScreen() {
           onPress={() => router.back()}
           disabled={submitting}
         >
-          <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

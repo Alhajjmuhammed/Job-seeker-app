@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceAssignment {
   id: number;
@@ -37,6 +38,7 @@ interface ServiceAssignment {
 }
 
 export default function ServiceAssignments() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -76,7 +78,7 @@ export default function ServiceAssignments() {
       setAssignments(assignmentsList);
     } catch (error: any) {
       console.error('Error loading assignments:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Failed to load assignments');
+      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to load assignments');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -226,7 +228,7 @@ export default function ServiceAssignments() {
           <Ionicons name="search" size={20} color={theme.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search by title, client, location..."
+            placeholder={t('assignments.searchByTitleClient')}
             placeholderTextColor={theme.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -250,9 +252,7 @@ export default function ServiceAssignments() {
           <Text style={[
             styles.filterText,
             { color: filter === 'all' ? '#fff' : theme.text },
-          ]}>
-            All
-          </Text>
+          ]}>{t('notifications.all')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -265,9 +265,7 @@ export default function ServiceAssignments() {
           <Text style={[
             styles.filterText,
             { color: filter === 'pending' ? '#fff' : theme.text },
-          ]}>
-            Pending
-          </Text>
+          ]}>{t('earnings.pending')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -280,9 +278,7 @@ export default function ServiceAssignments() {
           <Text style={[
             styles.filterText,
             { color: filter === 'active' ? '#fff' : theme.text },
-          ]}>
-            Active
-          </Text>
+          ]}>{t('jobs.activeJob')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -306,9 +302,7 @@ export default function ServiceAssignments() {
                filter === 'active' ? 'No active assignments' :
                'No service assignments yet'}
             </Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-              Assignments will appear here when clients request your services
-            </Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('assignments.assignmentsWillAppear')}</Text>
           </View>
         }
       />

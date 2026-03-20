@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface WorkExperience {
   id: number;
@@ -29,6 +30,7 @@ interface WorkExperience {
 }
 
 export default function ExperienceListScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -45,7 +47,7 @@ export default function ExperienceListScreen() {
       setExperiences(data);
     } catch (error) {
       console.error('Failed to load experiences:', error);
-      Alert.alert('Error', 'Failed to load work experiences');
+      Alert.alert(t('common.error'), 'Failed to load work experiences');
     } finally {
       setLoading(false);
     }
@@ -69,11 +71,11 @@ export default function ExperienceListScreen() {
           onPress: async () => {
             try {
               await apiService.deleteWorkExperience(experienceId);
-              Alert.alert('Success', 'Experience deleted successfully');
+              Alert.alert(t('common.success'), 'Experience deleted successfully');
               loadExperiences();
             } catch (error) {
               console.error('Failed to delete experience:', error);
-              Alert.alert('Error', 'Failed to delete experience');
+              Alert.alert(t('common.error'), t('common.delete'));
             }
           },
         },
@@ -135,7 +137,7 @@ export default function ExperienceListScreen() {
           onPress={() => router.push(`/experience/${experience.id}/edit` as any)}
         >
           <Ionicons name="pencil" size={18} color={theme.primary} />
-          <Text style={[styles.editButtonText, { color: theme.primary }]}>Edit</Text>
+          <Text style={[styles.editButtonText, { color: theme.primary }]}>{t('common.edit')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -143,7 +145,7 @@ export default function ExperienceListScreen() {
           onPress={() => handleDelete(experience.id, experience.job_title)}
         >
           <Ionicons name="trash-outline" size={18} color="#EF4444" />
-          <Text style={styles.deleteButtonText}>Delete</Text>
+          <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -192,9 +194,7 @@ export default function ExperienceListScreen() {
             <View style={styles.emptyState}>
               <Ionicons name="briefcase-outline" size={56} color={theme.textSecondary} style={{ marginBottom: 16 }} />
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Experience Added Yet</Text>
-              <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                Start building your professional profile by adding your work experience
-              </Text>
+              <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('profile.title')}</Text>
               <TouchableOpacity
                 style={[styles.addFirstButton, { backgroundColor: theme.primary }]}
                 onPress={() => router.push('/experience/add' as any)}

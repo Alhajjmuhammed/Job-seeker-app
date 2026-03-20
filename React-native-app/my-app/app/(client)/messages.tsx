@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Conversation {
   id: number;
@@ -18,6 +19,7 @@ interface Conversation {
 }
 
 export default function ClientMessagesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { theme, isDark } = useTheme();
 
@@ -114,7 +116,7 @@ export default function ClientMessagesScreen() {
       <View style={[styles.searchContainer, { borderBottomColor: theme.border }]}>
         <TextInput
           style={[styles.searchInput, { backgroundColor: theme.surface, color: theme.text }]}
-          placeholder="Search conversations..."
+          placeholder={t('messages.searchConversations')}
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -124,7 +126,7 @@ export default function ClientMessagesScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading conversations...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('messages.loadingConversations')}</Text>
         </View>
       ) : (
       <ScrollView 
@@ -136,8 +138,8 @@ export default function ClientMessagesScreen() {
         {filteredConversations.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
-            <Text style={[styles.emptyText, { color: theme.text }]}>No conversations yet</Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Start chatting with workers and admins</Text>
+            <Text style={[styles.emptyText, { color: theme.text }]}>{t('messages.noConversations')}</Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('messages.startChattingWorkers')}</Text>
           </View>
         ) : (
           filteredConversations.map((conv) => (

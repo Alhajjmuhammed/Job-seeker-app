@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { useTranslation } from 'react-i18next';
 
 interface FAQ {
   id: number;
@@ -22,6 +23,7 @@ interface FAQ {
 }
 
 export default function SupportScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
   const [contactSubject, setContactSubject] = useState('');
@@ -76,7 +78,7 @@ export default function SupportScreen() {
 
   const handleContactSupport = () => {
     if (!contactSubject.trim() || !contactMessage.trim()) {
-      Alert.alert('Required Fields', 'Please fill in both subject and message');
+      Alert.alert(t('support.requiredFields'), t('support.fillSubjectMessage'));
       return;
     }
 
@@ -105,12 +107,12 @@ export default function SupportScreen() {
   };
 
   const handleOpenTerms = () => {
-    Alert.alert('Terms of Service', 'Terms of Service will open in a web view');
+    Alert.alert(t('terms.termsOfService'), t('support.termsWebView'));
     // TODO: Implement WebView to show terms
   };
 
   const handleOpenPrivacy = () => {
-    Alert.alert('Privacy Policy', 'Privacy Policy will open in a web view');
+    Alert.alert(t('auth.privacyPolicy'), t('support.privacyWebView'));
     // TODO: Implement WebView to show privacy policy
   };
 
@@ -122,7 +124,7 @@ export default function SupportScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Quick Contact Options */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Quick Contact</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('support.quickContact')}</Text>
           
           <View style={styles.contactButtons}>
             <TouchableOpacity
@@ -130,10 +132,8 @@ export default function SupportScreen() {
               onPress={handleEmailSupport}
             >
               <Ionicons name="mail" size={32} color={theme.primary} />
-              <Text style={[styles.contactButtonText, { color: theme.text }]}>Email Us</Text>
-              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>
-                support@workerconnect.com
-              </Text>
+              <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('support.emailUs')}</Text>
+              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('support.supportEmail')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -141,19 +141,15 @@ export default function SupportScreen() {
               onPress={handleCallSupport}
             >
               <Ionicons name="call" size={32} color={theme.primary} />
-              <Text style={[styles.contactButtonText, { color: theme.text }]}>Call Us</Text>
-              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>
-                +1 (234) 567-890
-              </Text>
+              <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('support.callUs')}</Text>
+              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('support.supportPhone')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* FAQ Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Frequently Asked Questions
-          </Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('help.faq')}</Text>
           
           <View style={[styles.faqContainer, { backgroundColor: theme.surface }]}>
             {faqs.map((faq, index) => (
@@ -192,14 +188,14 @@ export default function SupportScreen() {
 
         {/* Contact Form */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Send Us a Message</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('support.sendMessage')}</Text>
           
           <View style={[styles.formCard, { backgroundColor: theme.surface }]}>
             <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: theme.text }]}>Subject</Text>
+              <Text style={[styles.inputLabel, { color: theme.text }]}>{t('support.subject')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
-                placeholder="What do you need help with?"
+                placeholder={t('support.whatNeedHelp')}
                 placeholderTextColor={theme.textSecondary}
                 value={contactSubject}
                 onChangeText={setContactSubject}
@@ -207,10 +203,10 @@ export default function SupportScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: theme.text }]}>Message</Text>
+              <Text style={[styles.inputLabel, { color: theme.text }]}>{t('support.message')}</Text>
               <TextInput
                 style={[styles.textArea, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
-                placeholder="Describe your issue or question..."
+                placeholder={t('support.describeIssue')}
                 placeholderTextColor={theme.textSecondary}
                 value={contactMessage}
                 onChangeText={setContactMessage}
@@ -225,28 +221,24 @@ export default function SupportScreen() {
               onPress={handleContactSupport}
             >
               <Ionicons name="send" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Send Message</Text>
+              <Text style={styles.submitButtonText}>{t('support.sendMessageButton')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Help Articles */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Help Articles</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('support.helpArticles')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
               style={styles.articleItem}
-              onPress={() => Alert.alert('Coming Soon', 'Help articles coming soon')}
+              onPress={() => Alert.alert(t('profile.comingSoon'), t('support.articlesComingSoon'))}
             >
               <Ionicons name="book-outline" size={24} color={theme.primary} />
               <View style={styles.articleContent}>
-                <Text style={[styles.articleTitle, { color: theme.text }]}>
-                  Getting Started Guide
-                </Text>
-                <Text style={[styles.articleSubtitle, { color: theme.textSecondary }]}>
-                  Learn the basics of WorkerConnect
-                </Text>
+                <Text style={[styles.articleTitle, { color: theme.text }]}>{t('support.gettingStarted')}</Text>
+                <Text style={[styles.articleSubtitle, { color: theme.textSecondary }]}>{t('support.learnBasics')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -255,16 +247,12 @@ export default function SupportScreen() {
 
             <TouchableOpacity
               style={styles.articleItem}
-              onPress={() => Alert.alert('Coming Soon', 'Help articles coming soon')}
+              onPress={() => Alert.alert(t('profile.comingSoon'), t('support.articlesComingSoon'))}
             >
               <Ionicons name="shield-checkmark-outline" size={24} color={theme.primary} />
               <View style={styles.articleContent}>
-                <Text style={[styles.articleTitle, { color: theme.text }]}>
-                  Safety & Security Tips
-                </Text>
-                <Text style={[styles.articleSubtitle, { color: theme.textSecondary }]}>
-                  Stay safe while working
-                </Text>
+                <Text style={[styles.articleTitle, { color: theme.text }]}>{t('support.safetySecurity')}</Text>
+                <Text style={[styles.articleSubtitle, { color: theme.textSecondary }]}>{t('support.staySafe')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -273,16 +261,12 @@ export default function SupportScreen() {
 
             <TouchableOpacity
               style={styles.articleItem}
-              onPress={() => Alert.alert('Coming Soon', 'Help articles coming soon')}
+              onPress={() => Alert.alert(t('profile.comingSoon'), t('support.articlesComingSoon'))}
             >
               <Ionicons name="star-outline" size={24} color={theme.primary} />
               <View style={styles.articleContent}>
-                <Text style={[styles.articleTitle, { color: theme.text }]}>
-                  Building Your Profile
-                </Text>
-                <Text style={[styles.articleSubtitle, { color: theme.textSecondary }]}>
-                  Tips for attracting clients
-                </Text>
+                <Text style={[styles.articleTitle, { color: theme.text }]}>{t('support.buildingProfile')}</Text>
+                <Text style={[styles.articleSubtitle, { color: theme.textSecondary }]}>{t('support.attractClients')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -291,7 +275,7 @@ export default function SupportScreen() {
 
         {/* Legal Links */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Legal</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('support.legal')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
@@ -299,7 +283,7 @@ export default function SupportScreen() {
               onPress={handleOpenTerms}
             >
               <Ionicons name="document-text-outline" size={24} color={theme.primary} />
-              <Text style={[styles.legalText, { color: theme.text }]}>Terms of Service</Text>
+              <Text style={[styles.legalText, { color: theme.text }]}>{t('terms.termsOfService')}</Text>
               <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
 
@@ -310,7 +294,7 @@ export default function SupportScreen() {
               onPress={handleOpenPrivacy}
             >
               <Ionicons name="lock-closed-outline" size={24} color={theme.primary} />
-              <Text style={[styles.legalText, { color: theme.text }]}>Privacy Policy</Text>
+              <Text style={[styles.legalText, { color: theme.text }]}>{t('auth.privacyPolicy')}</Text>
               <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>

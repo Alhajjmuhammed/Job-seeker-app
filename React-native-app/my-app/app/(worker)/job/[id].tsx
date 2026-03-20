@@ -15,6 +15,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { useRatingRefresh } from '../../../contexts/RatingContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface JobDetail {
   id: number;
@@ -34,6 +35,7 @@ interface JobDetail {
 }
 
 export default function JobDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme, isDark } = useTheme();
   const { refreshTrigger } = useRatingRefresh();
@@ -64,7 +66,7 @@ export default function JobDetailScreen() {
       setJob(jobData);
     } catch (error) {
       console.error('Error loading job:', error);
-      Alert.alert('Error', 'Failed to load job details');
+      Alert.alert(t('common.error'), 'Failed to load job details');
     } finally {
       setLoading(false);
     }
@@ -92,7 +94,7 @@ export default function JobDetailScreen() {
       }
     } catch (error) {
       console.error('Error toggling saved job:', error);
-      Alert.alert('Error', 'Failed to update saved status');
+      Alert.alert(t('common.error'), 'Failed to update saved status');
     } finally {
       setSavingJob(false);
     }
@@ -388,7 +390,7 @@ export default function JobDetailScreen() {
           <View style={styles.infoItem}>
             <Ionicons name="location-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Location</Text>
+              <Text style={styles.infoLabel}>{t('jobs.location')}</Text>
               <Text style={styles.infoValue}>{job.location}</Text>
             </View>
           </View>
@@ -396,7 +398,7 @@ export default function JobDetailScreen() {
           <View style={styles.infoItem}>
             <Ionicons name="person-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Client</Text>
+              <Text style={styles.infoLabel}>{t('assignments.client')}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={styles.infoValue}>{job.client.name}</Text>
                 <Ionicons name="star" size={16} color="#FFA500" style={{ marginLeft: 6, marginRight: 4 }} />
@@ -416,7 +418,7 @@ export default function JobDetailScreen() {
           <View style={styles.infoItem}>
             <Ionicons name="people-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Applicants</Text>
+              <Text style={styles.infoLabel}>{t('jobs.applicants')}</Text>
               <Text style={styles.infoValue}>{job.applicants} workers applied</Text>
             </View>
           </View>
@@ -430,7 +432,7 @@ export default function JobDetailScreen() {
 
         {/* Requirements */}
         <View style={styles.requirementsSection}>
-          <Text style={styles.sectionTitle}>Requirements</Text>
+          <Text style={styles.sectionTitle}>{t('jobs.requirements')}</Text>
           <View style={styles.requirementItem}>
             <Text style={styles.requirementBullet}>•</Text>
             <Text style={styles.requirementText}>Professional experience in {job.category}</Text>

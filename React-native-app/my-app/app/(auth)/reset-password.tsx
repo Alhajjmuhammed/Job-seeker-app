@@ -13,8 +13,10 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ResetPasswordScreen() {
+  const { t } = useTranslation();
   const { uid, token } = useLocalSearchParams<{ uid?: string; token?: string }>();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,22 +35,22 @@ export default function ResetPasswordScreen() {
 
   const handleResetPassword = async () => {
     if (!password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFieldsError'));
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('auth.passwordsNoMatch'));
       return;
     }
 
     if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
+      Alert.alert(t('common.error'), t('auth.passwordMinLength'));
       return;
     }
 
     if (!uid || !token) {
-      Alert.alert('Error', 'Invalid reset token');
+      Alert.alert(t('common.error'), t('auth.invalidResetToken'));
       return;
     }
 
@@ -74,7 +76,7 @@ export default function ResetPasswordScreen() {
         error.response?.data?.message ||
         'Failed to reset password. The link may be expired or invalid.';
       
-      Alert.alert('Reset Failed', errorMessage, [
+      Alert.alert(t('auth.resetFailed'), errorMessage, [
         {
           text: 'Request New Link',
           onPress: () => router.replace('/(auth)/forgot-password'),
@@ -119,20 +121,18 @@ export default function ResetPasswordScreen() {
             <View style={styles.iconContainer}>
               <Text style={styles.icon}>🔒</Text>
             </View>
-            <Text style={styles.title}>Reset Password</Text>
-            <Text style={styles.subtitle}>
-              Choose a strong password for your account
-            </Text>
+            <Text style={styles.title}>{t('auth.resetPassword')}</Text>
+            <Text style={styles.subtitle}>{t('auth.chooseStrongPassword')}</Text>
           </View>
 
           {/* Form */}
           <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={styles.label}>{t('auth.newPassword')}</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
-                  placeholder="Enter new password"
+                  placeholder={t('security.enterNewPassword')}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -156,10 +156,10 @@ export default function ResetPasswordScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm New Password</Text>
+              <Text style={styles.label}>{t('security.confirmNewPassword')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Confirm your password"
+                placeholder={t('auth.confirmYourPassword')}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showPassword}
@@ -167,12 +167,12 @@ export default function ResetPasswordScreen() {
                 autoComplete="password-new"
               />
               {confirmPassword && password !== confirmPassword && (
-                <Text style={styles.errorText}>Passwords do not match</Text>
+                <Text style={styles.errorText}>{t('auth.passwordsNoMatch')}</Text>
               )}
             </View>
 
             <View style={styles.requirementsContainer}>
-              <Text style={styles.requirementsTitle}>Password Requirements:</Text>
+              <Text style={styles.requirementsTitle}>{t('auth.passwordRequirements')}</Text>
               <Text style={styles.requirementItem}>
                 {password.length >= 8 ? '✅' : '⭕'} At least 8 characters
               </Text>
@@ -199,7 +199,7 @@ export default function ResetPasswordScreen() {
               style={styles.backButton}
               onPress={() => router.replace('/(auth)/login')}
             >
-              <Text style={styles.backButtonText}>Back to Login</Text>
+              <Text style={styles.backButtonText}>{t('auth.backToLogin')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -17,8 +17,10 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import StarRating from '../../../components/StarRating';
 import apiService from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function RateWorkerScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams(); // service request id
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,7 @@ export default function RateWorkerScreen() {
       }
     } catch (error: any) {
       console.error('Error loading request:', error);
-      Alert.alert('Error', 'Failed to load service details');
+      Alert.alert(t('common.error'), 'Failed to load service details');
       router.back();
     } finally {
       setLoading(false);
@@ -117,7 +119,7 @@ export default function RateWorkerScreen() {
         <Header title="Rate Worker" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('requestService.loading')}</Text>
         </View>
       </View>
     );
@@ -235,7 +237,7 @@ export default function RateWorkerScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Submit Rating</Text>
+              <Text style={styles.submitButtonText}>{t('common.submit')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -246,7 +248,7 @@ export default function RateWorkerScreen() {
           onPress={() => router.back()}
           disabled={submitting}
         >
-          <Text style={[styles.cancelButtonText, { color: theme.text }]}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('common.cancel')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Assignment {
   id: number;
@@ -32,6 +33,7 @@ interface Assignment {
 }
 
 export default function PendingAssignmentsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,7 +55,7 @@ export default function PendingAssignmentsScreen() {
     } catch (error: any) {
       console.error('Error loading assignments:', error);
       setAssignments([]); // Set empty array on error
-      Alert.alert('Error', 'Failed to load pending assignments');
+      Alert.alert(t('common.error'), t('assignments.failedLoadAssignments'));
     } finally {
       setLoading(false);
     }
@@ -95,9 +97,7 @@ export default function PendingAssignmentsScreen() {
         <Header title="Pending Assignments" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading assignments...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('assignments.loadingAssignments')}</Text>
         </View>
       </View>
     );
@@ -126,12 +126,8 @@ export default function PendingAssignmentsScreen() {
         {assignments.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.textSecondary} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No pending assignments
-            </Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-              You're all caught up! New assignments will appear here.
-            </Text>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>{t('assignments.noPendingAssignments')}</Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('assignments.allCaughtUpAssignments')}</Text>
           </View>
         ) : (
           <View style={styles.assignmentsList}>
@@ -209,7 +205,7 @@ export default function PendingAssignmentsScreen() {
                   style={[styles.respondButton, { backgroundColor: theme.primary }]}
                   onPress={() => router.push(`/(worker)/assignments/respond/${assignment.id}` as any)}
                 >
-                  <Text style={styles.respondButtonText}>Respond Now</Text>
+                  <Text style={styles.respondButtonText}>{t('assignments.respondNow')}</Text>
                   <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
               </TouchableOpacity>

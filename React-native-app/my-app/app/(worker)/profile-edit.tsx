@@ -19,6 +19,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 type Category = {
   id: number;
@@ -34,6 +35,7 @@ type Skill = {
 };
 
 export default function ProfileEditScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -410,7 +412,7 @@ export default function ProfileEditScreen() {
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
-      Alert.alert('Error', 'Failed to load profile data');
+      Alert.alert(t('common.error'), t('profile.failedLoadProfile'));
     } finally {
       setLoading(false);
     }
@@ -435,7 +437,7 @@ export default function ProfileEditScreen() {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Please allow access to your photo library');
+      Alert.alert(t('profile.permissionRequired'), t('profile.allowPhotoAccess'));
       return;
     }
 
@@ -491,7 +493,7 @@ export default function ProfileEditScreen() {
         profile_image: response.profile_image
       }));
       
-      Alert.alert('Success', 'Profile photo updated!');
+      Alert.alert(t('common.success'), t('profile.profilePhotoUpdated'));
       // Fetch full profile data to update everything
       await fetchProfileData();
     } catch (error: any) {
@@ -507,7 +509,7 @@ export default function ProfileEditScreen() {
         errorMsg = error.message;
       }
       
-      Alert.alert('Upload Error', errorMsg);
+      Alert.alert(t('profile.uploadError'), errorMsg);
     } finally {
       setSaving(false);
     }
@@ -551,12 +553,12 @@ export default function ProfileEditScreen() {
       };
 
       await apiService.updateWorkerProfile(data);
-      Alert.alert('Success', 'Profile updated successfully!', [
+      Alert.alert(t('common.success'), t('profile.profileUpdatedSuccess'), [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error: any) {
       console.error('Failed to save profile:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Failed to save profile');
+      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to save profile');
     } finally {
       setSaving(false);
     }
@@ -566,7 +568,7 @@ export default function ProfileEditScreen() {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading profile...</Text>
+        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('profile.loadingProfile')}</Text>
       </View>
     );
   }
@@ -585,7 +587,7 @@ export default function ProfileEditScreen() {
         {profile && (
           <View style={[styles.completionCard, { backgroundColor: isDark ? 'rgba(15, 118, 110, 0.1)' : '#0F766E15' }]}>
             <View style={styles.completionHeader}>
-              <Text style={[styles.completionTitle, { color: theme.text }]}>Profile Completion</Text>
+              <Text style={[styles.completionTitle, { color: theme.text }]}>{t('profile.profileCompletion')}</Text>
               <Text style={[styles.completionPercent, { color: theme.primary }]}>
                 {profile.profile_completion_percentage || 0}%
               </Text>
@@ -606,8 +608,8 @@ export default function ProfileEditScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="camera" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Profile Photo</Text>
-              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Upload a professional photo</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.profilePhoto')}</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>{t('profile.uploadProfessionalPhoto')}</Text>
             </View>
           </View>
 
@@ -639,18 +641,18 @@ export default function ProfileEditScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="person" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Personal Information</Text>
-              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Tell us about yourself</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.personalInformation')}</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>{t('profile.tellAboutYourself')}</Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Bio</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.bio')}</Text>
             <TextInput
               style={[styles.input, styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={bio}
               onChangeText={setBio}
-              placeholder="Write a brief introduction about your skills and experience"
+              placeholder={t('profile.bioPlaceholder')}
               placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={4}
@@ -659,7 +661,7 @@ export default function ProfileEditScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Phone Number</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('auth.phone')}</Text>
             <TextInput
             style={[styles.input, { backgroundColor: isDark ? theme.surface : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
               value={phone}
@@ -669,17 +671,17 @@ export default function ProfileEditScreen() {
               keyboardType="phone-pad"
               editable={false}
             />
-            <Text style={[styles.helpText, { color: theme.textSecondary }]}>Phone cannot be changed</Text>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>{t('profile.phoneCannotChange')}</Text>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Email Address</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('auth.emailAddress')}</Text>
             <TextInput
               style={[styles.input, styles.disabledInput, { backgroundColor: isDark ? theme.surface : '#F9FAFB', borderColor: theme.border, color: theme.text }]}
               value={user?.email}
               editable={false}
             />
-            <Text style={[styles.helpText, { color: theme.textSecondary }]}>Email cannot be changed</Text>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>{t('profile.emailCannotChange')}</Text>
           </View>
         </View>
 
@@ -688,41 +690,41 @@ export default function ProfileEditScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="location" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Location</Text>
-              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Where are you based?</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('jobs.location')}</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>{t('profile.whereBasedQuestion')}</Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Address</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.address')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={address}
               onChangeText={setAddress}
-              placeholder="Street address"
+              placeholder={t('profile.streetAddress')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           <View style={styles.row}>
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={[styles.label, { color: theme.text }]}>City</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('profile.city')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={city}
                 onChangeText={setCity}
-                placeholder="City"
+                placeholder={t('profile.city')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
 
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={[styles.label, { color: theme.text }]}>State/Province</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('profile.stateProvince')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={state}
                 onChangeText={setState}
-                placeholder="State"
+                placeholder={t('profile.state')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
@@ -730,7 +732,7 @@ export default function ProfileEditScreen() {
 
           <View style={styles.row}>
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={[styles.label, { color: theme.text }]}>Country</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('profile.country')}</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={country}
@@ -752,19 +754,19 @@ export default function ProfileEditScreen() {
             </View>
 
             <View style={[styles.formGroup, styles.halfWidth]}>
-              <Text style={[styles.label, { color: theme.text }]}>Postal Code</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('profile.postal')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={postalCode}
                 onChangeText={setPostalCode}
-                placeholder="Postal code"
+                placeholder={t('profile.postal')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Religion (Optional)</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.religionOptional')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={religion}
@@ -797,9 +799,7 @@ export default function ProfileEditScreen() {
                 <Ionicons name="checkmark" size={16} color="#FFF" />
               )}
             </View>
-            <Text style={[styles.checkboxLabel, { color: theme.text }]}>
-              Can work everywhere (any location)
-            </Text>
+            <Text style={[styles.checkboxLabel, { color: theme.text }]}>{t('profile.canWorkEverywhere')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -808,13 +808,13 @@ export default function ProfileEditScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="briefcase" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Professional Details</Text>
-              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Your skills and rates</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.professionalDetails')}</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>{t('profile.skillsAndRates')}</Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Years of Experience</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.yearsExperience')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={experienceYears}
@@ -826,7 +826,7 @@ export default function ProfileEditScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Hourly Rate (USD)</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.hourlyRateUSD')}</Text>
             <View style={styles.inputWithPrefix}>
               <Text style={[styles.inputPrefix, { color: theme.textSecondary }]}>$</Text>
               <TextInput
@@ -838,11 +838,11 @@ export default function ProfileEditScreen() {
                 keyboardType="decimal-pad"
               />
             </View>
-            <Text style={[styles.helpText, { color: theme.textSecondary }]}>Your hourly rate in US dollars</Text>
+            <Text style={[styles.helpText, { color: theme.textSecondary }]}>{t('profile.hourlyRatePlaceholder')}</Text>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Availability</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.availability')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={availability}
@@ -881,8 +881,8 @@ export default function ProfileEditScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="pricetags" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Categories</Text>
-              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Select your work categories</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.categories')}</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>{t('profile.selectWorkCategories')}</Text>
             </View>
           </View>
 
@@ -927,7 +927,7 @@ export default function ProfileEditScreen() {
             <View style={styles.sectionHeader}>
               <Ionicons name="construct" size={24} color={theme.primary} />
               <View style={styles.sectionTitleContainer}>
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>Skills</Text>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.skills')}</Text>
                 <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
                   Select your skills ({selectedSkills.length} selected)
                 </Text>
@@ -1001,7 +1001,7 @@ export default function ProfileEditScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                <Text style={styles.saveButtonText}>Save Changes</Text>
+                <Text style={styles.saveButtonText}>{t('client.saveChanges')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -1011,7 +1011,7 @@ export default function ProfileEditScreen() {
             onPress={() => router.back()}
             disabled={saving}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
 

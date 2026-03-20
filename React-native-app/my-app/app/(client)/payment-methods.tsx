@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface SavedCard {
   id: string;
@@ -28,6 +29,7 @@ interface SavedCard {
 }
 
 export default function PaymentMethodsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [cards, setCards] = useState<SavedCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,11 +42,14 @@ export default function PaymentMethodsScreen() {
   const fetchPaymentMethods = async () => {
     try {
       const data = await apiService.getPaymentMethods();
-      setCards(data);
+      // Ensure we always have an array, even if API returns unexpected data
+      setCards(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error('Error fetching payment methods:', error);
+      // Set empty array on error
+      setCards([]);
       if (error.response?.status !== 404) {
-        Alert.alert('Error', 'Failed to load payment methods');
+        Alert.alert(t('common.error'), t('paymentMethods.failedLoadPaymentMethods'));
       }
     } finally {
       setLoading(false);
@@ -60,11 +65,11 @@ export default function PaymentMethodsScreen() {
   const handleSetDefault = async (cardId: string) => {
     try {
       await apiService.setDefaultCard(cardId);
-      Alert.alert('Success', 'Default payment method updated');
+      Alert.alert(t('common.success'), t('paymentMethods.defaultPaymentUpdated'));
       fetchPaymentMethods();
     } catch (error) {
       console.error('Error setting default:', error);
-      Alert.alert('Error', 'Failed to set default payment method');
+      Alert.alert(t('common.error'), t('paymentMethods.failedSetDefaultPayment'));
     }
   };
 
@@ -80,11 +85,11 @@ export default function PaymentMethodsScreen() {
           onPress: async () => {
             try {
               await apiService.removeCard(cardId);
-              Alert.alert('Success', 'Payment method removed');
+              Alert.alert(t('common.success'), t('paymentMethods.paymentMethodRemoved'));
               fetchPaymentMethods();
             } catch (error) {
               console.error('Error removing card:', error);
-              Alert.alert('Error', 'Failed to remove payment method');
+              Alert.alert(t('common.error'), t('paymentMethods.failedRemovePaymentMethod'));
             }
           },
         },
@@ -130,7 +135,7 @@ export default function PaymentMethodsScreen() {
           </View>
           {card.is_default && (
             <View style={styles.defaultBadge}>
-              <Text style={styles.defaultBadgeText}>DEFAULT</Text>
+              <Text style={styles.defaultBadgeText}>{t('payout.default')}</Text>
             </View>
           )}
         </View>
@@ -139,11 +144,11 @@ export default function PaymentMethodsScreen() {
         
         <View style={styles.cardFooter}>
           <View>
-            <Text style={styles.cardLabel}>CARDHOLDER</Text>
+            <Text style={styles.cardLabel}>{t('paymentMethods.cardHolder')}</Text>
             <Text style={styles.cardHolder}>{card.cardholder_name}</Text>
           </View>
           <View>
-            <Text style={styles.cardLabel}>EXPIRES</Text>
+            <Text style={styles.cardLabel}>{t('paymentMethods.expires')}</Text>
             <Text style={[styles.cardExpiry, card.is_expired && styles.cardExpired]}>
               {String(card.expiry_month).padStart(2, '0')}/{card.expiry_year}
             </Text>
@@ -158,9 +163,7 @@ export default function PaymentMethodsScreen() {
             onPress={() => handleSetDefault(card.id)}
           >
             <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} />
-            <Text style={[styles.actionButtonText, { color: theme.primary }]}>
-              Set as Default
-            </Text>
+            <Text style={[styles.actionButtonText, { color: theme.primary }]}>{t('payout.setAsDefault')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -168,14 +171,14 @@ export default function PaymentMethodsScreen() {
           onPress={() => handleRemoveCard(card.id)}
         >
           <Ionicons name="trash-outline" size={20} color="#EF4444" />
-          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>Remove</Text>
+          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>{t('payout.remove')}</Text>
         </TouchableOpacity>
       </View>
 
       {card.is_expired && (
         <View style={styles.expiredWarning}>
           <Ionicons name="warning-outline" size={18} color="#F59E0B" />
-          <Text style={styles.expiredWarningText}>This card has expired</Text>
+          <Text style={styles.expiredWarningText}>{t('paymentMethods.cardExpired')}</Text>
         </View>
       )}
     </View>
@@ -201,38 +204,34 @@ export default function PaymentMethodsScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Payment Methods</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>{t('paymentMethods.paymentMethodsTitle')}</Text>
         </View>
 
         {cards.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="card-outline" size={64} color={theme.textSecondary} />
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>No Payment Methods</Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-              Add a payment method to make transactions easier
-            </Text>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('paymentMethods.noPaymentMethods')}</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('paymentMethods.addPaymentMethodMessage')}</Text>
           </View>
         ) : (
           <View style={styles.cardsList}>
-            {cards.map(renderCardItem)}
+            {(cards || []).map(renderCardItem)}
           </View>
         )}
 
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: theme.primary }]}
-          onPress={() => Alert.alert('Coming Soon', 'Add payment method feature will be available soon')}
+          onPress={() => Alert.alert(t('profile.comingSoon'), t('paymentMethods.addPaymentMethodComingSoon'))}
         >
           <Ionicons name="add-circle-outline" size={24} color="#FFF" />
-          <Text style={styles.addButtonText}>Add Payment Method</Text>
+          <Text style={styles.addButtonText}>{t('paymentMethods.addPaymentMethod')}</Text>
         </TouchableOpacity>
 
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
           <Ionicons name="shield-checkmark-outline" size={24} color={theme.primary} />
           <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: theme.text }]}>Secure Payments</Text>
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-              Your payment information is encrypted and secure. We never store your full card details.
-            </Text>
+            <Text style={[styles.infoTitle, { color: theme.text }]}>{t('paymentMethods.securePayments')}</Text>
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('paymentMethods.securePaymentsMessage')}</Text>
           </View>
         </View>
       </ScrollView>

@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface RetentionPolicy {
   data_type: string;
@@ -19,6 +20,7 @@ interface RetentionPolicy {
 }
 
 export default function DataRetentionScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [policies, setPolicies] = useState<RetentionPolicy[]>([]);

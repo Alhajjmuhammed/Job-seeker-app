@@ -16,10 +16,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
 import Header from '../../components/Header';
+import { useTranslation } from 'react-i18next';
 
 type SetupStep = 'welcome' | 'documents' | 'skills' | 'complete';
 
 export default function ProfileSetupScreen() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState<SetupStep>('welcome');
   const [hasUploadedID, setHasUploadedID] = useState(false);
   const [optionalDocsCount, setOptionalDocsCount] = useState(0);
@@ -79,14 +81,14 @@ export default function ProfileSetupScreen() {
       setHasUploadedID(response.has_uploaded_national_id);
       
       if (documentType === 'id') {
-        Alert.alert('Success', 'National ID uploaded! You can now proceed or add more documents.');
+        Alert.alert(t('common.success'), t('worker.nationalIDUploaded'));
       } else {
         setOptionalDocsCount(prev => prev + 1);
-        Alert.alert('Success', 'Document uploaded successfully!');
+        Alert.alert(t('common.success'), t('documents.documentUploadedSuccess'));
       }
     } catch (error: any) {
       console.error('Document upload failed:', error);
-      Alert.alert('Upload Failed', error.response?.data?.error || 'Failed to upload document. Please try again.');
+      Alert.alert(t('worker.uploadFailed'), error.response?.data?.error || 'Failed to upload document. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,7 +96,7 @@ export default function ProfileSetupScreen() {
 
   const handleContinueToSkills = () => {
     if (!canProceed) {
-      Alert.alert('Required', 'Please upload your National ID first to continue.');
+      Alert.alert(t('worker.required'), t('worker.uploadIDFirst'));
       return;
     }
     setCurrentStep('skills');
@@ -102,7 +104,7 @@ export default function ProfileSetupScreen() {
 
   const handleFinishSetup = () => {
     if (!canProceed) {
-      Alert.alert('Required', 'Please upload your National ID to finish setup.');
+      Alert.alert(t('worker.required'), 'Please upload your National ID to finish setup.');
       return;
     }
     
@@ -149,9 +151,7 @@ export default function ProfileSetupScreen() {
         <Ionicons name="checkmark-done-circle" size={80} color={theme.primary} />
       </View>
       <Text style={styles.welcomeTitle}>Welcome, {user?.firstName}!</Text>
-      <Text style={styles.welcomeSubtitle}>
-        Let's set up your profile to start receiving job requests from clients
-      </Text>
+      <Text style={styles.welcomeSubtitle}>{t('worker.setupProfileMessage')}</Text>
 
       <View style={styles.setupSteps}>
         <View style={styles.setupStepItem}>
@@ -159,8 +159,8 @@ export default function ProfileSetupScreen() {
             <Text style={styles.stepNumberText}>1</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Upload National ID</Text>
-            <Text style={styles.stepDescription}>Required for verification (mandatory)</Text>
+            <Text style={styles.stepTitle}>{t('worker.uploadNationalID')}</Text>
+            <Text style={styles.stepDescription}>{t('worker.requiredVerification')}</Text>
           </View>
         </View>
 
@@ -169,8 +169,8 @@ export default function ProfileSetupScreen() {
             <Text style={styles.stepNumberText}>2</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Add Optional Documents</Text>
-            <Text style={styles.stepDescription}>Certificates, degrees, or experience proof</Text>
+            <Text style={styles.stepTitle}>{t('worker.addOptionalDocs')}</Text>
+            <Text style={styles.stepDescription}>{t('worker.certsDegreesProof')}</Text>
           </View>
         </View>
 
@@ -179,8 +179,8 @@ export default function ProfileSetupScreen() {
             <Text style={styles.stepNumberText}>3</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Set Skills & Availability</Text>
-            <Text style={styles.stepDescription}>Help clients find you easily</Text>
+            <Text style={styles.stepTitle}>{t('worker.setSkillsAvailability')}</Text>
+            <Text style={styles.stepDescription}>{t('worker.helpClientsFind')}</Text>
           </View>
         </View>
       </View>
@@ -189,7 +189,7 @@ export default function ProfileSetupScreen() {
         style={styles.primaryButton}
         onPress={handleSkipToDocuments}
       >
-        <Text style={styles.primaryButtonText}>Get Started</Text>
+        <Text style={styles.primaryButtonText}>{t('worker.getStarted')}</Text>
         <Ionicons name="arrow-forward" size={20} color="#FFF" />
       </TouchableOpacity>
     </View>
@@ -197,15 +197,13 @@ export default function ProfileSetupScreen() {
 
   const renderDocumentsStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Upload Documents</Text>
-      <Text style={styles.stepSubtitle}>
-        Upload your National ID first (required), then add optional documents
-      </Text>
+      <Text style={styles.stepTitle}>{t('worker.uploadDocuments')}</Text>
+      <Text style={styles.stepSubtitle}>{t('worker.uploadIDFirstMessage')}</Text>
 
       {/* Progress Indicator */}
       <View style={styles.progressCard}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Profile Completion</Text>
+          <Text style={styles.progressLabel}>{t('profile.profileCompletion')}</Text>
           <Text style={styles.progressPercentage}>{completion}%</Text>
         </View>
         <View style={styles.progressBarContainer}>
@@ -215,17 +213,17 @@ export default function ProfileSetupScreen() {
           {!hasUploadedID ? (
             <>
               <Ionicons name="alert-circle" size={16} color={theme.error} />
-              <Text style={styles.progressHint}>Upload National ID to proceed</Text>
+              <Text style={styles.progressHint}>{t('worker.uploadIDToProceed')}</Text>
             </>
           ) : completion === 100 ? (
             <>
               <Ionicons name="checkmark-circle" size={16} color={theme.success} />
-              <Text style={styles.progressHint}>Profile complete!</Text>
+              <Text style={styles.progressHint}>{t('worker.profileComplete')}</Text>
             </>
           ) : (
             <>
               <Ionicons name="ellipse-outline" size={16} color={theme.textSecondary} />
-              <Text style={styles.progressHint}>Add more documents for 100%</Text>
+              <Text style={styles.progressHint}>{t('worker.addMoreDocs')}</Text>
             </>
           )}
         </View>
@@ -235,7 +233,7 @@ export default function ProfileSetupScreen() {
       <View style={styles.documentSection}>
         <View style={styles.documentSectionTitleContainer}>
           <Ionicons name="alert-circle" size={20} color={theme.error} />
-          <Text style={styles.documentSectionTitle}>Required Document</Text>
+          <Text style={styles.documentSectionTitle}>{t('worker.requiredDocument')}</Text>
         </View>
         <TouchableOpacity
           style={[
@@ -258,7 +256,7 @@ export default function ProfileSetupScreen() {
               color={hasUploadedID ? theme.success : theme.primary}
             />
           )}
-          <Text style={styles.uploadCardTitle}>National ID</Text>
+          <Text style={styles.uploadCardTitle}>{t('worker.nationalID')}</Text>
           <Text style={styles.uploadCardStatus}>
             {hasUploadedID ? 'Uploaded' : 'Tap to upload'}
           </Text>
@@ -269,7 +267,7 @@ export default function ProfileSetupScreen() {
       <View style={styles.documentSection}>
         <View style={styles.documentSectionTitleContainer}>
           <Ionicons name="ellipse-outline" size={20} color={theme.textSecondary} />
-          <Text style={styles.documentSectionTitle}>Optional Documents (Recommended)</Text>
+          <Text style={styles.documentSectionTitle}>{t('worker.optionalDocs')}</Text>
         </View>
         <View style={styles.optionalDocsGrid}>
           <TouchableOpacity
@@ -282,8 +280,8 @@ export default function ProfileSetupScreen() {
             ) : (
               <Ionicons name="school-outline" size={32} color={theme.primary} />
             )}
-            <Text style={styles.uploadCardTitle}>Certificates</Text>
-            <Text style={styles.uploadCardStatus}>Tap to upload</Text>
+            <Text style={styles.uploadCardTitle}>{t('worker.certificates')}</Text>
+            <Text style={styles.uploadCardStatus}>{t('worker.tapToUpload')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -296,8 +294,8 @@ export default function ProfileSetupScreen() {
             ) : (
               <Ionicons name="briefcase-outline" size={32} color={theme.primary} />
             )}
-            <Text style={styles.uploadCardTitle}>CV/Resume</Text>
-            <Text style={styles.uploadCardStatus}>Tap to upload</Text>
+            <Text style={styles.uploadCardTitle}>{t('worker.cvResume')}</Text>
+            <Text style={styles.uploadCardStatus}>{t('worker.tapToUpload')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -308,7 +306,7 @@ export default function ProfileSetupScreen() {
           onPress={handleContinueToSkills}
           disabled={!canProceed}
         >
-          <Text style={styles.secondaryButtonText}>Continue</Text>
+          <Text style={styles.secondaryButtonText}>{t('worker.continue')}</Text>
           <Ionicons name="arrow-forward" size={20} color={canProceed ? theme.primary : theme.textSecondary} />
         </TouchableOpacity>
 
@@ -317,7 +315,7 @@ export default function ProfileSetupScreen() {
             style={styles.linkButton}
             onPress={handleSkipForNow}
           >
-            <Text style={styles.linkButtonText}>Skip for now</Text>
+            <Text style={styles.linkButtonText}>{t('worker.skipForNow')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -326,16 +324,12 @@ export default function ProfileSetupScreen() {
 
   const renderSkillsStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Almost Done!</Text>
-      <Text style={styles.stepSubtitle}>
-        Add skills and set your availability
-      </Text>
+      <Text style={styles.stepTitle}>{t('worker.almostDone')}</Text>
+      <Text style={styles.stepSubtitle}>{t('worker.addSkillsAvailability')}</Text>
 
       <View style={styles.infoCard}>
         <Ionicons name="information-circle" size={24} color={theme.primary} />
-        <Text style={styles.infoText}>
-          You can add more details later from your profile page
-        </Text>
+        <Text style={styles.infoText}>{t('worker.addDetailsLater')}</Text>
       </View>
 
       <TouchableOpacity
@@ -343,14 +337,14 @@ export default function ProfileSetupScreen() {
         onPress={handleFinishSetup}
       >
         <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-        <Text style={styles.primaryButtonText}>Finish Setup</Text>
+        <Text style={styles.primaryButtonText}>{t('worker.finishSetup')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.linkButton}
         onPress={handleSkipForNow}
       >
-        <Text style={styles.linkButtonText}>Skip and go to dashboard</Text>
+        <Text style={styles.linkButtonText}>{t('worker.skipGoToDashboard')}</Text>
       </TouchableOpacity>
     </View>
   );

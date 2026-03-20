@@ -584,11 +584,11 @@ export default function WorkerDashboard() {
           onPress: async () => {
             try {
               await apiService.acceptDirectHireRequest(requestId);
-              Alert.alert('Success', 'Request accepted! Client will be notified.');
+              Alert.alert(t('common.success'), 'Request accepted! Client will be notified.');
               fetchDashboardData(); // Refresh data
             } catch (error) {
               console.error('Error accepting request:', error);
-              Alert.alert('Error', 'Failed to accept request. Please try again.');
+              Alert.alert(t('common.error'), 'Failed to accept request. Please try again.');
             }
           },
         },
@@ -612,7 +612,7 @@ export default function WorkerDashboard() {
               fetchDashboardData(); // Refresh data
             } catch (error) {
               console.error('Error rejecting request:', error);
-              Alert.alert('Error', 'Failed to reject request. Please try again.');
+              Alert.alert(t('common.error'), 'Failed to reject request. Please try again.');
             }
           },
         },
@@ -632,7 +632,7 @@ export default function WorkerDashboard() {
       );
     } catch (error) {
       console.error('Error updating availability:', error);
-      Alert.alert('Error', 'Failed to update availability');
+      Alert.alert(t('common.error'), t('profile.failedUpdateAvailability'));
     }
   };
 
@@ -644,14 +644,14 @@ export default function WorkerDashboard() {
       <Header 
         showNotifications 
         showSearch 
-        onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+        onNotificationPress={() => Alert.alert(t('settings.notifications'), t('nav.notifications'))}
         onSearchPress={() => router.push('/(worker)/jobs')}
       />
 
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading dashboard...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('client.loadingDashboard')}</Text>
         </View>
       ) : (
       <ScrollView 
@@ -809,7 +809,7 @@ export default function WorkerDashboard() {
               onPress={() => router.push('/browse-jobs' as any)}
             >
               <Ionicons name="search" size={20} color="#FFFFFF" />
-              <Text style={styles.browseJobsButtonText}>Browse & Apply for Jobs</Text>
+              <Text style={styles.browseJobsButtonText}>{t('nav.jobs')}</Text>
               <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
             </TouchableOpacity>
 
@@ -818,7 +818,7 @@ export default function WorkerDashboard() {
               onPress={() => router.push('/saved-jobs' as any)}
             >
               <Ionicons name="heart" size={20} color={theme.primary} />
-              <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>Saved Jobs</Text>
+              <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('savedJobs.savedJobs')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -850,7 +850,7 @@ export default function WorkerDashboard() {
             onPress={() => router.push('/(worker)/active-service' as any)}
           >
             <Ionicons name="time" size={22} color="#fff" />
-            <Text style={styles.activeServiceBannerText}>You have an active service — Tap to manage</Text>
+            <Text style={styles.activeServiceBannerText}>{t('assignments.active')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#fff" />
           </TouchableOpacity>
         )}
@@ -918,7 +918,7 @@ export default function WorkerDashboard() {
         {/* Job Applications Section - for professionals only */}
         {isProfessional && stats.total_applications > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>My Applications</Text>
+            <Text style={styles.sectionTitle}>{t('applications.myApplications')}</Text>
             <TouchableOpacity 
               style={[styles.infoCard, { backgroundColor: theme.surface }]}
               onPress={() => router.push('/applications' as any)}
@@ -945,7 +945,7 @@ export default function WorkerDashboard() {
           {pendingRequests.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
-              <Text style={styles.emptyStateTitle}>No pending requests</Text>
+              <Text style={styles.emptyStateTitle}>{t('assignments.pending')}</Text>
               <Text style={styles.emptyStateSubtitle}>
                 New job requests will appear here
               </Text>
@@ -967,7 +967,7 @@ export default function WorkerDashboard() {
 
                 <View style={styles.requestDetails}>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Duration:</Text>
+                    <Text style={styles.detailLabel}>{t('requestService.duration')}</Text>
                     <Text style={styles.detailValue}>{request.duration_type}</Text>
                   </View>
                   <View style={styles.detailRow}>
@@ -999,42 +999,42 @@ export default function WorkerDashboard() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>{t('client.quickActions')}</Text>
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/notifications' as any)}
             >
               <Ionicons name="notifications-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={styles.actionText}>Notifications</Text>
+              <Text style={styles.actionText}>{t('settings.notifications')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/analytics' as any)}
             >
               <Ionicons name="analytics-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={styles.actionText}>Analytics</Text>
+              <Text style={styles.actionText}>{t('privacy.analyticsData')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/profile')}
             >
               <Ionicons name="person-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={styles.actionText}>My Profile</Text>
+              <Text style={styles.actionText}>{t('profile.myProfile')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/earnings')}
             >
               <Ionicons name="cash-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={styles.actionText}>Earnings</Text>
+              <Text style={styles.actionText}>{t('earnings.title')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/(worker)/documents')}
             >
               <Ionicons name="document-text-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={styles.actionText}>Documents</Text>
+              <Text style={styles.actionText}>{t('profile.documents')}</Text>
             </TouchableOpacity>
           </View>
         </View>

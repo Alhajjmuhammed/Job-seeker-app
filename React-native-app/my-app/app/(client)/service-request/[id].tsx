@@ -18,6 +18,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
 import apiService from '../../../services/api';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceRequestDetail {
   id: number;
@@ -74,6 +75,7 @@ interface TimeLog {
 }
 
 export default function ServiceRequestDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -112,7 +114,7 @@ export default function ServiceRequestDetailScreen() {
     } catch (error: any) {
       console.error('❌ Error loading request detail:', error);
       console.error('Error details:', error.response?.data || error.message);
-      Alert.alert('Error', 'Failed to load request details');
+      Alert.alert(t('common.error'), 'Failed to load request details');
       router.back();
     } finally {
       setLoading(false);
@@ -151,7 +153,7 @@ export default function ServiceRequestDetailScreen() {
     try {
       setCanceling(true);
       await apiService.cancelServiceRequest(Number(id));
-      Alert.alert('Success', 'Service request cancelled successfully', [
+      Alert.alert(t('common.success'), 'Service request cancelled successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
@@ -182,7 +184,7 @@ export default function ServiceRequestDetailScreen() {
     try {
       setCompleting(true);
       await apiService.completeServiceRequest(Number(id));
-      Alert.alert('Success', 'Service marked as finished! You can now rate the worker.', [
+      Alert.alert(t('common.success'), 'Service marked as finished! You can now rate the worker.', [
         { text: 'OK', onPress: () => loadRequestDetail() },
       ]);
     } catch (error: any) {
@@ -218,7 +220,7 @@ export default function ServiceRequestDetailScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
+      Alert.alert(t('common.error'), 'Failed to pick image. Please try again.');
     }
   };
 
@@ -240,7 +242,7 @@ export default function ServiceRequestDetailScreen() {
 
       await apiService.updateServiceRequest(Number(id), formData as any);
 
-      Alert.alert('Success', 'Payment screenshot uploaded successfully!');
+      Alert.alert(t('common.success'), 'Payment screenshot uploaded successfully!');
       await loadRequestDetail();
     } catch (error: any) {
       console.error('Error uploading screenshot:', error);
@@ -401,7 +403,7 @@ export default function ServiceRequestDetailScreen() {
               onPress={handleEditRequest}
             >
               <Ionicons name="create-outline" size={20} color={theme.primary} />
-              <Text style={[styles.editButtonText, { color: theme.primary }]}>Edit Request</Text>
+              <Text style={[styles.editButtonText, { color: theme.primary }]}>{t('common.edit')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -610,21 +612,21 @@ export default function ServiceRequestDetailScreen() {
                     {assignment.status === 'accepted' && (
                       <View style={[styles.acceptedBadge, { backgroundColor: '#4CAF50' }]}>
                         <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
-                        <Text style={styles.acceptedText}>Accepted</Text>
+                        <Text style={styles.acceptedText}>{t('assignments.accepted')}</Text>
                       </View>
                     )}
 
                     {assignment.status === 'in_progress' && (
                       <View style={[styles.inProgressBadge, { backgroundColor: '#9C27B0' }]}>
                         <Ionicons name="play-circle" size={16} color="#FFFFFF" />
-                        <Text style={styles.inProgressText}>In Progress</Text>
+                        <Text style={styles.inProgressText}>{t('assignments.inProgress')}</Text>
                       </View>
                     )}
 
                     {assignment.status === 'completed' && (
                       <View style={[styles.completedBadge, { backgroundColor: '#4CAF50' }]}>
                         <Ionicons name="checkmark-done-circle" size={16} color="#FFFFFF" />
-                        <Text style={styles.completedText}>Completed</Text>
+                        <Text style={styles.completedText}>{t('favoriteWorkers.completedJobs')}</Text>
                       </View>
                     )}
 
@@ -637,7 +639,7 @@ export default function ServiceRequestDetailScreen() {
                           if (phoneNumber) {
                             Linking.openURL(`tel:${phoneNumber}`);
                           } else {
-                            Alert.alert('Error', 'Phone number not available');
+                            Alert.alert(t('common.error'), 'Phone number not available');
                           }
                         }}
                       >
@@ -724,7 +726,7 @@ export default function ServiceRequestDetailScreen() {
               ) : (
                 <>
                   <Ionicons name="close-circle-outline" size={20} color="#FFFFFF" />
-                  <Text style={styles.cancelButtonText}>Cancel Request</Text>
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </>
               )}
             </TouchableOpacity>

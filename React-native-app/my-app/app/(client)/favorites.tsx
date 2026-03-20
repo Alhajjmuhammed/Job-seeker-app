@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface FavoriteWorker {
   id: number;
@@ -36,6 +37,7 @@ interface FavoriteWorker {
 }
 
 export default function FavoritesScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,7 +67,7 @@ export default function FavoritesScreen() {
       setPage(pageNum);
     } catch (error) {
       console.error('Error loading favorites:', error);
-      Alert.alert('Error', 'Failed to load favorites');
+      Alert.alert(t('common.error'), t('favoriteWorkers.failedLoadFavorites'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -96,10 +98,10 @@ export default function FavoritesScreen() {
             try {
               await apiService.toggleFavorite(workerId);
               setFavorites(prev => prev.filter(f => f.worker_id !== workerId));
-              Alert.alert('Success', `${workerName} removed from favorites`);
+              Alert.alert(t('common.success'), `${workerName} removed from favorites`);
             } catch (error) {
               console.error('Error removing favorite:', error);
-              Alert.alert('Error', 'Failed to remove from favorites');
+              Alert.alert(t('common.error'), t('favoriteWorkers.failedRemoveFavorite'));
             }
           },
         },
@@ -109,7 +111,7 @@ export default function FavoritesScreen() {
 
   const handleWorkerPress = (workerId: number) => {
     // Navigate to worker detail once that screen is implemented
-    Alert.alert('Worker Details', `Worker ID: ${workerId}\n\nWorker detail screen coming soon`);
+    Alert.alert(t('favoriteWorkers.workerDetails'), `Worker ID: ${workerId}\n\nWorker detail screen coming soon`);
   };
 
   const getAvailabilityColor = (availability: string) => {
@@ -259,9 +261,7 @@ export default function FavoritesScreen() {
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <Ionicons name="heart" size={28} color="#EF4444" />
-            <Text style={[styles.title, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>
-              Favorite Workers
-            </Text>
+            <Text style={[styles.title, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>{t('favoriteWorkers.favoriteWorkersTitle')}</Text>
           </View>
           
           <Text style={[styles.countText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
@@ -273,9 +273,7 @@ export default function FavoritesScreen() {
         {loading && page === 1 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Loading favorites...
-            </Text>
+            <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('favoriteWorkers.loadingFavorites')}</Text>
           </View>
         ) : favorites.length === 0 ? (
           <View style={styles.emptyState}>
@@ -285,19 +283,13 @@ export default function FavoritesScreen() {
               color={theme.textSecondary}
               style={{ marginBottom: 16 }}
             />
-            <Text style={[styles.emptyTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
-              No Favorites Yet
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Browse workers and add them to your favorites for quick access
-            </Text>
+            <Text style={[styles.emptyTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('favoriteWorkers.noFavoritesYet')}</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('favoriteWorkers.browseFavoritesMessage')}</Text>
             <TouchableOpacity
               style={[styles.browseButton, { backgroundColor: theme.primary }]}
               onPress={() => router.push('/(client)/dashboard')}
             >
-              <Text style={[styles.browseButtonText, { fontFamily: 'Poppins_600SemiBold' }]}>
-                Browse Workers
-              </Text>
+              <Text style={[styles.browseButtonText, { fontFamily: 'Poppins_600SemiBold' }]}>{t('client.browseWorkers')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

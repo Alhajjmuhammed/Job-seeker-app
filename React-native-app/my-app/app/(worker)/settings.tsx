@@ -91,7 +91,7 @@ export default function SettingsScreen() {
       setNotificationSettings(newSettings);
     } catch (error) {
       console.error('Error saving notification settings:', error);
-      Alert.alert('Error', 'Failed to save settings');
+      Alert.alert(t('common.error'), t('nav.settings'));
     }
   };
 
@@ -101,7 +101,7 @@ export default function SettingsScreen() {
       setPrivacySettings(newSettings);
     } catch (error) {
       console.error('Error saving privacy settings:', error);
-      Alert.alert('Error', 'Failed to save settings');
+      Alert.alert(t('common.error'), t('nav.settings'));
     }
   };
 
@@ -318,7 +318,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="card-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Payment Methods</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('paymentMethods.paymentMethodsTitle')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -327,7 +327,7 @@ export default function SettingsScreen() {
 
         {/* Security Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Security</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('clientSettings.security')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
@@ -336,7 +336,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="lock-closed-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Change Password</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('security.changePassword')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -345,13 +345,13 @@ export default function SettingsScreen() {
 
         {/* Notification Settings */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Notifications</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('settings.notifications')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="notifications-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Push Notifications</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('privacy.pushNotifications')}</Text>
               </View>
               <Switch
                 value={notificationSettings.pushEnabled}
@@ -368,7 +368,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="mail-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Email Notifications</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('privacy.emailNotifications')}</Text>
               </View>
               <Switch
                 value={notificationSettings.emailEnabled}
@@ -385,7 +385,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="chatbox-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>SMS Notifications</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('privacy.smsNotifications')}</Text>
               </View>
               <Switch
                 value={notificationSettings.smsEnabled}
@@ -401,7 +401,7 @@ export default function SettingsScreen() {
           {/* Notification Preferences */}
           <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 12 }]}>
             <View style={styles.settingRow}>
-              <Text style={[styles.settingText, { color: theme.text }]}>Job Alerts</Text>
+              <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.jobAlerts')}</Text>
               <Switch
                 value={notificationSettings.jobAlerts}
                 onValueChange={(value) =>
@@ -415,7 +415,7 @@ export default function SettingsScreen() {
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
             <View style={styles.settingRow}>
-              <Text style={[styles.settingText, { color: theme.text }]}>Message Alerts</Text>
+              <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.messageAlerts')}</Text>
               <Switch
                 value={notificationSettings.messageAlerts}
                 onValueChange={(value) =>
@@ -429,7 +429,7 @@ export default function SettingsScreen() {
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
             <View style={styles.settingRow}>
-              <Text style={[styles.settingText, { color: theme.text }]}>Application Updates</Text>
+              <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.applicationUpdates')}</Text>
               <Switch
                 value={notificationSettings.applicationUpdates}
                 onValueChange={(value) =>
@@ -443,7 +443,7 @@ export default function SettingsScreen() {
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
             <View style={styles.settingRow}>
-              <Text style={[styles.settingText, { color: theme.text }]}>Marketing Emails</Text>
+              <Text style={[styles.settingText, { color: theme.text }]}>{t('privacy.marketingEmails')}</Text>
               <Switch
                 value={notificationSettings.marketingEmails}
                 onValueChange={(value) =>
@@ -458,13 +458,13 @@ export default function SettingsScreen() {
 
         {/* Privacy Settings */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Privacy</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('settings.privacy')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="eye-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Profile Visible</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.profileVisible')}</Text>
               </View>
               <Switch
                 value={privacySettings.profileVisible}
@@ -481,7 +481,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="location-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Show Location</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.showLocation')}</Text>
               </View>
               <Switch
                 value={privacySettings.showLocation}
@@ -498,7 +498,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="call-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Show Phone Number</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('privacy.showPhoneNumber')}</Text>
               </View>
               <Switch
                 value={privacySettings.showPhoneNumber}
@@ -515,7 +515,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Ionicons name="chatbubbles-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Allow Direct Messages</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.allowMessages')}</Text>
               </View>
               <Switch
                 value={privacySettings.allowDirectMessages}
@@ -531,7 +531,7 @@ export default function SettingsScreen() {
 
         {/* GDPR & Data Rights */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Privacy & Data (GDPR)</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('clientSettings.privacyDataGDPR')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
@@ -540,7 +540,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="shield-checkmark-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Privacy Settings</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('privacy.privacySettings')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -553,7 +553,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="time-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Data Retention Info</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('clientSettings.dataRetentionInfo')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -567,7 +567,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="download-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Export My Data</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('clientSettings.exportDataTitle')}</Text>
               </View>
               {loading ? (
                 <ActivityIndicator size="small" color={theme.primary} />
@@ -580,7 +580,7 @@ export default function SettingsScreen() {
 
         {/* Danger Zone */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>Danger Zone</Text>
+          <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>{t('clientSettings.dangerZone')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
@@ -589,7 +589,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="log-out-outline" size={24} color="#F59E0B" />
-                <Text style={[styles.settingText, { color: '#F59E0B' }]}>Logout</Text>
+                <Text style={[styles.settingText, { color: '#F59E0B' }]}>{t('nav.logout')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -602,7 +602,7 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="trash-outline" size={24} color="#EF4444" />
-                <Text style={[styles.settingText, { color: '#EF4444' }]}>Delete Account</Text>
+                <Text style={[styles.settingText, { color: '#EF4444' }]}>{t('clientSettings.deleteAccountTitle')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
             </TouchableOpacity>

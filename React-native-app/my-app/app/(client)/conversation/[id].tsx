@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import apiService from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   id: number;
@@ -20,6 +21,7 @@ interface Message {
 }
 
 export default function ClientConversationScreen() {
+  const { t } = useTranslation();
   const { id, name } = useLocalSearchParams();
   const router = useRouter();
   const { theme, isDark } = useTheme();
@@ -111,7 +113,7 @@ export default function ClientConversationScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading messages...</Text>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('nav.messages')}</Text>
           </View>
         ) : (
           <>
@@ -129,7 +131,7 @@ export default function ClientConversationScreen() {
               {messages.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Ionicons name="chatbubble-outline" size={48} color={theme.textSecondary} />
-                  <Text style={[styles.emptyText, { color: theme.text }]}>No messages yet</Text>
+                  <Text style={[styles.emptyText, { color: theme.text }]}>{t('messages.noMessagesYet')}</Text>
                   <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Send a message to start the conversation</Text>
                 </View>
               ) : (
@@ -186,7 +188,7 @@ export default function ClientConversationScreen() {
                     borderColor: theme.border,
                   }
                 ]}
-                placeholder="Type a message..."
+                placeholder={t('messages.typeMessage')}
                 placeholderTextColor={theme.textSecondary}
                 value={newMessage}
                 onChangeText={setNewMessage}

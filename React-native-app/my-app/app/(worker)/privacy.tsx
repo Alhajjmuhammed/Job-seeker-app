@@ -10,8 +10,10 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function PrivacyScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [privacyContent, setPrivacyContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -26,7 +28,7 @@ export default function PrivacyScreen() {
       setPrivacyContent(response.content || 'Privacy policy not available.');
     } catch (error) {
       console.error('Error loading privacy policy:', error);
-      Alert.alert('Error', 'Failed to load privacy policy');
+      Alert.alert(t('common.error'), 'Failed to load privacy policy');
       setPrivacyContent('Failed to load privacy policy. Please try again later.');
     } finally {
       setLoading(false);
@@ -50,9 +52,7 @@ export default function PrivacyScreen() {
       
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={[styles.contentContainer, { backgroundColor: theme.card }]}>
-          <Text style={[styles.title, { color: theme.text }]}>
-            Privacy Policy
-          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('auth.privacyPolicy')}</Text>
           
           <Text style={[styles.lastUpdated, { color: theme.textSecondary }]}>
             Last updated: {new Date().toLocaleDateString()}

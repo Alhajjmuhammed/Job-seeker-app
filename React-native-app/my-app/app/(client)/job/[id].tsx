@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useRatingRefresh } from '../../../contexts/RatingContext';
 import apiService from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface JobDetail {
   id: number;
@@ -33,6 +34,7 @@ interface JobDetail {
 }
 
 export default function JobDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const { refreshTrigger } = useRatingRefresh();
@@ -57,7 +59,7 @@ export default function JobDetailScreen() {
       setJob(jobData);
     } catch (error) {
       console.error('Error loading job:', error);
-      Alert.alert('Error', 'Failed to load job details');
+      Alert.alert(t('common.error'), 'Failed to load job details');
     } finally {
       setLoading(false);
     }
@@ -100,7 +102,7 @@ export default function JobDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.textLight} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Job Details</Text>
+          <Text style={[styles.headerTitle, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>{t('jobs.jobDetails')}</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.loadingContainer}>
@@ -118,7 +120,7 @@ export default function JobDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.textLight} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Job Details</Text>
+          <Text style={[styles.headerTitle, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>{t('jobs.jobDetails')}</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.emptyContainer}>
@@ -136,7 +138,7 @@ export default function JobDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={theme.textLight} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Job Details</Text>
+        <Text style={[styles.headerTitle, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>{t('jobs.jobDetails')}</Text>
         <View style={styles.headerRight} />
       </View>
 

@@ -16,8 +16,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ClientProfileEditScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function ClientProfileEditScreen() {
       setPostalCode(data.postal_code || '');
     } catch (error: any) {
       console.error('Error loading profile:', error);
-      Alert.alert('Error', 'Failed to load profile data');
+      Alert.alert(t('common.error'), t('profile.failedLoadProfile'));
     } finally {
       setLoading(false);
     }
@@ -66,12 +68,12 @@ export default function ClientProfileEditScreen() {
   const handleSave = async () => {
     // Validation
     if (!firstName.trim() || !lastName.trim()) {
-      Alert.alert('Validation Error', 'First name and last name are required');
+      Alert.alert(t('client.validationError'), t('client.nameRequired'));
       return;
     }
 
     if (!phone.trim()) {
-      Alert.alert('Validation Error', 'Phone number is required');
+      Alert.alert(t('client.validationError'), t('client.phoneRequired'));
       return;
     }
 
@@ -130,9 +132,7 @@ export default function ClientProfileEditScreen() {
         <Header title="Edit Profile" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-            Loading profile...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('profile.loadingProfile')}</Text>
         </View>
       </View>
     );
@@ -148,15 +148,11 @@ export default function ClientProfileEditScreen() {
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="person-outline" size={24} color={theme.primary} />
-            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
-              Personal Information
-            </Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('profile.personalInformation')}</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              First Name *
-            </Text>
+            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.firstName')}</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.surface, 
@@ -166,15 +162,13 @@ export default function ClientProfileEditScreen() {
               }]}
               value={firstName}
               onChangeText={setFirstName}
-              placeholder="Enter first name"
+              placeholder={t('client.enterFirstName')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Last Name *
-            </Text>
+            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.lastName')}</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.surface, 
@@ -184,15 +178,13 @@ export default function ClientProfileEditScreen() {
               }]}
               value={lastName}
               onChangeText={setLastName}
-              placeholder="Enter last name"
+              placeholder={t('client.enterLastName')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Phone Number *
-            </Text>
+            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.phoneNumber')}</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.surface, 
@@ -206,15 +198,11 @@ export default function ClientProfileEditScreen() {
               placeholderTextColor={theme.textSecondary}
               keyboardType="phone-pad"
             />
-            <Text style={[styles.hint, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Format: +255XXXXXXXXX
-            </Text>
+            <Text style={[styles.hint, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.formatPhone')}</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Email
-            </Text>
+            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('auth.email')}</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.surface, 
@@ -224,12 +212,10 @@ export default function ClientProfileEditScreen() {
               }]}
               value={profile?.email || ''}
               editable={false}
-              placeholder="Email address"
+              placeholder={t('auth.emailAddress')}
               placeholderTextColor={theme.textSecondary}
             />
-            <Text style={[styles.hint, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>
-              Email cannot be changed
-            </Text>
+            <Text style={[styles.hint, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('profile.emailCannotChange')}</Text>
           </View>
         </View>
 
@@ -237,15 +223,11 @@ export default function ClientProfileEditScreen() {
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="business-outline" size={24} color={theme.primary} />
-            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
-              Company Information (Optional)
-            </Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.companyInfoOptional')}</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Company Name
-            </Text>
+            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.companyName')}</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.surface, 
@@ -255,7 +237,7 @@ export default function ClientProfileEditScreen() {
               }]}
               value={companyName}
               onChangeText={setCompanyName}
-              placeholder="Enter company name"
+              placeholder={t('client.enterCompanyName')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
@@ -265,15 +247,11 @@ export default function ClientProfileEditScreen() {
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="location-outline" size={24} color={theme.primary} />
-            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>
-              Address
-            </Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('profile.address')}</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-              Street Address
-            </Text>
+            <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.streetAddress')}</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.surface, 
@@ -283,7 +261,7 @@ export default function ClientProfileEditScreen() {
               }]}
               value={address}
               onChangeText={setAddress}
-              placeholder="Enter street address"
+              placeholder={t('client.enterStreetAddress')}
               placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={2}
@@ -292,9 +270,7 @@ export default function ClientProfileEditScreen() {
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-                City
-              </Text>
+              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.city')}</Text>
               <TextInput
                 style={[styles.input, { 
                   backgroundColor: theme.surface, 
@@ -304,15 +280,13 @@ export default function ClientProfileEditScreen() {
                 }]}
                 value={city}
                 onChangeText={setCity}
-                placeholder="City"
+                placeholder={t('profile.city')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
 
             <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-                State/Region
-              </Text>
+              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.stateRegion')}</Text>
               <TextInput
                 style={[styles.input, { 
                   backgroundColor: theme.surface, 
@@ -322,7 +296,7 @@ export default function ClientProfileEditScreen() {
                 }]}
                 value={state}
                 onChangeText={setState}
-                placeholder="State"
+                placeholder={t('profile.state')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
@@ -330,9 +304,7 @@ export default function ClientProfileEditScreen() {
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-                Country
-              </Text>
+              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.country')}</Text>
               <TextInput
                 style={[styles.input, { 
                   backgroundColor: theme.surface, 
@@ -342,15 +314,13 @@ export default function ClientProfileEditScreen() {
                 }]}
                 value={country}
                 onChangeText={setCountry}
-                placeholder="Country"
+                placeholder={t('profile.country')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
 
             <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>
-                Postal Code
-              </Text>
+              <Text style={[styles.label, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.postal')}</Text>
               <TextInput
                 style={[styles.input, { 
                   backgroundColor: theme.surface, 
@@ -379,9 +349,7 @@ export default function ClientProfileEditScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={[styles.saveButtonText, { fontFamily: 'Poppins_600SemiBold' }]}>
-                Save Changes
-              </Text>
+              <Text style={[styles.saveButtonText, { fontFamily: 'Poppins_600SemiBold' }]}>{t('client.saveChanges')}</Text>
             </>
           )}
         </TouchableOpacity>

@@ -17,6 +17,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useRatingRefresh } from '../../contexts/RatingContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Worker {
   id: number;
@@ -48,6 +49,7 @@ interface ServiceRequest {
 }
 
 export default function ClientDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const { refreshTrigger } = useRatingRefresh();
@@ -117,7 +119,7 @@ export default function ClientDashboard() {
       ]);
     } catch (error) {
       console.error('Error loading dashboard:', error);
-      Alert.alert('Error', 'Failed to load dashboard data');
+      Alert.alert(t('common.error'), t('client.failedLoadDashboard'));
     } finally {
       setLoading(false);
     }
@@ -197,7 +199,7 @@ export default function ClientDashboard() {
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
-      Alert.alert('Search', 'Please enter a search term');
+      Alert.alert(t('client.search'), t('client.enterSearchTerm'));
       return;
     }
     router.push(`/(client)/search?q=${searchQuery}`);
@@ -246,7 +248,7 @@ export default function ClientDashboard() {
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading dashboard...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('client.loadingDashboard')}</Text>
         </View>
       ) : (
       <ScrollView 
@@ -259,7 +261,7 @@ export default function ClientDashboard() {
         <View style={styles.searchContainer}>
           <TextInput
             style={[styles.searchInput, { backgroundColor: theme.card, color: theme.text, fontFamily: 'Poppins_400Regular' }]}
-            placeholder="Search for workers or services..."
+            placeholder={t('client.searchWorkersServices')}
             placeholderTextColor={theme.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -274,44 +276,44 @@ export default function ClientDashboard() {
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.activeJobs}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Active Jobs</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.activeJobs')}</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.completedJobs}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Completed</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('assignments.completed')}</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.card }]}>
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>TSH {((Number(stats.totalSpent) || 0) / 1000).toFixed(1)}K</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Total Spent</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.totalSpent')}</Text>
           </View>
           <TouchableOpacity
             style={[styles.statCard, { backgroundColor: theme.card }]}
             onPress={() => router.push('/(client)/favorites')}
           >
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.favorites}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Favorites</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.favorites')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>{t('client.quickActions')}</Text>
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/request-service')}
             >
               <Ionicons name="add-circle-outline" size={36} color={theme.primary} />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Request Service</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Create new request</Text>
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.requestService')}</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.createNewRequest')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/my-requests')}
             >
               <Ionicons name="list-circle-outline" size={36} color="#10B981" />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Requests</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Track services</Text>
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.myRequests')}</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.trackServices')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.quickActions}>
@@ -320,16 +322,16 @@ export default function ClientDashboard() {
               onPress={() => router.push('/(client)/search')}
             >
               <Ionicons name="search-outline" size={36} color="#8B5CF6" />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>Browse Workers</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Find workers</Text>
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.browseWorkers')}</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.findWorkers')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.card }]}
               onPress={() => router.push('/(client)/my-requests' as any)}
             >
               <Ionicons name="briefcase-outline" size={36} color="#F59E0B" />
-              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>My Jobs</Text>
-              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>Posted jobs</Text>
+              <Text style={[styles.actionTitle, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{t('jobs.myJobs')}</Text>
+              <Text style={[styles.actionSubtitle, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.postedJobs')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -338,9 +340,9 @@ export default function ClientDashboard() {
         {serviceRequests.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>My Service Requests</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>{t('client.myServiceRequests')}</Text>
               <TouchableOpacity onPress={() => router.push('/(client)/my-requests')}>
-                <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
+                <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.seeAll')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -405,9 +407,9 @@ export default function ClientDashboard() {
         {/* Featured Available Workers */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>Available Workers</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>{t('client.availableWorkers')}</Text>
             <TouchableOpacity onPress={() => router.push('/(client)/search')}>
-              <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
+              <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.seeAll')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -424,7 +426,7 @@ export default function ClientDashboard() {
                     <Text style={[styles.workerName, { color: theme.text, fontFamily: 'Poppins_600SemiBold' }]}>{worker.name}</Text>
                     {worker.isAvailable && (
                       <View style={styles.availableBadge}>
-                        <Text style={[styles.availableBadgeText, { fontFamily: 'Poppins_600SemiBold' }]}>Available</Text>
+                        <Text style={[styles.availableBadgeText, { fontFamily: 'Poppins_600SemiBold' }]}>{t('profile.available')}</Text>
                       </View>
                     )}
                   </View>
@@ -443,14 +445,14 @@ export default function ClientDashboard() {
                   style={[styles.viewProfileButton, { backgroundColor: theme.background, borderColor: theme.border }]}
                   onPress={() => handleViewWorkerProfile(worker.id)}
                 >
-                  <Text style={[styles.viewProfileButtonText, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>View Profile</Text>
+                  <Text style={[styles.viewProfileButtonText, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.viewProfile')}</Text>
                 </TouchableOpacity>
                 {worker.isAvailable && (
                   <TouchableOpacity
                     style={[styles.requestButton, { backgroundColor: theme.primary }]}
                     onPress={() => handleRequestWorker(worker.id)}
                   >
-                    <Text style={[styles.requestButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>Request Now</Text>
+                    <Text style={[styles.requestButtonText, { color: theme.textLight, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.requestNow')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -461,9 +463,9 @@ export default function ClientDashboard() {
         {/* My Jobs */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>My Jobs</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Poppins_700Bold' }]}>{t('jobs.myJobs')}</Text>
             <TouchableOpacity onPress={() => router.push('/(client)/my-requests' as any)}>
-              <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>See All</Text>
+              <Text style={[styles.seeAllText, { color: theme.primary, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.seeAll')}</Text>
             </TouchableOpacity>
           </View>
 

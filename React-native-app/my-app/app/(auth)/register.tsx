@@ -15,11 +15,13 @@ import { StatusBar } from 'expo-status-bar';
 import { Link } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 type UserType = 'worker' | 'client';
 type WorkerType = 'professional' | 'non-academic';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [userType, setUserType] = useState<UserType>('worker');
   const [workerType, setWorkerType] = useState<WorkerType>('non-academic');
@@ -37,12 +39,12 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('auth.passwordsNoMatch'));
       return;
     }
 
@@ -60,7 +62,7 @@ export default function RegisterScreen() {
       });
       // Navigation is handled by AuthContext based on user type
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'Please try again');
+      Alert.alert(t('auth.registrationFailed'), error.message || 'Please try again');
     } finally {
       setLoading(false);
     }
@@ -82,13 +84,13 @@ export default function RegisterScreen() {
             style={styles.logoImage}
             resizeMode="cover"
           />
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Worker Connect today</Text>
+          <Text style={styles.title}>{t('auth.createAccount')}</Text>
+          <Text style={styles.subtitle}>{t('auth.joinToday')}</Text>
         </View>
 
         {/* User Type Selection */}
         <View style={styles.userTypeContainer}>
-          <Text style={styles.label}>I want to:</Text>
+          <Text style={styles.label}>{t('auth.iWantTo')}</Text>
           <View style={styles.userTypeButtons}>
             <TouchableOpacity
               style={[
@@ -102,17 +104,13 @@ export default function RegisterScreen() {
                   styles.userTypeButtonText,
                   userType === 'worker' && styles.userTypeButtonTextActive,
                 ]}
-              >
-                👷 Find Work
-              </Text>
+              >{t('auth.findWork')}</Text>
               <Text
                 style={[
                   styles.userTypeSubtext,
                   userType === 'worker' && styles.userTypeSubtextActive,
                 ]}
-              >
-                I'm a worker
-              </Text>
+              >{t('auth.imWorker')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -127,17 +125,13 @@ export default function RegisterScreen() {
                   styles.userTypeButtonText,
                   userType === 'client' && styles.userTypeButtonTextActive,
                 ]}
-              >
-                👤 Hire Workers
-              </Text>
+              >{t('auth.hireWorkers')}</Text>
               <Text
                 style={[
                   styles.userTypeSubtext,
                   userType === 'client' && styles.userTypeSubtextActive,
                 ]}
-              >
-                I need help
-              </Text>
+              >{t('auth.iNeedHelp')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -145,7 +139,7 @@ export default function RegisterScreen() {
         {/* Worker Type Selection (only for workers) */}
         {userType === 'worker' && (
           <View style={styles.workerTypeContainer}>
-            <Text style={styles.label}>Worker Type *</Text>
+            <Text style={styles.label}>{t('auth.workerType')}</Text>
             <View style={styles.workerTypeButtons}>
               <TouchableOpacity
                 style={[
@@ -160,10 +154,8 @@ export default function RegisterScreen() {
                     styles.workerTypeButtonText,
                     workerType === 'professional' && styles.workerTypeButtonTextActive,
                   ]}
-                >
-                  Professional
-                </Text>
-                <Text style={styles.workerTypeDesc}>University degree or diploma</Text>
+                >{t('auth.professional')}</Text>
+                <Text style={styles.workerTypeDesc}>{t('auth.universityDegree')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -179,10 +171,8 @@ export default function RegisterScreen() {
                     styles.workerTypeButtonText,
                     workerType === 'non-academic' && styles.workerTypeButtonTextActive,
                   ]}
-                >
-                  Non-Academic
-                </Text>
-                <Text style={styles.workerTypeDesc}>Skilled worker (experience-based)</Text>
+                >{t('auth.nonAcademic')}</Text>
+                <Text style={styles.workerTypeDesc}>{t('auth.skilledWorker')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -193,7 +183,7 @@ export default function RegisterScreen() {
         <View style={styles.formContainer}>
           <View style={styles.row}>
             <View style={styles.halfInput}>
-              <Text style={styles.label}>First Name *</Text>
+              <Text style={styles.label}>{t('auth.firstName')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="John"
@@ -202,7 +192,7 @@ export default function RegisterScreen() {
               />
             </View>
             <View style={styles.halfInput}>
-              <Text style={styles.label}>Last Name *</Text>
+              <Text style={styles.label}>{t('auth.lastName')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Doe"
@@ -213,7 +203,7 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email *</Text>
+            <Text style={styles.label}>{t('auth.email')}</Text>
             <TextInput
               style={styles.input}
               placeholder="your@email.com"
@@ -225,7 +215,7 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Phone Number *</Text>
+            <Text style={styles.label}>{t('client.phoneNumber')}</Text>
             <TextInput
               style={styles.input}
               placeholder="+249 123 456 789"
@@ -236,7 +226,7 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password *</Text>
+            <Text style={styles.label}>{t('auth.password')}</Text>
             <TextInput
               style={styles.input}
               placeholder="Minimum 8 characters"
@@ -247,7 +237,7 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Confirm Password *</Text>
+            <Text style={styles.label}>{t('auth.confirmPassword')}</Text>
             <TextInput
               style={styles.input}
               placeholder="Re-enter password"
@@ -259,10 +249,10 @@ export default function RegisterScreen() {
 
           {userType === 'worker' && (
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Agent Code <Text style={{ color: '#9CA3AF', fontFamily: 'Poppins_400Regular' }}>(optional)</Text></Text>
+              <Text style={styles.label}>Agent Code <Text style={{ color: '#9CA3AF', fontFamily: 'Poppins_400Regular' }}>{t('auth.optional')}</Text></Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter agent code if you have one"
+                placeholder={t('auth.enterAgentCode')}
                 value={formData.agentCode}
                 onChangeText={(text) => setFormData({ ...formData, agentCode: text.toUpperCase() })}
                 autoCapitalize="characters"
@@ -284,16 +274,16 @@ export default function RegisterScreen() {
           <View style={styles.termsContainer}>
             <Text style={styles.termsText}>
               By signing up, you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
+              <Text style={styles.termsLink}>{t('terms.termsOfService')}</Text> and{' '}
+              <Text style={styles.termsLink}>{t('auth.privacyPolicy')}</Text>
             </Text>
           </View>
 
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
+            <Text style={styles.loginText}>{t('auth.haveAccount')}</Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text style={styles.loginLink}>Sign In</Text>
+                <Text style={styles.loginLink}>{t('auth.signIn')}</Text>
               </TouchableOpacity>
             </Link>
           </View>

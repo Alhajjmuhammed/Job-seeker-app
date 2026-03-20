@@ -611,3 +611,282 @@ msgstr "Angalia Kazi"
 
 msgid "Join As"
 msgstr "Jiunge Kama"
+
+msgid "Our Partners"
+msgstr "Washirika Wetu"
+
+msgid "Trusted by"
+msgstr "Wanaomini"
+
+msgid "Leading Organizations"
+msgstr "Mashirika Yanayoongoza"
+
+msgid "We collaborate with top companies, agencies, and institutions across Tanzania to deliver the best workforce solutions."
+msgstr "Tunashirikiana na makampuni ya juu, wakala, na taasisi kote Tanzania ili kutoa suluhisho bora za nguvu kazi."
+
+msgid "Partner Companies"
+msgstr "Makampuni Washirika"
+
+msgid "Industries"
+msgstr "Sekta"
+
+msgid "Regions"
+msgstr "Mikoa"
+
+msgid "Partner Satisfaction"
+msgstr "Kuridhika kwa Washirika"
+
+msgid "Construction"
+msgstr "Ujenzi"
+
+msgid "Hospitality"
+msgstr "Ukarimu"
+
+msgid "Cleaning Services"
+msgstr "Huduma za Usafi"
+
+msgid "Security"
+msgstr "Usalama"
+
+msgid "Engineering"
+msgstr "Uhandisi"
+
+msgid "Telecom"
+msgstr "Simu"
+
+msgid "Finance"
+msgstr "Fedha"
+
+msgid "FMCG"
+msgstr "Bidhaa za Kila Siku"
+
+msgid "Energy"
+msgstr "Nishati"
+
+msgid "Partner With Us"
+msgstr "Shirikiana Nasi"
+
+msgid "Grow Your Business"
+msgstr "Kukuza Biashara Yako"
+
+msgid "With Worker Connect"
+msgstr "Na Worker Connect"
+
+msgid "Join our network of trusted partners. Get access to a verified workforce, co-marketing opportunities, and a dedicated partner dashboard."
+msgstr "Jiunge na mtandao wetu wa washirika wanaoaminika. Pata ufikiaji wa nguvu kazi iliyothibitishwa, fursa za masoko ya pamoja, na dashibodi ya washirika iliyojitolea."
+
+msgid "Become a Partner"
+msgstr "Kuwa Mshirika"
+
+msgid "Learn More"
+msgstr "Jifunze Zaidi"
+
+msgid "Create Your Account"
+msgstr "Fungua Akaunti Yako"
+
+msgid "Back to Home"
+msgstr "Rudi Nyumbani"
+
+msgid "Choose Your Account Type"
+msgstr "Chagua Aina ya Akaunti Yako"
+
+msgid "Select the role that best describes you"
+msgstr "Chagua jukumu linalokufaa zaidi"
+
+msgid "I'm a Worker"
+msgstr "Mimi ni Mfanyakazi"
+
+msgid "Showcase your skills and get hired by verified clients"
+msgstr "Onyesha ujuzi wako na kuajiriwa na wateja walioidhinishwa"
+
+msgid "Build a professional profile"
+msgstr "Jenga wasifu wa kitaaluma"
+
+msgid "Upload credentials & certificates"
+msgstr "Pakia vyeti na leseni"
+
+msgid "Receive job assignments"
+msgstr "Pokea kazi zilizopewa"
+
+msgid "Track earnings & time"
+msgstr "Fuatilia mapato na muda"
+
+msgid "Register as Worker"
+msgstr "Jisajili kama Mfanyakazi"
+
+msgid "I'm a Client"
+msgstr "Mimi ni Mteja"
+
+msgid "Find and hire skilled workers for any task or project"
+msgstr "Tafuta na uajiri wafanyakazi wenye ujuzi kwa kazi yoyote"
+
+msgid "Browse verified workers"
+msgstr "Tazama wafanyakazi walioidhinishwa"
+
+msgid "Post service requests easily"
+msgstr "Tuma maombi ya huduma kwa urahisi"
+
+msgid "Rate and review workers"
+msgstr "Tathmini na kagua wafanyakazi"
+
+msgid "Secure payment & invoicing"
+msgstr "Malipo salama na ankara"
+
+msgid "Register as Client"
+msgstr "Jisajili kama Mteja"
+
+msgid "I'm an Agent"
+msgstr "Mimi ni Wakala"
+
+msgid "Recruit workers, manage teams, and earn commission"
+msgstr "Ajiri wafanyakazi, simamia timu na upate kamisheni"
+
+msgid "Get a unique agent code"
+msgstr "Pata nambari ya kipekee ya wakala"
+
+msgid "Recruit & manage workers"
+msgstr "Ajiri na simamia wafanyakazi"
+
+msgid "Earn commission per job"
+msgstr "Pata kamisheni kwa kila kazi"
+
+msgid "Track worker performance"
+msgstr "Fuatilia utendaji wa wafanyakazi"
+
+msgid "Register as Agent"
+msgstr "Jisajili kama Wakala"
+
+msgid "Already have an account?"
+msgstr "Una akaunti tayari?"
+
+msgid "Login here"
+msgstr "Ingia hapa"
+
+msgid "Verified Workers"
+msgstr "Wafanyakazi Walioidhinishwa"
+
+msgid "Background-checked professionals"
+msgstr "Wataalamu waliopimwa historia"
+
+msgid "Secure Platform"
+msgstr "Jukwaa Salama"
+
+msgid "Your data is safe with us"
+msgstr "Data yako iko salama kwetu"
+
+msgid "Rated & Reviewed"
+msgstr "Imepewa Alama & Kukaguliwa"
+
+msgid "Transparent quality ratings"
+msgstr "Tathmini ya ubora inayoonekana"
+
+msgid "24/7 Support"
+msgstr "Msaada wa Saa 24/7"
+
+msgid "We're here when you need us"
+msgstr "Tuko hapa unapotuhitaji"
+
+msgid "Worker Registration"
+msgstr "Usajili wa Mfanyakazi"
+
+msgid "Worker"
+msgstr "Mfanyakazi"
+
+msgid "Account"
+msgstr "Akaunti"
+
+msgid "Build your professional profile and start getting hired by verified clients."
+msgstr "Jenga wasifu wako wa kitaaluma na uanze kuajiriwa na wateja walioidhinishwa."
+
+msgid "Upload credentials"
+msgstr "Pakia vyeti"
+
+msgid "Create Account"
+msgstr "Fungua Akaunti"
+
+msgid "Fill in your details to get started as a Worker"
+msgstr "Jaza maelezo yako ili kuanza kama Mfanyakazi"
+
+msgid "Username"
+msgstr "Jina la Mtumiaji"
+
+msgid "First Name"
+msgstr "Jina la Kwanza"
+
+msgid "Last Name"
+msgstr "Jina la Mwisho"
+
+msgid "Email"
+msgstr "Barua Pepe"
+
+msgid "Phone Number"
+msgstr "Nambari ya Simu"
+
+msgid "Password"
+msgstr "Nywila"
+
+msgid "Confirm Password"
+msgstr "Thibitisha Nywila"
+
+msgid "Agent Code"
+msgstr "Nambari ya Wakala"
+
+msgid "optional"
+msgstr "hiari"
+
+msgid "Create Worker Account"
+msgstr "Fungua Akaunti ya Mfanyakazi"
+
+msgid "Client Registration"
+msgstr "Usajili wa Mteja"
+
+msgid "Client"
+msgstr "Mteja"
+
+msgid "Post jobs and hire verified skilled workers for any task or project."
+msgstr "Chapisha kazi na uajiri wafanyakazi walioidhinishwa kwa kazi yoyote au mradi."
+
+msgid "Browse verified workers"
+msgstr "Tazama wafanyakazi walioidhinishwa"
+
+msgid "Post service requests"
+msgstr "Chapisha maombi ya huduma"
+
+msgid "Secure payment & invoicing"
+msgstr "Malipo salama na ankara"
+
+msgid "Fill in your details to get started as a Client"
+msgstr "Jaza maelezo yako ili kuanza kama Mteja"
+
+msgid "Create Client Account"
+msgstr "Fungua Akaunti ya Mteja"
+
+msgid "Agent Registration"
+msgstr "Usajili wa Wakala"
+
+msgid "Agent"
+msgstr "Wakala"
+
+msgid "Recruit workers, manage your team, and earn commission on every completed job."
+msgstr "Ajiri wafanyakazi, simamia timu yako, na upate kamisheni kwa kila kazi iliyokamilika."
+
+msgid "Get a unique agent code"
+msgstr "Pata nambari yako ya kipekee ya wakala"
+
+msgid "Recruit & manage workers"
+msgstr "Ajiri na simamia wafanyakazi"
+
+msgid "Track worker performance"
+msgstr "Fuatilia utendaji wa wafanyakazi"
+
+msgid "Fill in your details to apply as an Agent"
+msgstr "Jaza maelezo yako ili kuomba kuwa Wakala"
+
+msgid "After registration your account will be reviewed. Once approved you'll receive a unique Agent Code to share with workers."
+msgstr "Baada ya usajili akaunti yako itakaguliwa. Ukipitishwa utapata Nambari ya Wakala ya kipekee kushiriki na wafanyakazi."
+
+msgid "Business Name"
+msgstr "Jina la Biashara"
+
+msgid "Submit Application"
+msgstr "Wasilisha Maombi"

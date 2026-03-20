@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface BankAccount {
   id: string;
@@ -40,6 +41,7 @@ interface MobileMoneyAccount {
 }
 
 export default function PayoutMethodsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<'bank' | 'mobile'>('bank');
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -59,11 +61,15 @@ export default function PayoutMethodsScreen() {
         apiService.getMobileMoneyAccounts().catch(() => []),
       ]);
 
-      setBankAccounts(bankData);
-      setMobileAccounts(mobileData);
+      // Ensure we always have arrays, even if API returns unexpected data
+      setBankAccounts(Array.isArray(bankData) ? bankData : []);
+      setMobileAccounts(Array.isArray(mobileData) ? mobileData : []);
     } catch (error: any) {
       console.error('Error fetching payout methods:', error);
-      Alert.alert('Error', 'Failed to load payout methods');
+      // Set empty arrays on error
+      setBankAccounts([]);
+      setMobileAccounts([]);
+      Alert.alert(t('common.error'), 'Failed to load payout methods');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,22 +84,22 @@ export default function PayoutMethodsScreen() {
   const handleSetDefaultBank = async (accountId: string) => {
     try {
       await apiService.setDefaultBankAccount(accountId);
-      Alert.alert('Success', 'Default payout method updated');
+      Alert.alert(t('common.success'), t('payout.defaultPayoutUpdated'));
       fetchPayoutMethods();
     } catch (error) {
       console.error('Error setting default:', error);
-      Alert.alert('Error', 'Failed to set default payout method');
+      Alert.alert(t('common.error'), t('payout.failedSetDefault'));
     }
   };
 
   const handleSetDefaultMobile = async (accountId: string) => {
     try {
       await apiService.setDefaultMobileMoneyAccount(accountId);
-      Alert.alert('Success', 'Default payout method updated');
+      Alert.alert(t('common.success'), t('payout.defaultPayoutUpdated'));
       fetchPayoutMethods();
     } catch (error) {
       console.error('Error setting default:', error);
-      Alert.alert('Error', 'Failed to set default payout method');
+      Alert.alert(t('common.error'), t('payout.failedSetDefault'));
     }
   };
 
@@ -109,11 +115,11 @@ export default function PayoutMethodsScreen() {
           onPress: async () => {
             try {
               await apiService.removeBankAccount(accountId);
-              Alert.alert('Success', 'Bank account removed');
+              Alert.alert(t('common.success'), t('payout.bankAccountRemoved'));
               fetchPayoutMethods();
             } catch (error) {
               console.error('Error removing bank account:', error);
-              Alert.alert('Error', 'Failed to remove bank account');
+              Alert.alert(t('common.error'), t('payout.failedRemoveBankAccount'));
             }
           },
         },
@@ -133,11 +139,11 @@ export default function PayoutMethodsScreen() {
           onPress: async () => {
             try {
               await apiService.removeMobileMoneyAccount(accountId);
-              Alert.alert('Success', 'Mobile money account removed');
+              Alert.alert(t('common.success'), t('payout.mobileMoneyRemoved'));
               fetchPayoutMethods();
             } catch (error) {
               console.error('Error removing mobile money account:', error);
-              Alert.alert('Error', 'Failed to remove mobile money account');
+              Alert.alert(t('common.error'), t('payout.failedRemoveMobileMoney'));
             }
           },
         },
@@ -162,7 +168,7 @@ export default function PayoutMethodsScreen() {
         </View>
         {account.is_default && (
           <View style={[styles.defaultBadge, { backgroundColor: theme.primary }]}>
-            <Text style={styles.defaultBadgeText}>DEFAULT</Text>
+            <Text style={styles.defaultBadgeText}>{t('payout.default')}</Text>
           </View>
         )}
       </View>
@@ -170,12 +176,12 @@ export default function PayoutMethodsScreen() {
       {account.is_verified ? (
         <View style={styles.verifiedBadge}>
           <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-          <Text style={styles.verifiedText}>Verified</Text>
+          <Text style={styles.verifiedText}>{t('payout.verified')}</Text>
         </View>
       ) : (
         <View style={styles.unverifiedBadge}>
           <Ionicons name="time-outline" size={16} color="#F59E0B" />
-          <Text style={styles.unverifiedText}>Pending Verification</Text>
+          <Text style={styles.unverifiedText}>{t('payout.pendingVerification')}</Text>
         </View>
       )}
 
@@ -185,16 +191,14 @@ export default function PayoutMethodsScreen() {
             style={[styles.actionButton, { borderColor: theme.primary }]}
             onPress={() => handleSetDefaultBank(account.id)}
           >
-            <Text style={[styles.actionButtonText, { color: theme.primary }]}>
-              Set as Default
-            </Text>
+            <Text style={[styles.actionButtonText, { color: theme.primary }]}>{t('payout.setAsDefault')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
           style={[styles.actionButton, styles.removeButton]}
           onPress={() => handleRemoveBank(account.id)}
         >
-          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>Remove</Text>
+          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>{t('payout.remove')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -219,7 +223,7 @@ export default function PayoutMethodsScreen() {
         </View>
         {account.is_default && (
           <View style={[styles.defaultBadge, { backgroundColor: theme.primary }]}>
-            <Text style={styles.defaultBadgeText}>DEFAULT</Text>
+            <Text style={styles.defaultBadgeText}>{t('payout.default')}</Text>
           </View>
         )}
       </View>
@@ -227,12 +231,12 @@ export default function PayoutMethodsScreen() {
       {account.is_verified ? (
         <View style={styles.verifiedBadge}>
           <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-          <Text style={styles.verifiedText}>Verified</Text>
+          <Text style={styles.verifiedText}>{t('payout.verified')}</Text>
         </View>
       ) : (
         <View style={styles.unverifiedBadge}>
           <Ionicons name="time-outline" size={16} color="#F59E0B" />
-          <Text style={styles.unverifiedText}>Pending Verification</Text>
+          <Text style={styles.unverifiedText}>{t('payout.pendingVerification')}</Text>
         </View>
       )}
 
@@ -242,16 +246,14 @@ export default function PayoutMethodsScreen() {
             style={[styles.actionButton, { borderColor: theme.primary }]}
             onPress={() => handleSetDefaultMobile(account.id)}
           >
-            <Text style={[styles.actionButtonText, { color: theme.primary }]}>
-              Set as Default
-            </Text>
+            <Text style={[styles.actionButtonText, { color: theme.primary }]}>{t('payout.setAsDefault')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
           style={[styles.actionButton, styles.removeButton]}
           onPress={() => handleRemoveMobile(account.id)}
         >
-          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>Remove</Text>
+          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>{t('payout.remove')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -279,7 +281,7 @@ export default function PayoutMethodsScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Payout Methods</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>{t('payout.payoutMethods')}</Text>
         </View>
 
         <View style={styles.tabContainer}>
@@ -301,9 +303,7 @@ export default function PayoutMethodsScreen() {
                 styles.tabText,
                 { color: activeTab === 'bank' ? '#FFF' : theme.textSecondary },
               ]}
-            >
-              Bank Account
-            </Text>
+            >{t('payout.bankAccount')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -324,9 +324,7 @@ export default function PayoutMethodsScreen() {
                 styles.tabText,
                 { color: activeTab === 'mobile' ? '#FFF' : theme.textSecondary },
               ]}
-            >
-              Mobile Money
-            </Text>
+            >{t('payout.mobileMoney')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -340,21 +338,19 @@ export default function PayoutMethodsScreen() {
             <Text style={[styles.emptyTitle, { color: theme.text }]}>
               No {activeTab === 'bank' ? 'Bank Accounts' : 'Mobile Money Accounts'}
             </Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-              Add a payout method to receive your earnings
-            </Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('payout.addPayoutMethod')}</Text>
           </View>
         ) : (
           <View style={styles.accountsList}>
             {activeTab === 'bank'
-              ? bankAccounts.map(renderBankAccount)
-              : mobileAccounts.map(renderMobileAccount)}
+              ? (bankAccounts || []).map(renderBankAccount)
+              : (mobileAccounts || []).map(renderMobileAccount)}
           </View>
         )}
 
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: theme.primary }]}
-          onPress={() => Alert.alert('Coming Soon', 'Add payout method feature will be available soon')}
+          onPress={() => Alert.alert(t('profile.comingSoon'), t('payout.addMethodComingSoon'))}
         >
           <Ionicons name="add-circle-outline" size={24} color="#FFF" />
           <Text style={styles.addButtonText}>
@@ -365,11 +361,8 @@ export default function PayoutMethodsScreen() {
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
           <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
           <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: theme.text }]}>About Payouts</Text>
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-              Earnings are transferred to your default payout method. Bank transfers typically take
-              1-3 business days, while mobile money transfers are instant.
-            </Text>
+            <Text style={[styles.infoTitle, { color: theme.text }]}>{t('payout.aboutPayouts')}</Text>
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('nav.earnings')}</Text>
           </View>
         </View>
       </ScrollView>

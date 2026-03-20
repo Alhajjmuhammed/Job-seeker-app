@@ -16,10 +16,12 @@ import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function AnalyticsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -121,9 +123,7 @@ export default function AnalyticsScreen() {
         <Header showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading analytics...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('analytics.loadingAnalytics')}</Text>
         </View>
       </View>
     );
@@ -150,7 +150,7 @@ export default function AnalyticsScreen() {
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <Ionicons name="analytics" size={28} color={theme.primary} />
-            <Text style={[styles.title, { color: theme.text }]}>Analytics</Text>
+            <Text style={[styles.title, { color: theme.text }]}>{t('privacy.analyticsData')}</Text>
           </View>
         </View>
 
@@ -161,9 +161,7 @@ export default function AnalyticsScreen() {
             <Text style={[styles.metricValue, { color: theme.text }]}>
               {calculateSuccessRate()}%
             </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Success Rate
-            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>{t('analytics.successRate')}</Text>
           </View>
 
           <View style={[styles.metricCard, { backgroundColor: theme.surface }]}>
@@ -171,9 +169,7 @@ export default function AnalyticsScreen() {
             <Text style={[styles.metricValue, { color: theme.text }]}>
               {analytics?.total_applications || 0}
             </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Applications
-            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>{t('analytics.applications')}</Text>
           </View>
 
           <View style={[styles.metricCard, { backgroundColor: theme.surface }]}>
@@ -181,9 +177,7 @@ export default function AnalyticsScreen() {
             <Text style={[styles.metricValue, { color: theme.text }]}>
               {analytics?.completed_jobs || 0}
             </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Completed
-            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>{t('favoriteWorkers.completedJobs')}</Text>
           </View>
 
           <View style={[styles.metricCard, { backgroundColor: theme.surface }]}>
@@ -191,16 +185,14 @@ export default function AnalyticsScreen() {
             <Text style={[styles.metricValue, { color: theme.text }]}>
               {analytics?.average_rating || '0.0'}
             </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Avg Rating
-            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>{t('analytics.avgRating')}</Text>
           </View>
         </View>
 
         {/* Earnings Trend */}
         <View style={[styles.chartCard, { backgroundColor: theme.surface }]}>
           <View style={styles.chartHeader}>
-            <Text style={[styles.chartTitle, { color: theme.text }]}>Earnings Trend</Text>
+            <Text style={[styles.chartTitle, { color: theme.text }]}>{t('analytics.earningsTrend')}</Text>
             <View style={styles.periodToggle}>
               <TouchableOpacity
                 style={[
@@ -214,9 +206,7 @@ export default function AnalyticsScreen() {
                     styles.periodButtonText,
                     { color: timePeriod === 'week' ? '#FFFFFF' : theme.textSecondary },
                   ]}
-                >
-                  Week
-                </Text>
+                >{t('analytics.week')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -230,9 +220,7 @@ export default function AnalyticsScreen() {
                     styles.periodButtonText,
                     { color: timePeriod === 'month' ? '#FFFFFF' : theme.textSecondary },
                   ]}
-                >
-                  Month
-                </Text>
+                >{t('analytics.month')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -253,16 +241,14 @@ export default function AnalyticsScreen() {
             />
           ) : (
             <View style={styles.emptyChart}>
-              <Text style={[styles.emptyChartText, { color: theme.textSecondary }]}>
-                No earnings data available
-              </Text>
+              <Text style={[styles.emptyChartText, { color: theme.textSecondary }]}>{t('analytics.noEarningsData')}</Text>
             </View>
           )}
         </View>
 
         {/* Earnings by Category */}
         <View style={[styles.chartCard, { backgroundColor: theme.surface }]}>
-          <Text style={[styles.chartTitle, { color: theme.text }]}>Earnings by Category</Text>
+          <Text style={[styles.chartTitle, { color: theme.text }]}>{t('analytics.earningsByCategory')}</Text>
           
           {categoryData && categoryData.length > 0 ? (
             <>
@@ -298,16 +284,14 @@ export default function AnalyticsScreen() {
             </>
           ) : (
             <View style={styles.emptyChart}>
-              <Text style={[styles.emptyChartText, { color: theme.textSecondary }]}>
-                No category data available
-              </Text>
+              <Text style={[styles.emptyChartText, { color: theme.textSecondary }]}>{t('analytics.noCategoryData')}</Text>
             </View>
           )}
         </View>
 
         {/* Performance Insights */}
         <View style={[styles.insightsCard, { backgroundColor: theme.surface }]}>
-          <Text style={[styles.chartTitle, { color: theme.text }]}>Performance Insights</Text>
+          <Text style={[styles.chartTitle, { color: theme.text }]}>{t('analytics.performanceInsights')}</Text>
           
           <View style={styles.insightItem}>
             <Ionicons name="trending-up" size={24} color="#10B981" />
@@ -315,9 +299,7 @@ export default function AnalyticsScreen() {
               <Text style={[styles.insightTitle, { color: theme.text }]}>
                 {analytics?.response_rate || 0}% Response Rate
               </Text>
-              <Text style={[styles.insightText, { color: theme.textSecondary }]}>
-                Keep responding quickly to maintain high visibility
-              </Text>
+              <Text style={[styles.insightText, { color: theme.textSecondary }]}>{t('analytics.keepResponding')}</Text>
             </View>
           </View>
 
@@ -338,12 +320,8 @@ export default function AnalyticsScreen() {
           <View style={styles.insightItem}>
             <Ionicons name="star" size={24} color="#3B82F6" />
             <View style={styles.insightContent}>
-              <Text style={[styles.insightTitle, { color: theme.text }]}>
-                Profile Completeness
-              </Text>
-              <Text style={[styles.insightText, { color: theme.textSecondary }]}>
-                Complete profiles get 3x more visibility
-              </Text>
+              <Text style={[styles.insightTitle, { color: theme.text }]}>{t('analytics.profileCompleteness')}</Text>
+              <Text style={[styles.insightText, { color: theme.textSecondary }]}>{t('analytics.completeProfileVisibility')}</Text>
             </View>
           </View>
         </View>

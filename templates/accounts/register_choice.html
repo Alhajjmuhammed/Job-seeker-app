@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Create Your Account - Worker Connect{% endblock %}
+{% block title %}{% trans "Create Your Account" %} - Worker Connect{% endblock %}
 
 {% block content %}
 
@@ -85,13 +86,13 @@
         <!-- Back to Home -->
         <div class="mb-4">
             <a href="{% url 'home' %}" class="text-decoration-none d-inline-flex align-items-center gap-2" style="color:#14b8a6;font-weight:500;">
-                <i class="bi bi-arrow-left-circle-fill fs-5"></i> Back to Home
+                <i class="bi bi-arrow-left-circle-fill fs-5"></i> {% trans "Back to Home" %}
             </a>
         </div>
 
         <div class="text-center mb-5">
-            <h2 class="fw-bold text-dark mb-1">Choose Your Account Type</h2>
-            <p class="text-muted">Select the role that best describes you</p>
+            <h2 class="fw-bold text-dark mb-1">{% trans "Choose Your Account Type" %}</h2>
+            <p class="text-muted">{% trans "Select the role that best describes you" %}</p>
         </div>
 
         <div class="row g-4 justify-content-center">
@@ -103,31 +104,31 @@
                         <div class="role-icon-wrap">
                             <i class="bi bi-person-badge-fill"></i>
                         </div>
-                        <h3 class="fw-bold mb-1">I'm a Worker</h3>
-                        <p class="text-muted small mb-4">Showcase your skills and get hired by verified clients</p>
+                        <h3 class="fw-bold mb-1">{% trans "I'm a Worker" %}</h3>
+                        <p class="text-muted small mb-4">{% trans "Showcase your skills and get hired by verified clients" %}</p>
 
                         <div class="text-start mb-4">
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Build a professional profile</span>
+                                <span class="small">{% trans "Build a professional profile" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Upload credentials &amp; certificates</span>
+                                <span class="small">{% trans "Upload credentials & certificates" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Receive job assignments</span>
+                                <span class="small">{% trans "Receive job assignments" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Track earnings &amp; time</span>
+                                <span class="small">{% trans "Track earnings & time" %}</span>
                             </div>
                         </div>
 
                         <div class="mt-auto">
                             <a href="{% url 'accounts:worker_register' %}" class="btn btn-register-worker btn-lg w-100 fw-semibold">
-                                <i class="bi bi-person-plus-fill me-2"></i>Register as Worker
+                                <i class="bi bi-person-plus-fill me-2"></i>{% trans "Register as Worker" %}
                             </a>
                         </div>
                     </div>
@@ -141,31 +142,31 @@
                         <div class="role-icon-wrap">
                             <i class="bi bi-briefcase-fill"></i>
                         </div>
-                        <h3 class="fw-bold mb-1">I'm a Client</h3>
-                        <p class="text-muted small mb-4">Find and hire skilled workers for any task or project</p>
+                        <h3 class="fw-bold mb-1">{% trans "I'm a Client" %}</h3>
+                        <p class="text-muted small mb-4">{% trans "Find and hire skilled workers for any task or project" %}</p>
 
                         <div class="text-start mb-4">
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Browse verified workers</span>
+                                <span class="small">{% trans "Browse verified workers" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Post service requests easily</span>
+                                <span class="small">{% trans "Post service requests easily" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Rate and review workers</span>
+                                <span class="small">{% trans "Rate and review workers" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Secure payment &amp; invoicing</span>
+                                <span class="small">{% trans "Secure payment & invoicing" %}</span>
                             </div>
                         </div>
 
                         <div class="mt-auto">
                             <a href="{% url 'accounts:client_register' %}" class="btn btn-register-client btn-lg w-100 fw-semibold">
-                                <i class="bi bi-person-plus-fill me-2"></i>Register as Client
+                                <i class="bi bi-person-plus-fill me-2"></i>{% trans "Register as Client" %}
                             </a>
                         </div>
                     </div>
@@ -179,31 +180,31 @@
                         <div class="role-icon-wrap">
                             <i class="bi bi-diagram-3-fill"></i>
                         </div>
-                        <h3 class="fw-bold mb-1">I'm an Agent</h3>
-                        <p class="text-muted small mb-4">Recruit workers, manage teams, and earn commission</p>
+                        <h3 class="fw-bold mb-1">{% trans "I'm an Agent" %}</h3>
+                        <p class="text-muted small mb-4">{% trans "Recruit workers, manage teams, and earn commission" %}</p>
 
                         <div class="text-start mb-4">
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Get a unique agent code</span>
+                                <span class="small">{% trans "Get a unique agent code" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Recruit &amp; manage workers</span>
+                                <span class="small">{% trans "Recruit & manage workers" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Earn commission per job</span>
+                                <span class="small">{% trans "Earn commission per job" %}</span>
                             </div>
                             <div class="feature-item">
                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                <span class="small">Track worker performance</span>
+                                <span class="small">{% trans "Track worker performance" %}</span>
                             </div>
                         </div>
 
                         <div class="mt-auto">
                             <a href="{% url 'accounts:agent_register' %}" class="btn btn-register-agent btn-lg w-100 fw-semibold">
-                                <i class="bi bi-person-plus-fill me-2"></i>Register as Agent
+                                <i class="bi bi-person-plus-fill me-2"></i>{% trans "Register as Agent" %}
                             </a>
                         </div>
                     </div>
@@ -215,9 +216,9 @@
         <!-- Login Link -->
         <div class="text-center mt-5">
             <p class="text-muted mb-0">
-                Already have an account?
+                {% trans "Already have an account?" %}
                 <a href="{% url 'accounts:login' %}" class="fw-semibold text-decoration-none" style="color:#14b8a6;">
-                    <i class="bi bi-box-arrow-in-right me-1"></i>Login here
+                    <i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Login here" %}
                 </a>
             </p>
         </div>
@@ -231,23 +232,23 @@
         <div class="row text-center g-3">
             <div class="col-6 col-md-3 trust-item">
                 <i class="bi bi-shield-fill-check d-block mb-1" style="color:#14b8a6;"></i>
-                <div class="fw-semibold small">Verified Workers</div>
-                <div class="text-muted" style="font-size:0.78rem;">Background-checked professionals</div>
+                <div class="fw-semibold small">{% trans "Verified Workers" %}</div>
+                <div class="text-muted" style="font-size:0.78rem;">{% trans "Background-checked professionals" %}</div>
             </div>
             <div class="col-6 col-md-3 trust-item">
                 <i class="bi bi-lock-fill d-block mb-1" style="color:#14b8a6;"></i>
-                <div class="fw-semibold small">Secure Platform</div>
-                <div class="text-muted" style="font-size:0.78rem;">Your data is safe with us</div>
+                <div class="fw-semibold small">{% trans "Secure Platform" %}</div>
+                <div class="text-muted" style="font-size:0.78rem;">{% trans "Your data is safe with us" %}</div>
             </div>
             <div class="col-6 col-md-3 trust-item">
                 <i class="bi bi-star-fill d-block mb-1" style="color:#14b8a6;"></i>
-                <div class="fw-semibold small">Rated &amp; Reviewed</div>
-                <div class="text-muted" style="font-size:0.78rem;">Transparent quality ratings</div>
+                <div class="fw-semibold small">{% trans "Rated & Reviewed" %}</div>
+                <div class="text-muted" style="font-size:0.78rem;">{% trans "Transparent quality ratings" %}</div>
             </div>
             <div class="col-6 col-md-3 trust-item">
                 <i class="bi bi-headset d-block mb-1" style="color:#14b8a6;"></i>
-                <div class="fw-semibold small">24/7 Support</div>
-                <div class="text-muted" style="font-size:0.78rem;">We're here when you need us</div>
+                <div class="fw-semibold small">{% trans "24/7 Support" %}</div>
+                <div class="text-muted" style="font-size:0.78rem;">{% trans "We're here when you need us" %}</div>
             </div>
         </div>
     </div>

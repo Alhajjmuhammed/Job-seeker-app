@@ -19,8 +19,10 @@ import Header from '../../../components/Header';
 import apiService from '../../../services/api';
 // @ts-ignore - Package is installed but TypeScript may not resolve types immediately
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 export default function AddExperienceScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [saving, setSaving] = useState(false);
   
@@ -40,11 +42,11 @@ export default function AddExperienceScreen() {
   const handleSave = async () => {
     // Validation
     if (!jobTitle.trim()) {
-      Alert.alert('Validation Error', 'Job title is required');
+      Alert.alert(t('client.validationError'), 'Job title is required');
       return;
     }
     if (!company.trim()) {
-      Alert.alert('Validation Error', 'Company name is required');
+      Alert.alert(t('client.validationError'), 'Company name is required');
       return;
     }
 
@@ -62,12 +64,12 @@ export default function AddExperienceScreen() {
       };
 
       await apiService.addWorkExperience(data);
-      Alert.alert('Success', 'Experience added successfully!', [
+      Alert.alert(t('common.success'), 'Experience added successfully!', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error: any) {
       console.error('Failed to add experience:', error);
-      Alert.alert('Error', error.response?.data?.error || 'Failed to add experience');
+      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to add experience');
     } finally {
       setSaving(false);
     }
@@ -119,7 +121,7 @@ export default function AddExperienceScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Location</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('jobs.location')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={location}
@@ -202,7 +204,7 @@ export default function AddExperienceScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>Save Experience</Text>
+                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -212,7 +214,7 @@ export default function AddExperienceScreen() {
             onPress={() => router.back()}
             disabled={saving}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

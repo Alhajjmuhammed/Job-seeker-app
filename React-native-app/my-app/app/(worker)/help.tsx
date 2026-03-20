@@ -16,6 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface FAQ {
   id: number;
@@ -33,6 +34,7 @@ interface ContactInfo {
 }
 
 export default function HelpScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme } = useTheme();
   const [faqs, setFaqs] = useState<Record<string, FAQ[]>>({});
@@ -132,7 +134,7 @@ export default function HelpScreen() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[styles.loadingText, { color: theme.text }]}>Loading help content...</Text>
+        <Text style={[styles.loadingText, { color: theme.text }]}>{t('help.loadingHelp')}</Text>
       </View>
     );
   }
@@ -153,16 +155,14 @@ export default function HelpScreen() {
       >
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Need Immediate Help?
-          </Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('help.needImmediateHelp')}</Text>
           
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.primary }]}
             onPress={handleCreateTicket}
           >
             <Ionicons name="chatbubble-ellipses" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Create Support Ticket</Text>
+            <Text style={styles.actionButtonText}>{t('help.createSupportTicket')}</Text>
           </TouchableOpacity>
 
           {contactInfo && (
@@ -175,9 +175,7 @@ export default function HelpScreen() {
                 onPress={() => handleContact('email')}
               >
                 <Ionicons name="mail" size={20} color={theme.primary} />
-                <Text style={[styles.contactButtonText, { color: theme.text }]}>
-                  Email Support
-                </Text>
+                <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('help.emailSupport')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -188,9 +186,7 @@ export default function HelpScreen() {
                 onPress={() => handleContact('phone')}
               >
                 <Ionicons name="call" size={20} color={theme.primary} />
-                <Text style={[styles.contactButtonText, { color: theme.text }]}>
-                  Call Support
-                </Text>
+                <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('help.callSupport')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -199,9 +195,7 @@ export default function HelpScreen() {
         {/* Contact Information */}
         {contactInfo && (
           <View style={[styles.section, styles.contactSection, { backgroundColor: theme.card }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Contact Information
-            </Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('help.contactInformation')}</Text>
             
             <View style={styles.contactInfo}>
               <View style={styles.contactRow}>
@@ -237,9 +231,7 @@ export default function HelpScreen() {
 
         {/* FAQ Categories */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Frequently Asked Questions
-          </Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('help.faq')}</Text>
           
           <ScrollView
             horizontal
@@ -290,21 +282,15 @@ export default function HelpScreen() {
           ) : (
             <View style={[styles.emptyContainer, styles.centered]}>
               <Ionicons name="help-circle-outline" size={64} color={theme.textSecondary} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                No FAQs Available
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                We're working on adding more helpful content for this category.
-              </Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('help.noFAQs')}</Text>
+              <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('help.addingContent')}</Text>
             </View>
           )}
         </View>
 
         {/* Additional Resources */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Additional Resources
-          </Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('help.additionalResources')}</Text>
           
           <TouchableOpacity
             style={[styles.resourceButton, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -312,10 +298,8 @@ export default function HelpScreen() {
           >
             <Ionicons name="document-text" size={24} color={theme.primary} />
             <View style={styles.resourceText}>
-              <Text style={[styles.resourceTitle, { color: theme.text }]}>Terms of Service</Text>
-              <Text style={[styles.resourceSubtitle, { color: theme.textSecondary }]}>
-                Read our terms and conditions
-              </Text>
+              <Text style={[styles.resourceTitle, { color: theme.text }]}>{t('terms.termsOfService')}</Text>
+              <Text style={[styles.resourceSubtitle, { color: theme.textSecondary }]}>{t('help.readTerms')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
@@ -326,10 +310,8 @@ export default function HelpScreen() {
           >
             <Ionicons name="shield-checkmark" size={24} color={theme.primary} />
             <View style={styles.resourceText}>
-              <Text style={[styles.resourceTitle, { color: theme.text }]}>Privacy Policy</Text>
-              <Text style={[styles.resourceSubtitle, { color: theme.textSecondary }]}>
-                Learn how we protect your data
-              </Text>
+              <Text style={[styles.resourceTitle, { color: theme.text }]}>{t('auth.privacyPolicy')}</Text>
+              <Text style={[styles.resourceSubtitle, { color: theme.textSecondary }]}>{t('help.learnPrivacy')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>

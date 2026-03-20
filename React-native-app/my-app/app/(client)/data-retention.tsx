@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface DataRetentionInfo {
   category: string;
@@ -23,6 +24,7 @@ interface DataRetentionInfo {
 }
 
 export default function DataRetentionScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [retentionData, setRetentionData] = useState<DataRetentionInfo[]>([]);
@@ -338,9 +340,7 @@ export default function DataRetentionScreen() {
               styles.supportLinkText,
               { color: theme.primary, fontFamily: 'Poppins_500Medium' },
             ]}
-          >
-            Questions about your data? Contact Support
-          </Text>
+          >{t('nav.support')}</Text>
           <Ionicons name="arrow-forward" size={18} color={theme.primary} />
         </TouchableOpacity>
       </ScrollView>

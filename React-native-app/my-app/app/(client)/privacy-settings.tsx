@@ -16,6 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface PrivacySettings {
   email_notifications: boolean;
@@ -29,6 +30,7 @@ interface PrivacySettings {
 }
 
 export default function PrivacySettingsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,7 +73,7 @@ export default function PrivacySettingsScreen() {
       
       await apiService.updatePrivacySettings({ [key]: value });
       
-      Alert.alert('Success', 'Privacy setting updated');
+      Alert.alert(t('common.success'), t('privacy.privacySettingUpdated'));
     } catch (error: any) {
       console.error('Error updating privacy setting:', error);
       Alert.alert(
@@ -125,9 +127,7 @@ export default function PrivacySettingsScreen() {
         <Header title="Privacy Settings" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading privacy settings...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('privacy.loadingPrivacySettings')}</Text>
         </View>
       </View>
     );
@@ -145,9 +145,7 @@ export default function PrivacySettingsScreen() {
             styles.sectionTitle,
             { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
           ]}
-        >
-          Communication
-        </Text>
+        >{t('privacy.communication')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <View style={[styles.settingItem, { borderBottomColor: theme.border }]}>
             <View style={styles.settingInfo}>
@@ -156,17 +154,13 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                Email Notifications
-              </Text>
+              >{t('privacy.emailNotifications')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
                   { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' },
                 ]}
-              >
-                Receive notifications via email
-              </Text>
+              >{t('privacy.receiveEmailNotifications')}</Text>
             </View>
             <Switch
               value={settings.email_notifications}
@@ -183,17 +177,13 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                SMS Notifications
-              </Text>
+              >{t('privacy.smsNotifications')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
                   { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' },
                 ]}
-              >
-                Receive notifications via SMS
-              </Text>
+              >{t('privacy.receiveSMSNotifications')}</Text>
             </View>
             <Switch
               value={settings.sms_notifications}
@@ -210,17 +200,13 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                Push Notifications
-              </Text>
+              >{t('privacy.pushNotifications')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
                   { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' },
                 ]}
-              >
-                Receive push notifications on your device
-              </Text>
+              >{t('privacy.receivePushNotifications')}</Text>
             </View>
             <Switch
               value={settings.push_notifications}
@@ -237,9 +223,7 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                Marketing Emails
-              </Text>
+              >{t('privacy.marketingEmails')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
@@ -264,9 +248,7 @@ export default function PrivacySettingsScreen() {
             styles.sectionTitle,
             { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
           ]}
-        >
-          Profile Visibility
-        </Text>
+        >{t('privacy.profileVisibility')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <View style={[styles.settingItem, { borderBottomColor: theme.border }]}>
             <View style={styles.settingInfo}>
@@ -275,17 +257,13 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                Show Email Address
-              </Text>
+              >{t('privacy.showEmailAddress')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
                   { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' },
                 ]}
-              >
-                Display your email on your public profile
-              </Text>
+              >{t('privacy.displayEmail')}</Text>
             </View>
             <Switch
               value={settings.show_email}
@@ -302,17 +280,13 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                Show Phone Number
-              </Text>
+              >{t('privacy.showPhoneNumber')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
                   { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' },
                 ]}
-              >
-                Display your phone number on your public profile
-              </Text>
+              >{t('privacy.displayPhone')}</Text>
             </View>
             <Switch
               value={settings.show_phone}
@@ -329,17 +303,13 @@ export default function PrivacySettingsScreen() {
                   styles.settingLabel,
                   { color: theme.text, fontFamily: 'Poppins_500Medium' },
                 ]}
-              >
-                Search Engine Indexing
-              </Text>
+              >{t('privacy.searchEngineIndexing')}</Text>
               <Text
                 style={[
                   styles.settingDescription,
                   { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' },
                 ]}
-              >
-                Allow search engines to index your profile
-              </Text>
+              >{t('privacy.allowSearchEngines')}</Text>
             </View>
             <Switch
               value={settings.allow_search_indexing}
@@ -356,9 +326,7 @@ export default function PrivacySettingsScreen() {
             styles.sectionTitle,
             { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' },
           ]}
-        >
-          Data Management
-        </Text>
+        >{t('privacy.dataManagement')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
@@ -375,9 +343,7 @@ export default function PrivacySettingsScreen() {
                 styles.menuText,
                 { color: theme.text, fontFamily: 'Poppins_500Medium' },
               ]}
-            >
-              Data Retention Policy
-            </Text>
+            >{t('privacy.dataRetentionPolicy')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
@@ -396,9 +362,7 @@ export default function PrivacySettingsScreen() {
                 styles.menuText,
                 { color: theme.text, fontFamily: 'Poppins_500Medium' },
               ]}
-            >
-              Export My Data
-            </Text>
+            >{t('clientSettings.exportDataTitle')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -414,7 +378,7 @@ export default function PrivacySettingsScreen() {
           >
             Your privacy is important to us. These settings help you control how your
             data is used and who can see your information. Learn more in our{' '}
-            <Text style={{ color: theme.primary }}>Privacy Policy</Text>.
+            <Text style={{ color: theme.primary }}>{t('auth.privacyPolicy')}</Text>.
           </Text>
         </View>
       </ScrollView>

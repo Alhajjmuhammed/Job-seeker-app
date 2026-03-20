@@ -2,15 +2,17 @@ import { useEffect } from 'react';
 import { Redirect } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function Index() {
+  const { t } = useTranslation();
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#0F766E" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>{t('requestService.loading')}</Text>
       </View>
     );
   }

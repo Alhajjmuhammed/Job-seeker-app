@@ -18,6 +18,7 @@ import PaymentModal from '../../components/PaymentModal';
 import PaymentScreenshotModal from '../../components/PaymentScreenshotModal';
 import apiService from '../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
   id: number;
@@ -35,6 +36,7 @@ interface PriceCalculation {
 }
 
 export default function RequestServiceScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -102,7 +104,7 @@ export default function RequestServiceScreen() {
       setCategories(response.categories || []);
     } catch (error: any) {
       console.error('Error loading categories:', error);
-      Alert.alert('Error', 'Failed to load service categories');
+      Alert.alert(t('common.error'), t('requestService.failedLoadCategories'));
     } finally {
       setLoading(false);
     }
@@ -288,7 +290,7 @@ export default function RequestServiceScreen() {
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
                           'Failed to submit request. Please try again.';
-      Alert.alert('Error', errorMessage);
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -307,31 +309,31 @@ export default function RequestServiceScreen() {
 
   function validateForm(): boolean {
     if (!selectedCategory) {
-      Alert.alert('Validation Error', 'Please select a service category');
+      Alert.alert(t('client.validationError'), t('requestService.selectCategory'));
       return false;
     }
     if (!title.trim()) {
-      Alert.alert('Validation Error', 'Please enter a title');
+      Alert.alert(t('client.validationError'), t('requestService.enterTitle'));
       return false;
     }
     if (!description.trim()) {
-      Alert.alert('Validation Error', 'Please enter a description');
+      Alert.alert(t('client.validationError'), t('requestService.enterDescription'));
       return false;
     }
     if (!location.trim()) {
-      Alert.alert('Validation Error', 'Please enter a location');
+      Alert.alert(t('client.validationError'), t('requestService.enterLocationField'));
       return false;
     }
     if (!city.trim()) {
-      Alert.alert('Validation Error', 'Please enter a city');
+      Alert.alert(t('client.validationError'), t('requestService.enterCityField'));
       return false;
     }
     if (!priceCalculation) {
-      Alert.alert('Error', 'Price calculation is required');
+      Alert.alert(t('common.error'), t('requestService.priceCalculationRequired'));
       return false;
     }
     if (durationType === 'custom' && serviceEndDate <= serviceStartDate) {
-      Alert.alert('Validation Error', 'End date must be after start date');
+      Alert.alert(t('client.validationError'), t('requestService.endDateAfterStart'));
       return false;
     }
     return true;
@@ -360,7 +362,7 @@ export default function RequestServiceScreen() {
         <Header title="Request Service" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('common.loading')}</Text>
         </View>
       </View>
     );
@@ -408,9 +410,7 @@ export default function RequestServiceScreen() {
             <View style={[styles.warningCard, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }]}>
               <View style={styles.warningHeader}>
                 <Ionicons name="warning" size={24} color="#F59E0B" />
-                <Text style={[styles.warningTitle, { color: '#92400E' }]}>
-                  No Workers Currently Available
-                </Text>
+                <Text style={[styles.warningTitle, { color: '#92400E' }]}>{t('requestService.noWorkersAvailable')}</Text>
               </View>
               <Text style={[styles.warningText, { color: '#78350F' }]}>
                 There are currently no available workers for {categories.find(c => c.id === selectedCategory)?.name}.
@@ -421,9 +421,7 @@ export default function RequestServiceScreen() {
             <View style={[styles.warningCard, { backgroundColor: '#E0F2FE', borderColor: '#0EA5E9' }]}>
               <View style={styles.warningHeader}>
                 <Ionicons name="information-circle" size={24} color="#0EA5E9" />
-                <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>
-                  Limited Worker Availability
-                </Text>
+                <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>{t('requestService.limitedAvailability')}</Text>
               </View>
               <Text style={[styles.warningText, { color: '#075985' }]}>
                 Only {availableWorkers} worker(s) currently available for {categories.find(c => c.id === selectedCategory)?.name}.
@@ -434,9 +432,7 @@ export default function RequestServiceScreen() {
             <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981' }]}>
               <View style={styles.warningHeader}>
                 <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                <Text style={[styles.warningTitle, { color: '#065F46' }]}>
-                  Workers Available
-                </Text>
+                <Text style={[styles.warningTitle, { color: '#065F46' }]}>{t('search.workersAvailableCount')}</Text>
               </View>
               <Text style={[styles.warningText, { color: '#047857' }]}>
                 {availableWorkers} worker(s) available for {categories.find(c => c.id === selectedCategory)?.name}.
@@ -453,7 +449,7 @@ export default function RequestServiceScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="E.g., Fix leaking kitchen faucet"
+            placeholder={t('requestService.titlePlaceholder')}
             placeholderTextColor={theme.textSecondary}
             value={title}
             onChangeText={setTitle}
@@ -472,7 +468,7 @@ export default function RequestServiceScreen() {
               styles.textArea,
               { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
             ]}
-            placeholder="Describe what you need help with..."
+            placeholder={t('requestService.descriptionPlaceholder')}
             placeholderTextColor={theme.textSecondary}
             value={description}
             onChangeText={setDescription}
@@ -490,7 +486,7 @@ export default function RequestServiceScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="Street address or area"
+            placeholder={t('requestService.locationStreet')}
             placeholderTextColor={theme.textSecondary}
             value={location}
             onChangeText={setLocation}
@@ -505,7 +501,7 @@ export default function RequestServiceScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
-            placeholder="City name"
+            placeholder={t('requestService.cityName')}
             placeholderTextColor={theme.textSecondary}
             value={city}
             onChangeText={setCity}
@@ -515,7 +511,7 @@ export default function RequestServiceScreen() {
 
         {/* Preferred Date */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Preferred Date</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.preferredDate')}</Text>
           <TouchableOpacity
             style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowDatePicker(true)}
@@ -539,7 +535,7 @@ export default function RequestServiceScreen() {
 
         {/* Preferred Time */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Preferred Time</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.preferredTime')}</Text>
           <TouchableOpacity
             style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowTimePicker(true)}
@@ -687,12 +683,12 @@ export default function RequestServiceScreen() {
           <View style={[styles.priceCard, { backgroundColor: theme.card, borderColor: theme.primary }]}>
             <View style={styles.priceHeader}>
               <Ionicons name="calculator-outline" size={24} color={theme.primary} />
-              <Text style={[styles.priceHeaderText, { color: theme.text }]}>Price Breakdown</Text>
+              <Text style={[styles.priceHeaderText, { color: theme.text }]}>{t('requestService.priceBreakdown')}</Text>
             </View>
             
             <View style={styles.priceRow}>
               <Ionicons name="people-outline" size={20} color={theme.primary} />
-              <Text style={[styles.priceLabel, { color: theme.text }]}>Workers:</Text>
+              <Text style={[styles.priceLabel, { color: theme.text }]}>{t('requestService.workers')}</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
                 {priceCalculation.workers_needed || workersNeeded}
               </Text>
@@ -700,7 +696,7 @@ export default function RequestServiceScreen() {
             
             <View style={styles.priceRow}>
               <Ionicons name="calendar-outline" size={20} color={theme.primary} />
-              <Text style={[styles.priceLabel, { color: theme.text }]}>Duration:</Text>
+              <Text style={[styles.priceLabel, { color: theme.text }]}>{t('requestService.duration')}</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
                 {priceCalculation.duration_days} days
               </Text>
@@ -708,7 +704,7 @@ export default function RequestServiceScreen() {
             
             <View style={styles.priceRow}>
               <Ionicons name="cash-outline" size={20} color={theme.primary} />
-              <Text style={[styles.priceLabel, { color: theme.text }]}>Rate/Day/Worker:</Text>
+              <Text style={[styles.priceLabel, { color: theme.text }]}>{t('requestService.rateDayWorker')}</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
                 TSH {priceCalculation.daily_rate.toLocaleString()}
               </Text>
@@ -718,7 +714,7 @@ export default function RequestServiceScreen() {
             
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
-              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>Total Price:</Text>
+              <Text style={[styles.totalPriceLabel, { color: theme.text }]}>{t('requestService.totalPrice')}</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
                 TSH {priceCalculation.total_price.toLocaleString()}
               </Text>
@@ -733,15 +729,13 @@ export default function RequestServiceScreen() {
         {calculatingPrice && (
           <View style={styles.calculatingContainer}>
             <ActivityIndicator size="small" color={theme.primary} />
-            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>
-              Calculating price...
-            </Text>
+            <Text style={[styles.calculatingText, { color: theme.textSecondary }]}>{t('requestService.calculatingPrice')}</Text>
           </View>
         )}
 
         {/* Urgency */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Urgency Level</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.urgencyLevel')}</Text>
           <View style={styles.urgencyButtons}>
             {(['normal', 'urgent', 'emergency'] as const).map((level) => (
               <TouchableOpacity
@@ -770,14 +764,14 @@ export default function RequestServiceScreen() {
 
         {/* Additional Notes */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: theme.text }]}>Additional Notes</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('requestService.additionalNotes')}</Text>
           <TextInput
             style={[
               styles.input,
               styles.textArea,
               { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
             ]}
-            placeholder="Any additional information..."
+            placeholder={t('requestService.anyAdditionalInfo')}
             placeholderTextColor={theme.textSecondary}
             value={clientNotes}
             onChangeText={setClientNotes}
@@ -794,9 +788,7 @@ export default function RequestServiceScreen() {
             <View style={[styles.warningCard, { backgroundColor: '#FEF3C7', borderColor: '#F59E0B', marginTop: 16, marginBottom: 8 }]}>
               <View style={styles.warningHeader}>
                 <Ionicons name="warning" size={24} color="#F59E0B" />
-                <Text style={[styles.warningTitle, { color: '#92400E' }]}>
-                  ⚠️ No Workers Available
-                </Text>
+                <Text style={[styles.warningTitle, { color: '#92400E' }]}>{t('requestService.noWorkersAvailableSymbol')}</Text>
               </View>
               <Text style={[styles.warningText, { color: '#78350F' }]}>
                 No available workers for {categories.find(c => c.id === selectedCategory)?.name}. Your request will be queued.
@@ -806,9 +798,7 @@ export default function RequestServiceScreen() {
             <View style={[styles.warningCard, { backgroundColor: '#E0F2FE', borderColor: '#0EA5E9', marginTop: 16, marginBottom: 8 }]}>
               <View style={styles.warningHeader}>
                 <Ionicons name="information-circle" size={24} color="#0EA5E9" />
-                <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>
-                  ℹ️ Limited Availability
-                </Text>
+                <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>{t('requestService.limitedAvailabilitySymbol')}</Text>
               </View>
               <Text style={[styles.warningText, { color: '#075985' }]}>
                 Only {availableWorkers} worker(s) available. Request will be prioritized.
@@ -818,9 +808,7 @@ export default function RequestServiceScreen() {
             <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981', marginTop: 16, marginBottom: 8 }]}>
               <View style={styles.warningHeader}>
                 <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                <Text style={[styles.warningTitle, { color: '#065F46' }]}>
-                  ✓ Workers Available
-                </Text>
+                <Text style={[styles.warningTitle, { color: '#065F46' }]}>{t('requestService.workersAvailableSymbol')}</Text>
               </View>
               <Text style={[styles.warningText, { color: '#047857' }]}>
                 {availableWorkers} worker(s) available for {categories.find(c => c.id === selectedCategory)?.name}. Your request will be processed quickly.

@@ -367,28 +367,6 @@
                             </button>
                         </li>
 
-                        <!-- Language Switcher (authenticated) -->
-                        <li class="nav-item dropdown lang-switcher">
-                            {% get_current_language as CURRENT_LANGUAGE %}
-                            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-translate"></i>
-                                {% if CURRENT_LANGUAGE == 'sw' %}SW
-                                {% elif CURRENT_LANGUAGE == 'fr' %}FR
-                                {% elif CURRENT_LANGUAGE == 'it' %}IT
-                                {% else %}EN{% endif %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <form action="{% url 'set_language' %}" method="post">
-                                    {% csrf_token %}
-                                    <input name="next" type="hidden" value="{{ request.path }}">
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active-lang{% endif %}" type="submit" name="language" value="en">🇺🇸 English</button></li>
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'sw' %}active-lang{% endif %}" type="submit" name="language" value="sw">🇹🇿 Swahili</button></li>
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'fr' %}active-lang{% endif %}" type="submit" name="language" value="fr">🇫🇷 Français</button></li>
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'it' %}active-lang{% endif %}" type="submit" name="language" value="it">🇮🇹 Italiano</button></li>
-                                </form>
-                            </ul>
-                        </li>
-
                         <!-- User dropdown -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#"
@@ -412,28 +390,6 @@
                             </ul>
                         </li>
                     {% else %}
-                        <!-- Language Switcher (guests) -->
-                        <li class="nav-item dropdown lang-switcher">
-                            {% get_current_language as CURRENT_LANGUAGE %}
-                            {% get_available_languages as LANGUAGES_LIST %}
-                            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-translate"></i>
-                                {% if CURRENT_LANGUAGE == 'sw' %}Swahili
-                                {% elif CURRENT_LANGUAGE == 'fr' %}Français
-                                {% elif CURRENT_LANGUAGE == 'it' %}Italiano
-                                {% else %}English{% endif %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <form action="{% url 'set_language' %}" method="post" id="lang-form-guest">
-                                    {% csrf_token %}
-                                    <input name="next" type="hidden" value="{{ request.path }}">
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active-lang{% endif %}" type="submit" name="language" value="en">🇺🇸 English</button></li>
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'sw' %}active-lang{% endif %}" type="submit" name="language" value="sw">🇹🇿 Swahili</button></li>
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'fr' %}active-lang{% endif %}" type="submit" name="language" value="fr">🇫🇷 Français</button></li>
-                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'it' %}active-lang{% endif %}" type="submit" name="language" value="it">🇮🇹 Italiano</button></li>
-                                </form>
-                            </ul>
-                        </li>
                         <li class="nav-item">
                             <a class="btn-nav-login" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
                         </li>
@@ -551,17 +507,25 @@
                     <!-- 🌐 Language Switcher -->
                     <div class="col-md-4 text-center">
                         {% get_current_language as CURRENT_LANGUAGE %}
-                        <form action="{% url 'set_language' %}" method="post" id="footer-lang-form" style="display:inline-flex;align-items:center;gap:6px;">
+                        <form action="{% url 'set_language' %}" method="post" id="footer-lang-form" style="display:inline-flex;align-items:center;gap:8px;">
                             {% csrf_token %}
                             <input name="next" type="hidden" value="{{ request.path }}">
                             <span style="color:#94a3b8;font-size:0.82rem;">🌐</span>
-                            <select name="language" onchange="document.getElementById('footer-lang-form').submit()"
-                                style="background:#1e293b;color:white;border:1px solid #334155;border-radius:6px;padding:4px 8px;font-size:0.82rem;cursor:pointer;outline:none;">
-                                <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>🇺🇸 English</option>
-                                <option value="sw" {% if CURRENT_LANGUAGE == 'sw' %}selected{% endif %}>🇹🇿 Swahili</option>
-                                <option value="fr" {% if CURRENT_LANGUAGE == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
-                                <option value="it" {% if CURRENT_LANGUAGE == 'it' %}selected{% endif %}>🇮🇹 Italiano</option>
-                            </select>
+                            <div class="dropdown">
+                                <button type="button" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                                    style="background:#1e293b;color:rgba(255,255,255,.8);border:1px solid #334155;border-radius:6px;padding:4px 10px;font-size:0.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;">
+                                    {% if CURRENT_LANGUAGE == 'sw' %}<img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" alt="Tanzania" style="border-radius:2px;"> Kiswahili
+                                    {% elif CURRENT_LANGUAGE == 'fr' %}<img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" alt="France" style="border-radius:2px;"> Français
+                                    {% elif CURRENT_LANGUAGE == 'it' %}<img src="https://flagcdn.com/20x15/it.png" width="20" height="15" alt="Italy" style="border-radius:2px;"> Italiano
+                                    {% else %}<img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" alt="English" style="border-radius:2px;"> English{% endif %}
+                                </button>
+                                <ul class="dropdown-menu" style="min-width:155px;border-radius:10px;background:#1e293b;border-color:#334155;">
+                                    <li><button class="dropdown-item" type="submit" name="language" value="en" style="color:rgba(255,255,255,.8);display:flex;align-items:center;gap:8px;white-space:nowrap;"><img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" alt="English" style="border-radius:2px;flex-shrink:0;"> English</button></li>
+                                    <li><button class="dropdown-item" type="submit" name="language" value="sw" style="color:rgba(255,255,255,.8);display:flex;align-items:center;gap:8px;white-space:nowrap;"><img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" alt="Tanzania" style="border-radius:2px;flex-shrink:0;"> Kiswahili</button></li>
+                                    <li><button class="dropdown-item" type="submit" name="language" value="fr" style="color:rgba(255,255,255,.8);display:flex;align-items:center;gap:8px;white-space:nowrap;"><img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" alt="France" style="border-radius:2px;flex-shrink:0;"> Français</button></li>
+                                    <li><button class="dropdown-item" type="submit" name="language" value="it" style="color:rgba(255,255,255,.8);display:flex;align-items:center;gap:8px;white-space:nowrap;"><img src="https://flagcdn.com/20x15/it.png" width="20" height="15" alt="Italy" style="border-radius:2px;flex-shrink:0;"> Italiano</button></li>
+                                </ul>
+                            </div>
                         </form>
                     </div>
                     <div class="col-md-4 text-center text-md-end">

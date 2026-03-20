@@ -16,8 +16,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ChangePasswordScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -28,22 +30,22 @@ export default function ChangePasswordScreen() {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFieldsError'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
+      Alert.alert(t('common.error'), t('security.newPasswordsNoMatch'));
       return;
     }
 
     if (newPassword.length < 8) {
-      Alert.alert('Error', 'New password must be at least 8 characters long');
+      Alert.alert(t('common.error'), t('security.newPasswordMinLength'));
       return;
     }
 
     if (newPassword === currentPassword) {
-      Alert.alert('Error', 'New password must be different from current password');
+      Alert.alert(t('common.error'), t('security.newPasswordDifferent'));
       return;
     }
 
@@ -73,7 +75,7 @@ export default function ChangePasswordScreen() {
         error.response?.data?.message ||
         'Failed to change password. Please check your current password and try again.';
       
-      Alert.alert('Change Password Failed', errorMessage);
+      Alert.alert(t('security.changePasswordFailed'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -113,18 +115,16 @@ export default function ChangePasswordScreen() {
           {/* Info Section */}
           <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
             <Ionicons name="information-circle" size={24} color="#4f46e5" />
-            <Text style={[styles.infoText, { color: theme.text }]}>
-              Choose a strong password to keep your account secure
-            </Text>
+            <Text style={[styles.infoText, { color: theme.text }]}>{t('security.chooseStrongPasswordMessage')}</Text>
           </View>
 
           {/* Current Password */}
           <View style={styles.inputSection}>
-            <Text style={[styles.label, { color: theme.text }]}>Current Password</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('security.currentPassword')}</Text>
             <View style={[styles.passwordContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <TextInput
                 style={[styles.passwordInput, { color: theme.text }]}
-                placeholder="Enter current password"
+                placeholder={t('security.enterCurrentPassword')}
                 placeholderTextColor={theme.textSecondary}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
@@ -147,11 +147,11 @@ export default function ChangePasswordScreen() {
 
           {/* New Password */}
           <View style={styles.inputSection}>
-            <Text style={[styles.label, { color: theme.text }]}>New Password</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('auth.newPassword')}</Text>
             <View style={[styles.passwordContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <TextInput
                 style={[styles.passwordInput, { color: theme.text }]}
-                placeholder="Enter new password"
+                placeholder={t('security.enterNewPassword')}
                 placeholderTextColor={theme.textSecondary}
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -181,11 +181,11 @@ export default function ChangePasswordScreen() {
 
           {/* Confirm Password */}
           <View style={styles.inputSection}>
-            <Text style={[styles.label, { color: theme.text }]}>Confirm New Password</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('security.confirmNewPassword')}</Text>
             <View style={[styles.passwordContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <TextInput
                 style={[styles.passwordInput, { color: theme.text }]}
-                placeholder="Confirm new password"
+                placeholder={t('security.confirmNewPassword')}
                 placeholderTextColor={theme.textSecondary}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -195,15 +195,13 @@ export default function ChangePasswordScreen() {
               />
             </View>
             {confirmPassword && newPassword !== confirmPassword && (
-              <Text style={styles.errorText}>Passwords do not match</Text>
+              <Text style={styles.errorText}>{t('auth.passwordsNoMatch')}</Text>
             )}
           </View>
 
           {/* Password Requirements */}
           <View style={[styles.requirementsCard, { backgroundColor: theme.card }]}>
-            <Text style={[styles.requirementsTitle, { color: theme.text }]}>
-              Password Requirements:
-            </Text>
+            <Text style={[styles.requirementsTitle, { color: theme.text }]}>{t('auth.passwordRequirements')}</Text>
             <View style={styles.requirementsList}>
               <View style={styles.requirementItem}>
                 <Ionicons
@@ -211,9 +209,7 @@ export default function ChangePasswordScreen() {
                   size={16}
                   color={newPassword.length >= 8 ? '#10b981' : theme.textSecondary}
                 />
-                <Text style={[styles.requirementText, { color: theme.textSecondary }]}>
-                  At least 8 characters
-                </Text>
+                <Text style={[styles.requirementText, { color: theme.textSecondary }]}>{t('auth.atLeast8Chars')}</Text>
               </View>
               <View style={styles.requirementItem}>
                 <Ionicons
@@ -229,9 +225,7 @@ export default function ChangePasswordScreen() {
                       : theme.textSecondary
                   }
                 />
-                <Text style={[styles.requirementText, { color: theme.textSecondary }]}>
-                  Uppercase and lowercase letters
-                </Text>
+                <Text style={[styles.requirementText, { color: theme.textSecondary }]}>{t('auth.uppercaseLowercase')}</Text>
               </View>
               <View style={styles.requirementItem}>
                 <Ionicons
@@ -239,9 +233,7 @@ export default function ChangePasswordScreen() {
                   size={16}
                   color={/\d/.test(newPassword) ? '#10b981' : theme.textSecondary}
                 />
-                <Text style={[styles.requirementText, { color: theme.textSecondary }]}>
-                  At least one number
-                </Text>
+                <Text style={[styles.requirementText, { color: theme.textSecondary }]}>{t('auth.atLeastOneNumber')}</Text>
               </View>
             </View>
           </View>
@@ -253,11 +245,11 @@ export default function ChangePasswordScreen() {
             disabled={loading}
           >
             {loading ? (
-              <Text style={styles.saveButtonText}>Changing Password...</Text>
+              <Text style={styles.saveButtonText}>{t('security.changingPassword')}</Text>
             ) : (
               <>
                 <Ionicons name="shield-checkmark" size={20} color="#fff" />
-                <Text style={styles.saveButtonText}>Change Password</Text>
+                <Text style={styles.saveButtonText}>{t('security.changePassword')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -266,9 +258,7 @@ export default function ChangePasswordScreen() {
             style={styles.cancelButton}
             onPress={() => router.back()}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
-              Cancel
-            </Text>
+            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

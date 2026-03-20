@@ -18,6 +18,7 @@ import Header from '../../components/Header';
 import apiService from '../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceRequest {
   id: number;
@@ -35,6 +36,7 @@ interface ServiceRequest {
 }
 
 export default function MyRequestsScreen() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -109,7 +111,7 @@ export default function MyRequestsScreen() {
       }
     } catch (error: any) {
       console.error('Error loading requests:', error);
-      Alert.alert('Error', 'Failed to load service requests');
+      Alert.alert(t('common.error'), t('client.failedLoadRequests'));
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -209,7 +211,7 @@ export default function MyRequestsScreen() {
         <Header title="My Service Requests" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>Loading your requests...</Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('client.loadingRequests')}</Text>
         </View>
       </View>
     );
@@ -225,7 +227,7 @@ export default function MyRequestsScreen() {
           <Ionicons name="search" size={20} color={theme.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search by title, description, location..."
+            placeholder={t('client.searchByTitleDesc')}
             placeholderTextColor={theme.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -245,9 +247,7 @@ export default function MyRequestsScreen() {
           onPress={() => setShowFilters(!showFilters)}
         >
           <Ionicons name="options-outline" size={20} color={theme.primary} />
-          <Text style={[styles.advancedFiltersText, { color: theme.primary }]}>
-            Filters
-          </Text>
+          <Text style={[styles.advancedFiltersText, { color: theme.primary }]}>{t('jobs.filters')}</Text>
           {(selectedCategory || fromDate || toDate || searchQuery) && (
             <View style={[styles.filterBadge, { backgroundColor: theme.primary }]}>
               <Text style={styles.filterBadgeText}>
@@ -267,7 +267,7 @@ export default function MyRequestsScreen() {
               setSearchQuery('');
             }}
           >
-            <Text style={[styles.clearFiltersText, { color: theme.error }]}>Clear</Text>
+            <Text style={[styles.clearFiltersText, { color: theme.error }]}>{t('client.clear')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -275,11 +275,11 @@ export default function MyRequestsScreen() {
       {/* Advanced Filters Panel */}
       {showFilters && (
         <View style={[styles.filtersPanel, { backgroundColor: theme.card }]}>
-          <Text style={[styles.filtersPanelTitle, { color: theme.text }]}>Filter Options</Text>
+          <Text style={[styles.filtersPanelTitle, { color: theme.text }]}>{t('client.filterOptions')}</Text>
           
           {/* Category Filter */}
           <View style={styles.filterGroup}>
-            <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>Category</Text>
+            <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>{t('jobs.category')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
               <TouchableOpacity
                 style={[
@@ -292,9 +292,7 @@ export default function MyRequestsScreen() {
                 <Text style={[
                   styles.categoryChipText,
                   !selectedCategory ? { color: '#fff' } : { color: theme.text }
-                ]}>
-                  All
-                </Text>
+                ]}>{t('notifications.all')}</Text>
               </TouchableOpacity>
               
               {categories.map((cat) => (
@@ -320,7 +318,7 @@ export default function MyRequestsScreen() {
 
           {/* Date Range Filter */}
           <View style={styles.filterGroup}>
-            <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>Date Range</Text>
+            <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>{t('client.dateRange')}</Text>
             <View style={styles.dateRow}>
               <TouchableOpacity
                 style={[styles.dateButton, { backgroundColor: theme.background, borderColor: theme.border }]}
@@ -411,7 +409,7 @@ export default function MyRequestsScreen() {
               style={[styles.browseButton, { backgroundColor: theme.primary }]}
               onPress={() => router.push('/(client)/search')}
             >
-              <Text style={styles.browseButtonText}>Browse Services</Text>
+              <Text style={styles.browseButtonText}>{t('client.browseServices')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -478,7 +476,7 @@ export default function MyRequestsScreen() {
                       <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
                     )}
                     {request.worker_accepted === false && (
-                      <Text style={styles.rejectedText}>(Rejected)</Text>
+                      <Text style={styles.rejectedText}>{t('client.rejected')}</Text>
                     )}
                   </View>
                 )}
@@ -498,9 +496,7 @@ export default function MyRequestsScreen() {
                   style={[styles.viewButton, { borderColor: theme.primary }]}
                   onPress={() => router.push(`/(client)/service-request/${request.id}` as any)}
                 >
-                  <Text style={[styles.viewButtonText, { color: theme.primary }]}>
-                    View Details
-                  </Text>
+                  <Text style={[styles.viewButtonText, { color: theme.primary }]}>{t('client.viewDetails')}</Text>
                   <Ionicons name="arrow-forward" size={16} color={theme.primary} />
                 </TouchableOpacity>
               </TouchableOpacity>
@@ -517,9 +513,7 @@ export default function MyRequestsScreen() {
                   <ActivityIndicator color={theme.primary} />
                 ) : (
                   <>
-                    <Text style={[styles.loadMoreText, { color: theme.primary }]}>
-                      Load More
-                    </Text>
+                    <Text style={[styles.loadMoreText, { color: theme.primary }]}>{t('client.loadMore')}</Text>
                     <Text style={[styles.pageInfo, { color: theme.textSecondary }]}>
                       Page {currentPage} of {totalPages}
                     </Text>

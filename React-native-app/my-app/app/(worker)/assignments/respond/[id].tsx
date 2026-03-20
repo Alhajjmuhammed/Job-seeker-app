@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import Header from '../../../../components/Header';
 import apiService from '../../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface AssignmentDetail {
   id: number;
@@ -31,6 +32,7 @@ interface AssignmentDetail {
 }
 
 export default function RespondAssignmentScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -54,12 +56,12 @@ export default function RespondAssignmentScreen() {
       if (found) {
         setAssignment(found);
       } else {
-        Alert.alert('Error', 'Assignment not found');
+        Alert.alert(t('common.error'), t('assignments.assignmentNotFound'));
         router.back();
       }
     } catch (error: any) {
       console.error('Error loading assignment:', error);
-      Alert.alert('Error', 'Failed to load assignment details');
+      Alert.alert(t('common.error'), t('assignments.failedLoadAssignmentDetails'));
       router.back();
     } finally {
       setLoading(false);
@@ -73,19 +75,19 @@ export default function RespondAssignmentScreen() {
       setSubmitting(true);
       await apiService.acceptAssignment(assignment.id, notes);
       Alert.alert(
-        'Assignment Accepted!',
-        'You have successfully accepted this assignment. The client will be notified.',
+        t('assignments.assignmentAccepted'),
+        t('assignments.acceptedSuccessMsg'),
         [
           {
-            text: 'View Assignment',
+            text: t('assignments.viewAssignment'),
             onPress: () => router.replace('/(worker)/dashboard'),
           },
         ]
       );
     } catch (error: any) {
       Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to accept assignment'
+        t('common.error'),
+        error.response?.data?.error || t('assignments.failedAcceptAssignment')
       );
     } finally {
       setSubmitting(false);
@@ -96,17 +98,17 @@ export default function RespondAssignmentScreen() {
     if (!assignment) return;
 
     if (!rejectionReason.trim()) {
-      Alert.alert('Reason Required', 'Please provide a reason for rejection');
+      Alert.alert(t('assignments.reasonRequired'), t('assignments.provideReasonRejection'));
       return;
     }
 
     Alert.alert(
-      'Confirm Rejection',
-      'Are you sure you want to reject this assignment? The admin will be notified and may reassign it to another worker.',
+      t('assignments.confirmRejection'),
+      t('assignments.sureRejectAssignment'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Yes, Reject',
+          text: t('assignments.yesReject'),
           style: 'destructive',
           onPress: confirmReject,
         },
@@ -121,14 +123,14 @@ export default function RespondAssignmentScreen() {
       setSubmitting(true);
       await apiService.rejectAssignment(assignment.id, rejectionReason);
       Alert.alert(
-        'Assignment Rejected',
-        'The assignment has been rejected. Admin has been notified.',
-        [{ text: 'OK', onPress: () => router.replace('/(worker)/dashboard') }]
+        t('assignments.assignmentRejected'),
+        t('assignments.rejectedAdminNotified'),
+        [{ text: t('common.ok'), onPress: () => router.replace('/(worker)/dashboard') }]
       );
     } catch (error: any) {
       Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to reject assignment'
+        t('common.error'),
+        error.response?.data?.error || t('assignments.failedRejectAssignment')
       );
     } finally {
       setSubmitting(false);
@@ -224,9 +226,7 @@ export default function RespondAssignmentScreen() {
           <View style={styles.detailsGrid}>
             <View style={styles.detailItem}>
               <Ionicons name="location-outline" size={20} color={theme.textSecondary} />
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Location
-              </Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('jobs.location')}</Text>
               <Text style={[styles.detailValue, { color: theme.text }]}>
                 {assignment.city}
               </Text>
@@ -256,9 +256,7 @@ export default function RespondAssignmentScreen() {
 
             <View style={styles.detailItem}>
               <Ionicons name="time-outline" size={20} color={theme.textSecondary} />
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Assigned
-              </Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('assignments.assigned')}</Text>
               <Text style={[styles.detailValue, { color: theme.text }]}>
                 {formatDateTime(assignment.assigned_at)}
               </Text>
@@ -269,7 +267,7 @@ export default function RespondAssignmentScreen() {
         {/* Client Information */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Client Information
+            {t('assignments.clientInformation')}
           </Text>
           <View style={[styles.clientCard, { backgroundColor: theme.background }]}>
             <View style={[styles.clientAvatar, { backgroundColor: theme.primary }]}>
@@ -289,10 +287,10 @@ export default function RespondAssignmentScreen() {
         {!action && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Your Response
+              {t('assignments.yourResponse')}
             </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Please review the assignment details carefully before responding
+              {t('assignments.reviewDetailsBeforeResponding')}
             </Text>
 
             <TouchableOpacity
@@ -300,7 +298,7 @@ export default function RespondAssignmentScreen() {
               onPress={() => setAction('accept')}
             >
               <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>Accept Assignment</Text>
+              <Text style={styles.actionButtonText}>{t('assignments.acceptAssignment')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -308,7 +306,7 @@ export default function RespondAssignmentScreen() {
               onPress={() => setAction('reject')}
             >
               <Ionicons name="close-circle" size={24} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>Reject Assignment</Text>
+              <Text style={styles.actionButtonText}>{t('assignments.rejectAssignment')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -319,12 +317,12 @@ export default function RespondAssignmentScreen() {
             <View style={styles.formHeader}>
               <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
               <Text style={[styles.formTitle, { color: theme.text }]}>
-                Accepting Assignment
+                {t('assignments.acceptingAssignment')}
               </Text>
             </View>
 
             <Text style={[styles.formSubtitle, { color: theme.textSecondary }]}>
-              Add any notes or questions for the client (optional)
+              {t('assignments.addNotesForClient')}
             </Text>
 
             <TextInput
@@ -332,7 +330,7 @@ export default function RespondAssignmentScreen() {
                 styles.textArea,
                 { backgroundColor: theme.background, color: theme.text },
               ]}
-              placeholder="e.g., I'll arrive at 9 AM, What materials are needed?"
+              placeholder={t('assignments.exampleArrivalTime')}
               placeholderTextColor={theme.textSecondary}
               value={notes}
               onChangeText={setNotes}
@@ -345,9 +343,7 @@ export default function RespondAssignmentScreen() {
                 style={[styles.secondaryButton, { borderColor: theme.border }]}
                 onPress={() => setAction(null)}
               >
-                <Text style={[styles.secondaryButtonText, { color: theme.text }]}>
-                  Back
-                </Text>
+                <Text style={[styles.secondaryButtonText, { color: theme.text }]}>{t('common.back')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -360,7 +356,7 @@ export default function RespondAssignmentScreen() {
                 ) : (
                   <>
                     <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                    <Text style={styles.primaryButtonText}>Confirm Accept</Text>
+                    <Text style={styles.primaryButtonText}>{t('common.confirm')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -374,12 +370,12 @@ export default function RespondAssignmentScreen() {
             <View style={styles.formHeader}>
               <Ionicons name="close-circle" size={28} color="#F44336" />
               <Text style={[styles.formTitle, { color: theme.text }]}>
-                Rejecting Assignment
+                {t('assignments.rejectingAssignment')}
               </Text>
             </View>
 
             <Text style={[styles.formSubtitle, { color: theme.textSecondary }]}>
-              Please provide a reason for rejection *
+              {t('assignments.provideRejectionReasonRequired')}
             </Text>
 
             <TextInput
@@ -387,7 +383,7 @@ export default function RespondAssignmentScreen() {
                 styles.textArea,
                 { backgroundColor: theme.background, color: theme.text },
               ]}
-              placeholder="e.g., Already booked, Too far from my location, Outside my expertise"
+              placeholder={t('assignments.exampleRejectionReason')}
               placeholderTextColor={theme.textSecondary}
               value={rejectionReason}
               onChangeText={setRejectionReason}
@@ -398,7 +394,7 @@ export default function RespondAssignmentScreen() {
             <View style={styles.warningBox}>
               <Ionicons name="warning-outline" size={20} color="#FFA500" />
               <Text style={styles.warningText}>
-                Rejecting too many assignments may affect your account standing
+                {t('assignments.rejectWarning')}
               </Text>
             </View>
 
@@ -407,9 +403,7 @@ export default function RespondAssignmentScreen() {
                 style={[styles.secondaryButton, { borderColor: theme.border }]}
                 onPress={() => setAction(null)}
               >
-                <Text style={[styles.secondaryButtonText, { color: theme.text }]}>
-                  Back
-                </Text>
+                <Text style={[styles.secondaryButtonText, { color: theme.text }]}>{t('common.back')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -422,7 +416,7 @@ export default function RespondAssignmentScreen() {
                 ) : (
                   <>
                     <Ionicons name="close" size={20} color="#FFFFFF" />
-                    <Text style={styles.primaryButtonText}>Confirm Reject</Text>
+                    <Text style={styles.primaryButtonText}>{t('common.confirm')}</Text>
                   </>
                 )}
               </TouchableOpacity>

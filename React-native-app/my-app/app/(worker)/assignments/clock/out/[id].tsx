@@ -15,6 +15,7 @@ import * as Location from 'expo-location';
 import { useTheme } from '../../../../../contexts/ThemeContext';
 import Header from '../../../../../components/Header';
 import apiService from '../../../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Assignment {
   id: number;
@@ -31,6 +32,7 @@ interface Assignment {
 }
 
 export default function ClockOutScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function ClockOutScreen() {
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
-      Alert.alert('Error', 'Failed to load assignment');
+      Alert.alert(t('common.error'), 'Failed to load assignment');
       router.back();
     } finally {
       setLoading(false);
@@ -193,9 +195,7 @@ export default function ClockOutScreen() {
         <Header title="Clock Out" showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.text }]}>{t('requestService.loading')}</Text>
         </View>
       </View>
     );
@@ -206,9 +206,7 @@ export default function ClockOutScreen() {
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Header title="Clock Out" showBack />
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-            No active work session found
-          </Text>
+          <Text style={[styles.errorText, { color: theme.textSecondary }]}>{t('assignments.active')}</Text>
         </View>
       </View>
     );
@@ -322,7 +320,7 @@ export default function ClockOutScreen() {
               styles.textArea,
               { backgroundColor: theme.background, color: theme.text },
             ]}
-            placeholder="e.g., Completed plumbing repairs, Replaced faucet, Cleaned work area..."
+            placeholder={t('assignments.completed')}
             placeholderTextColor={theme.textSecondary}
             value={notes}
             onChangeText={setNotes}
@@ -352,9 +350,7 @@ export default function ClockOutScreen() {
             style={[styles.cancelButton, { borderColor: theme.border }]}
             onPress={() => router.back()}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.text }]}>
-              Continue Working
-            </Text>
+            <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('worker.continue')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
