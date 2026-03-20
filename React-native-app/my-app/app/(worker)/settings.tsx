@@ -9,15 +9,18 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { SUPPORTED_LANGUAGES, changeLanguage } from '../../services/i18n';
 
 interface NotificationSettings {
   pushEnabled: boolean;
@@ -37,10 +40,12 @@ interface PrivacySettings {
 }
 
 export default function SettingsScreen() {
+  const { t, i18n } = useTranslation();
   const { theme, isDark } = useTheme();
   const { user, logout } = useAuth();
   
   const [loading, setLoading] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     pushEnabled: true,
     emailEnabled: true,
@@ -229,27 +234,63 @@ export default function SettingsScreen() {
   };
 
   const handleLanguageChange = () => {
-    Alert.alert(
-      'Select Language',
-      'Choose your preferred language',
-      [
-        { text: 'English', onPress: () => {} },
-        { text: 'Spanish', onPress: () => Alert.alert('Coming Soon', 'Spanish language support coming soon') },
-        { text: 'French', onPress: () => Alert.alert('Coming Soon', 'French language support coming soon') },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    setShowLanguageModal(true);
+  };
+
+  const handleSelectLanguage = async (code: string) => {
+    setShowLanguageModal(false);
+    await changeLanguage(code);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.statusBar} />
-      <Header showBack title="Settings" />
+      <Header showBack title={t('settings.title')} />
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguageModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('settings.languageSelect')}</Text>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.langOption,
+                  { borderColor: theme.border },
+                  i18n.language === lang.code && { borderColor: theme.primary, backgroundColor: theme.primary + '15' },
+                ]}
+                onPress={() => handleSelectLanguage(lang.code)}
+              >
+                <Text style={styles.langFlag}>{lang.flag}</Text>
+                <View style={styles.langInfo}>
+                  <Text style={[styles.langName, { color: theme.text }]}>{lang.name}</Text>
+                  <Text style={[styles.langNative, { color: theme.textSecondary }]}>{lang.nativeName}</Text>
+                </View>
+                {i18n.language === lang.code && (
+                  <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[styles.modalCancel, { borderColor: theme.border }]}
+              onPress={() => setShowLanguageModal(false)}
+            >
+              <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Account</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('settings.account')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
@@ -258,10 +299,13 @@ export default function SettingsScreen() {
             >
               <View style={styles.settingLeft}>
                 <Ionicons name="language-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>Language</Text>
+                <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.language')}</Text>
               </View>
               <View style={styles.settingRight}>
-                <Text style={[styles.settingValue, { color: theme.textSecondary }]}>English</Text>
+                <Text style={[styles.settingValue, { color: theme.textSecondary }]}>
+                  {SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language)?.flag}{' '}
+                  {SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language)?.name ?? 'English'}
+                </Text>
                 <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
               </View>
             </TouchableOpacity>
@@ -643,5 +687,56 @@ const styles = StyleSheet.create({
   appInfoText: {
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  langOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    marginBottom: 10,
+  },
+  langFlag: {
+    fontSize: 26,
+  },
+  langInfo: {
+    flex: 1,
+  },
+  langName: {
+    fontSize: 15,
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  langNative: {
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+  },
+  modalCancel: {
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  modalCancelText: {
+    fontSize: 15,
+    fontFamily: 'Poppins_500Medium',
   },
 });

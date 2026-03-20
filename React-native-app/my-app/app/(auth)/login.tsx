@@ -13,10 +13,13 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Link, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import '../../services/i18n';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +28,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), 'Please fill in all fields');
       return;
     }
 
@@ -34,7 +37,7 @@ export default function LoginScreen() {
       await login(email, password);
       // Navigation is handled by AuthContext based on user type
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid credentials');
+      Alert.alert(t('auth.login') + ' Failed', error.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
@@ -60,11 +63,11 @@ export default function LoginScreen() {
 
         {/* Login Form */}
         <View style={styles.formContainer}>
-          <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.instructionText}>Sign in to continue</Text>
+          <Text style={styles.welcomeText}>{t('auth.welcomeBack')}</Text>
+          <Text style={styles.instructionText}>{t('auth.signInToContinue')}</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t('auth.email')}</Text>
             <TextInput
               style={styles.input}
               placeholder="your@email.com"
@@ -77,7 +80,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('auth.password')}</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter your password"
@@ -92,7 +95,7 @@ export default function LoginScreen() {
             style={styles.forgotPassword}
             onPress={() => router.push('/(auth)/forgot-password')}
           >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -101,7 +104,7 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <Text style={styles.loginButtonText}>
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? t('common.loading') : t('auth.signIn')}
             </Text>
           </TouchableOpacity>
 
@@ -112,10 +115,10 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Don't have an account? </Text>
+            <Text style={styles.registerText}>{t('auth.noAccount')} </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
-                <Text style={styles.registerLink}>Sign Up</Text>
+                <Text style={styles.registerLink}>{t('auth.signUp')}</Text>
               </TouchableOpacity>
             </Link>
           </View>

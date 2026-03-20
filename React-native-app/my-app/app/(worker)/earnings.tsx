@@ -14,9 +14,11 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import '../../services/i18n';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -31,6 +33,7 @@ interface Transaction {
 }
 
 export default function EarningsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -155,7 +158,7 @@ export default function EarningsScreen() {
           <View style={styles.balanceSection}>
             <View style={[styles.balanceCard, { backgroundColor: theme.surface }]}>
               <Ionicons name="wallet" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-              <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Total Earnings</Text>
+              <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>{t('earnings.totalEarnings')}</Text>
               <Text style={[styles.balanceAmount, { color: theme.primary }]}>
                 TSH {(Number(totalEarnings) || 0).toFixed(2)}
               </Text>
@@ -164,14 +167,14 @@ export default function EarningsScreen() {
             <View style={styles.smallCards}>
               <View style={[styles.smallCard, { backgroundColor: theme.surface }]}>
                 <Ionicons name="cash" size={24} color="#10B981" style={{ marginBottom: 4 }} />
-                <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Available</Text>
+                <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>{t('earnings.available')}</Text>
                 <Text style={[styles.smallCardAmount, { color: theme.text }]}>
                   TSH {(Number(pendingAmount) || 0).toFixed(2)}
                 </Text>
               </View>
               <View style={[styles.smallCard, { backgroundColor: theme.surface }]}>
                 <Ionicons name="card" size={24} color="#3B82F6" style={{ marginBottom: 4 }} />
-                <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>Withdrawn</Text>
+                <Text style={[styles.smallCardLabel, { color: theme.textSecondary }]}>{t('earnings.withdrawn')}</Text>
                 <Text style={[styles.smallCardAmount, { color: theme.text }]}>
                   TSH {(Number(withdrawnAmount) || 0).toFixed(2)}
                 </Text>
@@ -233,13 +236,13 @@ export default function EarningsScreen() {
 
           {/* Transactions */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Recent Payments</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('earnings.recentPayments')}</Text>
             {transactions.length === 0 ? (
               <View style={[styles.emptyState, { backgroundColor: theme.surface }]}>
                 <Ionicons name="receipt-outline" size={56} color={theme.textSecondary} />
-                <Text style={[styles.emptyText, { color: theme.text }]}>No payments yet</Text>
+                <Text style={[styles.emptyText, { color: theme.text }]}>{t('earnings.noPayments')}</Text>
                 <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-                  Complete jobs to start earning
+                  {t('earnings.completeJobs')}
                 </Text>
               </View>
             ) : (

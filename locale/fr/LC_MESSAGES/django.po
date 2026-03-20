@@ -1,0 +1,615 @@
+# French translations for Worker Connect
+msgid ""
+msgstr ""
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Navigation
+msgid "Home"
+msgstr "Accueil"
+
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+msgid "Login"
+msgstr "Connexion"
+
+msgid "Register"
+msgstr "S'inscrire"
+
+msgid "Logout"
+msgstr "Déconnexion"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Notifications"
+msgstr "Notifications"
+
+msgid "Messages"
+msgstr "Messages"
+
+# User Types
+msgid "Worker"
+msgstr "Travailleur"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "Agent"
+msgstr "Agent"
+
+msgid "Admin"
+msgstr "Administrateur"
+
+# Auth
+msgid "Sign In"
+msgstr "Se connecter"
+
+msgid "Sign Up"
+msgstr "S'inscrire"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Forgot Password?"
+msgstr "Mot de passe oublié ?"
+
+msgid "Welcome Back!"
+msgstr "Bon retour !"
+
+msgid "Sign in to continue"
+msgstr "Connectez-vous pour continuer"
+
+msgid "Don't have an account?"
+msgstr "Pas encore de compte ?"
+
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "Last Name"
+msgstr "Nom de famille"
+
+msgid "Phone Number"
+msgstr "Numéro de téléphone"
+
+# Jobs & Assignments
+msgid "Jobs"
+msgstr "Emplois"
+
+msgid "Assignments"
+msgstr "Missions"
+
+msgid "My Assignments"
+msgstr "Mes missions"
+
+msgid "Pending Assignments"
+msgstr "Missions en attente"
+
+msgid "Active Jobs"
+msgstr "Emplois actifs"
+
+msgid "Completed Jobs"
+msgstr "Emplois terminés"
+
+msgid "Pending"
+msgstr "En attente"
+
+msgid "Active"
+msgstr "Actif"
+
+msgid "Completed"
+msgstr "Terminé"
+
+msgid "In Progress"
+msgstr "En cours"
+
+msgid "Cancelled"
+msgstr "Annulé"
+
+msgid "Rejected"
+msgstr "Rejeté"
+
+msgid "Accepted"
+msgstr "Accepté"
+
+# Earnings
+msgid "Earnings"
+msgstr "Gains"
+
+msgid "Total Earnings"
+msgstr "Gains totaux"
+
+msgid "Available"
+msgstr "Disponible"
+
+msgid "Withdrawn"
+msgstr "Retiré"
+
+msgid "Withdraw Funds"
+msgstr "Retirer des fonds"
+
+msgid "Recent Payments"
+msgstr "Paiements récents"
+
+msgid "No payments yet"
+msgstr "Aucun paiement pour l'instant"
+
+msgid "Complete jobs to start earning"
+msgstr "Terminez des missions pour commencer à gagner"
+
+# Actions
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Submit"
+msgstr "Soumettre"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "View"
+msgstr "Voir"
+
+msgid "Apply"
+msgstr "Postuler"
+
+msgid "Accept"
+msgstr "Accepter"
+
+msgid "Reject"
+msgstr "Rejeter"
+
+msgid "Clock In"
+msgstr "Pointer l'arrivée"
+
+msgid "Clock Out"
+msgstr "Pointer le départ"
+
+msgid "Mark as Complete"
+msgstr "Marquer comme terminé"
+
+# Status & Info
+msgid "Available for Work"
+msgstr "Disponible pour travailler"
+
+msgid "Verified"
+msgstr "Vérifié"
+
+msgid "Not Verified"
+msgstr "Non vérifié"
+
+msgid "No activity"
+msgstr "Aucune activité"
+
+msgid "Loading..."
+msgstr "Chargement..."
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "Success"
+msgstr "Succès"
+
+msgid "No results found"
+msgstr "Aucun résultat trouvé"
+
+# Dashboard
+msgid "Welcome back"
+msgstr "Bon retour"
+
+msgid "Worker Dashboard"
+msgstr "Tableau de bord travailleur"
+
+msgid "Client Dashboard"
+msgstr "Tableau de bord client"
+
+msgid "Admin Panel"
+msgstr "Panneau d'administration"
+
+msgid "Quick Actions"
+msgstr "Actions rapides"
+
+msgid "Total Services"
+msgstr "Total des services"
+
+msgid "Pending Requests"
+msgstr "Demandes en attente"
+
+msgid "My Profile"
+msgstr "Mon profil"
+
+msgid "Documents"
+msgstr "Documents"
+
+msgid "Analytics"
+msgstr "Analytique"
+
+# Landing page
+msgid "Find Work. Hire Workers. Instantly."
+msgstr "Trouvez du travail. Embauchez des travailleurs. Instantanément."
+
+msgid "For Workers"
+msgstr "Pour les travailleurs"
+
+msgid "For Clients"
+msgstr "Pour les clients"
+
+msgid "For Agents"
+msgstr "Pour les agents"
+
+msgid "Get Started"
+msgstr "Commencer"
+
+msgid "Post a Job"
+msgstr "Publier un emploi"
+
+msgid "Worker Connect"
+msgstr "Worker Connect"
+
+# Footer
+msgid "All rights reserved"
+msgstr "Tous droits réservés"
+
+msgid "Privacy Policy"
+msgstr "Politique de confidentialité"
+
+msgid "Terms of Service"
+msgstr "Conditions d'utilisation"
+
+msgid "Contact Us"
+msgstr "Contactez-nous"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "My Applications"
+msgstr "Mes candidatures"
+
+msgid "My Requests"
+msgstr "Mes demandes"
+
+msgid "New Request"
+msgstr "Nouvelle demande"
+
+msgid "Browse Services"
+msgstr "Parcourir les services"
+
+msgid "Admin Dashboard"
+msgstr "Tableau de bord admin"
+
+msgid "Edit Profile"
+msgstr "Modifier le profil"
+
+msgid "Tanzania's #1 Worker Platform"
+msgstr "La plateforme n°1 des travailleurs en Tanzanie"
+
+msgid "Connect With"
+msgstr "Connectez-vous avec"
+
+msgid "Skilled Workers"
+msgstr "des travailleurs qualifiés"
+
+msgid "You Can Trust"
+msgstr "en qui vous pouvez avoir confiance"
+
+msgid ""
+"Post a job, hire a verified professional or find new work opportunities. "
+"Worker Connect brings clients, workers and agents together on one secure "
+"platform."
+msgstr ""
+"Publiez un emploi, embauchez un professionnel vérifié ou trouvez de "
+"nouvelles opportunités. Worker Connect réunit clients, travailleurs et "
+"agents sur une seule plateforme sécurisée."
+
+msgid "Join for Free"
+msgstr "Rejoindre gratuitement"
+
+msgid "Request Service"
+msgstr "Demander un service"
+
+msgid "Jobs Completed"
+msgstr "Emplois terminés"
+
+msgid "Service Categories"
+msgstr "Catégories de services"
+
+msgid "Satisfaction Rate"
+msgstr "Taux de satisfaction"
+
+msgid "Verified Workers"
+msgstr "Travailleurs vérifiés"
+
+msgid "Daily Tracking"
+msgstr "Suivi quotidien"
+
+msgid "Honest Reviews"
+msgstr "Avis honnêtes"
+
+msgid "Manage Anywhere"
+msgstr "Gérez de n’importe où"
+
+msgid "How It Works"
+msgstr "Comment ça marche"
+
+msgid "Simple, Transparent and Safe"
+msgstr "Simple, transparent et sûr"
+
+msgid "Choose Your Role"
+msgstr "Choisissez votre rôle"
+
+msgid "Agent Portal"
+msgstr "Portail agent"
+
+msgid "Sign in"
+msgstr "Se connecter"
+
+msgid "Enter your credentials to continue"
+msgstr "Entrez vos identifiants pour continuer"
+
+msgid "Username"
+msgstr "Nom d’utilisateur"
+
+msgid "Remember me"
+msgstr "Se souvenir de moi"
+
+msgid "Welcome"
+msgstr "Bienvenue"
+
+msgid "Back"
+msgstr "Retour"
+
+msgid ""
+"Sign in to access your dashboard, manage requests, and connect with workers "
+"or clients."
+msgstr ""
+"Connectez-vous pour accéder à votre tableau de bord, gérer les demandes et "
+"communiquer avec les travailleurs ou les clients."
+
+msgid ""
+"Every worker is ID-verified and approved by our admin team before going live"
+msgstr "Chaque travailleur est vérifié par notre équipe avant d’être actif"
+
+msgid "Workers clock in and out — clients see progress in real time"
+msgstr ""
+"Les travailleurs pointent — les clients voient la progression en temps réel"
+
+msgid "Clients rate workers after each job, building a trusted, safe network"
+msgstr ""
+"Les clients évaluent les travailleurs après chaque travail, créant un réseau"
+" fiable et sûr"
+
+msgid "Full mobile support — post jobs and manage requests on the go"
+msgstr ""
+"Support mobile complet — publiez des emplois et gérez les demandes où que "
+"vous soyez"
+
+msgid ""
+"From registration to review, every step is built to protect workers and "
+"clients alike."
+msgstr ""
+"De l’inscription à l’évaluation, chaque étape est conçue pour protéger les "
+"travailleurs et les clients."
+
+msgid "Register & Build Your Profile"
+msgstr "Inscrivez-vous et créez votre profil"
+
+msgid ""
+"Workers upload their national ID and skills. Clients set up company details."
+" Takes just a few minutes to get started."
+msgstr ""
+"Les travailleurs téléchargent leur pièce d’identité et leurs compétences. "
+"Les clients configurent leurs informations d’entreprise. Quelques minutes "
+"suffisent."
+
+msgid "Admin Verifies Workers"
+msgstr "L’administrateur vérifie les travailleurs"
+
+msgid ""
+"Every worker goes through our review process before appearing as available "
+"for hire. No unverified talent on the platform."
+msgstr ""
+"Chaque travailleur passe par notre processus de vérification avant d’être "
+"disponible. Aucun talent non vérifié sur la plateforme."
+
+msgid "Post a Service Request"
+msgstr "Publier une demande de service"
+
+msgid ""
+"Clients describe the job, choose a category, set the location, date and "
+"duration — daily, monthly or custom."
+msgstr ""
+"Les clients décrivent le travail, choisissent une catégorie, définissent le "
+"lieu, la date et la durée — quotidien, mensuel ou personnalisé."
+
+msgid "Admin Assigns the Right Worker"
+msgstr "L’administrateur assigne le bon travailleur"
+
+msgid ""
+"Our team matches the best verified worker to your request and notifies both "
+"parties instantly."
+msgstr ""
+"Notre équipe associe le meilleur travailleur vérifié à votre demande et "
+"notifie les deux parties instantanément."
+
+msgid "Work Tracked Daily"
+msgstr "Travail suivi quotidiennement"
+
+msgid ""
+"Assigned workers clock in and out each day. Progress is fully visible to "
+"clients and admin at all times."
+msgstr ""
+"Les travailleurs assignés pointent chaque jour. La progression est "
+"pleinement visible pour les clients et l’admin en tout temps."
+
+msgid "Review After Completion"
+msgstr "Évaluation après achèvement"
+
+msgid ""
+"Once the job is done, clients rate the worker. Reviews help surface the best"
+" professionals on the platform."
+msgstr ""
+"Une fois le travail terminé, les clients notent le travailleur. Les avis "
+"aident à faire émerger les meilleurs professionnels."
+
+msgid "About Worker Connect"
+msgstr "À propos de Worker Connect"
+
+msgid "Built for Tanzania's"
+msgstr "Conçu pour la Tanzanie"
+
+msgid "Growing Workforce"
+msgstr "Main-d’œuvre en croissance"
+
+msgid ""
+"Worker Connect is Tanzania's first dedicated platform bridging the gap "
+"between skilled professionals and the clients who need them — built to solve"
+" a real problem with a real digital solution."
+msgstr ""
+"Worker Connect est la première plateforme dédiée en Tanzanie comblant le "
+"fossé entre professionnels qualifiés et clients — conçue pour résoudre un "
+"problème réel."
+
+msgid "Fully Verified Network"
+msgstr "Réseau entièrement vérifié"
+
+msgid ""
+"Every worker is reviewed and approved by admin before going live on the "
+"platform."
+msgstr ""
+"Chaque travailleur est examiné et approuvé par l’admin avant d’être actif "
+"sur la plateforme."
+
+msgid "Fast Job Matching"
+msgstr "Mise en relation rapide"
+
+msgid ""
+"Clients post a job and receive a qualified, verified worker within hours."
+msgstr ""
+"Les clients publient un emploi et reçoivent un travailleur qualifié et "
+"vérifié en quelques heures."
+
+msgid "Agent-Powered Network"
+msgstr "Réseau propulsé par les agents"
+
+msgid ""
+"Agents recruit and support workers, building stronger local teams across "
+"Tanzania."
+msgstr ""
+"Les agents recrutent et soutiennent les travailleurs, formant des équipes "
+"locales plus fortes en Tanzanie."
+
+msgid "Mobile Ready"
+msgstr "Prêt pour mobile"
+
+msgid ""
+"Manage jobs, messages and requests from any device, anywhere in Tanzania."
+msgstr ""
+"Gérez les emplois, messages et demandes depuis n’importe quel appareil, "
+"partout en Tanzanie."
+
+msgid "Join the Platform"
+msgstr "Rejoindre la plateforme"
+
+msgid "Registered Workers"
+msgstr "Travailleurs inscrits"
+
+msgid "Client Satisfaction"
+msgstr "Satisfaction client"
+
+msgid "Mobile App"
+msgstr "Application mobile"
+
+msgid "Take Worker Connect"
+msgstr "Emportez Worker Connect"
+
+msgid "Everywhere You Go"
+msgstr "Partout où vous allez"
+
+msgid ""
+"Manage jobs, track work in real time, receive notifications and communicate "
+"with your team — all from your phone. Available free for both workers and "
+"clients."
+msgstr ""
+"Gérez les emplois, suivez le travail en temps réel, recevez des "
+"notifications — tout depuis votre téléphone. Gratuit pour les travailleurs "
+"et les clients."
+
+msgid "Download on the"
+msgstr "Télécharger sur"
+
+msgid "App Store"
+msgstr "l’App Store"
+
+msgid "Get it on"
+msgstr "Disponible sur"
+
+msgid "Google Play"
+msgstr "Google Play"
+
+msgid "App coming soon — join the web platform today"
+msgstr ""
+"Application bientôt disponible — rejoignez la plateforme web aujourd’hui"
+
+msgid ""
+"One platform built for three types of users — each with their own dedicated "
+"experience."
+msgstr ""
+"Une plateforme conçue pour trois types d’utilisateurs — chacun avec sa "
+"propre expérience dédiée."
+
+msgid ""
+"Register, upload your documents, get verified by admin and start receiving "
+"job assignments from real clients."
+msgstr ""
+"Inscrivez-vous, téléchargez vos documents, faites-vous vérifier par l’admin "
+"et commencez à recevoir des missions de vrais clients."
+
+msgid ""
+"Post service requests, get matched with a verified worker, and track daily "
+"progress — all in one dashboard."
+msgstr ""
+"Publiez des demandes de service, soyez mis en relation avec un travailleur "
+"vérifié et suivez la progression quotidienne — tout sur un tableau de bord."
+
+msgid ""
+"Recruit workers, manage your team, earn commissions and grow your network "
+"through the dedicated agent portal."
+msgstr ""
+"Recrutez des travailleurs, gérez votre équipe, gagnez des commissions et "
+"développez votre réseau via le portail agent dédié."
+
+msgid ""
+"Tanzania's trusted platform connecting clients with verified, skilled "
+"professionals for every job — big or small."
+msgstr ""
+"La plateforme de confiance en Tanzanie connectant clients et professionnels "
+"qualifiés vérifiés pour chaque travail — grand ou petit."
+
+msgid "Platform"
+msgstr "Plateforme"
+
+msgid "Browse Jobs"
+msgstr "Parcourir les emplois"
+
+msgid "Join As"
+msgstr "Rejoindre en tant que"

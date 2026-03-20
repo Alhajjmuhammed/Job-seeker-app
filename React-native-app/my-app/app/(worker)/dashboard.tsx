@@ -13,10 +13,12 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import '../../services/i18n';
 
 interface DirectHireRequest {
   id: number;
@@ -53,6 +55,7 @@ interface PendingAssignment {
 }
 
 export default function WorkerDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const [isAvailable, setIsAvailable] = useState(true);
@@ -665,7 +668,7 @@ export default function WorkerDashboard() {
         <View style={[styles.greetingSection, { backgroundColor: theme.surface }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.greeting, { color: theme.text }]}>Welcome back! 👋</Text>
+              <Text style={[styles.greeting, { color: theme.text }]}>{t('dashboard.welcome')} 👋</Text>
               <Text style={[styles.name, { color: theme.textSecondary }]}>{user?.firstName} {user?.lastName}</Text>
             </View>
             {/* Verification Status Badge */}
@@ -697,8 +700,8 @@ export default function WorkerDashboard() {
                       user.verificationStatus === 'verified' ? '#059669' :
                       user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
                   }}>
-                    {user.verificationStatus === 'verified' ? 'Verified' :
-                     user.verificationStatus === 'rejected' ? 'Not Verified' : 'Pending'}
+                    {user.verificationStatus === 'verified' ? t('profile.verified') :
+                     user.verificationStatus === 'rejected' ? t('profile.notVerified') : t('assignments.pending')}
                   </Text>
                 </View>
               </View>
@@ -716,7 +719,7 @@ export default function WorkerDashboard() {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.availabilityTitle}>
-                {isAvailable ? 'Available for Work' : 'Currently Unavailable'}
+                {isAvailable ? t('profile.availableForWork') : 'Currently Unavailable'}
               </Text>
             </View>
             <Text style={styles.availabilitySubtitle}>
@@ -824,19 +827,19 @@ export default function WorkerDashboard() {
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.assigned_jobs}</Text>
-            <Text style={styles.statLabel}>Assigned Jobs</Text>
+            <Text style={styles.statLabel}>{t('dashboard.totalAssigned')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.active_jobs}</Text>
-            <Text style={styles.statLabel}>Active</Text>
+            <Text style={styles.statLabel}>{t('assignments.active')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.completed_jobs}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statLabel}>{t('assignments.completed')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.pending_jobs}</Text>
-            <Text style={styles.statLabel}>Pending</Text>
+            <Text style={styles.statLabel}>{t('assignments.pending')}</Text>
           </View>
         </View>
 

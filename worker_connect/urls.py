@@ -56,6 +56,9 @@ urlpatterns = [
     path('api/health/detailed/', health_check_detailed, name='health_check_detailed'),
     path('api/health/ready/', readiness_check, name='readiness_check'),
     path('api/health/live/', liveness_check, name='liveness_check'),
+
+    # Language switcher
+    path('i18n/', include('django.conf.urls.i18n')),
     
     # API Documentation
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

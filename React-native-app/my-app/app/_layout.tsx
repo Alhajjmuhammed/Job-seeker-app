@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { I18nextProvider } from 'react-i18next';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '../contexts/AuthContext';
@@ -14,6 +15,7 @@ import { NotificationProvider } from '../contexts/NotificationContext';
 import { WebSocketProvider } from '../contexts/WebSocketContext';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ConnectionStatus from '../components/ConnectionStatus';
+import i18n from '../services/i18n';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -46,26 +48,28 @@ function RootLayoutContent() {
   return (
     <>
       <ErrorBoundary>
-        <AuthProvider>
-          <NotificationProvider>
-            <WebSocketProvider>
-              <RatingProvider>
-                <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                  <ConnectionStatus />
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" options={{ headerShown: false }} />
-                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(worker)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(client)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-                  </Stack>
-                  <StatusBar style={theme?.statusBar || 'auto'} />
-                </NavigationThemeProvider>
-              </RatingProvider>
-            </WebSocketProvider>
-          </NotificationProvider>
-        </AuthProvider>
+        <I18nextProvider i18n={i18n}>
+          <AuthProvider>
+            <NotificationProvider>
+              <WebSocketProvider>
+                <RatingProvider>
+                  <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <ConnectionStatus />
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" options={{ headerShown: false }} />
+                      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(worker)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(client)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                    </Stack>
+                    <StatusBar style={theme?.statusBar || 'auto'} />
+                  </NavigationThemeProvider>
+                </RatingProvider>
+              </WebSocketProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </I18nextProvider>
       </ErrorBoundary>
     </>
   );

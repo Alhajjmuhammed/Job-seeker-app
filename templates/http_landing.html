@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -311,9 +311,9 @@
         <span class="wc-logo-name">Worker Connect</span>
     </a>
     <div class="wc-nav-links">
-        <a href="/" class="wc-nav-link">Home</a>
-        <a href="{% url 'accounts:login' %}" class="wc-btn-login">Login</a>
-        <a href="{% url 'accounts:register_choice' %}" class="wc-btn-signup">Get Started</a>
+        <a href="/" class="wc-nav-link">{% trans "Home" %}</a>
+        <a href="{% url 'accounts:login' %}" class="wc-btn-login">{% trans "Login" %}</a>
+        <a href="{% url 'accounts:register_choice' %}" class="wc-btn-signup">{% trans "Get Started" %}</a>
     </div>
 </nav>
 
@@ -323,35 +323,35 @@
         <div>
             <div class="hero-badge">
                 <span class="hero-badge-dot"></span>
-                Tanzania's #1 Worker Platform
+                {% trans "Tanzania's #1 Worker Platform" %}
             </div>
-            <h1 class="hero-h1">Connect With <em>Skilled Workers</em><br>You Can Trust</h1>
-            <p class="hero-subtext">Post a job, hire a verified professional or find new work opportunities. Worker Connect brings clients, workers and agents together on one secure platform.</p>
+            <h1 class="hero-h1">{% trans "Connect With" %} <em>{% trans "Skilled Workers" %}</em><br>{% trans "You Can Trust" %}</h1>
+            <p class="hero-subtext">{% trans "Post a job, hire a verified professional or find new work opportunities. Worker Connect brings clients, workers and agents together on one secure platform." %}</p>
             <div class="hero-actions">
                 <a href="{% url 'accounts:register_choice' %}" class="btn-hero-primary">
-                    <i class="bi bi-person-plus-fill"></i> Join for Free
+                    <i class="bi bi-person-plus-fill"></i> {% trans "Join for Free" %}
                 </a>
                 <a href="{% url 'accounts:login' %}" class="btn-hero-outline">
-                    <i class="bi bi-briefcase"></i> Request Service
+                    <i class="bi bi-briefcase"></i> {% trans "Request Service" %}
                 </a>
             </div>
         </div>
         <div class="hero-stats-grid">
             <div class="hero-stat-card">
                 <div class="hero-stat-num">500+</div>
-                <div class="hero-stat-label">Skilled Workers</div>
+                <div class="hero-stat-label">{% trans "Skilled Workers" %}</div>
             </div>
             <div class="hero-stat-card">
                 <div class="hero-stat-num">300+</div>
-                <div class="hero-stat-label">Jobs Completed</div>
+                <div class="hero-stat-label">{% trans "Jobs Completed" %}</div>
             </div>
             <div class="hero-stat-card">
                 <div class="hero-stat-num">50+</div>
-                <div class="hero-stat-label">Service Categories</div>
+                <div class="hero-stat-label">{% trans "Service Categories" %}</div>
             </div>
             <div class="hero-stat-card">
                 <div class="hero-stat-num">98%</div>
-                <div class="hero-stat-label">Satisfaction Rate</div>
+                <div class="hero-stat-label">{% trans "Satisfaction Rate" %}</div>
             </div>
         </div>
     </div>
@@ -362,23 +362,23 @@
     <div class="trust-inner reveal-children">
         <div class="trust-item">
             <div class="trust-icon"><i class="bi bi-shield-check"></i></div>
-            <div class="trust-title">Verified Workers</div>
-            <div class="trust-desc">Every worker is ID-verified and approved by our admin team before going live</div>
+            <div class="trust-title">{% trans "Verified Workers" %}</div>
+            <div class="trust-desc">{% trans "Every worker is ID-verified and approved by our admin team before going live" %}</div>
         </div>
         <div class="trust-item">
             <div class="trust-icon"><i class="bi bi-clock-history"></i></div>
-            <div class="trust-title">Daily Tracking</div>
-            <div class="trust-desc">Workers clock in and out — clients see progress in real time</div>
+            <div class="trust-title">{% trans "Daily Tracking" %}</div>
+            <div class="trust-desc">{% trans "Workers clock in and out — clients see progress in real time" %}</div>
         </div>
         <div class="trust-item">
             <div class="trust-icon"><i class="bi bi-star-fill"></i></div>
-            <div class="trust-title">Honest Reviews</div>
-            <div class="trust-desc">Clients rate workers after each job, building a trusted, safe network</div>
+            <div class="trust-title">{% trans "Honest Reviews" %}</div>
+            <div class="trust-desc">{% trans "Clients rate workers after each job, building a trusted, safe network" %}</div>
         </div>
         <div class="trust-item">
             <div class="trust-icon"><i class="bi bi-phone"></i></div>
-            <div class="trust-title">Manage Anywhere</div>
-            <div class="trust-desc">Full mobile support — post jobs and manage requests on the go</div>
+            <div class="trust-title">{% trans "Manage Anywhere" %}</div>
+            <div class="trust-desc">{% trans "Full mobile support — post jobs and manage requests on the go" %}</div>
         </div>
     </div>
 </div>
@@ -386,39 +386,39 @@
 <!-- HOW IT WORKS -->
 <section class="how-section">
     <div class="how-inner">
-        <span class="sec-eyebrow">How It Works</span>
-        <h2 class="sec-title">Simple, Transparent and Safe</h2>
-        <p class="sec-sub">From registration to review, every step is built to protect workers and clients alike.</p>
+        <span class="sec-eyebrow">{% trans "How It Works" %}</span>
+        <h2 class="sec-title">{% trans "Simple, Transparent and Safe" %}</h2>
+        <p class="sec-sub">{% trans "From registration to review, every step is built to protect workers and clients alike." %}</p>
         <div class="how-grid reveal-children">
             <div class="how-card">
                 <div class="how-step-num">1</div>
-                <div class="how-card-title">Register &amp; Build Your Profile</div>
-                <div class="how-card-desc">Workers upload their national ID and skills. Clients set up company details. Takes just a few minutes to get started.</div>
+                <div class="how-card-title">{% trans "Register & Build Your Profile" %}</div>
+                <div class="how-card-desc">{% trans "Workers upload their national ID and skills. Clients set up company details. Takes just a few minutes to get started." %}</div>
             </div>
             <div class="how-card">
                 <div class="how-step-num">2</div>
-                <div class="how-card-title">Admin Verifies Workers</div>
-                <div class="how-card-desc">Every worker goes through our review process before appearing as available for hire. No unverified talent on the platform.</div>
+                <div class="how-card-title">{% trans "Admin Verifies Workers" %}</div>
+                <div class="how-card-desc">{% trans "Every worker goes through our review process before appearing as available for hire. No unverified talent on the platform." %}</div>
             </div>
             <div class="how-card">
                 <div class="how-step-num">3</div>
-                <div class="how-card-title">Post a Service Request</div>
-                <div class="how-card-desc">Clients describe the job, choose a category, set the location, date and duration — daily, monthly or custom.</div>
+                <div class="how-card-title">{% trans "Post a Service Request" %}</div>
+                <div class="how-card-desc">{% trans "Clients describe the job, choose a category, set the location, date and duration — daily, monthly or custom." %}</div>
             </div>
             <div class="how-card">
                 <div class="how-step-num">4</div>
-                <div class="how-card-title">Admin Assigns the Right Worker</div>
-                <div class="how-card-desc">Our team matches the best verified worker to your request and notifies both parties instantly.</div>
+                <div class="how-card-title">{% trans "Admin Assigns the Right Worker" %}</div>
+                <div class="how-card-desc">{% trans "Our team matches the best verified worker to your request and notifies both parties instantly." %}</div>
             </div>
             <div class="how-card">
                 <div class="how-step-num">5</div>
-                <div class="how-card-title">Work Tracked Daily</div>
-                <div class="how-card-desc">Assigned workers clock in and out each day. Progress is fully visible to clients and admin at all times.</div>
+                <div class="how-card-title">{% trans "Work Tracked Daily" %}</div>
+                <div class="how-card-desc">{% trans "Assigned workers clock in and out each day. Progress is fully visible to clients and admin at all times." %}</div>
             </div>
             <div class="how-card">
                 <div class="how-step-num">6</div>
-                <div class="how-card-title">Review After Completion</div>
-                <div class="how-card-desc">Once the job is done, clients rate the worker. Reviews help surface the best professionals on the platform.</div>
+                <div class="how-card-title">{% trans "Review After Completion" %}</div>
+                <div class="how-card-desc">{% trans "Once the job is done, clients rate the worker. Reviews help surface the best professionals on the platform." %}</div>
             </div>
         </div>
     </div>
@@ -432,41 +432,41 @@
     <div class="about-inner">
         <div class="about-grid">
             <div class="reveal-l">
-                <div class="about-eyebrow">About Worker Connect</div>
-                <h2 class="about-h2">Built for Tanzania's<br><span>Growing Workforce</span></h2>
-                <p class="about-p">Worker Connect is Tanzania's first dedicated platform bridging the gap between skilled professionals and the clients who need them — built to solve a real problem with a real digital solution.</p>
+                <div class="about-eyebrow">{% trans "About Worker Connect" %}</div>
+                <h2 class="about-h2">{% trans "Built for Tanzania's" %}<br><span>{% trans "Growing Workforce" %}</span></h2>
+                <p class="about-p">{% trans "Worker Connect is Tanzania's first dedicated platform bridging the gap between skilled professionals and the clients who need them — built to solve a real problem with a real digital solution." %}</p>
                 <div class="about-features">
                     <div class="about-feat">
                         <div class="about-feat-icon"><i class="bi bi-shield-check"></i></div>
                         <div>
-                            <div class="about-feat-title">Fully Verified Network</div>
-                            <div class="about-feat-desc">Every worker is reviewed and approved by admin before going live on the platform.</div>
+                            <div class="about-feat-title">{% trans "Fully Verified Network" %}</div>
+                            <div class="about-feat-desc">{% trans "Every worker is reviewed and approved by admin before going live on the platform." %}</div>
                         </div>
                     </div>
                     <div class="about-feat">
                         <div class="about-feat-icon"><i class="bi bi-lightning-charge"></i></div>
                         <div>
-                            <div class="about-feat-title">Fast Job Matching</div>
-                            <div class="about-feat-desc">Clients post a job and receive a qualified, verified worker within hours.</div>
+                            <div class="about-feat-title">{% trans "Fast Job Matching" %}</div>
+                            <div class="about-feat-desc">{% trans "Clients post a job and receive a qualified, verified worker within hours." %}</div>
                         </div>
                     </div>
                     <div class="about-feat">
                         <div class="about-feat-icon"><i class="bi bi-people"></i></div>
                         <div>
-                            <div class="about-feat-title">Agent-Powered Network</div>
-                            <div class="about-feat-desc">Agents recruit and support workers, building stronger local teams across Tanzania.</div>
+                            <div class="about-feat-title">{% trans "Agent-Powered Network" %}</div>
+                            <div class="about-feat-desc">{% trans "Agents recruit and support workers, building stronger local teams across Tanzania." %}</div>
                         </div>
                     </div>
                     <div class="about-feat">
                         <div class="about-feat-icon"><i class="bi bi-phone"></i></div>
                         <div>
-                            <div class="about-feat-title">Mobile Ready</div>
-                            <div class="about-feat-desc">Manage jobs, messages and requests from any device, anywhere in Tanzania.</div>
+                            <div class="about-feat-title">{% trans "Mobile Ready" %}</div>
+                            <div class="about-feat-desc">{% trans "Manage jobs, messages and requests from any device, anywhere in Tanzania." %}</div>
                         </div>
                     </div>
                 </div>
                 <a href="{% url 'accounts:register_choice' %}" class="about-cta-btn">
-                    Join the Platform <i class="bi bi-arrow-right"></i>
+                    {% trans "Join the Platform" %} <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
             <div class="about-img-col reveal-r">
@@ -488,10 +488,10 @@
             </div>
         </div>
         <div class="about-stats reveal">
-            <div class="astat"><div class="astat-num">500+</div><div class="astat-label">Registered Workers</div></div>
-            <div class="astat"><div class="astat-num">300+</div><div class="astat-label">Jobs Completed</div></div>
-            <div class="astat"><div class="astat-num">50+</div><div class="astat-label">Service Categories</div></div>
-            <div class="astat"><div class="astat-num">98%</div><div class="astat-label">Client Satisfaction</div></div>
+            <div class="astat"><div class="astat-num">500+</div><div class="astat-label">{% trans "Registered Workers" %}</div></div>
+            <div class="astat"><div class="astat-num">300+</div><div class="astat-label">{% trans "Jobs Completed" %}</div></div>
+            <div class="astat"><div class="astat-num">50+</div><div class="astat-label">{% trans "Service Categories" %}</div></div>
+            <div class="astat"><div class="astat-num">98%</div><div class="astat-label">{% trans "Client Satisfaction" %}</div></div>
         </div>
     </div>
 </section>
@@ -500,31 +500,31 @@
 <section class="app-section">
     <div class="app-inner">
         <div class="reveal-l">
-            <div class="app-eyebrow">Mobile App</div>
-            <h2 class="app-h2">Take Worker Connect<br><span>Everywhere You Go</span></h2>
-            <p class="app-p">Manage jobs, track work in real time, receive notifications and communicate with your team — all from your phone. Available free for both workers and clients.</p>
+            <div class="app-eyebrow">{% trans "Mobile App" %}</div>
+            <h2 class="app-h2">{% trans "Take Worker Connect" %}<br><span>{% trans "Everywhere You Go" %}</span></h2>
+            <p class="app-p">{% trans "Manage jobs, track work in real time, receive notifications and communicate with your team — all from your phone. Available free for both workers and clients." %}</p>
             <div class="app-audience">
-                <div class="app-pill worker"><i class="bi bi-person-badge"></i> For Workers</div>
-                <div class="app-pill client"><i class="bi bi-building"></i> For Clients</div>
+                <div class="app-pill worker"><i class="bi bi-person-badge"></i> {% trans "For Workers" %}</div>
+                <div class="app-pill client"><i class="bi bi-building"></i> {% trans "For Clients" %}</div>
             </div>
             <div class="app-badges">
                 <a href="#" class="app-badge-btn">
                     <i class="bi bi-apple apple"></i>
                     <div class="app-badge-label">
-                        <small>Download on the</small>
-                        <strong>App Store</strong>
+                        <small>{% trans "Download on the" %}</small>
+                        <strong>{% trans "App Store" %}</strong>
                     </div>
                 </a>
                 <a href="#" class="app-badge-btn">
                     <i class="bi bi-google-play android"></i>
                     <div class="app-badge-label">
-                        <small>Get it on</small>
-                        <strong>Google Play</strong>
+                        <small>{% trans "Get it on" %}</small>
+                        <strong>{% trans "Google Play" %}</strong>
                     </div>
                 </a>
             </div>
             <div class="app-store-note">
-                <i class="bi bi-info-circle"></i> App coming soon — join the web platform today
+                <i class="bi bi-info-circle"></i> {% trans "App coming soon — join the web platform today" %}
             </div>
         </div>
         <div class="reveal-r">
@@ -573,26 +573,26 @@
 <section class="roles-section">
     <div class="roles-inner">
         <span class="sec-eyebrow">Portals</span>
-        <h2 class="sec-title">Choose Your Role</h2>
-        <p class="sec-sub">One platform built for three types of users — each with their own dedicated experience.</p>
+        <h2 class="sec-title">{% trans "Choose Your Role" %}</h2>
+        <p class="sec-sub">{% trans "One platform built for three types of users — each with their own dedicated experience." %}</p>
         <div class="roles-grid reveal-children">
             <div class="role-card worker-card">
                 <div class="role-icon-wrap worker"><i class="bi bi-person-badge"></i></div>
-                <div class="role-title">For Workers</div>
-                <p class="role-desc">Register, upload your documents, get verified by admin and start receiving job assignments from real clients.</p>
-                <a href="{% url 'accounts:register_choice' %}" class="role-link">Get Started <i class="bi bi-arrow-right"></i></a>
+                <div class="role-title">{% trans "For Workers" %}</div>
+                <p class="role-desc">{% trans "Register, upload your documents, get verified by admin and start receiving job assignments from real clients." %}</p>
+                <a href="{% url 'accounts:register_choice' %}" class="role-link">{% trans "Get Started" %} <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="role-card client-card">
                 <div class="role-icon-wrap client"><i class="bi bi-building"></i></div>
-                <div class="role-title">For Clients</div>
-                <p class="role-desc">Post service requests, get matched with a verified worker, and track daily progress — all in one dashboard.</p>
-                <a href="{% url 'accounts:login' %}" class="role-link">Post a Job <i class="bi bi-arrow-right"></i></a>
+                <div class="role-title">{% trans "For Clients" %}</div>
+                <p class="role-desc">{% trans "Post service requests, get matched with a verified worker, and track daily progress — all in one dashboard." %}</p>
+                <a href="{% url 'accounts:login' %}" class="role-link">{% trans "Post a Job" %} <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="role-card agent-card">
                 <div class="role-icon-wrap agent"><i class="bi bi-diagram-3-fill"></i></div>
-                <div class="role-title">For Agents</div>
-                <p class="role-desc">Recruit workers, manage your team, earn commissions and grow your network through the dedicated agent portal.</p>
-                <a href="{% url 'accounts:login' %}" class="role-link">Agent Portal <i class="bi bi-arrow-right"></i></a>
+                <div class="role-title">{% trans "For Agents" %}</div>
+                <p class="role-desc">{% trans "Recruit workers, manage your team, earn commissions and grow your network through the dedicated agent portal." %}</p>
+                <a href="{% url 'accounts:login' %}" class="role-link">{% trans "Agent Portal" %} <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
@@ -607,7 +607,7 @@
                 <img src="{% static 'images/logo.png' %}" alt="Worker Connect" style="width:50px;height:50px;object-fit:cover;border-radius:50%;background:white;padding:1px;">
                 <span class="footer-brand-name">Worker Connect</span>
             </div>
-            <p class="footer-about">Tanzania's trusted platform connecting clients with verified, skilled professionals for every job — big or small.</p>
+            <p class="footer-about">{% trans "Tanzania's trusted platform connecting clients with verified, skilled professionals for every job — big or small." %}</p>
             <div class="footer-socials">
                 <a href="#" class="footer-social"><i class="bi bi-facebook"></i></a>
                 <a href="#" class="footer-social"><i class="bi bi-twitter-x"></i></a>
@@ -616,25 +616,25 @@
             </div>
         </div>
         <div>
-            <div class="footer-col-title">Platform</div>
+            <div class="footer-col-title">{% trans "Platform" %}</div>
             <ul class="footer-links">
-                <li><a href="/"><i class="bi bi-house"></i>Home</a></li>
-                <li><a href="{% url 'clients:browse_services' %}"><i class="bi bi-grid"></i>Browse Services</a></li>
-                <li><a href="{% url 'jobs:job_list' %}"><i class="bi bi-briefcase"></i>Browse Jobs</a></li>
-                <li><a href="{% url 'accounts:register_choice' %}"><i class="bi bi-person-plus"></i>Register</a></li>
-                <li><a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i>Login</a></li>
+                <li><a href="/"><i class="bi bi-house"></i>{% trans "Home" %}</a></li>
+                <li><a href="{% url 'clients:browse_services' %}"><i class="bi bi-grid"></i>{% trans "Browse Services" %}</a></li>
+                <li><a href="{% url 'jobs:job_list' %}"><i class="bi bi-briefcase"></i>{% trans "Browse Jobs" %}</a></li>
+                <li><a href="{% url 'accounts:register_choice' %}"><i class="bi bi-person-plus"></i>{% trans "Register" %}</a></li>
+                <li><a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i>{% trans "Login" %}</a></li>
             </ul>
         </div>
         <div>
-            <div class="footer-col-title">Join As</div>
+            <div class="footer-col-title">{% trans "Join As" %}</div>
             <ul class="footer-links">
-                <li><a href="{% url 'accounts:worker_register' %}"><i class="bi bi-person-badge"></i>Worker</a></li>
-                <li><a href="{% url 'accounts:client_register' %}"><i class="bi bi-briefcase"></i>Client</a></li>
-                <li><a href="{% url 'accounts:agent_register' %}"><i class="bi bi-diagram-3"></i>Agent</a></li>
+                <li><a href="{% url 'accounts:worker_register' %}"><i class="bi bi-person-badge"></i>{% trans "Worker" %}</a></li>
+                <li><a href="{% url 'accounts:client_register' %}"><i class="bi bi-briefcase"></i>{% trans "Client" %}</a></li>
+                <li><a href="{% url 'accounts:agent_register' %}"><i class="bi bi-diagram-3"></i>{% trans "Agent" %}</a></li>
             </ul>
         </div>
         <div>
-            <div class="footer-col-title">Contact Us</div>
+            <div class="footer-col-title">{% trans "Contact Us" %}</div>
             <ul class="footer-contact-list">
                 <li class="footer-contact-item">
                     <span class="footer-contact-icon"><i class="bi bi-envelope-fill"></i></span>
@@ -652,7 +652,21 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <span class="footer-copy">&copy; 2026 Worker Connect. All rights reserved.</span>
+        <span class="footer-copy">&copy; 2026 Worker Connect. {% trans "All rights reserved." %}</span>
+        <!-- 🌐 Language Switcher -->
+        {% get_current_language as CURRENT_LANGUAGE %}
+        <form action="{% url 'set_language' %}" method="post" id="landing-lang-form" style="display:inline-flex;align-items:center;gap:6px;">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="/">
+            <span style="color:#94a3b8;font-size:0.85rem;">🌐</span>
+            <select name="language" onchange="document.getElementById('landing-lang-form').submit()"
+                style="background:#1e293b;color:rgba(255,255,255,.8);border:1px solid #334155;border-radius:6px;padding:4px 8px;font-size:0.82rem;cursor:pointer;outline:none;">
+                <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>🇺🇸 English</option>
+                <option value="sw" {% if CURRENT_LANGUAGE == 'sw' %}selected{% endif %}>🇹🇿 Swahili</option>
+                <option value="fr" {% if CURRENT_LANGUAGE == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
+                <option value="it" {% if CURRENT_LANGUAGE == 'it' %}selected{% endif %}>🇮🇹 Italiano</option>
+            </select>
+        </form>
         <span class="footer-copy">Made with <i class="bi bi-heart-fill" style="color:#14b8a6;font-size:.75rem;"></i> in Tanzania</span>
     </div>
 </footer>

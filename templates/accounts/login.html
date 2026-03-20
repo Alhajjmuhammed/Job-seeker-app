@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Login - Worker Connect{% endblock %}
 
@@ -158,14 +158,14 @@
         <div class="login-left">
             <img src="{% static 'images/logo.png' %}" alt="Worker Connect" class="brand-icon">
             <div class="sub">Worker Connect</div>
-            <h2>Welcome<br>Back</h2>
-            <p>Sign in to access your dashboard, manage requests, and connect with workers or clients.</p>
+            <h2>{% trans "Welcome" %}<br>{% trans "Back" %}</h2>
+            <p>{% trans "Sign in to access your dashboard, manage requests, and connect with workers or clients." %}</p>
         </div>
 
         <!-- Right: Sign In Form -->
         <div class="login-right">
-            <h3>Sign in</h3>
-            <p class="sub-text">Enter your credentials to continue</p>
+            <h3>{% trans "Sign In" %}</h3>
+            <p class="sub-text">{% trans "Enter your credentials to continue" %}</p>
 
             <form method="post">
                 {% csrf_token %}
@@ -182,7 +182,7 @@
 
                 <!-- Username -->
                 <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    <label for="{{ form.username.id_for_label }}">{% trans "Username" %}</label>
                     {{ form.username }}
                     {% if form.username.errors %}
                         <div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.username.errors }}</div>
@@ -191,7 +191,7 @@
 
                 <!-- Password -->
                 <div class="mb-2">
-                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <label for="{{ form.password.id_for_label }}">{% trans "Password" %}</label>
                     <div class="pw-wrap">
                         {{ form.password }}
                         <button type="button" class="pw-toggle" id="pwToggle" onclick="togglePw()" title="Show/Hide password"><i class="bi bi-eye" id="pwIcon"></i></button>
@@ -205,17 +205,17 @@
                 <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
                     <div class="form-check mb-0">
                         <input class="form-check-input" type="checkbox" id="rememberMe" style="accent-color:#14b8a6;">
-                        <label class="form-check-label" for="rememberMe" style="font-size:0.83rem;color:#64748b;">Remember me</label>
+                        <label class="form-check-label" for="rememberMe" style="font-size:0.83rem;color:#64748b;">{% trans "Remember me" %}</label>
                     </div>
-                    <a href="{% url 'accounts:forgot_password' %}" style="font-size:0.83rem;color:#14b8a6;text-decoration:none;font-weight:500;">Forgot Password?</a>
+                    <a href="{% url 'accounts:forgot_password' %}" style="font-size:0.83rem;color:#14b8a6;text-decoration:none;font-weight:500;">{% trans "Forgot Password?" %}</a>
                 </div>
 
-                <button type="submit" class="btn btn-signin w-100">Sign In</button>
+                <button type="submit" class="btn btn-signin w-100">{% trans "Sign In" %}</button>
             </form>
 
             <p class="text-center mt-4 mb-0" style="font-size:0.87rem;color:#64748b;">
-                Don't have an account?
-                <a href="{% url 'accounts:register_choice' %}" style="color:#14b8a6;font-weight:600;text-decoration:none;">Sign Up</a>
+                {% trans "Don't have an account?" %}
+                <a href="{% url 'accounts:register_choice' %}" style="color:#14b8a6;font-weight:600;text-decoration:none;">{% trans "Sign Up" %}</a>
             </p>
         </div>
 

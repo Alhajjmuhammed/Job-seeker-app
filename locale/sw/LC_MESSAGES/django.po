@@ -1,0 +1,613 @@
+# Swahili translations for Worker Connect
+msgid ""
+msgstr ""
+"Language: sw\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Navigation
+msgid "Home"
+msgstr "Nyumbani"
+
+msgid "Dashboard"
+msgstr "Dashibodi"
+
+msgid "Login"
+msgstr "Ingia"
+
+msgid "Register"
+msgstr "Jisajili"
+
+msgid "Logout"
+msgstr "Toka"
+
+msgid "Profile"
+msgstr "Wasifu"
+
+msgid "Settings"
+msgstr "Mipangilio"
+
+msgid "Search"
+msgstr "Tafuta"
+
+msgid "Notifications"
+msgstr "Arifa"
+
+msgid "Messages"
+msgstr "Ujumbe"
+
+# User Types
+msgid "Worker"
+msgstr "Mfanyakazi"
+
+msgid "Client"
+msgstr "Mteja"
+
+msgid "Agent"
+msgstr "Wakala"
+
+msgid "Admin"
+msgstr "Msimamizi"
+
+# Auth
+msgid "Sign In"
+msgstr "Ingia"
+
+msgid "Sign Up"
+msgstr "Jisajili"
+
+msgid "Email"
+msgstr "Barua pepe"
+
+msgid "Password"
+msgstr "Nenosiri"
+
+msgid "Forgot Password?"
+msgstr "Umesahau nenosiri?"
+
+msgid "Welcome Back!"
+msgstr "Karibu Tena!"
+
+msgid "Sign in to continue"
+msgstr "Ingia ili kuendelea"
+
+msgid "Don't have an account?"
+msgstr "Huna akaunti?"
+
+msgid "Already have an account?"
+msgstr "Una akaunti tayari?"
+
+msgid "First Name"
+msgstr "Jina la Kwanza"
+
+msgid "Last Name"
+msgstr "Jina la Mwisho"
+
+msgid "Phone Number"
+msgstr "Nambari ya Simu"
+
+# Jobs & Assignments
+msgid "Jobs"
+msgstr "Kazi"
+
+msgid "Assignments"
+msgstr "Mgawo"
+
+msgid "My Assignments"
+msgstr "Mgawo Wangu"
+
+msgid "Pending Assignments"
+msgstr "Mgawo Unaongoja"
+
+msgid "Active Jobs"
+msgstr "Kazi Zinazoendelea"
+
+msgid "Completed Jobs"
+msgstr "Kazi Zilizokamilika"
+
+msgid "Pending"
+msgstr "Inasubiri"
+
+msgid "Active"
+msgstr "Inafanya Kazi"
+
+msgid "Completed"
+msgstr "Imekamilika"
+
+msgid "In Progress"
+msgstr "Inaendelea"
+
+msgid "Cancelled"
+msgstr "Imefutwa"
+
+msgid "Rejected"
+msgstr "Imekataliwa"
+
+msgid "Accepted"
+msgstr "Imekubaliwa"
+
+# Earnings
+msgid "Earnings"
+msgstr "Mapato"
+
+msgid "Total Earnings"
+msgstr "Jumla ya Mapato"
+
+msgid "Available"
+msgstr "Inapatikana"
+
+msgid "Withdrawn"
+msgstr "Imetolewa"
+
+msgid "Withdraw Funds"
+msgstr "Toa Fedha"
+
+msgid "Recent Payments"
+msgstr "Malipo ya Hivi Karibuni"
+
+msgid "No payments yet"
+msgstr "Hakuna malipo bado"
+
+msgid "Complete jobs to start earning"
+msgstr "Kamilisha kazi kuanza kupata mapato"
+
+# Actions
+msgid "Save"
+msgstr "Hifadhi"
+
+msgid "Cancel"
+msgstr "Ghairi"
+
+msgid "Submit"
+msgstr "Wasilisha"
+
+msgid "Edit"
+msgstr "Hariri"
+
+msgid "Delete"
+msgstr "Futa"
+
+msgid "View"
+msgstr "Angalia"
+
+msgid "Apply"
+msgstr "Omba"
+
+msgid "Accept"
+msgstr "Kubali"
+
+msgid "Reject"
+msgstr "Kataa"
+
+msgid "Clock In"
+msgstr "Ingia Kazini"
+
+msgid "Clock Out"
+msgstr "Toka Kazini"
+
+msgid "Mark as Complete"
+msgstr "Weka Alama ya Kukamilika"
+
+# Status & Info
+msgid "Available for Work"
+msgstr "Yuko Tayari Kufanya Kazi"
+
+msgid "Verified"
+msgstr "Imethibitishwa"
+
+msgid "Not Verified"
+msgstr "Haijathibitishwa"
+
+msgid "No activity"
+msgstr "Hakuna shughuli"
+
+msgid "Loading..."
+msgstr "Inapakia..."
+
+msgid "Error"
+msgstr "Hitilafu"
+
+msgid "Success"
+msgstr "Imefanikishwa"
+
+msgid "No results found"
+msgstr "Hakuna matokeo yaliyopatikana"
+
+# Dashboard
+msgid "Welcome back"
+msgstr "Karibu tena"
+
+msgid "Worker Dashboard"
+msgstr "Dashibodi ya Mfanyakazi"
+
+msgid "Client Dashboard"
+msgstr "Dashibodi ya Mteja"
+
+msgid "Admin Panel"
+msgstr "Paneli ya Msimamizi"
+
+msgid "Quick Actions"
+msgstr "Vitendo vya Haraka"
+
+msgid "Total Services"
+msgstr "Jumla ya Huduma"
+
+msgid "Pending Requests"
+msgstr "Maombi Yanayosubiri"
+
+msgid "My Profile"
+msgstr "Wasifu Wangu"
+
+msgid "Documents"
+msgstr "Nyaraka"
+
+msgid "Analytics"
+msgstr "Uchambuzi"
+
+# Landing page
+msgid "Find Work. Hire Workers. Instantly."
+msgstr "Tafuta Kazi. Ajiri Wafanyakazi. Haraka."
+
+msgid "For Workers"
+msgstr "Kwa Wafanyakazi"
+
+msgid "For Clients"
+msgstr "Kwa Wateja"
+
+msgid "For Agents"
+msgstr "Kwa Mawakala"
+
+msgid "Get Started"
+msgstr "Anza"
+
+msgid "Post a Job"
+msgstr "Tuma Kazi"
+
+msgid "Worker Connect"
+msgstr "Worker Connect"
+
+# Footer
+msgid "All rights reserved"
+msgstr "Haki zote zimehifadhiwa"
+
+msgid "Privacy Policy"
+msgstr "Sera ya Faragha"
+
+msgid "Terms of Service"
+msgstr "Masharti ya Huduma"
+
+msgid "Contact Us"
+msgstr "Wasiliana Nasi"
+
+msgid "Language"
+msgstr "Lugha"
+
+msgid "My Applications"
+msgstr "Maombi Yangu"
+
+msgid "My Requests"
+msgstr "Maombi Yangu"
+
+msgid "New Request"
+msgstr "Ombi Jipya"
+
+msgid "Browse Services"
+msgstr "Vinjari Huduma"
+
+msgid "Admin Dashboard"
+msgstr "Dashibodi ya Msimamizi"
+
+msgid "Edit Profile"
+msgstr "Hariri Wasifu"
+
+msgid "My Applications"
+msgstr "Maombi Yangu"
+
+msgid "Tanzania's #1 Worker Platform"
+msgstr "Jukwaa la Kwanza la Wafanyakazi Tanzania"
+
+msgid "Connect With"
+msgstr "Unganika Na"
+
+msgid "Skilled Workers"
+msgstr "Wafanyakazi Wenye Ujuzi"
+
+msgid "You Can Trust"
+msgstr "Unaoamini"
+
+msgid ""
+"Post a job, hire a verified professional or find new work opportunities. "
+"Worker Connect brings clients, workers and agents together on one secure "
+"platform."
+msgstr ""
+"Chapisha kazi, ajiri mtaalamu aliyethibitishwa au pata fursa mpya za kazi. "
+"Worker Connect inaunganisha wateja, wafanyakazi na mawakala kwenye jukwaa "
+"moja salama."
+
+msgid "Join for Free"
+msgstr "Jiunge Bila Malipo"
+
+msgid "Request Service"
+msgstr "Omba Huduma"
+
+msgid "Jobs Completed"
+msgstr "Kazi Zilizokamilika"
+
+msgid "Service Categories"
+msgstr "Aina za Huduma"
+
+msgid "Satisfaction Rate"
+msgstr "Kiwango cha Kuridhika"
+
+msgid "Verified Workers"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+msgid "Daily Tracking"
+msgstr "Ufuatiliaji wa Kila Siku"
+
+msgid "Honest Reviews"
+msgstr "Maoni ya Kweli"
+
+msgid "Manage Anywhere"
+msgstr "Simamia Popote"
+
+msgid "How It Works"
+msgstr "Jinsi Inavyofanya Kazi"
+
+msgid "Simple, Transparent and Safe"
+msgstr "Rahisi, Wazi na Salama"
+
+msgid "Choose Your Role"
+msgstr "Chagua Jukumu Lako"
+
+msgid "Agent Portal"
+msgstr "Lango la Wakala"
+
+msgid "Sign in"
+msgstr "Ingia"
+
+msgid "Enter your credentials to continue"
+msgstr "Weka nambari zako ili uendelee"
+
+msgid "Username"
+msgstr "Jina la Mtumiaji"
+
+msgid "Remember me"
+msgstr "Nikumbuke"
+
+msgid "Welcome"
+msgstr "Karibu"
+
+msgid "Back"
+msgstr "Tena"
+
+msgid ""
+"Sign in to access your dashboard, manage requests, and connect with workers "
+"or clients."
+msgstr ""
+"Ingia kufikia dashibodi yako, simamia maombi, na kuwasiliana na wafanyakazi "
+"au wateja."
+
+msgid ""
+"Every worker is ID-verified and approved by our admin team before going live"
+msgstr ""
+"Kila mfanyakazi anathibitishwa na timu yetu ya utawala kabla ya kuanza kazi"
+
+msgid "Workers clock in and out — clients see progress in real time"
+msgstr ""
+"Wafanyakazi wanaingia na kutoka — wateja wanaona maendeleo wakati halisi"
+
+msgid "Clients rate workers after each job, building a trusted, safe network"
+msgstr ""
+"Wateja wanakadiri wafanyakazi baada ya kila kazi, kujenga mtandao wa "
+"kuaminiwa na salama"
+
+msgid "Full mobile support — post jobs and manage requests on the go"
+msgstr "Msaada kamili wa simu — chapisha kazi na usimamie maombi ukiwa njiani"
+
+msgid ""
+"From registration to review, every step is built to protect workers and "
+"clients alike."
+msgstr ""
+"Kuanzia usajili hadi ukaguzi, kila hatua imejengwa kulinda wafanyakazi na "
+"wateja."
+
+msgid "Register & Build Your Profile"
+msgstr "Jiandikishe na Jenga Wasifu Wako"
+
+msgid ""
+"Workers upload their national ID and skills. Clients set up company details."
+" Takes just a few minutes to get started."
+msgstr ""
+"Wafanyakazi wapakua kitambulisho cha taifa na ujuzi. Wateja wanasanidi "
+"maelezo ya kampuni. Inachukua dakika chache kuanza."
+
+msgid "Admin Verifies Workers"
+msgstr "Wasimamizi Wanathibitisha Wafanyakazi"
+
+msgid ""
+"Every worker goes through our review process before appearing as available "
+"for hire. No unverified talent on the platform."
+msgstr ""
+"Kila mfanyakazi anapitia mchakato wetu wa ukaguzi kabla ya kuonekana kama "
+"anapatikana kuajiriwa. Hakuna talanta isiyothibitishwa kwenye jukwaa."
+
+msgid "Post a Service Request"
+msgstr "Tuma Ombi la Huduma"
+
+msgid ""
+"Clients describe the job, choose a category, set the location, date and "
+"duration — daily, monthly or custom."
+msgstr ""
+"Wateja wanaelezea kazi, kuchagua kategoria, kuweka eneo, tarehe na muda — "
+"kila siku, kila mwezi au maalum."
+
+msgid "Admin Assigns the Right Worker"
+msgstr "Msimamizi Anateua Mfanyakazi Sahihi"
+
+msgid ""
+"Our team matches the best verified worker to your request and notifies both "
+"parties instantly."
+msgstr ""
+"Timu yetu inaunganisha mfanyakazi bora aliyethibitishwa na ombi lako na "
+"inawaarifu pande zote mara moja."
+
+msgid "Work Tracked Daily"
+msgstr "Kazi Inafuatiliwa Kila Siku"
+
+msgid ""
+"Assigned workers clock in and out each day. Progress is fully visible to "
+"clients and admin at all times."
+msgstr ""
+"Wafanyakazi waliowekwa wanaingia na kutoka kila siku. Maendeleo yanaonekana "
+"kikamilifu kwa wateja na wasimamizi wakati wote."
+
+msgid "Review After Completion"
+msgstr "Ukaguzi Baada ya Kukamilika"
+
+msgid ""
+"Once the job is done, clients rate the worker. Reviews help surface the best"
+" professionals on the platform."
+msgstr ""
+"Kazi ikisha, wateja wanakadiri mfanyakazi. Ukaguzi husaidia kuonyesha "
+"wataalamu bora kwenye jukwaa."
+
+msgid "About Worker Connect"
+msgstr "Kuhusu Worker Connect"
+
+msgid "Built for Tanzania's"
+msgstr "Imejengwa kwa Tanzania"
+
+msgid "Growing Workforce"
+msgstr "Nguvu Kazi Inayokua"
+
+msgid ""
+"Worker Connect is Tanzania's first dedicated platform bridging the gap "
+"between skilled professionals and the clients who need them — built to solve"
+" a real problem with a real digital solution."
+msgstr ""
+"Worker Connect ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu"
+" wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na"
+" suluhisho la kidijitali."
+
+msgid "Fully Verified Network"
+msgstr "Mtandao Uliothibitishwa Kikamilifu"
+
+msgid ""
+"Every worker is reviewed and approved by admin before going live on the "
+"platform."
+msgstr ""
+"Kila mfanyakazi anakaguliwa na kuidhinishwa na msimamizi kabla ya kuanza "
+"kwenye jukwaa."
+
+msgid "Fast Job Matching"
+msgstr "Uwianishaji wa Kazi wa Haraka"
+
+msgid ""
+"Clients post a job and receive a qualified, verified worker within hours."
+msgstr ""
+"Wateja wanachapisha kazi na kupata mfanyakazi mwenye sifa na "
+"aliyethibitishwa ndani ya masaa machache."
+
+msgid "Agent-Powered Network"
+msgstr "Mtandao Unaodhibitiwa na Mawakala"
+
+msgid ""
+"Agents recruit and support workers, building stronger local teams across "
+"Tanzania."
+msgstr ""
+"Mawakala wanakusanya na kusaidia wafanyakazi, kujenga timu imara za ndani "
+"kote Tanzania."
+
+msgid "Mobile Ready"
+msgstr "Tayari kwa Simu"
+
+msgid ""
+"Manage jobs, messages and requests from any device, anywhere in Tanzania."
+msgstr ""
+"Simamia kazi, ujumbe na maombi kutoka kifaa chochote, popote Tanzania."
+
+msgid "Join the Platform"
+msgstr "Jiunge na Jukwaa"
+
+msgid "Registered Workers"
+msgstr "Wafanyakazi Waliojisajili"
+
+msgid "Client Satisfaction"
+msgstr "Kuridhika kwa Wateja"
+
+msgid "Mobile App"
+msgstr "Programu ya Simu"
+
+msgid "Take Worker Connect"
+msgstr "Chukua Worker Connect"
+
+msgid "Everywhere You Go"
+msgstr "Popote Uendapo"
+
+msgid ""
+"Manage jobs, track work in real time, receive notifications and communicate "
+"with your team — all from your phone. Available free for both workers and "
+"clients."
+msgstr ""
+"Simamia kazi, fuatilia kazi wakati halisi, pokea arifa na wasiliana na timu "
+"yako — yote kutoka simu yako. Inapatikana bure kwa wafanyakazi na wateja."
+
+msgid "Download on the"
+msgstr "Pakua kwenye"
+
+msgid "App Store"
+msgstr "Duka la Programu"
+
+msgid "Get it on"
+msgstr "Pata kwenye"
+
+msgid "Google Play"
+msgstr "Google Play"
+
+msgid "App coming soon — join the web platform today"
+msgstr "Programu inakuja hivi karibuni — jiunge na jukwaa la wavuti leo"
+
+msgid ""
+"One platform built for three types of users — each with their own dedicated "
+"experience."
+msgstr ""
+"Jukwaa moja lililojengwa kwa aina tatu za watumiaji — kila mmoja na uzoefu "
+"wake maalum."
+
+msgid ""
+"Register, upload your documents, get verified by admin and start receiving "
+"job assignments from real clients."
+msgstr ""
+"Jiandikishe, pakia hati zako, thibitishwa na msimamizi na uanze kupokea kazi"
+" kutoka kwa wateja wa kweli."
+
+msgid ""
+"Post service requests, get matched with a verified worker, and track daily "
+"progress — all in one dashboard."
+msgstr ""
+"Tuma maombi ya huduma, pata mfanyakazi aliyethibitishwa, na ufuatilie "
+"maendeleo ya kila siku — yote kwenye dashibodi moja."
+
+msgid ""
+"Recruit workers, manage your team, earn commissions and grow your network "
+"through the dedicated agent portal."
+msgstr ""
+"Kusanya wafanyakazi, simamia timu yako, pata kamisheni na ukue mtandao wako "
+"kupitia lango la wakala maalum."
+
+msgid ""
+"Tanzania's trusted platform connecting clients with verified, skilled "
+"professionals for every job — big or small."
+msgstr ""
+"Jukwaa la kuaminika la Tanzania linalowasiliana wateja na wataalamu wenye "
+"ujuzi waliothshibitishwa kwa kila kazi — kubwa au ndogo."
+
+msgid "Platform"
+msgstr "Jukwaa"
+
+msgid "Browse Jobs"
+msgstr "Angalia Kazi"
+
+msgid "Join As"
+msgstr "Jiunge Kama"

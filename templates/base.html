@@ -1,6 +1,6 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -261,6 +261,21 @@
         /* Home link highlight */
         .main-nav .nav-home { color: #5eead4 !important; }
         .main-nav .nav-home:hover { color: white !important; background: rgba(94,234,212,0.12); }
+        /* Language switcher */
+        .lang-switcher .dropdown-toggle {
+            color: rgba(255,255,255,0.8) !important;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .lang-switcher .dropdown-toggle:hover { background: rgba(255,255,255,0.16); color: white !important; }
+        .lang-switcher .dropdown-menu { min-width: 130px; }
+        .lang-switcher .dropdown-item { font-size: 0.85rem; }
+        .lang-switcher .dropdown-item.active-lang { color: #14b8a6 !important; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -281,7 +296,7 @@
                     <!-- Home link always visible -->
                     <li class="nav-item">
                         <a class="nav-link nav-home" href="{% url 'home' %}">
-                            <i class="bi bi-house-fill"></i> Home
+                            <i class="bi bi-house-fill"></i> {% trans "Home" %}
                         </a>
                     </li>
 
@@ -289,44 +304,44 @@
                         {% if user.is_worker %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'workers:dashboard' %}">
-                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                    <i class="bi bi-speedometer2"></i> {% trans "Dashboard" %}
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'jobs:job_list' %}">
-                                    <i class="bi bi-briefcase"></i> Find Jobs
+                                    <i class="bi bi-briefcase"></i> {% trans "Jobs" %}
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'jobs:my_applications' %}">
-                                    <i class="bi bi-file-earmark-text"></i> My Applications
+                                    <i class="bi bi-file-earmark-text"></i> {% trans "My Applications" %}
                                 </a>
                             </li>
                         {% elif user.is_client %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'clients:dashboard' %}">
-                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                    <i class="bi bi-speedometer2"></i> {% trans "Dashboard" %}
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'service_requests_web:client_my_requests' %}">
-                                    <i class="bi bi-list-check"></i> My Requests
+                                    <i class="bi bi-list-check"></i> {% trans "My Requests" %}
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'service_requests_web:client_request_service' %}">
-                                    <i class="bi bi-plus-circle"></i> New Request
+                                    <i class="bi bi-plus-circle"></i> {% trans "New Request" %}
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'clients:browse_services' %}">
-                                    <i class="bi bi-search"></i> Browse Services
+                                    <i class="bi bi-search"></i> {% trans "Browse Services" %}
                                 </a>
                             </li>
                         {% elif user.is_admin_user %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'admin_panel:dashboard' %}">
-                                    <i class="bi bi-speedometer2"></i> Admin Dashboard
+                                    <i class="bi bi-speedometer2"></i> {% trans "Admin Dashboard" %}
                                 </a>
                             </li>
                         {% endif %}
@@ -352,6 +367,28 @@
                             </button>
                         </li>
 
+                        <!-- Language Switcher (authenticated) -->
+                        <li class="nav-item dropdown lang-switcher">
+                            {% get_current_language as CURRENT_LANGUAGE %}
+                            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-translate"></i>
+                                {% if CURRENT_LANGUAGE == 'sw' %}SW
+                                {% elif CURRENT_LANGUAGE == 'fr' %}FR
+                                {% elif CURRENT_LANGUAGE == 'it' %}IT
+                                {% else %}EN{% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <form action="{% url 'set_language' %}" method="post">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active-lang{% endif %}" type="submit" name="language" value="en">🇺🇸 English</button></li>
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'sw' %}active-lang{% endif %}" type="submit" name="language" value="sw">🇹🇿 Swahili</button></li>
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'fr' %}active-lang{% endif %}" type="submit" name="language" value="fr">🇫🇷 Français</button></li>
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'it' %}active-lang{% endif %}" type="submit" name="language" value="it">🇮🇹 Italiano</button></li>
+                                </form>
+                            </ul>
+                        </li>
+
                         <!-- User dropdown -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#"
@@ -368,19 +405,41 @@
                                         <div style="color:#94a3b8;font-size:0.78rem;">{{ user.email }}</div>
                                     </div>
                                 </li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}"><i class="bi bi-pencil me-2"></i>{% trans "Edit Profile" %}</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}" style="color:#f87171 !important;"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}" style="color:#f87171 !important;"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
                             </ul>
                         </li>
                     {% else %}
+                        <!-- Language Switcher (guests) -->
+                        <li class="nav-item dropdown lang-switcher">
+                            {% get_current_language as CURRENT_LANGUAGE %}
+                            {% get_available_languages as LANGUAGES_LIST %}
+                            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-translate"></i>
+                                {% if CURRENT_LANGUAGE == 'sw' %}Swahili
+                                {% elif CURRENT_LANGUAGE == 'fr' %}Français
+                                {% elif CURRENT_LANGUAGE == 'it' %}Italiano
+                                {% else %}English{% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <form action="{% url 'set_language' %}" method="post" id="lang-form-guest">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active-lang{% endif %}" type="submit" name="language" value="en">🇺🇸 English</button></li>
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'sw' %}active-lang{% endif %}" type="submit" name="language" value="sw">🇹🇿 Swahili</button></li>
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'fr' %}active-lang{% endif %}" type="submit" name="language" value="fr">🇫🇷 Français</button></li>
+                                    <li><button class="dropdown-item {% if CURRENT_LANGUAGE == 'it' %}active-lang{% endif %}" type="submit" name="language" value="it">🇮🇹 Italiano</button></li>
+                                </form>
+                            </ul>
+                        </li>
                         <li class="nav-item">
-                            <a class="btn-nav-login" href="{% url 'accounts:login' %}">Login</a>
+                            <a class="btn-nav-login" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
                         </li>
                         <li class="nav-item">
                             <a class="btn-nav-signup" href="{% url 'accounts:register_choice' %}">
-                                <i class="bi bi-person-plus me-1"></i>Sign Up
+                                <i class="bi bi-person-plus me-1"></i>{% trans "Sign Up" %}
                             </a>
                         </li>
                         <!-- Theme Toggle for guests -->
@@ -485,11 +544,27 @@
         <!-- Bottom Bar -->
         <div style="border-top:1px solid #1e293b;">
             <div class="container py-3">
-                <div class="row align-items-center">
-                    <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
-                        <span style="color:white;font-size:0.85rem;">&copy; 2026 Worker Connect. All rights reserved.</span>
+                <div class="row align-items-center g-2">
+                    <div class="col-md-4 text-center text-md-start">
+                        <span style="color:white;font-size:0.85rem;">&copy; 2026 Worker Connect. {% trans "All rights reserved" %}.</span>
                     </div>
-                    <div class="col-md-6 text-center text-md-end">
+                    <!-- 🌐 Language Switcher -->
+                    <div class="col-md-4 text-center">
+                        {% get_current_language as CURRENT_LANGUAGE %}
+                        <form action="{% url 'set_language' %}" method="post" id="footer-lang-form" style="display:inline-flex;align-items:center;gap:6px;">
+                            {% csrf_token %}
+                            <input name="next" type="hidden" value="{{ request.path }}">
+                            <span style="color:#94a3b8;font-size:0.82rem;">🌐</span>
+                            <select name="language" onchange="document.getElementById('footer-lang-form').submit()"
+                                style="background:#1e293b;color:white;border:1px solid #334155;border-radius:6px;padding:4px 8px;font-size:0.82rem;cursor:pointer;outline:none;">
+                                <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>🇺🇸 English</option>
+                                <option value="sw" {% if CURRENT_LANGUAGE == 'sw' %}selected{% endif %}>🇹🇿 Swahili</option>
+                                <option value="fr" {% if CURRENT_LANGUAGE == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
+                                <option value="it" {% if CURRENT_LANGUAGE == 'it' %}selected{% endif %}>🇮🇹 Italiano</option>
+                            </select>
+                        </form>
+                    </div>
+                    <div class="col-md-4 text-center text-md-end">
                         <span style="color:white;font-size:0.85rem;">
                             Made with <i class="bi bi-heart-fill" style="color:#14b8a6;font-size:0.75rem;"></i> in Tanzania
                         </span>
