@@ -528,22 +528,13 @@ export default function WorkerDashboard() {
   const fetchDashboardData = async (isMounted = () => true) => {
     try {
       setLoading(true);
-      const [assignedJobsData, statsData, pendingAssignmentsData] = await Promise.all([
+      const [assignedJobsData, pendingAssignmentsData] = await Promise.all([
         apiService.getWorkerAssignments().catch(err => {
-          console.error('Error fetching assigned jobs:', err);
+          console.log('Error fetching assigned jobs:', err);
           return { results: [] };
         }),
-        apiService.getWorkerStats().catch(err => {
-          console.error('Error fetching stats:', err);
-          return {
-            assigned_jobs: 0,
-            active_jobs: 0,
-            completed_jobs: 0,
-            pending_jobs: 0,
-          };
-        }),
         apiService.getPendingAssignments().catch(err => {
-          console.error('Error fetching pending assignments:', err);
+          console.log('Error fetching pending assignments:', err);
           return { results: [] };
         }),
       ]);
@@ -554,16 +545,18 @@ export default function WorkerDashboard() {
         const assignmentsList = assignedJobsData?.results || (Array.isArray(assignedJobsData) ? assignedJobsData : []);
         setAssignedJobs(assignmentsList);
         setPendingAssignments(pendingAssignmentsData?.results || pendingAssignmentsData || []);
-        setStats(statsData || {
-          assigned_jobs: 0,
-          active_jobs: 0,
-          completed_jobs: 0,
-          pending_jobs: 0,
-        });
+
+        // Calculate stats directly from assignments data (more reliable than separate API call)
+        const computedStats = {
+          assigned_jobs: assignmentsList.length,
+          active_jobs: assignmentsList.filter((j: any) => j.status === 'in_progress').length,
+          completed_jobs: assignmentsList.filter((j: any) => j.status === 'completed').length,
+          pending_jobs: assignmentsList.filter((j: any) => ['pending', 'assigned', 'accepted'].includes(j.status)).length,
+        };
+        setStats(computedStats);
       }
     } catch (error: any) {
-      console.error('Error fetching dashboard data:', error);
-      console.error('Error details:', error?.response?.data || error?.message);
+      console.log('Error fetching dashboard data:', error?.response?.data || error?.message);
     } finally {
       if (isMounted()) {
         setLoading(false);

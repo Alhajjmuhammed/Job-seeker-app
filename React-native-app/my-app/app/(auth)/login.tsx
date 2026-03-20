@@ -49,9 +49,11 @@ export default function LoginScreen() {
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>WC</Text>
-          </View>
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logoImage}
+            resizeMode="cover"
+          />
           <Text style={styles.title}>Worker Connect</Text>
           <Text style={styles.subtitle}>Find work. Hire workers. Instantly.</Text>
         </View>
@@ -118,31 +120,6 @@ export default function LoginScreen() {
             </Link>
           </View>
         </View>
-
-        {/* Quick Login for Testing */}
-        <View style={styles.testingContainer}>
-          <Text style={styles.testingTitle}>Quick Test Login:</Text>
-          <View style={styles.testingButtons}>
-            <TouchableOpacity
-              style={styles.testButton}
-              onPress={() => {
-                setEmail('worker@test.com');
-                setPassword('password');
-              }}
-            >
-              <Text style={styles.testButtonText}>👷 Worker</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.testButton, styles.testButtonClient]}
-              onPress={() => {
-                setEmail('client@test.com');
-                setPassword('password');
-              }}
-            >
-              <Text style={styles.testButtonText}>👤 Client</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -158,25 +135,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 20,
-    justifyContent: 'space-between',
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 8,
   },
-  logoCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#0F766E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  logoText: {
-    fontSize: 24,
-    fontFamily: 'Poppins_700Bold',
-    color: '#FFFFFF',
+  logoImage: {
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 6,
   },
   title: {
     fontSize: 24,
@@ -275,40 +244,6 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     color: '#0F766E',
-    fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  testingContainer: {
-    padding: 14,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#FCD34D',
-  },
-  testingTitle: {
-    fontSize: 11,
-    fontFamily: 'Poppins_600SemiBold',
-    color: '#92400E',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  testingButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  testButton: {
-    flex: 1,
-    height: 36,
-    backgroundColor: '#0F766E',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  testButtonClient: {
-    backgroundColor: '#6366F1',
-  },
-  testButtonText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
   },

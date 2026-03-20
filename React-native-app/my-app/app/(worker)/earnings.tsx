@@ -49,21 +49,30 @@ export default function EarningsScreen() {
     try {
       setLoading(true);
       
-      const [stats, paymentHistory, earningsBreakdown, clientsData] = await Promise.all([
-        apiService.getWorkerStats().catch(() => ({ total_earnings: 0 })),
+      const [assignmentsData, paymentHistory, earningsBreakdown, clientsData] = await Promise.all([
+        apiService.getWorkerAssignments().catch(() => ({ results: [] })),
         apiService.getPaymentHistory(20).catch(() => []),
         apiService.getEarningsBreakdown('month', 6).catch(() => []),
         apiService.getTopClients(5).catch(() => []),
       ]);
 
-      setTotalEarnings(stats.total_earnings || 0);
-      setPendingAmount(stats.pending_earnings || 0);
-      setWithdrawnAmount(stats.withdrawn_earnings || 0);
+      // Calculate earnings directly from assignments (reliable)
+      const assignmentsList = assignmentsData?.results || (Array.isArray(assignmentsData) ? assignmentsData : []);
+      const completedJobs = assignmentsList.filter((j: any) => j.status === 'completed');
+      const activeJobs = assignmentsList.filter((j: any) => j.status === 'in_progress');
+
+      // Use total_price (service price) - same as web dashboard
+      const computed_total = completedJobs.reduce((sum: number, j: any) => sum + parseFloat(j.total_price || j.worker_payment || 0), 0);
+      const computed_pending = activeJobs.reduce((sum: number, j: any) => sum + parseFloat(j.total_price || j.worker_payment || 0), 0);
+
+      setTotalEarnings(computed_total);
+      setPendingAmount(computed_pending);
+      setWithdrawnAmount(0);
       setTransactions(paymentHistory || []);
       setEarningsData(earningsBreakdown || []);
       setTopClients(clientsData || []);
     } catch (error) {
-      console.error('Error loading earnings:', error);
+      console.log('Error loading earnings:', error);
     } finally {
       setLoading(false);
     }

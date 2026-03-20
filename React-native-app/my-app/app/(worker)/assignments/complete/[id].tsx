@@ -43,7 +43,26 @@ export default function CompleteServiceScreen() {
     try {
       setLoading(true);
       const response = await apiService.getWorkerAssignmentDetail(Number(id));
-      setAssignment(response.assignment || response);
+      const assignmentData = response.assignment || response;
+      
+      // Check if assignment is already completed
+      if (assignmentData.status === 'completed') {
+        Alert.alert(
+          'Already Completed',
+          'This service has already been marked as complete.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace(`/(worker)/service-assignment/${id}` as any);
+              }
+            }
+          ]
+        );
+        return;
+      }
+      
+      setAssignment(assignmentData);
     } catch (error: any) {
       console.error('Error loading assignment:', error);
       Alert.alert('Error', 'Failed to load assignment');
@@ -100,13 +119,32 @@ export default function CompleteServiceScreen() {
         'Excellent work! The service has been marked as complete. The client will be notified.'
       );
     } catch (error: any) {
-      console.error('❌ Complete Error:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to complete service. Please try again.';
-      Alert.alert('Complete Failed', errorMessage);
+      const errorData = error.response?.data?.error || error.message || '';
+      
+      // Check if assignment is already completed (expected case - not a real error)
+      if (errorData.toLowerCase().includes('already completed')) {
+        console.log('ℹ️ Assignment already completed, redirecting back');
+        Alert.alert(
+          'Already Completed',
+          'This service has already been marked as complete.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
+              }
+            }
+          ]
+        );
+      } else {
+        console.log('❌ Complete Error:', {
+          error: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+        const errorMessage = error.response?.data?.error || error.message || 'Failed to complete service. Please try again.';
+        Alert.alert('Complete Failed', errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }

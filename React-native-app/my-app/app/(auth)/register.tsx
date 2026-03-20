@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Link } from 'expo-router';
@@ -76,6 +77,11 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logoImage}
+            resizeMode="cover"
+          />
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Worker Connect today</Text>
         </View>
@@ -309,7 +315,15 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
+    alignItems: 'center',
     marginBottom: 32,
+  },
+  logoImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 12,
   },
   title: {
     fontSize: 28,

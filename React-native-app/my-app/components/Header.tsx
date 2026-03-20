@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Modal, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
@@ -78,18 +78,20 @@ export default function Header({
       flexDirection: 'row',
       alignItems: 'center',
     },
-    logoIcon: {
-      width: 8,
-      height: 24,
-      backgroundColor: theme.primary,
-      borderRadius: 2,
-      marginRight: 8,
+    logoImage: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: '#FFFFFF',
+      padding: 1,
+      marginRight: 6,
     },
     appName: {
-      fontSize: 22,
+      fontSize: 16,
       fontFamily: theme.fontBold,
       color: theme.text,
       letterSpacing: 0.5,
+      flexShrink: 1,
     },
     title: {
       fontSize: 20,
@@ -99,10 +101,10 @@ export default function Header({
     rightSection: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 16,
+      gap: 8,
     },
     iconButton: {
-      padding: 4,
+      padding: 2,
     },
     modalOverlay: {
       flex: 1,
@@ -163,7 +165,11 @@ export default function Header({
           
           {!title && (
             <View style={styles.logoContainer}>
-              <View style={styles.logoIcon} />
+              <Image 
+                source={require('@/assets/images/logo.png')} 
+                style={styles.logoImage}
+                resizeMode="cover"
+              />
               <Text style={styles.appName}>WORKER CONNECT</Text>
             </View>
           )}

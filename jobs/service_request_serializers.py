@@ -288,6 +288,7 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
     client_email = serializers.CharField(source='service_request.client.email', read_only=True)
     client_notes = serializers.CharField(source='service_request.client_notes', read_only=True)
     created_at = serializers.DateTimeField(source='service_request.created_at', read_only=True)
+    total_price = serializers.DecimalField(source='service_request.total_price', max_digits=10, decimal_places=2, read_only=True, allow_null=True)
     
     class Meta:
         model = ServiceRequestAssignment
@@ -302,7 +303,8 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
             # Flattened service request fields for mobile app
             'title', 'description', 'category_name', 'urgency', 'location', 'city',
             'preferred_date', 'preferred_time', 'estimated_duration_hours',
-            'client_name', 'client_phone', 'client_email', 'client_notes', 'created_at'
+            'client_name', 'client_phone', 'client_email', 'client_notes', 'created_at',
+            'total_price'
         ]
         read_only_fields = [
             'assigned_by', 'worker_response_at', 'work_started_at', 
