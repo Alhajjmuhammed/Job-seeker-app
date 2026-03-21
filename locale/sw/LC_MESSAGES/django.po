@@ -890,3 +890,18 @@ msgstr "Jina la Biashara"
 
 msgid "Submit Application"
 msgstr "Wasilisha Maombi"
+
+msgid "Investors"
+msgstr "Wawekezaji"
+
+msgid "Bank"
+msgstr "Benki"
+
+msgid "Tour Operators"
+msgstr "Waendeshaji wa Utalii"
+
+msgid "Tour & Safari"
+msgstr "Utalii na Safari"
+
+msgid "Mobile Money"
+msgstr "Pesa ya Simu"

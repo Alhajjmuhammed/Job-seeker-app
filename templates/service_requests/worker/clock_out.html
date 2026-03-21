@@ -1,6 +1,7 @@
 {% extends "workers/base_worker.html" %}
+{% load i18n %}
 
-{% block title %}Clock Out{% endblock %}
+{% block title %}{% trans "Clock Out" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -17,7 +18,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0"><i class="fas fa-clock"></i> Clock Out to End Work Session</h4>
+                    <h4 class="mb-0"><i class="fas fa-clock"></i> {% trans "Clock Out to End Work Session" %}</h4>
                 </div>
                 <div class="card-body">
                     <!-- Assignment Info -->
@@ -27,16 +28,16 @@
                             <i class="fas fa-tag"></i> {{ service_request.category.name }}
                         </p>
                         <p class="mb-2">
-                            <strong>Client:</strong> {{ service_request.client.get_full_name }}
+                            <strong>{% trans "Client:" %}</strong> {{ service_request.client.get_full_name }}
                         </p>
                     </div>
                     
                     <!-- Current Session Info -->
                     <div class="alert alert-info">
-                        <h6><i class="fas fa-info-circle"></i> Current Work Session</h6>
-                        <p class="mb-1"><strong>Clock In Time:</strong> {{ active_log.clock_in|date:"M d, Y g:i A" }}</p>
-                        <p class="mb-1"><strong>Location:</strong> {{ active_log.clock_in_location|default:"Not specified" }}</p>
-                        <p class="mb-0"><strong>Hourly Rate:</strong> TSH {{ service_request.hourly_rate }}</p>
+                        <h6><i class="fas fa-info-circle"></i> {% trans "Current Work Session" %}</h6>
+                        <p class="mb-1"><strong>{% trans "Clock In Time:" %}</strong> {{ active_log.clock_in|date:"M d, Y g:i A" }}</p>
+                        <p class="mb-1"><strong>{% trans "Location:" %}</strong> {{ active_log.clock_in_location|default:" " }}{% trans "Not specified" %}{{ active_log.clock_in_location|yesno:"," }}</p>
+                        <p class="mb-0"><strong>{% trans "Hourly Rate:" %}</strong> TSH {{ service_request.hourly_rate }}</p>
                     </div>
                     
                     <hr>
@@ -46,42 +47,41 @@
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            <label for="location" class="form-label">Current Location (Optional)</label>
+                            <label for="location" class="form-label">{% trans "Current Location (Optional)" %}</label>
                             <input type="text" 
                                    class="form-control" 
                                    id="location" 
                                    name="location" 
-                                   placeholder="Enter your current location or address">
+                                   placeholder="{% trans 'Enter your current location or address' %}">
                             <small class="form-text text-muted">
-                                You can manually enter your location. For mobile app, GPS is used automatically.
+                                {% trans "You can manually enter your location. For mobile app, GPS is used automatically." %}
                             </small>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="notes" class="form-label">Work Summary / Notes</label>
+                            <label for="notes" class="form-label">{% trans "Work Summary / Notes" %}</label>
                             <textarea class="form-control" 
                                       id="notes" 
                                       name="notes" 
                                       rows="4" 
-                                      placeholder="Describe the work you completed in this session..."></textarea>
+                                      placeholder="{% trans 'Describe the work you completed in this session...' %}"></textarea>
                             <small class="form-text text-muted">
-                                Optional: Summarize what you accomplished during this work session.
+                                {% trans "Optional: Summarize what you accomplished during this work session." %}
                             </small>
                         </div>
                         
                         <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> 
-                            Once you clock out, the system will calculate the hours worked and update your earnings. 
-                            You can clock in again later if needed.
+                            <i class="fas fa-exclamation-triangle"></i> <strong>{% trans "Note:" %}</strong> 
+                            {% trans "Once you clock out, the system will calculate the hours worked and update your earnings. You can clock in again later if needed." %}
                         </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-danger btn-lg">
-                                <i class="fas fa-stop"></i> End Work Session - Clock Out
+                                <i class="fas fa-stop"></i> {% trans "End Work Session - Clock Out" %}
                             </button>
                             <a href="{% url 'service_requests_web:worker_assignment_detail' service_request.id %}" 
                                class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
+                                <i class="fas fa-times"></i> {% trans "Cancel" %}
                             </a>
                         </div>
                     </form>
@@ -91,20 +91,20 @@
             <!-- Earnings Preview -->
             <div class="card bg-light mt-4">
                 <div class="card-body">
-                    <h6 class="card-title"><i class="fas fa-calculator"></i> Current Job Summary</h6>
+                    <h6 class="card-title"><i class="fas fa-calculator"></i> {% trans "Current Job Summary" %}</h6>
                     <dl class="row mb-0">
-                        <dt class="col-sm-6">Total Hours Worked So Far:</dt>
-                        <dd class="col-sm-6">{{ service_request.total_hours_worked|default:"0" }} hours</dd>
+                        <dt class="col-sm-6">{% trans "Total Hours Worked So Far:" %}</dt>
+                        <dd class="col-sm-6">{{ service_request.total_hours_worked|default:"0" }} {% trans "hours" %}</dd>
                         
-                        <dt class="col-sm-6">Hourly Rate:</dt>
+                        <dt class="col-sm-6">{% trans "Hourly Rate:" %}</dt>
                         <dd class="col-sm-6">TSH {{ service_request.hourly_rate }}</dd>
                         
-                        <dt class="col-sm-6">Estimated Earnings:</dt>
+                        <dt class="col-sm-6">{% trans "Estimated Earnings:" %}</dt>
                         <dd class="col-sm-6"><strong class="text-success">TSH {{ service_request.total_amount|default:"0" }}</strong></dd>
                     </dl>
                     <hr>
                     <p class="small text-muted mb-0">
-                        <i class="fas fa-info-circle"></i> This session's hours will be added after you clock out.
+                        <i class="fas fa-info-circle"></i> {% trans "This session's hours will be added after you clock out." %}
                     </p>
                 </div>
             </div>

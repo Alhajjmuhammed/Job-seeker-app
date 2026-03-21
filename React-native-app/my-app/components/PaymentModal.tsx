@@ -14,6 +14,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 interface PaymentModalProps {
   visible: boolean;
@@ -36,6 +37,7 @@ export default function PaymentModal({
 }: PaymentModalProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('select');
   const [processing, setProcessing] = useState(false);
+  const { t } = useTranslation();
 
   // Card payment state
   const [cardNumber, setCardNumber] = useState('');
@@ -107,19 +109,19 @@ export default function PaymentModal({
     // Validation
     const cleanCard = cardNumber.replace(/\s/g, '');
     if (cleanCard.length < 13) {
-      Alert.alert('Invalid Card', 'Please enter a valid card number');
+      Alert.alert(t('paymentModal.invalidCard'), t('paymentModal.invalidCardMsg'));
       return;
     }
     if (!cardHolder.trim()) {
-      Alert.alert('Invalid Input', 'Please enter cardholder name');
+      Alert.alert(t('common.error'), t('paymentModal.invalidCardholderMsg'));
       return;
     }
     if (cardExpiry.length !== 5) {
-      Alert.alert('Invalid Expiry', 'Please enter expiry date (MM/YY)');
+      Alert.alert(t('paymentModal.invalidExpiry'), t('paymentModal.invalidExpiryMsg'));
       return;
     }
     if (cardCVV.length < 3) {
-      Alert.alert('Invalid CVV', 'Please enter CVV');
+      Alert.alert(t('paymentModal.invalidCVV'), t('paymentModal.invalidCVVMsg'));
       return;
     }
 
@@ -141,13 +143,13 @@ export default function PaymentModal({
         // Let parent handle closing payment modal and opening screenshot modal
         onPaymentSuccess(result);
       } else {
-        Alert.alert('Payment Failed', result.error || 'Payment could not be processed');
+        Alert.alert(t('paymentModal.paymentFailed'), result.error || t('paymentModal.paymentFailedMsg'));
       }
     } catch (error: any) {
       console.error('Card payment error:', error);
       Alert.alert(
-        'Payment Error',
-        error.response?.data?.error || 'An error occurred while processing your payment'
+        t('paymentModal.paymentError'),
+        error.response?.data?.error || t('paymentModal.paymentErrorMsg')
       );
     } finally {
       setProcessing(false);
@@ -157,7 +159,7 @@ export default function PaymentModal({
   const handleMPesaPayment = async () => {
     // Validation
     if (phoneNumber.length < 13) {
-      Alert.alert('Invalid Phone', 'Please enter a valid M-Pesa phone number');
+      Alert.alert(t('paymentModal.invalidPhone'), t('paymentModal.invalidPhoneMsg'));
       return;
     }
 
@@ -176,13 +178,13 @@ export default function PaymentModal({
         // Let parent handle closing payment modal and opening screenshot modal
         onPaymentSuccess(result);
       } else {
-        Alert.alert('Payment Failed', result.error || 'Payment could not be processed');
+        Alert.alert(t('paymentModal.paymentFailed'), result.error || t('paymentModal.paymentFailedMsg'));
       }
     } catch (error: any) {
       console.error('M-Pesa payment error:', error);
       Alert.alert(
-        'Payment Error',
-        error.response?.data?.error || 'An error occurred while processing your payment'
+        t('paymentModal.paymentError'),
+        error.response?.data?.error || t('paymentModal.paymentErrorMsg')
       );
     } finally {
       setProcessing(false);
@@ -204,7 +206,7 @@ export default function PaymentModal({
           <View style={styles.modal}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Payment</Text>
+              <Text style={styles.headerTitle}>{t('paymentModal.title')}</Text>
               <TouchableOpacity onPress={handleClose} disabled={processing}>
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
@@ -212,7 +214,7 @@ export default function PaymentModal({
 
             {/* Amount Display */}
             <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Total Amount</Text>
+              <Text style={styles.amountLabel}>{t('paymentModal.totalAmount')}</Text>
               <Text style={styles.amountValue}>
                 {currency} {amount.toFixed(2)}
               </Text>
@@ -222,7 +224,7 @@ export default function PaymentModal({
               {/* Payment Method Selection */}
               {paymentMethod === 'select' && (
                 <View style={styles.methodsContainer}>
-                  <Text style={styles.sectionTitle}>Select Payment Method</Text>
+                  <Text style={styles.sectionTitle}>{t('paymentModal.selectMethod')}</Text>
 
                   <TouchableOpacity
                     style={styles.methodButton}
@@ -232,8 +234,8 @@ export default function PaymentModal({
                       <Ionicons name="card" size={32} color="#14b8a6" />
                     </View>
                     <View style={styles.methodInfo}>
-                      <Text style={styles.methodTitle}>Credit Card</Text>
-                      <Text style={styles.methodSubtitle}>Visa, Mastercard</Text>
+                      <Text style={styles.methodTitle}>{t('paymentModal.creditCard')}</Text>
+                      <Text style={styles.methodSubtitle}>{t('paymentModal.visaMastercard')}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#999" />
                   </TouchableOpacity>
@@ -246,8 +248,8 @@ export default function PaymentModal({
                       <Ionicons name="phone-portrait" size={32} color="#14b8a6" />
                     </View>
                     <View style={styles.methodInfo}>
-                      <Text style={styles.methodTitle}>Mobile Money</Text>
-                      <Text style={styles.methodSubtitle}>M-Pesa, Tigo Pesa, Airtel Money</Text>
+                      <Text style={styles.methodTitle}>{t('paymentModal.mobileMoney')}</Text>
+                      <Text style={styles.methodSubtitle}>{t('paymentModal.mobilePesaOptions')}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#999" />
                   </TouchableOpacity>
@@ -273,13 +275,13 @@ export default function PaymentModal({
                     disabled={processing}
                   >
                     <Ionicons name="arrow-back" size={20} color="#14b8a6" />
-                    <Text style={styles.backText}>Back</Text>
+                    <Text style={styles.backText}>{t('common.back')}</Text>
                   </TouchableOpacity>
 
-                  <Text style={styles.sectionTitle}>Card Details</Text>
+                  <Text style={styles.sectionTitle}>{t('paymentModal.cardDetails')}</Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Card Number</Text>
+                    <Text style={styles.label}>{t('paymentModal.cardNumber')}</Text>
                     <View style={styles.inputWithIcon}>
                       <TextInput
                         style={[styles.input, cardType && styles.inputWithCardIcon]}
@@ -309,7 +311,7 @@ export default function PaymentModal({
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Cardholder Name</Text>
+                    <Text style={styles.label}>{t('paymentModal.cardholderName')}</Text>
                     <TextInput
                       style={styles.input}
                       placeholder="John Doe"
@@ -322,7 +324,7 @@ export default function PaymentModal({
 
                   <View style={styles.row}>
                     <View style={[styles.inputGroup, styles.flex1]}>
-                      <Text style={styles.label}>Expiry Date</Text>
+                      <Text style={styles.label}>{t('paymentModal.expiryDate')}</Text>
                       <TextInput
                         style={styles.input}
                         placeholder="MM/YY"
@@ -360,7 +362,7 @@ export default function PaymentModal({
                       <>
                         <Ionicons name="card" size={20} color="#fff" />
                         <Text style={styles.payButtonText}>
-                          Pay {currency} {amount.toFixed(2)}
+                          {t('paymentModal.payAmount', { currency, amount: amount.toFixed(2) })}
                         </Text>
                       </>
                     )}
@@ -368,7 +370,6 @@ export default function PaymentModal({
                 </View>
               )}
 
-              {/* M-Pesa Payment Form */}
               {paymentMethod === 'mpesa' && (
                 <View style={styles.form}>
                   <TouchableOpacity
@@ -377,13 +378,13 @@ export default function PaymentModal({
                     disabled={processing}
                   >
                     <Ionicons name="arrow-back" size={20} color="#14b8a6" />
-                    <Text style={styles.backText}>Back</Text>
+                    <Text style={styles.backText}>{t('common.back')}</Text>
                   </TouchableOpacity>
 
-                  <Text style={styles.sectionTitle}>Mobile Money Payment</Text>
+                  <Text style={styles.sectionTitle}>{t('paymentModal.mobileMoneyPayment')}</Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Mobile Money Phone Number</Text>
+                    <Text style={styles.label}>{t('paymentModal.mobileMoneyPhone')}</Text>
                     <TextInput
                       style={styles.input}
                       placeholder="+255123456789"
@@ -394,14 +395,14 @@ export default function PaymentModal({
                       editable={!processing}
                     />
                     <Text style={styles.hint}>
-                      Enter your Mobile Money registered phone number
+                      {t('paymentModal.mobilePhoneHint')}
                     </Text>
                   </View>
 
                   <View style={styles.mpesaInfo}>
                     <Ionicons name="information-circle" size={20} color="#14b8a6" />
                     <Text style={styles.mpesaInfoText}>
-                      You will receive a prompt on your phone to authorize the payment
+                      {t('paymentModal.mobileMoneyPrompt')}
                     </Text>
                   </View>
 
@@ -416,7 +417,7 @@ export default function PaymentModal({
                       <>
                         <Ionicons name="phone-portrait" size={20} color="#fff" />
                         <Text style={styles.payButtonText}>
-                          Pay {currency} {amount.toFixed(2)}
+                          {t('paymentModal.payAmount', { currency, amount: amount.toFixed(2) })}
                         </Text>
                       </>
                     )}

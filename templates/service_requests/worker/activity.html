@@ -1,6 +1,7 @@
 {% extends "workers/base_worker.html" %}
+{% load i18n %}
 
-{% block title %}My Activity History{% endblock %}
+{% block title %}{% trans "My Activity History" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -31,9 +32,9 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📊 My Activity History</h2>
+        <h2>📊 {% trans "My Activity History" %}</h2>
         <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <i class="fas fa-arrow-left"></i> {% trans "Back to Dashboard" %}
         </a>
     </div>
     
@@ -43,27 +44,27 @@
             <div class="btn-group flex-wrap" role="group" aria-label="Activity type filter">
                 <a href="{% url 'service_requests_web:worker_activity' %}" 
                    class="btn {% if not activity_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    All Activities
+                    {% trans "All Activities" %}
                 </a>
                 <a href="?type=accepted" 
                    class="btn {% if activity_type == 'accepted' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    <i class="fas fa-check"></i> Accepted
+                    <i class="fas fa-check"></i> {% trans "Accepted" %}
                 </a>
                 <a href="?type=rejected" 
                    class="btn {% if activity_type == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                    <i class="fas fa-times"></i> Rejected
+                    <i class="fas fa-times"></i> {% trans "Rejected" %}
                 </a>
                 <a href="?type=started" 
                    class="btn {% if activity_type == 'started' %}btn-info{% else %}btn-outline-info{% endif %}">
-                    <i class="fas fa-play"></i> Started
+                    <i class="fas fa-play"></i> {% trans "Started" %}
                 </a>
                 <a href="?type=paused" 
                    class="btn {% if activity_type == 'paused' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
-                    <i class="fas fa-pause"></i> Paused
+                    <i class="fas fa-pause"></i> {% trans "Paused" %}
                 </a>
                 <a href="?type=completed" 
                    class="btn {% if activity_type == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    <i class="fas fa-check-circle"></i> Completed
+                    <i class="fas fa-check-circle"></i> {% trans "Completed" %}
                 </a>
             </div>
         </div>
@@ -123,7 +124,7 @@
                             
                             {% if activity.service_request %}
                             <p class="mb-1">
-                                <strong>Service:</strong> 
+                                <strong>{% trans "Service:" %}</strong> 
                                 <a href="{% url 'service_requests_web:worker_assignment_detail' activity.service_request.id %}">
                                     {{ activity.service_request.title }}
                                 </a>
@@ -138,14 +139,14 @@
                             
                             {% if activity.duration %}
                             <p class="mb-1 text-muted small">
-                                <i class="fas fa-clock"></i> Duration: {{ activity.duration }}
+                                <i class="fas fa-clock"></i> {% trans "Duration:" %} {{ activity.duration }}
                             </p>
                             {% endif %}
                             
                             {% if activity.amount_earned %}
                             <p class="mb-1">
                                 <i class="fas fa-money-bill-wave"></i> 
-                                <strong class="text-success">Earned: TSH {{ activity.amount_earned }}</strong>
+                                <strong class="text-success">{% blocktrans with amount=activity.amount_earned %}Earned: TSH {{ amount }}{% endblocktrans %}</strong>
                             </p>
                             {% endif %}
                             
@@ -167,7 +168,7 @@
             {% if activities.has_previous %}
             <li class="page-item">
                 <a class="page-link" href="?page={{ activities.previous_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">
-                    <i class="fas fa-chevron-left"></i> Previous
+                    <i class="fas fa-chevron-left"></i> {% trans "Previous" %}
                 </a>
             </li>
             {% endif %}
@@ -187,7 +188,7 @@
             {% if activities.has_next %}
             <li class="page-item">
                 <a class="page-link" href="?page={{ activities.next_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">
-                    Next <i class="fas fa-chevron-right"></i>
+                    {% trans "Next" %} <i class="fas fa-chevron-right"></i>
                 </a>
             </li>
             {% endif %}
@@ -197,16 +198,16 @@
     
     {% else %}
     <div class="alert alert-info text-center">
-        <h4 class="alert-heading">No Activity Found</h4>
+        <h4 class="alert-heading">{% trans "No Activity Found" %}</h4>
         <p>
             {% if activity_type %}
-            No activities of type "{{ activity_type }}" found.
+            {% blocktrans with type=activity_type %}No activities of type "{{ type }}" found.{% endblocktrans %}
             {% else %}
-            You don't have any activity history yet. Start accepting assignments to see your activity timeline!
+            {% trans "You don't have any activity history yet. Start accepting assignments to see your activity timeline!" %}
             {% endif %}
         </p>
         <hr>
-        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">Go to Dashboard</a>
+        <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">{% trans "Go to Dashboard" %}</a>
     </div>
     {% endif %}
 </div>

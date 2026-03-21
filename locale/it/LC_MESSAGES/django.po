@@ -892,3 +892,18 @@ msgstr "Nome azienda"
 
 msgid "Submit Application"
 msgstr "Invia candidatura"
+
+msgid "Investors"
+msgstr "Investitori"
+
+msgid "Bank"
+msgstr "Banca"
+
+msgid "Tour Operators"
+msgstr "Tour Operator"
+
+msgid "Tour & Safari"
+msgstr "Tour e Safari"
+
+msgid "Mobile Money"
+msgstr "Mobile Money"

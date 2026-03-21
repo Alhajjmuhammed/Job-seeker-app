@@ -1,8 +1,8 @@
 {% extends 'clients/base_client.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Client Dashboard - Worker Connect{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block title %}{% trans "Client Dashboard" %} - Worker Connect{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -61,8 +61,8 @@
         <div class="col-12">
             <div class="card border-0" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);">
                 <div class="card-body text-white">
-                    <h2><i class="bi bi-house-door me-2"></i>Welcome, {{ user.get_full_name }}!</h2>
-                    <p class="mb-0">Request professional services and let our team assign qualified workers to help you.</p>
+                    <h2><i class="bi bi-house-door me-2"></i>{% blocktrans with name=user.get_full_name %}Welcome, {{ name }}!{% endblocktrans %}</h2>
+                    <p class="mb-0">{% trans "Request professional services and let our team assign qualified workers to help you." %}</p>
                 </div>
             </div>
         </div>
@@ -74,10 +74,10 @@
             <div class="card h-100 text-center border">
                 <div class="card-body">
                     <i class="bi bi-plus-circle mb-3" style="font-size: 3rem; color: #14b8a6;"></i>
-                    <h5>Request Service</h5>
-                    <p class="text-muted">Browse available services and submit requests</p>
+                    <h5>{% trans "Request Service" %}</h5>
+                    <p class="text-muted">{% trans "Browse available services and submit requests" %}</p>
                     <a href="{% url 'clients:browse_services' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-search me-2"></i>Browse Services
+                        <i class="bi bi-search me-2"></i>{% trans "Browse Services" %}
                     </a>
                 </div>
             </div>
@@ -86,10 +86,10 @@
             <div class="card h-100 text-center border">
                 <div class="card-body">
                     <i class="bi bi-list-check mb-3" style="font-size: 3rem; color: #14b8a6;"></i>
-                    <h5>My Requests</h5>
-                    <p class="text-muted">Track your service requests and assigned workers</p>
+                    <h5>{% trans "My Requests" %}</h5>
+                    <p class="text-muted">{% trans "Track your service requests and assigned workers" %}</p>
                     <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-eye me-2"></i>View Requests
+                        <i class="bi bi-eye me-2"></i>{% trans "View Requests" %}
                     </a>
                 </div>
             </div>
@@ -98,10 +98,10 @@
             <div class="card h-100 text-center border">
                 <div class="card-body">
                     <i class="bi bi-person-gear mb-3" style="font-size: 3rem; color: #14b8a6;"></i>
-                    <h5>Profile</h5>
-                    <p class="text-muted">Manage your account and preferences</p>
+                    <h5>{% trans "Profile" %}</h5>
+                    <p class="text-muted">{% trans "Manage your account and preferences" %}</p>
                     <a href="{% url 'clients:profile' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-pencil me-2"></i>Edit Profile
+                        <i class="bi bi-pencil me-2"></i>{% trans "Edit Profile" %}
                     </a>
                 </div>
             </div>
@@ -115,10 +115,10 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="bi bi-tools me-2"></i>
-                        Available Services
+                        {% trans "Available Services" %}
                     </h5>
                     <a href="{% url 'clients:browse_services' %}" class="btn btn-sm btn-outline-primary">
-                        View All Services
+                        {% trans "View All Services" %}
                     </a>
                 </div>
                 <div class="card-body">
@@ -133,22 +133,22 @@
                                             {{ item.category.name }}
                                         </h6>
                                         {% if item.available_workers > 0 %}
-                                        <span class="badge bg-success">Available</span>
+                                        <span class="badge bg-success">{% trans "Available" %}</span>
                                         {% else %}
-                                        <span class="badge bg-secondary">Unavailable</span>
+                                        <span class="badge bg-secondary">{% trans "Unavailable" %}</span>
                                         {% endif %}
                                     </div>
                                     <small class="text-muted">{{ item.category.description|truncatewords:8 }}</small>
                                     <div class="mt-2 small text-muted">
-                                        <i class="bi bi-people me-1"></i> {{ item.available_workers }} workers
+                                        <i class="bi bi-people me-1"></i> {{ item.available_workers }} {% trans "workers" %}
                                         <span class="ms-2">
-                                            <i class="bi bi-check-circle me-1"></i> {{ item.completed_projects }} completed
+                                            <i class="bi bi-check-circle me-1"></i> {{ item.completed_projects }} {% trans "completed" %}
                                         </span>
                                     </div>
                                     {% if item.available_workers > 0 %}
                                     <a href="{% url 'clients:request_service' item.category.id %}" 
                                        class="btn btn-sm btn-outline-primary w-100 mt-2">
-                                        <i class="bi bi-plus-circle me-2"></i>Request Service
+                                        <i class="bi bi-plus-circle me-2"></i>{% trans "Request Service" %}
                                     </a>
                                     {% endif %}
                                 </div>
@@ -158,7 +158,7 @@
                         <div class="col-12 text-center py-4">
                             <div class="text-muted">
                                 <i class="bi bi-tools" style="font-size: 2rem;"></i>
-                                <p>No services available at the moment.</p>
+                                <p>{% trans "No services available at the moment." %}</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -175,10 +175,10 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="bi bi-clock-history me-2"></i>
-                        Recent Service Requests
+                        {% trans "Recent Service Requests" %}
                     </h5>
                     <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-sm btn-outline-primary">
-                        View All Requests
+                        {% trans "View All Requests" %}
                     </a>
                 </div>
                 <div class="card-body">
@@ -187,11 +187,11 @@
                         <table class="table table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Service</th>
-                                    <th>Status</th>
-                                    <th>Assigned Worker</th>
-                                    <th>Date</th>
-                                    <th>Action</th>
+                                    <th>{% trans "Service" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Assigned Worker" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Action" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -213,7 +213,7 @@
                                         <i class="bi bi-person-check me-1"></i>{{ request.assigned_worker.user.get_full_name }}
                                         {% else %}
                                         <span class="text-muted">
-                                            <i class="bi bi-person-x me-1"></i>Not assigned
+                                            <i class="bi bi-person-x me-1"></i>{% trans "Not assigned" %}
                                         </span>
                                         {% endif %}
                                     </td>
@@ -223,7 +223,7 @@
                                     <td>
                                         <a href="{% url 'clients:service_request_detail' request.id %}" 
                                            class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye me-1"></i>View
+                                            <i class="bi bi-eye me-1"></i>{% trans "View" %}
                                         </a>
                                     </td>
                                 </tr>
@@ -235,9 +235,9 @@
                     <div class="text-center py-4">
                         <div class="text-muted">
                             <i class="bi bi-clipboard-x mb-2" style="font-size: 2rem;"></i>
-                            <p>You haven't made any service requests yet.</p>
+                            <p>{% trans "You haven't made any service requests yet." %}</p>
                             <a href="{% url 'clients:browse_services' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-plus-circle me-2"></i>Request Your First Service
+                                <i class="bi bi-plus-circle me-2"></i>{% trans "Request Your First Service" %}
                             </a>
                         </div>
                     </div>

@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import i18next from '../services/i18n';
 
 interface Props {
   children: ReactNode;
@@ -83,20 +84,20 @@ class ErrorBoundary extends Component<Props, State> {
         <View style={styles.container}>
           <View style={styles.content}>
             <Ionicons name="warning" size={64} color="#e74c3c" />
-            <Text style={styles.title}>Something went wrong</Text>
+            <Text style={styles.title}>{i18next.t('errorBoundary.title')}</Text>
             <Text style={styles.message}>
-              We apologize for the inconvenience. An unexpected error has occurred.
+              {i18next.t('errorBoundary.message')}
             </Text>
 
             {__DEV__ && this.state.error && (
               <ScrollView style={styles.errorBox}>
-                <Text style={styles.errorTitle}>Error Details:</Text>
+                <Text style={styles.errorTitle}>{i18next.t('errorBoundary.errorDetails')}</Text>
                 <Text style={styles.errorText}>
                   {this.state.error.toString()}
                 </Text>
                 {this.state.errorInfo && (
                   <>
-                    <Text style={styles.errorTitle}>Component Stack:</Text>
+                    <Text style={styles.errorTitle}>{i18next.t('errorBoundary.componentStack')}</Text>
                     <Text style={styles.errorText}>
                       {this.state.errorInfo.componentStack}
                     </Text>
@@ -107,7 +108,7 @@ class ErrorBoundary extends Component<Props, State> {
 
             <TouchableOpacity style={styles.button} onPress={this.handleReset}>
               <Ionicons name="refresh" size={20} color="#fff" />
-              <Text style={styles.buttonText}>Try Again</Text>
+              <Text style={styles.buttonText}>{i18next.t('errorBoundary.tryAgain')}</Text>
             </TouchableOpacity>
           </View>
         </View>

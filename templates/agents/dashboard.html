@@ -1,7 +1,8 @@
 {% extends 'agents/base_agents.html' %}
+{% load i18n %}
 
-{% block title %}Agent Dashboard{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block title %}{% trans "Agent Dashboard" %}{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block content %}
 
@@ -9,8 +10,8 @@
 <div class="pending-banner d-flex align-items-center gap-3">
     <i class="bi bi-hourglass-split fs-4" style="color:#14b8a6"></i>
     <div>
-        <strong>Application Under Review</strong>
-        <p class="mb-0 small text-muted">Your agent application is being reviewed by admin. Once approved you will receive a unique Agent Code to share with workers.</p>
+        <strong>{% trans "Application Under Review" %}</strong>
+        <p class="mb-0 small text-muted">{% trans "Your agent application is being reviewed by admin. Once approved you will receive a unique Agent Code to share with workers." %}</p>
     </div>
 </div>
 {% endif %}
@@ -18,9 +19,9 @@
 <!-- Agent Code card (only shown once verified) -->
 {% if agent.is_verified %}
 <div class="agent-code-box mb-4">
-    <p class="mb-1 text-white-50 small fw-semibold text-uppercase">Your Agent Code</p>
+    <p class="mb-1 text-white-50 small fw-semibold text-uppercase">{% trans "Your Agent Code" %}</p>
     <div class="code">{{ agent.agent_code }}</div>
-    <p class="mt-2 mb-0 small text-white-50">Share this code with workers during their registration so they are linked to you automatically.</p>
+    <p class="mt-2 mb-0 small text-white-50">{% trans "Share this code with workers during their registration so they are linked to you automatically." %}</p>
 </div>
 {% endif %}
 
@@ -34,7 +35,7 @@
                 </div>
                 <div>
                     <div class="fs-2 fw-bold">{{ total_workers }}</div>
-                    <div class="text-muted small">Total Workers</div>
+                    <div class="text-muted small">{% trans "Total Workers" %}</div>
                 </div>
             </div>
         </div>
@@ -47,7 +48,7 @@
                 </div>
                 <div>
                     <div class="fs-2 fw-bold">{{ verified_workers }}</div>
-                    <div class="text-muted small">Verified Workers</div>
+                    <div class="text-muted small">{% trans "Verified Workers" %}</div>
                 </div>
             </div>
         </div>
@@ -60,7 +61,7 @@
                 </div>
                 <div>
                     <div class="fs-2 fw-bold">{{ pending_workers }}</div>
-                    <div class="text-muted small">Pending Verification</div>
+                    <div class="text-muted small">{% trans "Pending Verification" %}</div>
                 </div>
             </div>
         </div>
@@ -73,7 +74,7 @@
                 </div>
                 <div>
                     <div class="fs-2 fw-bold">{{ agent.commission_rate }}%</div>
-                    <div class="text-muted small">Commission Rate</div>
+                    <div class="text-muted small">{% trans "Commission Rate" %}</div>
                 </div>
             </div>
         </div>
@@ -86,15 +87,15 @@
     <div class="col-md-4">
         <div class="card stat-card h-100">
             <div class="card-header bg-white py-3 px-4 border-bottom">
-                <h6 class="fw-semibold mb-0">Worker Verification</h6>
-                <p class="text-muted small mb-0">Breakdown by status</p>
+                <h6 class="fw-semibold mb-0">{% trans "Worker Verification" %}</h6>
+                <p class="text-muted small mb-0">{% trans "Breakdown by status" %}</p>
             </div>
             <div class="card-body d-flex flex-column align-items-center justify-content-center py-4">
                 <div style="position:relative;width:180px;height:180px">
                     <canvas id="verificationChart"></canvas>
                     <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
                         <span style="font-size:1.75rem;font-weight:700;color:#111827">{{ total_workers }}</span>
-                        <span style="font-size:.75rem;color:#6b7280">Total</span>
+                        <span style="font-size:.75rem;color:#6b7280">{% trans "Total" %}</span>
                     </div>
                 </div>
                 <div class="d-flex gap-3 mt-3 flex-wrap justify-content-center" style="font-size:.8rem">
@@ -110,8 +111,8 @@
     <div class="col-md-8">
         <div class="card stat-card h-100">
             <div class="card-header bg-white py-3 px-4 border-bottom">
-                <h6 class="fw-semibold mb-0">Top Workers by Jobs Completed</h6>
-                <p class="text-muted small mb-0">Performance overview</p>
+                <h6 class="fw-semibold mb-0">{% trans "Top Workers by Jobs Completed" %}</h6>
+                <p class="text-muted small mb-0">{% trans "Performance overview" %}</p>
             </div>
             <div class="card-body py-3 px-4">
                 <canvas id="topWorkersChart" style="max-height:220px"></canvas>
@@ -124,10 +125,10 @@
 <div class="card stat-card mb-4">
     <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
         <div>
-            <h6 class="fw-semibold mb-0">Workers Joined</h6>
-            <p class="text-muted small mb-0">Last 6 months</p>
+            <h6 class="fw-semibold mb-0">{% trans "Workers Joined" %}</h6>
+            <p class="text-muted small mb-0">{% trans "Last 6 months" %}</p>
         </div>
-        <a href="{% url 'agents:workers' %}" class="btn btn-sm btn-teal">View All Workers</a>
+        <a href="{% url 'agents:workers' %}" class="btn btn-sm btn-teal">{% trans "View All Workers" %}</a>
     </div>
     <div class="card-body py-3 px-4">
         <canvas id="joinedChart" style="max-height:180px"></canvas>

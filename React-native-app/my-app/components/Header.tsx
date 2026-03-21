@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
   showBack?: boolean;
@@ -26,6 +27,7 @@ export default function Header({
 }: HeaderProps) {
   const { theme, isDark, toggleTheme } = useTheme();
   const { logout } = useAuth();
+  const { t } = useTranslation();
   const [showMenuModal, setShowMenuModal] = useState(false);
 
   const handleMenuPress = () => {
@@ -238,7 +240,7 @@ export default function Header({
               onPress={handleProfilePress}
             >
               <Ionicons name="person-outline" size={20} color={theme.text} />
-              <Text style={styles.menuItemText}>Profile</Text>
+              <Text style={styles.menuItemText}>{t('nav.profile')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -246,7 +248,7 @@ export default function Header({
               onPress={handleSettingsPress}
             >
               <Ionicons name="settings-outline" size={20} color={theme.text} />
-              <Text style={styles.menuItemText}>Settings</Text>
+              <Text style={styles.menuItemText}>{t('nav.settings')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -254,7 +256,7 @@ export default function Header({
               onPress={handleLogoutPress}
             >
               <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-              <Text style={styles.menuItemLogoutText}>Logout</Text>
+              <Text style={styles.menuItemLogoutText}>{t('nav.logout')}</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

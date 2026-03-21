@@ -1,6 +1,7 @@
 {% extends "workers/base_worker.html" %}
+{% load i18n %}
 
-{% block title %}Respond to Assignment{% endblock %}
+{% block title %}{% trans "Respond to Assignment" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -23,7 +24,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">📋 Respond to Assignment</h2>
+    <h2 class="mb-4">📋 {% trans "Respond to Assignment" %}</h2>
     
     <div class="row">
         <div class="col-md-8">
@@ -34,38 +35,38 @@
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-3">Category:</dt>
+                        <dt class="col-sm-3">{% trans "Category:" %}</dt>
                         <dd class="col-sm-9">{{ service_request.category.name }}</dd>
                         
-                        <dt class="col-sm-3">Client:</dt>
+                        <dt class="col-sm-3">{% trans "Client:" %}</dt>
                         <dd class="col-sm-9">{{ service_request.client.get_full_name }}</dd>
                         
-                        <dt class="col-sm-3">Location:</dt>
+                        <dt class="col-sm-3">{% trans "Location:" %}</dt>
                         <dd class="col-sm-9">{{ service_request.location }}, {{ service_request.city }}</dd>
                         
-                        <dt class="col-sm-3">Urgency:</dt>
+                        <dt class="col-sm-3">{% trans "Urgency:" %}</dt>
                         <dd class="col-sm-9">
                             <span class="badge {% if service_request.urgency == 'emergency' %}bg-danger{% elif service_request.urgency == 'urgent' %}bg-warning{% else %}bg-secondary{% endif %}">
                                 {{ service_request.get_urgency_display }}
                             </span>
                         </dd>
                         
-                        <dt class="col-sm-3">Duration:</dt>
-                        <dd class="col-sm-9">{{ service_request.estimated_duration_hours }} hours</dd>
+                        <dt class="col-sm-3">{% trans "Duration:" %}</dt>
+                        <dd class="col-sm-9">{{ service_request.estimated_duration_hours }} {% trans "hours" %}</dd>
                         
                         {% if service_request.preferred_date %}
-                        <dt class="col-sm-3">Preferred Time:</dt>
+                        <dt class="col-sm-3">{% trans "Preferred Time:" %}</dt>
                         <dd class="col-sm-9">
                             {{ service_request.preferred_date|date:"M d, Y" }}
                             {% if service_request.preferred_time %}at {{ service_request.preferred_time|time:"h:i A" }}{% endif %}
                         </dd>
                         {% endif %}
                         
-                        <dt class="col-sm-3">Description:</dt>
+                        <dt class="col-sm-3">{% trans "Description:" %}</dt>
                         <dd class="col-sm-9">{{ service_request.description }}</dd>
                         
                         {% if service_request.admin_notes %}
-                        <dt class="col-sm-3">Admin Notes:</dt>
+                        <dt class="col-sm-3">{% trans "Admin Notes:" %}</dt>
                         <dd class="col-sm-9"><em>{{ service_request.admin_notes }}</em></dd>
                         {% endif %}
                     </dl>
@@ -75,36 +76,36 @@
             <!-- Response Form -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Your Response</h5>
+                    <h5 class="mb-0">{% trans "Your Response" %}</h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         
                         <div class="mb-4">
-                            <h6>Will you accept this assignment?</h6>
+                            <h6>{% trans "Will you accept this assignment?" %}</h6>
                         </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" name="action" value="accept" class="btn btn-success btn-lg">
-                                ✅ Accept Assignment
+                                ✅ {% trans "Accept Assignment" %}
                             </button>
                         </div>
                         
                         <hr>
                         
                         <div class="mb-3">
-                            <label for="reason" class="form-label">Or reject with reason:</label>
+                            <label for="reason" class="form-label">{% trans "Or reject with reason:" %}</label>
                             <textarea name="reason" id="reason" class="form-control" rows="3" 
-                                      placeholder="Please provide a reason for rejection..."></textarea>
+                                      placeholder="{% trans 'Please provide a reason for rejection...' %}"></textarea>
                         </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" name="action" value="reject" class="btn btn-danger">
-                                ❌ Reject Assignment
+                                ❌ {% trans "Reject Assignment" %}
                             </button>
                             <a href="{% url 'service_requests_web:worker_pending' %}" class="btn btn-secondary">
-                                Cancel
+                                {% trans "Cancel" %}
                             </a>
                         </div>
                     </form>
@@ -115,22 +116,22 @@
         <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-body">
-                    <h6 class="card-title">ℹ️ What Happens Next?</h6>
+                    <h6 class="card-title">ℹ️ {% trans "What Happens Next?" %}</h6>
                     
-                    <p><strong>If you accept:</strong></p>
+                    <p><strong>{% trans "If you accept:" %}</strong></p>
                     <ul>
-                        <li>Client will be notified</li>
-                        <li>You can clock in when you arrive</li>
-                        <li>Work on the assignment</li>
-                        <li>Clock out when done</li>
-                        <li>Mark as completed</li>
+                        <li>{% trans "Client will be notified" %}</li>
+                        <li>{% trans "You can clock in when you arrive" %}</li>
+                        <li>{% trans "Work on the assignment" %}</li>
+                        <li>{% trans "Clock out when done" %}</li>
+                        <li>{% trans "Mark as completed" %}</li>
                     </ul>
                     
-                    <p><strong>If you reject:</strong></p>
+                    <p><strong>{% trans "If you reject:" %}</strong></p>
                     <ul>
-                        <li>Admin will be notified</li>
-                        <li>Admin will assign another worker</li>
-                        <li>No penalty for valid rejections</li>
+                        <li>{% trans "Admin will be notified" %}</li>
+                        <li>{% trans "Admin will assign another worker" %}</li>
+                        <li>{% trans "No penalty for valid rejections" %}</li>
                     </ul>
                 </div>
             </div>

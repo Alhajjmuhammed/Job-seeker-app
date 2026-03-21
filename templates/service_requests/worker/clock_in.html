@@ -1,6 +1,7 @@
 {% extends "workers/base_worker.html" %}
+{% load i18n %}
 
-{% block title %}Clock In{% endblock %}
+{% block title %}{% trans "Clock In" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -19,7 +20,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-clock"></i> Clock In to Start Work</h4>
+                    <h4 class="mb-0"><i class="fas fa-clock"></i> {% trans "Clock In to Start Work" %}</h4>
                 </div>
                 <div class="card-body">
                     <!-- Assignment Info -->
@@ -29,13 +30,13 @@
                             <i class="fas fa-tag"></i> {{ service_request.category.name }}
                         </p>
                         <p class="mb-2">
-                            <strong>Client:</strong> {{ service_request.client.get_full_name }}
+                            <strong>{% trans "Client:" %}</strong> {{ service_request.client.get_full_name }}
                         </p>
                         <p class="mb-2">
-                            <strong>Location:</strong> {{ service_request.location }}, {{ service_request.city }}
+                            <strong>{% trans "Location:" %}</strong> {{ service_request.location }}, {{ service_request.city }}
                         </p>
                         <p class="mb-2">
-                            <strong>Hourly Rate:</strong> <span class="text-success">TSH {{ service_request.hourly_rate }}</span>
+                            <strong>{% trans "Hourly Rate:" %}</strong> <span class="text-success">TSH {{ service_request.hourly_rate }}</span>
                         </p>
                     </div>
                     
@@ -46,20 +47,19 @@
                         {% csrf_token %}
                         
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> <strong>Important:</strong> 
-                            By clocking in, you confirm that you have arrived at the work location and are ready to start work. 
-                            Your time will be tracked until you clock out.
+                            <i class="fas fa-info-circle"></i> <strong>{% trans "Important:" %}</strong> 
+                            {% trans "By clocking in, you confirm that you have arrived at the work location and are ready to start work. Your time will be tracked until you clock out." %}
                         </div>
                         
                         <div class="mb-3">
-                            <label for="location" class="form-label">Current Location (Optional)</label>
+                            <label for="location" class="form-label">{% trans "Current Location (Optional)" %}</label>
                             <input type="text" 
                                    class="form-control" 
                                    id="location" 
                                    name="location" 
-                                   placeholder="Enter your current location or address">
+                                   placeholder="{% trans 'Enter your current location or address' %}">
                             <small class="form-text text-muted">
-                                You can manually enter your location. For mobile app, GPS is used automatically.
+                                {% trans "You can manually enter your location. For mobile app, GPS is used automatically." %}
                             </small>
                         </div>
                         
@@ -67,18 +67,18 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="confirmArrival" required>
                                 <label class="form-check-label" for="confirmArrival">
-                                    I confirm that I have arrived at the work location and am ready to start work.
+                                    {% trans "I confirm that I have arrived at the work location and am ready to start work." %}
                                 </label>
                             </div>
                         </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-play"></i> Start Work - Clock In
+                                <i class="fas fa-play"></i> {% trans "Start Work - Clock In" %}
                             </button>
                             <a href="{% url 'service_requests_web:worker_assignment_detail' service_request.id %}" 
                                class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
+                                <i class="fas fa-times"></i> {% trans "Cancel" %}
                             </a>
                         </div>
                     </form>
@@ -88,14 +88,14 @@
             <!-- Info Card -->
             <div class="card bg-light mt-4">
                 <div class="card-body">
-                    <h6 class="card-title"><i class="fas fa-question-circle"></i> How Clock In/Out Works</h6>
+                    <h6 class="card-title"><i class="fas fa-question-circle"></i> {% trans "How Clock In/Out Works" %}</h6>
                     <ul class="mb-0">
-                        <li>Clock in when you arrive and start work</li>
-                        <li>Your time is tracked automatically</li>
-                        <li>Clock out when you take a break or finish for the day</li>
-                        <li>You can clock in/out multiple times for the same job</li>
-                        <li>Total hours = Sum of all work sessions</li>
-                        <li>Payment = Total hours × Hourly rate</li>
+                        <li>{% trans "Clock in when you arrive and start work" %}</li>
+                        <li>{% trans "Your time is tracked automatically" %}</li>
+                        <li>{% trans "Clock out when you take a break or finish for the day" %}</li>
+                        <li>{% trans "You can clock in/out multiple times for the same job" %}</li>
+                        <li>{% trans "Total hours = Sum of all work sessions" %}</li>
+                        <li>{% trans "Payment = Total hours × Hourly rate" %}</li>
                     </ul>
                 </div>
             </div>

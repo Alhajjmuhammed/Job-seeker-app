@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 interface PaymentScreenshotModalProps {
   visible: boolean;
@@ -30,6 +31,7 @@ export default function PaymentScreenshotModal({
 }: PaymentScreenshotModalProps) {
   const [screenshot, setScreenshot] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+  const { t } = useTranslation();
 
   // Clear screenshot and reset state when modal opens or closes
   useEffect(() => {
@@ -46,8 +48,8 @@ export default function PaymentScreenshotModal({
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Required',
-        'Please allow access to your photo library to upload payment screenshot.'
+        t('paymentScreenshot.permissionRequired'),
+        t('paymentScreenshot.galleryPermission')
       );
       return false;
     }
@@ -71,7 +73,7 @@ export default function PaymentScreenshotModal({
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
+      Alert.alert(t('common.error'), t('paymentScreenshot.failedPickImage'));
     }
   };
 
@@ -79,8 +81,8 @@ export default function PaymentScreenshotModal({
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Required',
-        'Please allow camera access to take a photo.'
+        t('paymentScreenshot.permissionRequired'),
+        t('paymentScreenshot.cameraPermission')
       );
       return;
     }
@@ -97,18 +99,18 @@ export default function PaymentScreenshotModal({
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      Alert.alert(t('common.error'), t('paymentScreenshot.failedTakePhoto'));
     }
   };
 
   const handleSubmit = () => {
     if (!screenshot) {
       Alert.alert(
-        'No Screenshot',
-        'Please upload a payment screenshot, or skip to submit without proof.',
+        t('paymentScreenshot.noScreenshot'),
+        t('paymentScreenshot.noScreenshotMsg'),
         [
-          { text: 'Upload Screenshot', style: 'default' },
-          { text: 'Skip', onPress: onSkip, style: 'cancel' },
+          { text: t('paymentScreenshot.uploadScreenshot'), style: 'default' },
+          { text: t('paymentScreenshot.skip'), onPress: onSkip, style: 'cancel' },
         ]
       );
       return;
@@ -120,11 +122,11 @@ export default function PaymentScreenshotModal({
 
   const handleSkip = () => {
     Alert.alert(
-      'Skip Screenshot Upload?',
-      'Your request will be submitted without payment proof. Admin may require verification before assigning a worker.',
+      t('paymentScreenshot.skipTitle'),
+      t('paymentScreenshot.skipMsg'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Skip', onPress: onSkip, style: 'destructive' },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('paymentScreenshot.skip'), onPress: onSkip, style: 'destructive' },
       ]
     );
   };
@@ -140,7 +142,7 @@ export default function PaymentScreenshotModal({
         <View style={styles.modal}>
           {/* Header - No close button */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Payment Proof</Text>
+            <Text style={styles.headerTitle}>{t('paymentScreenshot.title')}</Text>
             <View style={{ width: 24 }} />
           </View>
 
@@ -148,9 +150,9 @@ export default function PaymentScreenshotModal({
             {/* Payment Info */}
             <View style={styles.paymentInfo}>
               <Ionicons name="checkmark-circle" size={48} color="#10b981" />
-              <Text style={styles.successText}>Payment Initiated!</Text>
+              <Text style={styles.successText}>{t('paymentScreenshot.paymentInitiated')}</Text>
               <Text style={styles.infoText}>
-                Transaction ID: {paymentData?.transaction_id}
+                {t('paymentScreenshot.transactionId')} {paymentData?.transaction_id}
               </Text>
             </View>
 
@@ -159,10 +161,10 @@ export default function PaymentScreenshotModal({
               <Ionicons name="information-circle" size={24} color="#14b8a6" />
               <View style={styles.instructionsTextContainer}>
                 <Text style={styles.instructionsText}>
-                  Upload a screenshot of your payment confirmation to help admin verify your payment quickly.
+                  {t('paymentScreenshot.uploadInstructions')}
                 </Text>
                 <Text style={styles.deadlineText}>
-                  ⏰ Please upload within 7 minutes for faster processing.
+                  {t('paymentScreenshot.uploadDeadline')}
                 </Text>
               </View>
             </View>
@@ -170,7 +172,7 @@ export default function PaymentScreenshotModal({
             {/* Screenshot Preview */}
             {screenshot && (
               <View style={styles.previewContainer}>
-                <Text style={styles.label}>Screenshot Preview:</Text>
+                <Text style={styles.label}>{t('paymentScreenshot.screenshotPreview')}</Text>
                 <Image source={{ uri: screenshot.uri }} style={styles.preview} />
                 <TouchableOpacity
                   style={styles.removeButton}
@@ -178,7 +180,7 @@ export default function PaymentScreenshotModal({
                   disabled={uploading}
                 >
                   <Ionicons name="trash" size={20} color="#ef4444" />
-                  <Text style={styles.removeText}>Remove</Text>
+                  <Text style={styles.removeText}>{t('paymentScreenshot.remove')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -192,7 +194,7 @@ export default function PaymentScreenshotModal({
                   disabled={uploading}
                 >
                   <Ionicons name="images" size={32} color="#14b8a6" />
-                  <Text style={styles.uploadButtonText}>Choose from Gallery</Text>
+                  <Text style={styles.uploadButtonText}>{t('paymentScreenshot.chooseGallery')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -201,7 +203,7 @@ export default function PaymentScreenshotModal({
                   disabled={uploading}
                 >
                   <Ionicons name="camera" size={32} color="#14b8a6" />
-                  <Text style={styles.uploadButtonText}>Take Photo</Text>
+                  <Text style={styles.uploadButtonText}>{t('paymentScreenshot.takePhoto')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -219,7 +221,7 @@ export default function PaymentScreenshotModal({
                   <>
                     <Ionicons name="checkmark" size={20} color="#fff" />
                     <Text style={styles.submitButtonText}>
-                      {screenshot ? 'Submit with Screenshot' : 'Submit Anyway'}
+                      {screenshot ? t('paymentScreenshot.submitWithScreenshot') : t('paymentScreenshot.submitAnyway')}
                     </Text>
                   </>
                 )}
@@ -230,7 +232,7 @@ export default function PaymentScreenshotModal({
                 onPress={handleSkip}
                 disabled={uploading}
               >
-                <Text style={styles.skipButtonText}>Skip for Now</Text>
+                <Text style={styles.skipButtonText}>{t('paymentScreenshot.skipForNow')}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

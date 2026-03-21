@@ -3,10 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function ConnectionStatus() {
   const { connected, connectionState } = useWebSocket();
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   // WebSocket is now enabled - show connection status when not connected
   const getStatusColor = () => {
@@ -23,9 +25,9 @@ export default function ConnectionStatus() {
   const getStatusText = () => {
     switch (connectionState) {
       case 'connecting':
-        return 'Connecting...';
+        return t('common.connecting');
       case 'disconnected':
-        return 'Offline';
+        return t('common.offline');
       default:
         return '';
     }

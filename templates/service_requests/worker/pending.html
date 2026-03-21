@@ -1,6 +1,7 @@
 {% extends "workers/base_worker.html" %}
+{% load i18n %}
 
-{% block title %}Pending Assignments{% endblock %}
+{% block title %}{% trans "Pending Assignments" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -17,10 +18,10 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">🔔 Pending Assignments</h2>
+    <h2 class="mb-4">🔔 {% trans "Pending Assignments" %}</h2>
     
     {% if pending_assignments %}
-    <p class="lead">You have {{ pending_assignments.count }} assignment{{ pending_assignments.count|pluralize }} waiting for your response.</p>
+    <p class="lead">{% blocktrans with count=pending_assignments.count %}You have {{ count }} assignment{{ count|pluralize }} waiting for your response.{% endblocktrans %}</p>
     
     <div class="row">
         {% for assignment in pending_assignments %}
@@ -30,29 +31,29 @@
                     <h5 class="mb-0">{{ assignment.service_request.title }}</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Category:</strong> {{ assignment.service_request.category.name }}</p>
-                    <p><strong>Client:</strong> {{ assignment.service_request.client.get_full_name }}</p>
-                    <p><strong>Location:</strong> {{ assignment.service_request.location }}, {{ assignment.service_request.city }}</p>
-                    <p><strong>Urgency:</strong> 
+                    <p><strong>{% trans "Category:" %}</strong> {{ assignment.service_request.category.name }}</p>
+                    <p><strong>{% trans "Client:" %}</strong> {{ assignment.service_request.client.get_full_name }}</p>
+                    <p><strong>{% trans "Location:" %}</strong> {{ assignment.service_request.location }}, {{ assignment.service_request.city }}</p>
+                    <p><strong>{% trans "Urgency:" %}</strong> 
                         <span class="badge {% if assignment.service_request.urgency == 'emergency' %}bg-danger{% elif assignment.service_request.urgency == 'urgent' %}bg-warning{% else %}bg-secondary{% endif %}">
                             {{ assignment.service_request.get_urgency_display }}
                         </span>
                     </p>
-                    <p><strong>Estimated Duration:</strong> {{ assignment.service_request.estimated_duration_hours }} hours</p>
+                    <p><strong>{% trans "Estimated Duration:" %}</strong> {{ assignment.service_request.estimated_duration_hours }} {% trans "hours" %}</p>
                     {% if assignment.service_request.preferred_date %}
-                    <p><strong>Preferred Date:</strong> {{ assignment.service_request.preferred_date|date:"M d, Y" }} 
+                    <p><strong>{% trans "Preferred Date:" %}</strong> {{ assignment.service_request.preferred_date|date:"M d, Y" }} 
                        {% if assignment.service_request.preferred_time %}at {{ assignment.service_request.preferred_time|time:"h:i A" }}{% endif %}</p>
                     {% endif %}
-                    <p><strong>Description:</strong><br>{{ assignment.service_request.description }}</p>
+                    <p><strong>{% trans "Description:" %}</strong><br>{{ assignment.service_request.description }}</p>
                     {% if assignment.service_request.admin_notes %}
-                    <p><strong>Admin Notes:</strong><br><em>{{ assignment.service_request.admin_notes }}</em></p>
+                    <p><strong>{% trans "Admin Notes:" %}</strong><br><em>{{ assignment.service_request.admin_notes }}</em></p>
                     {% endif %}
                     <p><small class="text-muted">Assigned {{ assignment.assigned_at|timesince }} ago</small></p>
                     
                     <div class="d-grid gap-2">
                         <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
                            class="btn btn-primary btn-lg">
-                            View & Respond
+                            {% trans "View & Respond" %}
                         </a>
                     </div>
                 </div>
@@ -63,11 +64,11 @@
     
     {% else %}
     <div class="alert alert-info">
-        <h4 class="alert-heading">✅ All Caught Up!</h4>
-        <p>You have no pending assignments at the moment.</p>
+        <h4 class="alert-heading">✅ {% trans "All Caught Up!" %}</h4>
+        <p>{% trans "You have no pending assignments at the moment." %}</p>
         <hr>
         <p class="mb-0">
-            <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">Return to Dashboard</a>
+            <a href="{% url 'service_requests_web:worker_dashboard' %}" class="alert-link">{% trans "Return to Dashboard" %}</a>
         </p>
     </div>
     {% endif %}
