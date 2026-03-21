@@ -25,7 +25,6 @@ export default function ClientProfileScreen() {
   const [stats, setStats] = useState({
     activeJobs: 0,
     completedJobs: 0,
-    favorites: 0,
   });
 
   // Redirect if wrong user type
@@ -48,7 +47,6 @@ export default function ClientProfileScreen() {
       setStats({
         activeJobs: statsData.active_jobs,
         completedJobs: statsData.completed_jobs,
-        favorites: statsData.favorites,
       });
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -109,13 +107,6 @@ export default function ClientProfileScreen() {
             </Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('favoriteWorkers.completedJobs')}</Text>
           </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>
-              {stats.favorites}
-            </Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.favorites')}</Text>
-          </View>
         </View>
 
         {/* Menu Items */}
@@ -128,20 +119,12 @@ export default function ClientProfileScreen() {
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.editProfile')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.menuItem, { borderBottomColor: theme.border }]}
-            onPress={() => router.push('/(client)/favorites')}
-          >
-            <Ionicons name="heart-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('favoriteWorkers.favoriteWorkersTitle')}</Text>
-            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]} onPress={() => router.push('/(client)/payment-methods')}>
             <Ionicons name="card-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('paymentMethods.paymentMethodsTitle')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]} onPress={() => Alert.alert(t('profile.comingSoon'), t('profile.termsComingSoon'))}>
             <Ionicons name="location-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.savedAddresses')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
@@ -157,12 +140,12 @@ export default function ClientProfileScreen() {
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('settings.title')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]} onPress={() => router.push('/(client)/help' as any)}>
             <Ionicons name="help-circle-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('help.helpSupport')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]} onPress={() => Alert.alert(t('profile.comingSoon'), t('profile.termsComingSoon'))}>
             <Ionicons name="document-text-outline" size={22} color={theme.primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('profile.termsPrivacy')}</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />

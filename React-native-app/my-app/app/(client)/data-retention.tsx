@@ -38,7 +38,8 @@ export default function DataRetentionScreen() {
     try {
       setLoading(true);
       const response = await apiService.getDataRetention();
-      setRetentionData(response.retention_policies || []);
+      const policies = response.retention_policies;
+      setRetentionData(Array.isArray(policies) ? policies : getDefaultRetentionData());
       setLastUpdated(response.last_updated || new Date().toISOString());
     } catch (error: any) {
       console.error('Error loading data retention:', error);

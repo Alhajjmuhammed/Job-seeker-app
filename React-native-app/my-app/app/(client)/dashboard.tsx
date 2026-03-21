@@ -63,7 +63,6 @@ export default function ClientDashboard() {
     activeJobs: 0,
     completedJobs: 0,
     totalSpent: 0,
-    favorites: 0,
   });
 
   // Redirect if wrong user type
@@ -132,7 +131,6 @@ export default function ClientDashboard() {
         activeJobs: data.active_jobs ?? data.activeJobs ?? 0,
         completedJobs: data.completed_jobs ?? data.completedJobs ?? 0,
         totalSpent: data.total_spent ?? data.totalSpent ?? 0,
-        favorites: data.favorites ?? 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -286,13 +284,7 @@ export default function ClientDashboard() {
             <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>TSH {((Number(stats.totalSpent) || 0) / 1000).toFixed(1)}K</Text>
             <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.totalSpent')}</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.statCard, { backgroundColor: theme.card }]}
-            onPress={() => router.push('/(client)/favorites')}
-          >
-            <Text style={[styles.statValue, { color: theme.primary, fontFamily: 'Poppins_700Bold' }]}>{stats.favorites}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: 'Poppins_400Regular' }]}>{t('client.favorites')}</Text>
-          </TouchableOpacity>
+
         </View>
 
         {/* Quick Actions */}

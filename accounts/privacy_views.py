@@ -31,7 +31,7 @@ def get_privacy_settings(request):
         'sms_notifications': prefs.sms_job_applications or prefs.sms_urgent_messages,
         'push_notifications': prefs.push_messages or prefs.push_new_jobs,
         'marketing_emails': prefs.email_marketing,
-        'profile_visibility': 'public' if (profile and profile.is_public if profile else True) else 'private',
+        'profile_visibility': 'public' if getattr(profile, 'is_public', True) else 'private',
         'show_email': user.show_email if hasattr(user, 'show_email') else False,
         'show_phone': user.show_phone if hasattr(user, 'show_phone') else False,
         'allow_search_indexing': user.allow_search_indexing if hasattr(user, 'allow_search_indexing') else True,
@@ -112,8 +112,22 @@ def update_privacy_settings(request):
     
     if user_updated:
         user.save()
-    
+
+    # Re-fetch updated prefs to return current state
+    prefs.refresh_from_db()
+    profile = user.worker_profile if hasattr(user, 'worker_profile') else None
+
     return Response({
         'message': 'Privacy settings updated successfully',
-        'settings': get_privacy_settings(request).data
+        'settings': {
+            'user_id': user.id,
+            'email_notifications': prefs.email_messages or prefs.email_new_jobs,
+            'sms_notifications': prefs.sms_job_applications or prefs.sms_urgent_messages,
+            'push_notifications': prefs.push_messages or prefs.push_new_jobs,
+            'marketing_emails': prefs.email_marketing,
+            'profile_visibility': 'public' if getattr(profile, 'is_public', True) else 'private',
+            'show_email': getattr(user, 'show_email', False),
+            'show_phone': getattr(user, 'show_phone', False),
+            'allow_search_indexing': getattr(user, 'allow_search_indexing', True),
+        }
     })

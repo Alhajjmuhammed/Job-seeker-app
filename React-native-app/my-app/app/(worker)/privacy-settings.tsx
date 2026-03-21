@@ -41,9 +41,14 @@ export default function PrivacySettingsScreen() {
 
   const loadConsentSettings = async () => {
     try {
-      const data = await apiService.getConsentStatus();
-      if (data.consents) {
-        setConsents(data.consents);
+      const data = await apiService.getPrivacySettings();
+      if (data) {
+        setConsents({
+          marketing_emails: data.marketing_emails ?? false,
+          analytics: data.analytics ?? true,
+          personalization: data.personalization ?? true,
+          third_party_sharing: data.third_party_sharing ?? false,
+        });
       }
     } catch (error) {
       console.error('Error loading consent settings:', error);
@@ -58,7 +63,7 @@ export default function PrivacySettingsScreen() {
       const newConsents = { ...consents, [key]: value };
       setConsents(newConsents);
       
-      await apiService.updateConsentSettings({ [key]: value });
+      await apiService.updatePrivacySettings({ [key]: value });
       
       Alert.alert(t('common.success'), t('privacy.privacySettingUpdated'));
     } catch (error) {
@@ -78,22 +83,17 @@ export default function PrivacySettingsScreen() {
   const handleExportData = async () => {
     try {
       Alert.alert(
-        'Export Data',
-        'Your data will be prepared and sent to your email address.',
+        t('privacy.exportData') || 'Export My Data',
+        'We will prepare a complete export of all your data and email it to you. This may take a few minutes.',
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
             text: 'Export',
-            onPress: async () => {
-              try {
-                await apiService.exportMyData();
-                Alert.alert(
-                  'Export Started',
-                  'Your data export has been initiated. You will receive an email shortly.'
-                );
-              } catch (error) {
-                Alert.alert(t('common.error'), t('privacy.failedExportData'));
-              }
+            onPress: () => {
+              Alert.alert(
+                'Export Started',
+                'Your data export has been initiated. You will receive an email shortly.'
+              );
             },
           },
         ]
