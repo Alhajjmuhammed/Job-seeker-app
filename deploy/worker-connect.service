@@ -1,0 +1,25 @@
+# Systemd service file for Worker Connect
+# Place this file in: /etc/systemd/system/worker-connect.service
+
+[Unit]
+Description=Worker Connect Django Application
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/worker-connect
+Environment="PATH=/var/www/worker-connect/venv/bin"
+ExecStart=/var/www/worker-connect/venv/bin/gunicorn \
+    --config /var/www/worker-connect/gunicorn_config.py \
+    worker_connect.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
