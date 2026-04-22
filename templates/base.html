@@ -7,6 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{% block title %}Worker Connect - Find Your Perfect Worker{% endblock %}</title>
     
+    <!-- Favicon - Circular PNG versions -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/favicon-192.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/favicon-180.png' %}">
+    <meta name="theme-color" content="#14b8a6">
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -276,6 +284,93 @@
         .lang-switcher .dropdown-menu { min-width: 130px; }
         .lang-switcher .dropdown-item { font-size: 0.85rem; }
         .lang-switcher .dropdown-item.active-lang { color: #14b8a6 !important; font-weight: 600; }
+
+        /* ── Mobile collapsed navbar ── */
+        @media (max-width: 991px) {
+            #navbarNav {
+                background: #0f172a;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding: 0.75rem 0.5rem;
+                margin-top: 0;
+            }
+            #navbarNav .navbar-nav {
+                gap: 0.35rem !important;
+                align-items: stretch !important;
+            }
+            /* Every nav item becomes a full-width consistent row */
+            #navbarNav .nav-link,
+            #navbarNav .btn-nav-login,
+            #navbarNav .btn-nav-signup {
+                display: flex !important;
+                align-items: center;
+                width: 100%;
+                padding: 0.7rem 1rem !important;
+                border-radius: 8px !important;
+                font-size: 0.95rem !important;
+                font-weight: 500;
+            }
+            /* Home and other nav-links */
+            #navbarNav .nav-link {
+                background: rgba(255,255,255,0.05) !important;
+                color: rgba(255,255,255,0.85) !important;
+                border: none !important;
+            }
+            #navbarNav .nav-link:hover,
+            #navbarNav .nav-link.active {
+                background: rgba(255,255,255,0.1) !important;
+                color: white !important;
+            }
+            /* Login button - same row style, subtle border */
+            #navbarNav .btn-nav-login {
+                background: rgba(255,255,255,0.05) !important;
+                border: 1px solid rgba(255,255,255,0.18) !important;
+                color: rgba(255,255,255,0.85) !important;
+                justify-content: center;
+                font-weight: 500;
+            }
+            #navbarNav .btn-nav-login:hover {
+                background: rgba(255,255,255,0.1) !important;
+                color: white !important;
+            }
+            /* Sign Up button - teal, full width */
+            #navbarNav .btn-nav-signup {
+                background: linear-gradient(135deg, #14b8a6, #0d9488) !important;
+                color: white !important;
+                justify-content: center;
+                font-weight: 600;
+                border: none !important;
+            }
+            /* Divider between nav links and auth buttons */
+            #navbarNav .nav-auth-divider {
+                border-top: 1px solid rgba(255,255,255,0.1);
+                margin: 0.35rem 0;
+            }
+            /* Theme toggle full-width row */
+            #navbarNav #theme-toggle {
+                width: 100%;
+                height: auto;
+                padding: 0.7rem 1rem;
+                border-radius: 8px !important;
+                justify-content: flex-start;
+                gap: 0.5rem;
+                background: rgba(255,255,255,0.05) !important;
+                color: rgba(255,255,255,0.7) !important;
+                font-size: 0.95rem;
+            }
+            #navbarNav #theme-toggle::after {
+                content: 'Dark Mode';
+                font-size: 0.9rem;
+            }
+            /* Dropdown toggle consistent */
+            #navbarNav .dropdown-toggle {
+                background: rgba(255,255,255,0.05) !important;
+            }
+            /* Dropdown menu full width on mobile */
+            #navbarNav .dropdown-menu {
+                width: 100%;
+                margin-top: 0.35rem !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -390,8 +485,9 @@
                             </ul>
                         </li>
                     {% else %}
+                        <li class="nav-item nav-auth-divider d-none d-block d-lg-none"></li>
                         <li class="nav-item">
-                            <a class="btn-nav-login" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
+                            <a class="btn-nav-login" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right me-2 d-lg-none"></i>{% trans "Login" %}</a>
                         </li>
                         <li class="nav-item">
                             <a class="btn-nav-signup" href="{% url 'accounts:register_choice' %}">
@@ -475,21 +571,30 @@
                     </ul>
                 </div>
 
+                <!-- Legal -->
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="fw-semibold text-white mb-3 text-uppercase" style="font-size:0.78rem;letter-spacing:0.08em;">Legal</h6>
+                    <ul class="list-unstyled mb-0" style="color:white;font-size:0.91rem;">
+                        <li class="mb-2"><a href="{% url 'terms' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-file-text me-1"></i>Terms & Conditions</a></li>
+                        <li class="mb-2"><a href="{% url 'privacy' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-shield-check me-1"></i>Privacy Policy</a></li>
+                    </ul>
+                </div>
+
                 <!-- Contact -->
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-2 col-md-6">
                     <h6 class="fw-semibold text-white mb-3 text-uppercase" style="font-size:0.78rem;letter-spacing:0.08em;">Contact Us</h6>
                     <ul class="list-unstyled mb-0" style="font-size:0.91rem;">
                         <li class="mb-3 d-flex align-items-start gap-2">
                             <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-envelope-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                            <span style="color:white;">support@workerconnect.co.tz</span>
+                            <span style="color:white;">easyfixsoft@gmail.com</span>
                         </li>
                         <li class="mb-3 d-flex align-items-start gap-2">
                             <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-telephone-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                            <span style="color:white;">+255 XXX XXX XXX</span>
+                            <span style="color:white;">+255 790 476 113</span>
                         </li>
                         <li class="d-flex align-items-start gap-2">
                             <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-geo-alt-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                            <span style="color:white;">Dar es Salaam, Tanzania</span>
+                            <span style="color:white;">Fumba Road, Zanzibar</span>
                         </li>
                     </ul>
                 </div>
