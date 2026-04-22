@@ -524,12 +524,12 @@ REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'worker_connect.error_codes.custom_excepti
 
 # Production Security Settings
 if not DEBUG:
-    # Security settings for production
-    # SECURE_SSL_REDIRECT = True  # Commented out - enable when you have SSL certificate
-    # SECURE_HSTS_SECONDS = 31536000  # 1 year
-    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    # SECURE_HSTS_PRELOAD = True
-    # SESSION_COOKIE_SECURE = True
-    # CSRF_COOKIE_SECURE = True
+    # HTTPS Security settings (enabled - SSL certificate active on wc.easyfixsoft.com)
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
