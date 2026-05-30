@@ -143,6 +143,94 @@
             .agent-header { left: 0; }
             .agent-main { margin-left: 0 !important; }
         }
+
+        /* ===== Dark Mode Overrides ===== */
+        [data-bs-theme="dark"] body { background: #0f172a !important; }
+        [data-bs-theme="dark"] .agent-header {
+            background: #0f172a !important;
+            border-bottom-color: #334155 !important;
+        }
+        [data-bs-theme="dark"] .agent-sidebar {
+            background: #1e293b !important;
+            border-right-color: #334155 !important;
+        }
+        [data-bs-theme="dark"] .agent-main { background: #0f172a !important; }
+        [data-bs-theme="dark"] .agent-sidebar .brand {
+            color: #f1f5f9 !important;
+            border-bottom-color: #334155 !important;
+        }
+        [data-bs-theme="dark"] .agent-sidebar .section-title { color: #64748b !important; }
+        [data-bs-theme="dark"] .agent-sidebar .nav-link { color: #94a3b8 !important; }
+        [data-bs-theme="dark"] .agent-sidebar .nav-link:hover {
+            background: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        [data-bs-theme="dark"] .sidebar-toggle-btn {
+            background: #1e293b !important;
+            color: #94a3b8 !important;
+        }
+        [data-bs-theme="dark"] .sidebar-toggle-btn:hover {
+            background: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        [data-bs-theme="dark"] .user-menu-toggle:hover { background: #1e293b !important; }
+        [data-bs-theme="dark"] .user-name { color: #f1f5f9 !important; }
+        [data-bs-theme="dark"] .user-role { color: #94a3b8 !important; }
+        [data-bs-theme="dark"] .pending-banner {
+            background: #1e293b !important;
+            border-color: #0f766e !important;
+            color: #f1f5f9 !important;
+        }
+        /* Content area: custom card/section backgrounds */
+        [data-bs-theme="dark"] .agent-content .card,
+        [data-bs-theme="dark"] .agent-content .stat-card,
+        [data-bs-theme="dark"] .agent-content .info-card,
+        [data-bs-theme="dark"] .agent-content .form-card,
+        [data-bs-theme="dark"] .agent-content .worker-card,
+        [data-bs-theme="dark"] .agent-content .empty-state {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+            color: #e2e8f0;
+        }
+        /* Table theming */
+        [data-bs-theme="dark"] .agent-content .table {
+            --bs-table-bg: #1e293b;
+            --bs-table-border-color: #334155;
+            color: #e2e8f0;
+        }
+        [data-bs-theme="dark"] .agent-content .table thead th {
+            background: #0f172a !important;
+            color: #94a3b8 !important;
+            border-color: #334155 !important;
+        }
+        /* Form controls */
+        [data-bs-theme="dark"] .agent-content .form-control,
+        [data-bs-theme="dark"] .agent-content .form-select {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        /* Headings */
+        [data-bs-theme="dark"] .agent-content h1,
+        [data-bs-theme="dark"] .agent-content h2,
+        [data-bs-theme="dark"] .agent-content h3,
+        [data-bs-theme="dark"] .agent-content h4,
+        [data-bs-theme="dark"] .agent-content h5,
+        [data-bs-theme="dark"] .agent-content h6 { color: #f1f5f9; }
+        [data-bs-theme="dark"] .agent-content p { color: #cbd5e1; }
+        [data-bs-theme="dark"] .agent-content .text-muted { color: #94a3b8 !important; }
+        [data-bs-theme="dark"] .agent-content hr { border-color: #334155 !important; }
+        /* Card header: override bg-white / hardcoded light bg */
+        [data-bs-theme="dark"] .agent-content .card-header {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            color: #f1f5f9 !important;
+        }
+        [data-bs-theme="dark"] .agent-content .list-group-item {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>

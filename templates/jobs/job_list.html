@@ -79,6 +79,17 @@
         display: flex;
         gap: 0.75rem;
         justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+    @media (max-width: 576px) {
+        .filter-actions {
+            flex-direction: column;
+        }
+        .filter-actions .btn-filter,
+        .filter-actions .btn-clear {
+            width: 100%;
+            text-align: center;
+        }
     }
 
     .btn-filter {

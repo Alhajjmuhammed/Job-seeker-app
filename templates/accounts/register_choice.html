@@ -76,11 +76,20 @@
         background: #f8fafc;
         border-top: 1px solid #e2e8f0;
     }
+    .role-section { background: #f8fafc; }
     .trust-item i { font-size: 1.6rem; }
+    /* ── Dark Mode ── */
+    [data-bs-theme="dark"] .role-section { background: #0f172a !important; }
+    [data-bs-theme="dark"] .role-card { background: #1e293b !important; }
+    [data-bs-theme="dark"] .role-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important; }
+    [data-bs-theme="dark"] .feature-item { border-bottom-color: #334155; }
+    [data-bs-theme="dark"] .feature-item span { color: #cbd5e1; }
+    [data-bs-theme="dark"] .trust-strip { background: #1e293b; border-top-color: #334155; }
+    [data-bs-theme="dark"] .trust-strip p, [data-bs-theme="dark"] .trust-strip small { color: #94a3b8 !important; }
 </style>
 
 <!-- Cards Section -->
-<section class="py-5" style="background:#f8fafc;">
+<section class="role-section py-5">
     <div class="container">
 
         <!-- Back to Home -->
@@ -91,7 +100,7 @@
         </div>
 
         <div class="text-center mb-5">
-            <h2 class="fw-bold text-dark mb-1">{% trans "Choose Your Account Type" %}</h2>
+            <h2 class="fw-bold mb-1">{% trans "Choose Your Account Type" %}</h2>
             <p class="text-muted">{% trans "Select the role that best describes you" %}</p>
         </div>
 
@@ -99,7 +108,7 @@
 
             <!-- Worker Card -->
             <div class="col-md-4">
-                <div class="card role-card worker h-100 shadow border-0 bg-white">
+                <div class="card role-card worker h-100 shadow border-0">
                     <div class="card-body p-4 p-lg-5 text-center d-flex flex-column">
                         <div class="role-icon-wrap">
                             <i class="bi bi-person-badge-fill"></i>
@@ -137,7 +146,7 @@
 
             <!-- Client Card -->
             <div class="col-md-4">
-                <div class="card role-card client h-100 shadow border-0 bg-white">
+                <div class="card role-card client h-100 shadow border-0">
                     <div class="card-body p-4 p-lg-5 text-center d-flex flex-column">
                         <div class="role-icon-wrap">
                             <i class="bi bi-briefcase-fill"></i>
@@ -175,7 +184,7 @@
 
             <!-- Agent Card -->
             <div class="col-md-4">
-                <div class="card role-card agent h-100 shadow border-0 bg-white">
+                <div class="card role-card agent h-100 shadow border-0">
                     <div class="card-body p-4 p-lg-5 text-center d-flex flex-column">
                         <div class="role-icon-wrap">
                             <i class="bi bi-diagram-3-fill"></i>

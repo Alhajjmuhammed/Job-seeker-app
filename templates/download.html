@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Download Worker Connect App{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+    /* ── Page ── */
+    .dl-section {
+        min-height: calc(100vh - 72px);
+        background: linear-gradient(140deg, #071a18 0%, #0a2e2b 35%, #0c5450 70%, #0D6E68 100%);
+        display: flex; align-items: center; justify-content: center;
+        padding: 3rem 1.5rem;
+        position: relative; overflow: hidden;
+    }
+    .dl-section::before {
+        content: '';
+        position: absolute; top: -120px; right: -120px;
+        width: 500px; height: 500px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(20,184,166,0.18) 0%, transparent 65%);
+        pointer-events: none;
+    }
+    .dl-section::after {
+        content: '';
+        position: absolute; bottom: -100px; left: -100px;
+        width: 420px; height: 420px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(13,110,104,0.22) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+    .dl-inner {
+        position: relative; z-index: 1;
+        width: 100%; max-width: 920px;
+        display: grid;
+        grid-template-columns: 1fr 1.45fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    /* ── LEFT ── */
+    .dl-left { display: flex; flex-direction: column; align-items: center; gap: 1.75rem; }
+
+    .dl-brand { text-align: center; }
+    .dl-logo {
+        width: 90px; height: 90px;
+        border-radius: 26px; object-fit: cover;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 4px rgba(20,184,166,0.25);
+        background: white; padding: 2px;
+        margin-bottom: 1rem;
+    }
+    .dl-app-name { font-size: 1.55rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .dl-app-sub { font-size: 0.83rem; color: rgba(255,255,255,0.6); margin-top: 0.3rem; }
+    .dl-pills { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: center; margin-top: 0.9rem; }
+    .dl-pill {
+        font-size: 0.68rem; font-weight: 600;
+        padding: 0.2rem 0.7rem; border-radius: 100px;
+        border: 1px solid rgba(45,212,191,0.35);
+        color: #2dd4bf; background: rgba(45,212,191,0.08);
+        display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    .dl-qr-card {
+        width: 100%;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 20px; padding: 1.5rem;
+        text-align: center;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    .dl-qr-label {
+        font-size: 0.68rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.55);
+        margin-bottom: 1rem;
+        display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    }
+    #qrcode { display: flex; justify-content: center; }
+    #qrcode canvas, #qrcode img { border-radius: 10px; }
+    .dl-qr-hint { font-size: 0.67rem; color: rgba(255,255,255,0.4); margin-top: 0.9rem; }
+
+    /* ── RIGHT ── */
+    .dl-right { display: flex; flex-direction: column; gap: 1.6rem; }
+
+    .dl-title { font-size: 2.1rem; font-weight: 800; color: #fff; line-height: 1.18; margin-bottom: 0.5rem; }
+    .dl-desc { font-size: 0.9rem; color: rgba(255,255,255,0.65); line-height: 1.65; }
+
+    /* Big download button */
+    .btn-dl {
+        display: flex; align-items: center; gap: 1rem;
+        background: linear-gradient(135deg, #14b8a6 0%, #0a8c84 100%);
+        color: #fff; text-decoration: none;
+        padding: 1.05rem 1.75rem; border-radius: 18px;
+        box-shadow: 0 10px 35px rgba(13,110,104,0.55);
+        transition: all 0.25s;
+        position: relative; overflow: hidden;
+    }
+    .btn-dl::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 55%);
+    }
+    .btn-dl:hover { transform: translateY(-3px); box-shadow: 0 18px 50px rgba(13,110,104,0.65); color: #fff; }
+    .btn-dl-icon { font-size: 2rem; flex-shrink: 0; position: relative; }
+    .btn-dl-text { position: relative; }
+    .btn-dl-main-text { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .btn-dl-sub-text { font-size: 0.72rem; color: rgba(255,255,255,0.8); font-weight: 400; margin-top: 1px; }
+
+    /* Meta row */
+    .dl-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .dl-meta-item {
+        display: flex; align-items: center; gap: 0.4rem;
+        font-size: 0.78rem; color: rgba(255,255,255,0.65);
+    }
+    .dl-meta-item i { color: #2dd4bf; }
+
+    /* Steps */
+    .dl-steps-card {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 18px; padding: 1.35rem 1.5rem;
+        backdrop-filter: blur(8px);
+    }
+    .dl-steps-title {
+        font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.55);
+        display: flex; align-items: center; gap: 0.4rem;
+        margin-bottom: 1.1rem;
+    }
+    .dl-steps-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .dl-step { display: flex; align-items: flex-start; gap: 0.85rem; }
+    .dl-step-n {
+        width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, #14b8a6, #0d9488);
+        color: #fff; font-size: 0.65rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        margin-top: 1px;
+        box-shadow: 0 3px 10px rgba(13,110,104,0.4);
+    }
+    .dl-step-t { font-size: 0.82rem; color: rgba(255,255,255,0.75); line-height: 1.5; }
+    .dl-step-t strong { color: #fff; font-weight: 700; }
+
+    /* Features */
+    .dl-feats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .dl-feat {
+        display: flex; align-items: center; gap: 0.55rem;
+        font-size: 0.78rem; color: rgba(255,255,255,0.75);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 10px; padding: 0.55rem 0.85rem;
+        transition: background 0.2s;
+    }
+    .dl-feat:hover { background: rgba(20,184,166,0.12); border-color: rgba(20,184,166,0.25); }
+    .dl-feat i { color: #2dd4bf; font-size: 0.9rem; flex-shrink: 0; }
+
+    /* ── LIGHT MODE overrides ── */
+    [data-bs-theme="light"] .dl-section {
+        background: linear-gradient(140deg, #e0f2f1 0%, #b2dfdb 35%, #4db6ac 70%, #00897b 100%);
+    }
+    [data-bs-theme="light"] .dl-section::before {
+        background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 65%);
+    }
+
+    /* Brand text */
+    [data-bs-theme="light"] .dl-app-name { color: #012e2b; }
+    [data-bs-theme="light"] .dl-app-sub { color: rgba(1,46,43,0.65); }
+    [data-bs-theme="light"] .dl-pill { border-color: rgba(0,77,64,0.4); color: #004d40; background: rgba(255,255,255,0.45); }
+
+    /* QR card */
+    [data-bs-theme="light"] .dl-qr-card { background: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.85); }
+    [data-bs-theme="light"] .dl-qr-label { color: #004d40; }
+    [data-bs-theme="light"] .dl-qr-hint { color: rgba(1,46,43,0.5); }
+
+    /* Right content */
+    [data-bs-theme="light"] .dl-title { color: #012e2b; }
+    [data-bs-theme="light"] .dl-desc { color: rgba(1,46,43,0.7); }
+    [data-bs-theme="light"] .dl-meta-item { color: rgba(1,46,43,0.7); }
+    [data-bs-theme="light"] .dl-meta-item i { color: #00695c; }
+
+    /* Steps card */
+    [data-bs-theme="light"] .dl-steps-card { background: rgba(255,255,255,0.55); border-color: rgba(255,255,255,0.8); }
+    [data-bs-theme="light"] .dl-steps-title { color: #004d40; }
+    [data-bs-theme="light"] .dl-step-t { color: #1a3835; }
+    [data-bs-theme="light"] .dl-step-t strong { color: #012e2b; }
+
+    /* Features */
+    [data-bs-theme="light"] .dl-feat { background: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.75); color: #1a3835; }
+    [data-bs-theme="light"] .dl-feat:hover { background: rgba(0,105,92,0.12); border-color: rgba(0,105,92,0.3); }
+    [data-bs-theme="light"] .dl-feat i { color: #00695c; }
+
+    /* Download button */
+    [data-bs-theme="light"] .btn-dl-main-text { color: #fff; }
+    [data-bs-theme="light"] .btn-dl-sub-text { color: rgba(255,255,255,0.85); }
+
+    @media (max-width: 720px) {
+        .dl-inner { grid-template-columns: 1fr; gap: 2rem; }
+        .dl-left { order: 2; }
+        .dl-right { order: 1; }
+        .dl-qr-card { display: none; }
+        .dl-title { font-size: 1.7rem; }
+        .dl-feats { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dl-section">
+<div class="dl-inner">
+
+    <!-- LEFT: Brand + QR -->
+    <div class="dl-left">
+        <div class="dl-brand">
+            <img src="{% static 'images/logo.png' %}" alt="Worker Connect" class="dl-logo"
+                 onerror="this.src='https://via.placeholder.com/90/0D6E68/fff?text=WC'">
+            <div class="dl-app-name">Worker Connect</div>
+            <div class="dl-app-sub">Connect with skilled workers near you</div>
+            <div class="dl-pills">
+                <span class="dl-pill"><i class="bi bi-android2"></i> Android</span>
+                <span class="dl-pill">v{{ app_version }}</span>
+                <span class="dl-pill"><i class="bi bi-shield-fill-check"></i> Safe</span>
+                <span class="dl-pill"><i class="bi bi-gift-fill"></i> Free</span>
+            </div>
+        </div>
+
+        <div class="dl-qr-card">
+            <div class="dl-qr-label"><i class="bi bi-qr-code-scan"></i> Scan to Download</div>
+            <div id="qrcode"></div>
+            <div class="dl-qr-hint">Point your camera at the code above</div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Content -->
+    <div class="dl-right">
+        <div>
+            <div class="dl-title">Download the<br>Mobile App</div>
+            <p class="dl-desc">Get instant access to thousands of verified workers — hire, chat, pay, and review, all from your phone.</p>
+        </div>
+
+        <a href="{{ apk_url }}" class="btn-dl" id="downloadBtn">
+            <i class="bi bi-android2 btn-dl-icon"></i>
+            <div class="btn-dl-text">
+                <div class="btn-dl-main-text">Download for Android</div>
+                <div class="btn-dl-sub-text">{{ apk_size }} &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; Free</div>
+            </div>
+        </a>
+
+        <div class="dl-meta">
+            <div class="dl-meta-item"><i class="bi bi-shield-fill-check"></i> Virus-free &amp; safe</div>
+            <div class="dl-meta-item"><i class="bi bi-download"></i> Direct APK install</div>
+            <div class="dl-meta-item"><i class="bi bi-arrow-repeat"></i> Free updates</div>
+        </div>
+
+        <div class="dl-steps-card">
+            <div class="dl-steps-title"><i class="bi bi-list-ol"></i> How to Install</div>
+            <div class="dl-steps-list">
+                <div class="dl-step"><div class="dl-step-n">1</div><div class="dl-step-t">Tap <strong>Download for Android</strong> above to save the file</div></div>
+                <div class="dl-step"><div class="dl-step-n">2</div><div class="dl-step-t">Open the <strong>.apk</strong> file from your downloads or notification bar</div></div>
+                <div class="dl-step"><div class="dl-step-n">3</div><div class="dl-step-t">If prompted, allow <strong>Install from Unknown Sources</strong> in settings</div></div>
+                <div class="dl-step"><div class="dl-step-n">4</div><div class="dl-step-t">Tap <strong>Install</strong>, then open Worker Connect and sign up!</div></div>
+            </div>
+        </div>
+
+        <div class="dl-feats">
+            <div class="dl-feat"><i class="bi bi-people-fill"></i> Find skilled workers</div>
+            <div class="dl-feat"><i class="bi bi-send-fill"></i> Post service requests</div>
+            <div class="dl-feat"><i class="bi bi-chat-dots-fill"></i> Real-time chat</div>
+            <div class="dl-feat"><i class="bi bi-credit-card-2-front-fill"></i> Secure payments</div>
+            <div class="dl-feat"><i class="bi bi-geo-alt-fill"></i> Track workers live</div>
+            <div class="dl-feat"><i class="bi bi-star-fill"></i> Rate &amp; review</div>
+        </div>
+    </div>
+
+</div>
+</section>
+
+<script>
+    const apkUrl = "{{ apk_url }}";
+    if (apkUrl && apkUrl !== '#') {
+        new QRCode(document.getElementById("qrcode"), {
+            text: apkUrl,
+            width: 165, height: 165,
+            colorDark: "#0D6E68",
+            colorLight: "#f0fffe",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+        const orig = this.innerHTML;
+        this.innerHTML = '<i class="bi bi-hourglass-split btn-dl-icon"></i><div class="btn-dl-text"><div class="btn-dl-main-text">Starting Download&hellip;</div><div class="btn-dl-sub-text">Please wait a moment</div></div>';
+        setTimeout(() => { this.innerHTML = orig; }, 3000);
+    });
+</script>
+{% endblock %}

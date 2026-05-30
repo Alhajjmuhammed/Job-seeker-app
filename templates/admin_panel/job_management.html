@@ -44,6 +44,11 @@
         color: #6b7280;
         font-size: 0.9rem;
     }
+    @media (max-width: 576px) {
+        .stats-cards { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .stat-card { padding: 1rem; }
+        .stat-card h3 { font-size: 1.5rem; }
+    }
     
     .filters-section {
         background: white;

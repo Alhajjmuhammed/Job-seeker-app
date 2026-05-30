@@ -27,7 +27,7 @@
     
     <!-- Stats Summary -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="card text-center bg-success text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ completed_count }}</h3>
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="card text-center bg-danger text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ cancelled_count }}</h3>
@@ -43,7 +43,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="card text-center bg-info text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ total_spent|floatformat:2 }}</h3>
@@ -51,7 +51,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="card text-center bg-warning">
                 <div class="card-body">
                     <h3 class="card-title">{{ total_hours|floatformat:0 }}</h3>
@@ -119,14 +119,14 @@
     </div>
     
     <!-- Quick Tabs -->
-    <div class="btn-group mb-4" role="group">
-        <a href="?" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+    <div class="d-flex flex-wrap gap-1 mb-4">
+        <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
             All History
         </a>
-        <a href="?status=completed" class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+        <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
             <i class="bi bi-check-circle"></i> Completed
         </a>
-        <a href="?status=cancelled" class="btn {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+        <a href="?status=cancelled" class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
             <i class="bi bi-x-circle"></i> Cancelled
         </a>
     </div>

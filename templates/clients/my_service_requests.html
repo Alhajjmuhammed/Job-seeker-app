@@ -46,10 +46,10 @@
 
     <!-- Status Filter -->
     <div class="mb-4">
-        <div class="btn-group" role="group">
+        <div class="d-flex flex-wrap gap-1">
             {% for value, label in status_choices %}
             <a href="?status={{ value }}" 
-               class="btn {% if status_filter == value %}btn-primary{% else %}btn-outline-primary{% endif %}">
+               class="btn btn-sm {% if status_filter == value %}btn-primary{% else %}btn-outline-primary{% endif %}">
                 {{ label }}
             </a>
             {% endfor %}

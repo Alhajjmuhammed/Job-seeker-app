@@ -185,20 +185,20 @@
     </div>
     
     <!-- Quick Status Buttons -->
-    <div class="btn-group mb-4" role="group">
-        <a href="?" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+    <div class="d-flex flex-wrap gap-1 mb-4">
+        <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
             All ({{ total_count }})
         </a>
-        <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-outline-primary active{% else %}btn-outline-secondary{% endif %}">
+        <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-outline-primary active{% else %}btn-outline-secondary{% endif %}">
             Pending ({{ pending_count }})
         </a>
-        <a href="?status=assigned" class="btn {% if status_filter == 'assigned' %}btn-outline-primary active{% else %}btn-outline-secondary{% endif %}">
+        <a href="?status=assigned" class="btn btn-sm {% if status_filter == 'assigned' %}btn-outline-primary active{% else %}btn-outline-secondary{% endif %}">
             Assigned ({{ assigned_count }})
         </a>
-        <a href="?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <a href="?status=in_progress" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline-primary{% endif %}">
             In Progress ({{ in_progress_count }})
         </a>
-        <a href="?status=completed" class="btn {% if status_filter == 'completed' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-outline-primary{% endif %}">
             Completed ({{ completed_count }})
         </a>
     </div>

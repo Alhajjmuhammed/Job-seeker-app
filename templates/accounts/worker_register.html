@@ -44,6 +44,18 @@
     .btn-reg { background:linear-gradient(135deg,#14b8a6,#0d9488);border:none;color:white;font-weight:600;font-size:1rem;border-radius:10px;padding:0.75rem;transition:opacity 0.2s; }
     .btn-reg:hover { opacity:0.9;color:white; }
     @media(max-width:768px){ .reg-left{display:none;} .reg-right{padding:2rem 1.5rem;max-height:none;} }
+    /* ── Dark Mode ── */
+    [data-bs-theme="dark"] .reg-wrap { background: #0f172a; }
+    [data-bs-theme="dark"] .reg-card { box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+    [data-bs-theme="dark"] .reg-right { background: #1e293b; }
+    [data-bs-theme="dark"] .reg-right h3 { color: #f1f5f9; }
+    [data-bs-theme="dark"] .reg-right .sub-text { color: #64748b; }
+    [data-bs-theme="dark"] .reg-right label { color: #94a3b8; }
+    [data-bs-theme="dark"] .reg-right .form-control { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+    [data-bs-theme="dark"] .reg-right .form-control::placeholder { color: #475569; }
+    [data-bs-theme="dark"] .reg-right .form-control:focus { border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20,184,166,0.15); }
+    [data-bs-theme="dark"] .reg-right select.form-control { background: #0f172a; color: #e2e8f0; }
+    [data-bs-theme="dark"] .reg-right a { color: #2dd4bf; }
 </style>
 
 <div class="reg-wrap">

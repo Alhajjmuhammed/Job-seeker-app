@@ -1,4 +1,4 @@
-{% extends 'workers/base_worker.html' %}
+﻿{% extends 'workers/base_worker.html' %}
 {% load static i18n %}
 
 {% block title %}{% trans "Worker Dashboard" %} - Worker Connect{% endblock %}
@@ -10,6 +10,15 @@
     .worker-content {
         background: white !important;
         padding: 2rem !important;
+    }
+    @media (max-width: 576px) {
+        .btn-quick-action {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 </style>
 {% endblock %}
@@ -27,7 +36,7 @@
 
     <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-md-3 col-sm-6">
+        <div class="col-6 col-md-3">
             <div class="card stats-card primary border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -43,7 +52,7 @@
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
+        <div class="col-6 col-md-3">
             <div class="card stats-card success border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -59,7 +68,7 @@
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
+        <div class="col-6 col-md-3">
             <div class="card stats-card warning border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -78,7 +87,7 @@
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
+        <div class="col-6 col-md-3">
             <div class="card stats-card info border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -124,37 +133,37 @@
                     </h5>
                     <div class="row g-2">
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'workers:analytics' %}" class="btn btn-outline-primary w-100">
+                            <a href="{% url 'workers:analytics' %}" class="btn btn-outline-primary w-100 btn-quick-action">
                                 <i class="bi bi-graph-up"></i> {% trans "Analytics" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'workers:profile_edit' %}" class="btn btn-outline-primary w-100">
+                            <a href="{% url 'workers:profile_edit' %}" class="btn btn-outline-primary w-100 btn-quick-action">
                                 <i class="bi bi-pencil"></i> {% trans "Edit Profile" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'workers:document_upload' %}" class="btn btn-outline-success w-100">
+                            <a href="{% url 'workers:document_upload' %}" class="btn btn-outline-success w-100 btn-quick-action">
                                 <i class="bi bi-upload"></i> {% trans "Upload Docs" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-info w-100">
+                            <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-info w-100 btn-quick-action">
                                 <i class="bi bi-search"></i> {% trans "Find Jobs" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'workers:experience_add' %}" class="btn btn-outline-secondary w-100">
+                            <a href="{% url 'workers:experience_add' %}" class="btn btn-outline-secondary w-100 btn-quick-action">
                                 <i class="bi bi-plus-circle"></i> {% trans "Add Experience" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-warning w-100">
+                            <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-warning w-100 btn-quick-action">
                                 <i class="bi bi-file-text"></i> {% trans "Applications" %}
                             </a>
                         </div>
-                        <div class="col-md-4 col-6">
-                            <a href="{% url 'jobs:inbox' %}" class="btn btn-outline-danger w-100">
+                        <div class="col-md-4 col-12">
+                            <a href="{% url 'jobs:inbox' %}" class="btn btn-outline-danger w-100 btn-quick-action">
                                 <i class="bi bi-envelope"></i> {% trans "Messages" %}
                             </a>
                         </div>
