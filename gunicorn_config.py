@@ -2,7 +2,7 @@
 import multiprocessing
 
 # Server socket
-bind = "127.0.0.1:8001"
+bind = "127.0.0.1:8003"
 backlog = 2048
 
 # Worker processes
