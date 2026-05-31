@@ -39,7 +39,7 @@ Authorization: Token <your-token>
 - **Client**: Can post jobs, search workers, hire workers
         """,
         terms_of_service="https://workerconnect.com/terms/",
-        contact=openapi.Contact(email="support@workerconnect.com"),
+        contact=openapi.Contact(email="sales@easyfix.co.tz"),
         license=openapi.License(name="Proprietary"),
     ),
     public=True,

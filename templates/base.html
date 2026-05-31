@@ -126,6 +126,16 @@
         .card.bg-info *, .card.bg-dark * { color: white !important; }
         .card.bg-warning { color: #1f2937 !important; }
         .card.bg-warning * { color: #1f2937 !important; }
+
+        /* Dark mode: outline button text always white for readability */
+        [data-bs-theme="dark"] .btn-outline-primary { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: #14b8a6; }
+        [data-bs-theme="dark"] .btn-outline-secondary { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: rgba(255,255,255,0.5); }
+        [data-bs-theme="dark"] .btn-outline-success { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: #10b981; }
+        [data-bs-theme="dark"] .btn-outline-danger { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: #ef4444; }
+        [data-bs-theme="dark"] .btn-outline-info { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: #06b6d4; }
+        [data-bs-theme="dark"] .btn-outline-warning { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: #fbbf24; }
+        [data-bs-theme="dark"] .btn-outline-dark { color: #fff !important; --bs-btn-color: #fff; --bs-btn-border-color: rgba(255,255,255,0.4); }
+        [data-bs-theme="dark"] .btn-outline-teal { color: #fff !important; border-color: #14b8a6 !important; }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -203,7 +213,7 @@
         }
         /* Guest buttons */
         .main-nav .btn-nav-login {
-            color: rgba(255,255,255,0.85) !important;
+            color: #fff !important;
             border: 1.5px solid rgba(255,255,255,0.3);
             border-radius: 8px;
             padding: 7px 18px;
@@ -313,7 +323,7 @@
             /* Home and other nav-links */
             #navbarNav .nav-link {
                 background: rgba(255,255,255,0.05) !important;
-                color: rgba(255,255,255,0.85) !important;
+                color: #fff !important;
                 border: none !important;
             }
             #navbarNav .nav-link:hover,
@@ -325,7 +335,7 @@
             #navbarNav .btn-nav-login {
                 background: rgba(255,255,255,0.05) !important;
                 border: 1px solid rgba(255,255,255,0.18) !important;
-                color: rgba(255,255,255,0.85) !important;
+                color: #fff !important;
                 justify-content: center;
                 font-weight: 500;
             }
@@ -584,7 +594,7 @@
                     <ul class="list-unstyled mb-0" style="font-size:0.91rem;">
                         <li class="mb-3 d-flex align-items-start gap-2">
                             <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-envelope-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>
-                            <span style="color:white;">easyfixsoft@gmail.com</span>
+                            <span style="color:white;">sales@easyfix.co.tz</span>
                         </li>
                         <li class="mb-3 d-flex align-items-start gap-2">
                             <span style="width:30px;height:30px;background:#1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-telephone-fill" style="color:#14b8a6;font-size:0.85rem;"></i></span>

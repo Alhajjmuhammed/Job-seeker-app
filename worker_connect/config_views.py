@@ -89,7 +89,7 @@ def app_version(request):
 def contact_info(request):
     """Get contact information"""
     return Response({
-        'email': 'support@workerconnect.com',
+        'email': 'sales@easyfix.co.tz',
         'phone': '+1-555-0123',
         'address': '123 Worker Connect St, Tech City, TC 12345',
         'business_hours': 'Monday-Friday 9AM-6PM EST',

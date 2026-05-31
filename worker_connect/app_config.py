@@ -68,7 +68,7 @@ DEFAULT_CONFIG = {
     
     # Content
     'content': {
-        'support_email': 'support@workerconnect.com',
+        'support_email': 'sales@easyfix.co.tz',
         'support_phone': '+1-800-WORKER',
         'terms_url': '/terms',
         'privacy_url': '/privacy',

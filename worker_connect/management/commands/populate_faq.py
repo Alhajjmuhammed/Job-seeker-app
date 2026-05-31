@@ -30,7 +30,7 @@ class Command(BaseCommand):
             {
                 'category': 'technical',
                 'question': 'What if I encounter a technical issue?',
-                'answer': 'Contact our support team through the app or email support@workerconnect.com.',
+                'answer': 'Contact our support team through the app or email sales@easyfix.co.tz.',
             },
         ]
 
