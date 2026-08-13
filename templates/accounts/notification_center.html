@@ -238,7 +238,7 @@
 <script>
 // Auto-refresh notification count (optional)
 function updateNotificationBadge() {
-    fetch('/api/notifications/unread-count/')
+    fetch('{{ SCRIPT_PREFIX }}/api/notifications/unread-count/')
         .then(response => response.json())
         .then(data => {
             const badge = document.querySelector('.notification-badge');

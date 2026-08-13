@@ -163,7 +163,7 @@ function getCookie(name) {
 function cancelRequest(button) {
     const requestId = button.getAttribute('data-request-id');
     if (confirm('Are you sure you want to cancel this service request?')) {
-        fetch(`/clients/requests/${requestId}/cancel/`, {
+        fetch(`{{ SCRIPT_PREFIX }}/clients/requests/${requestId}/cancel/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken(),

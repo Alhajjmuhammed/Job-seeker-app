@@ -394,7 +394,7 @@ function getCookie(name) {
 
 function cancelRequest() {
     if (confirm('Are you sure you want to cancel this service request?')) {
-        fetch(`/clients/requests/{{ request.id }}/cancel/`, {
+        fetch(`{{ SCRIPT_PREFIX }}/clients/requests/{{ request.id }}/cancel/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken(),
@@ -451,7 +451,7 @@ async function submitScreenshot() {
         const formData = new FormData();
         formData.append('payment_screenshot', screenshotFile);
         
-        const response = await fetch('/api/v1/clients/requests/{{ request.id }}/update/', {
+        const response = await fetch('{{ SCRIPT_PREFIX }}/api/v1/clients/requests/{{ request.id }}/update/', {
             method: 'PUT',
             headers: {
                 'X-CSRFToken': getCSRFToken()

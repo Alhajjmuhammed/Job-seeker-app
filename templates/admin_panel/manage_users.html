@@ -822,7 +822,7 @@
                 
                 // Set the form action
                 const form = document.getElementById('deleteForm');
-                form.action = `/dashboard/users/${userId}/delete/`;
+                form.action = `{{ SCRIPT_PREFIX }}/dashboard/users/${userId}/delete/`;
                 
                 // Show the modal
                 const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
@@ -842,7 +842,7 @@
                 const isActive = this.getAttribute('data-is-active') === 'true';
                 
                 // Set form action
-                document.getElementById('editUserForm').action = `/dashboard/users/${userId}/edit/`;
+                document.getElementById('editUserForm').action = `{{ SCRIPT_PREFIX }}/dashboard/users/${userId}/edit/`;
                 
                 // Fill form fields
                 document.getElementById('edit_first_name').value = firstName;

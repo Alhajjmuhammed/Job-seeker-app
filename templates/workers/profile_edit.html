@@ -920,7 +920,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const categoryId = this.getAttribute('data-category-id');
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/workers/custom-categories/${categoryId}/delete/`;
+                form.action = `{{ SCRIPT_PREFIX }}/workers/custom-categories/${categoryId}/delete/`;
                 
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 const csrfInput = document.createElement('input');
@@ -942,7 +942,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const skillId = this.getAttribute('data-skill-id');
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/workers/custom-skills/${skillId}/delete/`;
+                form.action = `{{ SCRIPT_PREFIX }}/workers/custom-skills/${skillId}/delete/`;
                 
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 const csrfInput = document.createElement('input');

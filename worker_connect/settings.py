@@ -117,6 +117,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
                 'worker_connect.context_processors.admin_counts',
+                'worker_connect.context_processors.script_prefix',
             ],
         },
     },
@@ -210,15 +211,26 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
 # Media files
-MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# When this app is reverse-proxied under a URL prefix (e.g. a second VPS
+# sharing port 80 with another app, path-routed instead of its own port),
+# set URL_PREFIX so Django-generated links (admin, {% url %}, static, media)
+# include it. Leave unset for a deployment with its own dedicated root.
+URL_PREFIX = config('URL_PREFIX', default='')
+if URL_PREFIX:
+    FORCE_SCRIPT_NAME = URL_PREFIX
+    STATIC_URL = URL_PREFIX + '/static/'
+    MEDIA_URL = URL_PREFIX + '/media/'
+else:
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

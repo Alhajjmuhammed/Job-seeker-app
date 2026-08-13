@@ -872,7 +872,7 @@ async function processCardPayment() {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
     
     try {
-        const response = await fetch('/api/v1/clients/process-payment/', {
+        const response = await fetch('{{ SCRIPT_PREFIX }}/api/v1/clients/process-payment/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -918,7 +918,7 @@ async function processMobilePayment() {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
     
     try {
-        const response = await fetch('/api/v1/clients/process-payment/', {
+        const response = await fetch('{{ SCRIPT_PREFIX }}/api/v1/clients/process-payment/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1017,7 +1017,7 @@ async function submitRequest() {
             formData.append('payment_screenshot', screenshotFile);
         }
         
-        const response = await fetch('/api/v1/clients/services/{{ category.id }}/request/', {
+        const response = await fetch('{{ SCRIPT_PREFIX }}/api/v1/clients/services/{{ category.id }}/request/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}'
@@ -1030,7 +1030,7 @@ async function submitRequest() {
         if (response.ok) {
             bootstrap.Modal.getInstance(document.getElementById('screenshotModal')).hide();
             alert('Success! Your service request has been submitted and payment of TSH ' + currentTotalPrice.toFixed(2) + ' has been processed! Our admin will review your payment and assign a qualified worker soon.');
-            window.location.href = '/clients/requests/';
+            window.location.href = '{{ SCRIPT_PREFIX }}/clients/requests/';
         } else {
             alert('Error: ' + (data.error || 'Failed to submit request'));
         }

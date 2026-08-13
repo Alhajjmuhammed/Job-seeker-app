@@ -7,6 +7,15 @@ from jobs.models import Message
 from jobs.service_request_models import ServiceRequest
 
 
+def script_prefix(request):
+    """
+    Expose the app's URL prefix (empty unless reverse-proxied under a
+    subpath, e.g. /wc) so inline JS can build correct absolute paths
+    instead of hardcoding root-relative ones.
+    """
+    return {'SCRIPT_PREFIX': request.META.get('SCRIPT_NAME', '')}
+
+
 def admin_counts(request):
     """
     Provide counts for admin panel sidebar badges

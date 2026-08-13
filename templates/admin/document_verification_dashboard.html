@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load statistics
 async function loadStatistics() {
     try {
-        const response = await fetch('/api/admin/documents/statistics/');
+        const response = await fetch('{{ SCRIPT_PREFIX }}/api/admin/documents/statistics/');
         const data = await response.json();
         
         if (data.success) {
@@ -271,7 +271,7 @@ async function loadPendingDocuments(page = 1) {
         if (search) params.append('search', search);
         if (documentType) params.append('document_type', documentType);
         
-        const response = await fetch(`/api/admin/documents/pending/?${params}`);
+        const response = await fetch(`{{ SCRIPT_PREFIX }}/api/admin/documents/pending/?${params}`);
         const data = await response.json();
         
         if (data.success) {
@@ -415,7 +415,7 @@ async function confirmVerification() {
     try {
         const notes = document.getElementById('verification-notes').value;
         
-        const response = await fetch(`/api/admin/documents/verify/${selectedVerificationId}/`, {
+        const response = await fetch(`{{ SCRIPT_PREFIX }}/api/admin/documents/verify/${selectedVerificationId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1071,7 +1071,7 @@ async function browseWorkers() {
     try {
         const lat = document.getElementById('latitude').value;
         const lon = document.getElementById('longitude').value;
-        let url = `/api/v1/client/browse-workers/?category=${categoryId}`;
+        let url = `{{ SCRIPT_PREFIX }}/api/v1/client/browse-workers/?category=${categoryId}`;
         if (lat && lon) {
             url += `&latitude=${lat}&longitude=${lon}`;
         }
