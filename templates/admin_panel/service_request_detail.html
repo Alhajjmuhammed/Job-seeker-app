@@ -283,6 +283,39 @@
                 </div>
             </div>
 
+            <!-- Client-Requested Worker (pending admin confirmation) -->
+            {% if service_request.preferred_worker and service_request.preferred_worker.id not in assigned_worker_ids %}
+            <div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h6 class="mb-1"><i class="bi bi-hand-index-thumb-fill text-warning me-2"></i>Client Requested a Worker</h6>
+                            <p class="mb-0">
+                                The client asked for <strong>{{ service_request.preferred_worker.user.get_full_name }}</strong>
+                                {% if service_request.preferred_worker.average_rating %}
+                                (<i class="bi bi-star-fill text-warning"></i> {{ service_request.preferred_worker.average_rating|floatformat:1 }}, {{ service_request.preferred_worker.completed_jobs }} jobs)
+                                {% endif %}
+                                &mdash; confirm or choose someone else below.
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{% url 'admin_panel:assign_worker_to_request' service_request.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="worker_id" value="{{ service_request.preferred_worker.id }}">
+                                <input type="hidden" name="admin_notes" value="Confirmed client's requested worker">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check-circle me-1"></i> Confirm This Worker
+                                </button>
+                            </form>
+                            <a href="{% url 'admin_panel:view_request_workers' service_request.id %}" class="btn btn-outline-secondary btn-sm">
+                                Choose Someone Else
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Worker Assignment Info (if assigned) -->
             {% if existing_assignments_count > 0 %}
             <div class="card border-0 shadow-sm mb-4 border-start border-success border-4">
@@ -540,7 +573,7 @@
                                         <input type="checkbox" class="form-check-input worker-checkbox" 
                                                value="{{ worker.id }}" 
                                                data-worker-name="{{ worker.user.get_full_name }}"
-                                               data-daily-rate="{{ worker.daily_rate|default:'0' }}"
+                                               data-daily-rate="{{ worker.hourly_rate|default:'0' }}"
                                                onclick="event.stopPropagation();"
                                                style="width: 20px; height: 20px; cursor: pointer;">
                                     </div>
@@ -579,7 +612,7 @@
                                                 <i class="bi bi-star text-muted"></i> No ratings
                                                 {% endif %}
                                             </span>
-                                            <span class="text-success fw-bold">TSH {{ worker.daily_rate|default:"0.00" }}/day</span>
+                                            <span class="text-success fw-bold">TSH {{ worker.hourly_rate|default:"0.00" }}/day</span>
                                         </div>
                                         {% if worker.categories.all %}
                                         <div class="mt-1">

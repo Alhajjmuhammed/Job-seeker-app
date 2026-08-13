@@ -35,12 +35,17 @@ def earnings_summary(request):
     
     start_str = request.query_params.get('start_date')
     end_str = request.query_params.get('end_date')
-    
-    if start_str:
-        start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
-    if end_str:
-        end_date = datetime.strptime(end_str, '%Y-%m-%d').date()
-    
+
+    try:
+        if start_str:
+            start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
+        if end_str:
+            end_date = datetime.strptime(end_str, '%Y-%m-%d').date()
+    except ValueError:
+        return Response({
+            'error': 'start_date and end_date must be in YYYY-MM-DD format'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     summary = EarningsService.get_earnings_summary(worker, start_date, end_date)
     
     return Response(summary)
@@ -64,8 +69,13 @@ def earnings_breakdown(request):
         }, status=status.HTTP_403_FORBIDDEN)
     
     group_by = request.query_params.get('group_by', 'month')
-    periods = int(request.query_params.get('periods', 6))
-    
+    try:
+        periods = int(request.query_params.get('periods', 6))
+    except ValueError:
+        return Response({
+            'error': 'periods must be an integer'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     if group_by not in ['day', 'week', 'month']:
         return Response({
             'error': 'group_by must be day, week, or month'
@@ -116,8 +126,13 @@ def top_clients(request):
             'error': 'Only workers can access earnings'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    limit = int(request.query_params.get('limit', 10))
-    
+    try:
+        limit = int(request.query_params.get('limit', 10))
+    except ValueError:
+        return Response({
+            'error': 'limit must be an integer'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     clients = EarningsService.get_top_clients(worker, limit)
     
     return Response({
@@ -144,12 +159,17 @@ def tax_estimate(request):
     
     year = request.query_params.get('year')
     rate = request.query_params.get('rate', '0.25')
-    
-    from decimal import Decimal
-    
-    year = int(year) if year else None
-    tax_rate = Decimal(rate)
-    
+
+    from decimal import Decimal, InvalidOperation
+
+    try:
+        year = int(year) if year else None
+        tax_rate = Decimal(rate)
+    except (ValueError, InvalidOperation):
+        return Response({
+            'error': 'year must be an integer and rate must be a decimal number'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     estimate = EarningsService.calculate_estimated_tax(worker, year, tax_rate)
     
     return Response(estimate)
@@ -171,8 +191,13 @@ def payment_history(request):
             'error': 'Only workers can access earnings'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    limit = int(request.query_params.get('limit', 50))
-    
+    try:
+        limit = int(request.query_params.get('limit', 50))
+    except ValueError:
+        return Response({
+            'error': 'limit must be an integer'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     history = EarningsService.get_payment_history(worker, limit)
     
     return Response({

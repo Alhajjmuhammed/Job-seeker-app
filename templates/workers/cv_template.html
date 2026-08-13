@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ full_name }} - CV</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+
+        .cv-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Header */
+        .cv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #0f766e;
+        }
+
+        .cv-header h1 {
+            color: #0f766e;
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .cv-header .worker-type {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contact-info {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .contact-info p {
+            margin-bottom: 3px;
+        }
+
+        .verified-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #0f766e;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+
+        .bio-text {
+            color: #444;
+            font-size: 13px;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 15px 0;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-box .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f766e;
+        }
+
+        .stat-box .label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tags (categories/skills) */
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #f0fdfa;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
+            border-radius: 14px;
+            padding: 4px 12px;
+            margin: 0 6px 6px 0;
+            font-size: 12px;
+        }
+
+        /* Experience */
+        .experience-item {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .experience-item:last-child {
+            border-bottom: none;
+        }
+
+        .experience-item .job-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .experience-item .company {
+            font-size: 13px;
+            color: #0f766e;
+        }
+
+        .experience-item .meta {
+            font-size: 11px;
+            color: #888;
+            margin: 3px 0 6px;
+        }
+
+        .experience-item .description {
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* Footer */
+        .cv-footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .cv-footer p {
+            color: #999;
+            font-size: 11px;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .cv-container {
+                padding: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-container">
+        <!-- Header -->
+        <div class="cv-header">
+            <div>
+                <h1>{{ full_name }}</h1>
+                <div class="worker-type">{{ worker_type }}</div>
+                {% if verification_status == 'verified' %}
+                <span class="verified-badge">Verified Worker</span>
+                {% endif %}
+            </div>
+            <div class="contact-info">
+                {% if location %}<p>{{ location }}</p>{% endif %}
+                <p>{{ email }}</p>
+                {% if phone_number %}<p>{{ phone_number }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="value">{{ experience_years }}</div>
+                <div class="label">Years Experience</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">{{ completed_jobs }}</div>
+                <div class="label">Jobs Completed</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">{{ average_rating }}</div>
+                <div class="label">Average Rating</div>
+            </div>
+            {% if hourly_rate %}
+            <div class="stat-box">
+                <div class="value">TSH {{ hourly_rate }}</div>
+                <div class="label">Hourly Rate</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- About -->
+        {% if bio %}
+        <div class="section">
+            <h2>About</h2>
+            <p class="bio-text">{{ bio }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Categories -->
+        {% if categories %}
+        <div class="section">
+            <h2>Service Categories</h2>
+            <div class="tag-list">
+                {% for category in categories %}
+                <span class="tag">{{ category.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if skills %}
+        <div class="section">
+            <h2>Skills</h2>
+            <div class="tag-list">
+                {% for skill in skills %}
+                <span class="tag">{{ skill.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Work Experience -->
+        {% if experiences %}
+        <div class="section">
+            <h2>Work Experience</h2>
+            {% for exp in experiences %}
+            <div class="experience-item">
+                <div class="job-title">{{ exp.job_title }}</div>
+                <div class="company">{{ exp.company }}{% if exp.location %} &middot; {{ exp.location }}{% endif %}</div>
+                <div class="meta">
+                    {{ exp.start_date|date:"M Y" }} &ndash; {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}
+                    &middot; {{ exp.duration }}
+                </div>
+                {% if exp.description %}
+                <div class="description">{{ exp.description }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="cv-footer">
+            <p>Generated by Worker Connect</p>
+        </div>
+    </div>
+</body>
+</html>

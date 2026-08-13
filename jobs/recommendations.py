@@ -45,7 +45,7 @@ class RecommendationEngine:
         from workers.availability import AvailabilityService
         
         # Get active jobs that worker hasn't applied to
-        applied_job_ids = worker_profile.applications.values_list('job_request_id', flat=True)
+        applied_job_ids = worker_profile.applications.values_list('job_id', flat=True)
         
         jobs = JobRequest.objects.filter(
             status='open'
@@ -102,10 +102,10 @@ class RecommendationEngine:
         
         Compares worker skills with job requirements.
         """
-        # Get worker skills
+        # Get worker skills (skills is a ManyToManyField, not a text field)
         worker_skills = set(
-            s.lower() for s in worker_profile.skills.split(',') if s.strip()
-        ) if worker_profile.skills else set()
+            s.lower() for s in worker_profile.skills.values_list('name', flat=True) if s and s.strip()
+        )
         
         # Extract skills from job title and description
         job_text = f"{job.title} {job.description}".lower()
@@ -207,7 +207,7 @@ class RecommendationEngine:
         # Get worker's application history
         applications = JobApplication.objects.filter(
             worker=worker_profile
-        ).select_related('job_request')
+        ).select_related('job')
         
         if not applications.exists():
             return 0.5  # Neutral score for new workers
@@ -225,7 +225,7 @@ class RecommendationEngine:
         job_title_words = set(job.title.lower().split())
         
         for app in completed_jobs:
-            past_job_words = set(app.job_request.title.lower().split())
+            past_job_words = set(app.job.title.lower().split())
             overlap = len(job_title_words & past_job_words)
             if overlap > 0:
                 similar_job_score = max(similar_job_score, overlap / len(job_title_words))
@@ -306,7 +306,7 @@ class RecommendationEngine:
         applied_worker_ids = job.applications.values_list('worker_id', flat=True)
         
         workers = WorkerProfile.objects.filter(
-            is_verified=True
+            verification_status='verified'
         ).exclude(
             id__in=applied_worker_ids
         ).select_related('user')

@@ -12,7 +12,11 @@ urlpatterns = [
     path('profile/image/upload/', views.profile_image_upload, name='profile_image_upload'),
     path('profile/image/remove/', views.profile_image_remove, name='profile_image_remove'),
     path('profile/<int:pk>/', views.worker_public_profile, name='public_profile'),
-    
+
+    # CV (auto-generated from profile data)
+    path('cv/', views.cv_preview, name='cv_preview'),
+    path('cv/download/', views.cv_download_pdf, name='cv_download'),
+
     # Documents
     path('documents/', views.document_list, name='document_list'),
     path('documents/upload/', views.document_upload, name='document_upload'),

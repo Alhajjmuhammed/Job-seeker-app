@@ -33,7 +33,7 @@ class JobCompletionService:
         
         # Verify worker is assigned to job
         application = JobApplication.objects.filter(
-            job_request=job,
+            job=job,
             worker=worker_profile,
             status='accepted'
         ).first()
@@ -69,46 +69,47 @@ class JobCompletionService:
         """
         Client approves job completion.
         """
-        # Verify client owns job
-        if job.client != client_profile:
+        # Verify client owns job (JobRequest.client is a User FK, not a
+        # ClientProfile - compare against client_profile.user)
+        if job.client != client_profile.user:
             return {
                 'success': False,
                 'error': 'You are not the owner of this job'
             }
-        
+
         if job.status != 'pending_review':
             return {
                 'success': False,
                 'error': 'Job is not pending review'
             }
-        
+
         # Get the accepted application
         from jobs.models import JobApplication
         application = JobApplication.objects.filter(
-            job_request=job,
+            job=job,
             status='accepted'
         ).first()
-        
+
         if not application:
             return {
                 'success': False,
                 'error': 'No worker assigned to this job'
             }
-        
+
         # Complete the job
         job.status = 'completed'
         job.completed_at = timezone.now()
         job.save()
-        
-        # Create review if provided
+
+        # Update worker's aggregate rating
         if rating:
-            # Store review (would use a Review model in production)
             worker = application.worker
-            if hasattr(worker, 'total_ratings'):
-                worker.total_ratings = (worker.total_ratings or 0) + 1
-                worker.rating_sum = (worker.rating_sum or 0) + rating
-                worker.average_rating = worker.rating_sum / worker.total_ratings
-                worker.save()
+            new_total = worker.total_reviews + 1
+            worker.average_rating = round(
+                ((worker.average_rating * worker.total_reviews) + rating) / new_total, 2
+            )
+            worker.total_reviews = new_total
+            worker.save()
         
         return {
             'success': True,
@@ -122,18 +123,18 @@ class JobCompletionService:
         """
         Client requests revision on submitted work.
         """
-        if job.client != client_profile:
+        if job.client != client_profile.user:
             return {
                 'success': False,
                 'error': 'You are not the owner of this job'
             }
-        
+
         if job.status != 'pending_review':
             return {
                 'success': False,
                 'error': 'Job is not pending review'
             }
-        
+
         # Update job status
         job.status = 'in_progress'  # Back to in progress
         job.save()
@@ -156,10 +157,10 @@ class JobCompletionService:
         """
         from jobs.models import JobApplication
         
-        # Verify user is involved in job
-        is_client = (job.client.user == user)
+        # Verify user is involved in job (JobRequest.client is a User FK)
+        is_client = (job.client == user)
         is_worker = JobApplication.objects.filter(
-            job_request=job,
+            job=job,
             worker__user=user,
             status='accepted'
         ).exists()
@@ -249,34 +250,34 @@ class JobCompletionService:
         Cancel a job.
         """
         from jobs.models import JobApplication
-        
-        is_client = (job.client.user == user)
-        
+
+        is_client = (job.client == user)
+
         if not is_client and not user.is_staff:
             return {
                 'success': False,
                 'error': 'Only job owner or admin can cancel'
             }
-        
+
         if job.status in ['completed', 'cancelled']:
             return {
                 'success': False,
                 'error': f'Cannot cancel job in {job.status} status'
             }
-        
+
         # Check if work has started
         has_accepted_application = JobApplication.objects.filter(
-            job_request=job,
+            job=job,
             status='accepted'
         ).exists()
-        
+
         # Update status
         job.status = 'cancelled'
         job.save()
-        
+
         # Update applications
         JobApplication.objects.filter(
-            job_request=job
+            job=job
         ).update(status='cancelled')
         
         return {
@@ -304,7 +305,7 @@ class JobCompletionService:
         # Applications
         from jobs.models import JobApplication
         applications = JobApplication.objects.filter(
-            job_request=job
+            job=job
         ).order_by('created_at')
         
         for app in applications:

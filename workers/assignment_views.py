@@ -181,19 +181,10 @@ def worker_respond_to_assignment(request, assignment_id):
     accepted = serializer.validated_data['accepted']
     
     if accepted:
-        # I accept MY assignment
+        # I accept MY assignment (accept_assignment() logs the activity)
         rejection_reason = None
         assignment.accept_assignment()
-        
-        # Log MY activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='accepted',
-            description=f'Accepted assignment: {assignment.service_request.title} (Assignment #{assignment.assignment_number})',
-            service_request=assignment.service_request,
-            location=assignment.service_request.location
-        )
-        
+
         # Notify client that I accepted
         from worker_connect.notification_service import NotificationService
         NotificationService.create_notification(
@@ -212,34 +203,33 @@ def worker_respond_to_assignment(request, assignment_id):
         
         message = 'Assignment accepted successfully'
     else:
-        # I reject MY assignment
+        # I reject MY assignment (reject_assignment() logs the activity)
         rejection_reason = serializer.validated_data.get('rejection_reason', '')
         assignment.reject_assignment(rejection_reason)
-        
-        # Log MY activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='rejected',
-            description=f'Rejected assignment: {assignment.service_request.title}. Reason: {rejection_reason}',
-            service_request=assignment.service_request
-        )
-        
-        # Notify admin that I rejected (admin may need to find replacement)
+
+        # Notify admin that I rejected (admin may need to find replacement).
+        # assigned_by is None for auto-assigned assignments (see
+        # clients/assignment_mode.py) - Notification.recipient is a required
+        # FK, so fall back to notifying all staff instead of crashing.
         from worker_connect.notification_service import NotificationService
-        NotificationService.create_notification(
-            recipient=assignment.assigned_by,
-            title="❌ Worker Rejected Assignment",
-            message=f"{worker_profile.user.get_full_name()} rejected: '{assignment.service_request.title}'. Reason: {rejection_reason}",
-            notification_type='job_rejected',
-            content_object=assignment.service_request,
-            extra_data={
-                'service_request_id': assignment.service_request.id,
-                'assignment_id': assignment.id,
-                'worker': worker_profile.user.get_full_name(),
-                'rejection_reason': rejection_reason
-            }
-        )
-        
+        from accounts.models import User
+
+        recipients = [assignment.assigned_by] if assignment.assigned_by else list(User.objects.filter(is_staff=True))
+        for recipient in recipients:
+            NotificationService.create_notification(
+                recipient=recipient,
+                title="❌ Worker Rejected Assignment",
+                message=f"{worker_profile.user.get_full_name()} rejected: '{assignment.service_request.title}'. Reason: {rejection_reason}",
+                notification_type='job_rejected',
+                content_object=assignment.service_request,
+                extra_data={
+                    'service_request_id': assignment.service_request.id,
+                    'assignment_id': assignment.id,
+                    'worker': worker_profile.user.get_full_name(),
+                    'rejection_reason': rejection_reason
+                }
+            )
+
         message = 'Assignment rejected'
     
     response_serializer = ServiceRequestAssignmentSerializer(assignment)
@@ -370,16 +360,14 @@ def worker_clock_out_assignment(request, assignment_id):
     
     location = serializer.validated_data.get('location', '')
     notes = serializer.validated_data.get('notes', '')
-    
-    # Clock out
-    active_log.clock_out = timezone.now()
-    active_log.clock_out_location = location
-    active_log.notes = notes
-    active_log.save()
-    
+
+    # Clock out - clock_out_now() calculates duration_hours and updates
+    # the parent ServiceRequest.total_hours_worked itself.
+    active_log.clock_out_now(notes=notes, location=location)
+
     # Calculate hours worked
-    hours_worked = active_log.hours_worked
-    
+    hours_worked = active_log.duration_hours or 0
+
     # Update total hours on MY assignment
     if assignment.total_hours_worked:
         assignment.total_hours_worked += hours_worked
@@ -459,21 +447,12 @@ def worker_complete_assignment(request, assignment_id):
     
     completion_notes = request.data.get('completion_notes', '')
     
-    # Mark MY assignment as completed
+    # Mark MY assignment as completed (mark_completed() logs the activity)
     assignment.mark_completed(completion_notes)
-    
+
     # Calculate MY payment
     assignment.calculate_payment()
-    
-    # Log MY activity
-    WorkerActivity.log_activity(
-        worker=worker_profile,
-        activity_type='completed',
-        description=f'Completed assignment: {assignment.service_request.title} (Assignment #{assignment.assignment_number})',
-        service_request=assignment.service_request,
-        location=assignment.service_request.location
-    )
-    
+
     # Notify client that I completed MY part
     from worker_connect.notification_service import NotificationService
     NotificationService.create_notification(

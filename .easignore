@@ -1,0 +1,19 @@
+# Exclude everything directly at the repo root (anchored - only matches root level)
+/*
+
+# Re-include the React Native app directory
+!/React-native-app/
+
+# Exclude everything directly inside React-native-app/ except my-app
+/React-native-app/*
+!/React-native-app/my-app/
+
+# Exclude build artifacts and secrets inside my-app
+/React-native-app/my-app/node_modules/
+/React-native-app/my-app/.expo/
+/React-native-app/my-app/dist/
+/React-native-app/my-app/build/
+/React-native-app/my-app/web-build/
+/React-native-app/my-app/android/
+/React-native-app/my-app/ios/
+/React-native-app/my-app/google-service-account.json

@@ -230,11 +230,17 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if request.assigned_worker %}
+                                {% with accepted_assignments=request.assignments.all %}
+                                {% if accepted_assignments %}
+                                    {% for assignment in accepted_assignments %}
+                                        {% if assignment.worker_accepted %}{{ assignment.worker.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endif %}
+                                    {% endfor %}
+                                {% elif request.assigned_worker %}
                                 {{ request.assigned_worker.user.get_full_name }}
                                 {% else %}
                                 <em>Not assigned</em>
                                 {% endif %}
+                                {% endwith %}
                             </td>
                             <td>{{ request.created_at|date:"M d, Y" }}</td>
                             <td>

@@ -7,10 +7,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from django.db.models import Sum, Q
 
 from jobs.service_request_models import ServiceRequest, WorkerActivity
-from workers.models import Category
+from workers.models import Category, WorkerProfile
+from workers.file_validators import validate_image_file
 from django.utils import timezone
 
 
@@ -30,16 +32,21 @@ def client_web_dashboard(request):
     ).count()
     completed = ServiceRequest.objects.filter(client=request.user, status='completed').count()
     
-    # Total spent
+    # Total spent. total_price is set at creation time and is what the new
+    # multi-worker assignment flow actually bills; total_amount is a legacy
+    # hourly-billing field only populated by the old single-worker
+    # mark_completed_by_worker() path, so summing it here always reads 0.
     total_spent = ServiceRequest.objects.filter(
         client=request.user,
         status='completed'
-    ).aggregate(total=Sum('total_amount'))['total'] or 0
-    
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+
     # Recent requests
     recent_requests = ServiceRequest.objects.filter(
         client=request.user
-    ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
+    ).select_related(
+        'category', 'assigned_worker', 'assigned_worker__user'
+    ).prefetch_related('assignments__worker__user').order_by('-created_at')[:5]
     
     context = {
         'total_requests': total_requests,
@@ -156,7 +163,41 @@ def client_web_request_service(request):
             payment_method = request.POST.get('payment_method', 'pending')
             payment_transaction_id = request.POST.get('payment_transaction_id', '')
             payment_screenshot = request.FILES.get('payment_screenshot')
-            
+
+            if payment_screenshot:
+                # Raises ValidationError on an invalid file, which the
+                # existing `except Exception` below turns into a message
+                # and re-renders the form without creating the request.
+                validate_image_file(payment_screenshot)
+
+            # Optional GPS coordinates for the service location (form data
+            # always arrives as strings - must cast, or later distance math
+            # blows up with "must be real number, not str")
+            try:
+                latitude = float(request.POST.get('latitude')) if request.POST.get('latitude') else None
+                longitude = float(request.POST.get('longitude')) if request.POST.get('longitude') else None
+            except (TypeError, ValueError):
+                latitude = None
+                longitude = None
+
+            # Optional worker the client requested themselves - admin still
+            # confirms this before it becomes a real assignment
+            preferred_worker = None
+            preferred_worker_id = request.POST.get('preferred_worker')
+            if preferred_worker_id:
+                preferred_worker = get_object_or_404(WorkerProfile, id=preferred_worker_id)
+                if not preferred_worker.categories.filter(id=category.id).exists():
+                    # Caught by the existing `except Exception` below, which
+                    # turns it into a single message and re-renders the form.
+                    raise ValueError("The requested worker doesn't offer this category.")
+
+            # How the client wants their worker selected: admin picks
+            # (default), client already picked one above (preferred_worker),
+            # or auto-assign the nearest available worker right now
+            assignment_mode = request.POST.get('assignment_mode', 'admin_choice')
+            if assignment_mode not in dict(ServiceRequest.ASSIGNMENT_MODE_CHOICES):
+                assignment_mode = 'admin_choice'
+
             # Create service request
             service_request = ServiceRequest.objects.create(
                 client=request.user,
@@ -165,6 +206,10 @@ def client_web_request_service(request):
                 description=description,
                 location=location,
                 city=city,
+                latitude=latitude,
+                longitude=longitude,
+                preferred_worker=preferred_worker,
+                assignment_mode=assignment_mode,
                 urgency=urgency,
                 duration_type=duration_type,
                 duration_days=duration_days,
@@ -174,7 +219,7 @@ def client_web_request_service(request):
                 preferred_time=preferred_time if preferred_time else None,
                 service_start_date=service_start_date if service_start_date else None,
                 service_end_date=service_end_date if service_end_date else None,
-                client_notes=client_notes if client_notes else None,
+                client_notes=client_notes,
                 workers_needed=workers_needed,
                 status='pending',
                 payment_status='pending',
@@ -192,17 +237,29 @@ def client_web_request_service(request):
                 profile = request.user.client_profile
                 profile.total_jobs_posted += 1
                 profile.save()
-            
+
+            # Apply the client's chosen assignment mode (no-op unless
+            # auto_nearest; falls back to admin_choice if it can't auto-assign)
+            from .assignment_mode import apply_assignment_mode
+            apply_assignment_mode(service_request)
+            service_request.refresh_from_db()
+
             # Notify admin
             from worker_connect.notification_service import NotificationService
             NotificationService.notify_admin_new_service_request(service_request)
-            
+
             # Success message
-            messages.success(request, 
-                f'Your {category.name} service request has been submitted! '
-                f'Total price: TSH {total_price:.2f}. '
-                'Our team will assign a qualified worker and notify you within 2-4 hours.'
-            )
+            if service_request.assignment_mode == 'auto_nearest' and service_request.status == 'assigned':
+                messages.success(request,
+                    f'Your {category.name} service request has been submitted and a worker has been '
+                    f'automatically assigned based on proximity to your location!'
+                )
+            else:
+                messages.success(request,
+                    f'Your {category.name} service request has been submitted! '
+                    f'Total price: TSH {total_price:.2f}. '
+                    'Our team will assign a qualified worker and notify you within 2-4 hours.'
+                )
             return redirect('service_requests_web:client_request_detail', pk=service_request.id)
             
         except Exception as e:
@@ -505,19 +562,13 @@ def client_web_upload_screenshot(request, pk):
         
         # Get the uploaded file
         screenshot = request.FILES['payment_screenshot']
-        
-        # Validate file type
-        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-        if screenshot.content_type not in allowed_types:
-            messages.error(request, 'Invalid file type. Please upload an image file (JPEG, PNG, GIF, or WebP).')
+
+        try:
+            validate_image_file(screenshot)
+        except ValidationError as e:
+            messages.error(request, f'Invalid payment screenshot: {e}')
             return redirect('service_requests_web:client_request_detail', pk=pk)
-        
-        # Validate file size (max 5MB)
-        max_size = 5 * 1024 * 1024  # 5MB in bytes
-        if screenshot.size > max_size:
-            messages.error(request, 'File too large. Maximum size is 5MB.')
-            return redirect('service_requests_web:client_request_detail', pk=pk)
-        
+
         # Save the screenshot
         service_request.payment_screenshot = screenshot
         service_request.payment_verified = False  # Reset verification when new screenshot uploaded
@@ -563,7 +614,9 @@ def client_web_history(request):
     requests_list = ServiceRequest.objects.filter(
         client=request.user,
         status__in=['completed', 'cancelled']
-    ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')
+    ).select_related(
+        'category', 'assigned_worker', 'assigned_worker__user'
+    ).prefetch_related('assignments__worker__user').order_by('-created_at')
     
     # Get filter parameters
     status_filter = request.GET.get('status')
@@ -659,14 +712,36 @@ def client_web_rate_worker(request, pk):
     if request.method == 'POST':
         rating = request.POST.get('rating')
         review = request.POST.get('review', '').strip()
-        
-        if not rating or int(rating) < 1 or int(rating) > 5:
+
+        try:
+            rating_value = int(rating)
+        except (TypeError, ValueError):
+            rating_value = None
+
+        if rating_value is None or rating_value < 1 or rating_value > 5:
             messages.error(request, 'Please provide a valid rating (1-5 stars).')
         else:
-            service_request.client_rating = int(rating)
+            service_request.client_rating = rating_value
             service_request.client_review = review
             service_request.save()
-            
+
+            # Roll the rating into the worker's aggregate stats (mirrors
+            # clients/api_views.py::rate_service_request). assigned_worker is
+            # the LEGACY single-worker field and is never populated by the
+            # real multi-worker assignment flow (_create_assignment()) -
+            # reading it here always silently no-ops. Rate every worker who
+            # actually completed this request via the real assignments
+            # relation instead.
+            completed_assignments = service_request.assignments.filter(status='completed').select_related('worker')
+            for assignment in completed_assignments:
+                worker = assignment.worker
+                new_total = worker.total_reviews + 1
+                worker.average_rating = round(
+                    ((worker.average_rating * worker.total_reviews) + rating_value) / new_total, 2
+                )
+                worker.total_reviews = new_total
+                worker.save(update_fields=['average_rating', 'total_reviews'])
+
             messages.success(request, 'Thank you for your rating!')
             return redirect('service_requests_web:client_request_detail', pk=pk)
     

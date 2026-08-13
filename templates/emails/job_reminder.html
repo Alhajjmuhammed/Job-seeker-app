@@ -1,0 +1,23 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Job Reminder{% endblock %}
+
+{% block content %}
+<h2>Upcoming Job Reminder ⏰</h2>
+
+<p>This is a friendly reminder about your upcoming {% if user_type == 'worker' %}assignment{% else %}service request{% endif %}.</p>
+
+<div class="info-box">
+    <h3>{{ job_title }}</h3>
+    <p>Scheduled for <strong>{{ job_date }}</strong></p>
+</div>
+
+{% if user_type == 'worker' %}
+<p>Please make sure you're ready to start on time and have everything you need for the job.</p>
+{% else %}
+<p>Please make sure you're available to receive the worker at the scheduled time.</p>
+{% endif %}
+
+<p>Best regards,<br>
+<strong>The Worker Connect Team</strong></p>
+{% endblock %}

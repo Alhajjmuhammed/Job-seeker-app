@@ -8,11 +8,15 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h5 class="fw-bold mb-0">Workers Under My Team</h5>
     {% if agent.is_verified %}
-    <button type="button" class="btn btn-teal fw-semibold" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
-        <i class="bi bi-person-plus me-1"></i> Add New Worker
-    </button>
+    <div class="d-flex gap-2">
+        <a href="{% url 'agents:search_workers' %}" class="btn btn-outline-teal fw-semibold">
+            <i class="bi bi-search me-1"></i> Search Existing Worker
+        </a>
+        <button type="button" class="btn btn-teal fw-semibold" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
+            <i class="bi bi-person-plus me-1"></i> Add New Worker
+        </button>
+    </div>
     {% endif %}
-</div>
 </div>
 
 

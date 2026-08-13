@@ -69,11 +69,22 @@
                             </span>
                         </dd>
                         
+                        {% if service_request.duration_type %}
+                        <dt class="col-sm-4">Duration:</dt>
+                        <dd class="col-sm-8">{{ service_request.duration_type_display }} ({{ service_request.duration_days }} days)</dd>
+
+                        <dt class="col-sm-4">Daily Rate:</dt>
+                        <dd class="col-sm-8"><strong>TSH {{ service_request.daily_rate|floatformat:2 }}</strong></dd>
+
+                        <dt class="col-sm-4">Total Price:</dt>
+                        <dd class="col-sm-8"><strong class="text-success">TSH {{ service_request.total_price|floatformat:2 }}</strong></dd>
+                        {% else %}
                         <dt class="col-sm-4">Est. Duration:</dt>
                         <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
-                        
+
                         <dt class="col-sm-4">Hourly Rate:</dt>
                         <dd class="col-sm-8"><strong>TSH {{ service_request.hourly_rate }}</strong></dd>
+                        {% endif %}
                         
                         {% if service_request.preferred_date %}
                         <dt class="col-sm-4">Preferred Time:</dt>
@@ -156,7 +167,7 @@
                                 </tr>
                                 <tr class="table-light">
                                     <td colspan="2"><strong>Total Amount:</strong></td>
-                                    <td colspan="2"><strong class="text-success">TSH {{ service_request.total_amount|default:"0" }}</strong></td>
+                                    <td colspan="2"><strong class="text-success">TSH {{ service_request.total_price|default:service_request.total_amount|default:"0" }}</strong></td>
                                 </tr>
                             </tfoot>
                         </table>

@@ -3,7 +3,7 @@ Job categories management for Worker Connect.
 """
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Count
@@ -12,24 +12,28 @@ from workers.models import Category
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def list_categories(request):
     """
     List all job categories.
-    
+
     Query params:
         - with_counts: Include job counts (default: false)
         - parent_only: Only show parent categories (default: false)
     """
     with_counts = request.query_params.get('with_counts', '').lower() == 'true'
     parent_only = request.query_params.get('parent_only', '').lower() == 'true'
-    
+
     queryset = Category.objects.all()
-    
+
     if parent_only:
         queryset = queryset.filter(parent__isnull=True)
-    
+
     if with_counts:
-        queryset = queryset.annotate(job_count=Count('jobs'))
+        # 'jobs' is the related_name of the deprecated JobRequest model;
+        # real, current job postings are ServiceRequest, whose FK to
+        # Category uses related_name='service_requests'.
+        queryset = queryset.annotate(job_count=Count('service_requests'))
     
     categories = []
     for cat in queryset:
@@ -65,13 +69,14 @@ def list_categories(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_category(request, category_id):
     """
     Get details for a specific category.
     """
     try:
         cat = Category.objects.annotate(
-            job_count=Count('jobs')
+            job_count=Count('service_requests')
         ).get(id=category_id)
     except Category.DoesNotExist:
         return Response({
@@ -204,8 +209,9 @@ def delete_category(request, category_id):
             'error': 'Category not found'
         }, status=status.HTTP_404_NOT_FOUND)
     
-    # Check if category has jobs
-    job_count = category.jobs.count()
+    # Check if category has jobs (real ServiceRequest postings, not the
+    # deprecated JobRequest model's 'jobs' relation)
+    job_count = category.service_requests.count()
     if job_count > 0:
         return Response({
             'error': f'Cannot delete category with {job_count} jobs. Reassign jobs first.'
@@ -219,14 +225,15 @@ def delete_category(request, category_id):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def popular_categories(request):
     """
     Get popular categories by job count.
     """
     limit = int(request.query_params.get('limit', 10))
-    
+
     categories = Category.objects.annotate(
-        job_count=Count('jobs')
+        job_count=Count('service_requests')
     ).order_by('-job_count')[:limit]
     
     result = []

@@ -82,11 +82,18 @@
                         <span class="text-muted">
                             <i class="bi bi-calendar"></i> {{ service_request.created_at|date:"M d, Y" }}
                         </span>
-                        {% if service_request.assigned_worker %}
+                        {% with accepted_assignments=service_request.assignments.all %}
+                        {% if accepted_assignments %}
+                        <span class="text-muted">
+                            <i class="bi bi-person-badge"></i>
+                            {% for assignment in accepted_assignments %}{{ assignment.worker.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </span>
+                        {% elif service_request.assigned_worker %}
                         <span class="text-muted">
                             <i class="bi bi-person-badge"></i> {{ service_request.assigned_worker.user.get_full_name }}
                         </span>
                         {% endif %}
+                        {% endwith %}
                     </div>
                 </div>
                 <div class="col-md-4 text-end">

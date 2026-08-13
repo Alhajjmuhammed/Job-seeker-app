@@ -587,6 +587,23 @@
                     </div>
                 </div>
 
+                {{ form.latitude }}
+                {{ form.longitude }}
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">
+                        <i class="bi bi-geo-alt-fill"></i> GPS Coordinates
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="useMyLocation()">
+                            <i class="bi bi-crosshair"></i> Use my current location
+                        </button>
+                        <span id="locateStatus" class="form-help">
+                            {% if profile.latitude and profile.longitude %}Location captured ✓{% else %}Not set - clients using "auto-assign nearest" won't be able to match you until this is set{% endif %}
+                        </span>
+                    </div>
+                    <span class="form-help">Used to match you with nearby clients when they choose automatic worker assignment.</span>
+                </div>
+
                 <div class="form-grid" style="margin-top: 1rem;">
                     <div class="form-group">
                         <label class="form-label" for="id_religion">
@@ -940,5 +957,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function useMyLocation() {
+    const status = document.getElementById('locateStatus');
+    if (!navigator.geolocation) {
+        status.textContent = 'Geolocation is not supported by this browser.';
+        return;
+    }
+    status.textContent = 'Locating...';
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            document.getElementById('id_latitude').value = position.coords.latitude;
+            document.getElementById('id_longitude').value = position.coords.longitude;
+            status.textContent = 'Location captured ✓ - click "Save Changes" below to store it';
+        },
+        (error) => {
+            status.textContent = 'Could not get your location. Please try again.';
+        }
+    );
+}
 </script>
 {% endblock %}

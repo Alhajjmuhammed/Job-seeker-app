@@ -665,16 +665,6 @@
                 <span class="nav-text">{% trans "Activity History" %}</span>
             </a>
             
-            <div class="sidebar-section-title section-title">{% trans "JOBS" %}</div>
-            <a href="{% url 'jobs:job_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'job_detail' %}active{% endif %}">
-                <i class="bi bi-briefcase"></i> 
-                <span class="nav-text">{% trans "Find Jobs" %}</span>
-            </a>
-            <a href="{% url 'jobs:my_applications' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'my_applications' %}active{% endif %}">
-                <i class="bi bi-file-earmark-text"></i> 
-                <span class="nav-text">{% trans "My Applications" %}</span>
-            </a>
-            
             <div class="sidebar-section-title section-title">{% trans "PROFILE" %}</div>
             <a href="{% url 'workers:profile_edit' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'profile_edit' %}active{% endif %}">
                 <i class="bi bi-person-circle"></i> 

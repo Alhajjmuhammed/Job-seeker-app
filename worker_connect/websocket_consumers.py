@@ -124,8 +124,11 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
     @database_sync_to_async
     def mark_notification_read(self, notification_id):
         """Mark a notification as read."""
-        # Implement based on your notification model
-        pass
+        from .notification_models import Notification
+        from django.utils import timezone
+        Notification.objects.filter(
+            id=notification_id, recipient=self.user
+        ).update(is_read=True, read_at=timezone.now())
 
 
 class JobUpdatesConsumer(AsyncJsonWebsocketConsumer):
@@ -357,15 +360,21 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     
     @database_sync_to_async
     def user_in_conversation(self):
-        """Check if user is part of the conversation."""
+        """Check if user is part of the conversation.
+
+        Message has no conversation_id/receiver field - there's no
+        "conversation" model at all in this codebase. Matching the
+        convention used everywhere else (e.g. jobs/urls.py's
+        `conversation/<int:user_id>/`), a conversation is the pair of
+        (self.user, other_user) identified by the other user's id.
+        """
         try:
             from jobs.models import Message
             from django.db.models import Q
-            # Check if user has any messages in this conversation
+            other_user_id = self.conversation_id
             return Message.objects.filter(
-                conversation_id=self.conversation_id
-            ).filter(
-                Q(sender=self.user) | Q(receiver=self.user)
+                Q(sender_id=self.user.id, recipient_id=other_user_id) |
+                Q(sender_id=other_user_id, recipient_id=self.user.id)
             ).exists()
         except Exception as e:
             logger.error(f"Error checking conversation membership: {e}")

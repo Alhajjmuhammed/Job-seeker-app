@@ -62,10 +62,6 @@ app.conf.update(
             'task': 'jobs.tasks.cleanup_old_activities',
             'schedule': 86400.0,  # Daily
         },
-        'warm-cache': {
-            'task': 'worker_connect.tasks.warm_cache',
-            'schedule': 1800.0,  # Every 30 minutes
-        },
         'update-worker-ratings': {
             'task': 'workers.tasks.update_worker_ratings',
             'schedule': 3600.0,  # Every hour

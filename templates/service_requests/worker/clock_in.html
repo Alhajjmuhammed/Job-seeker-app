@@ -36,7 +36,7 @@
                             <strong>{% trans "Location:" %}</strong> {{ service_request.location }}, {{ service_request.city }}
                         </p>
                         <p class="mb-2">
-                            <strong>{% trans "Hourly Rate:" %}</strong> <span class="text-success">TSH {{ service_request.hourly_rate }}</span>
+                            <strong>{% trans "Daily Rate:" %}</strong> <span class="text-success">TSH {{ service_request.daily_rate|floatformat:2 }}</span>
                         </p>
                     </div>
                     

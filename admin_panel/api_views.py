@@ -49,8 +49,8 @@ def dashboard_overview(request):
     accepted_applications = JobApplication.objects.filter(status='accepted').count()
     
     # Worker statistics
-    available_workers = WorkerProfile.objects.filter(is_available=True).count()
-    verified_workers = WorkerProfile.objects.filter(is_verified=True).count()
+    available_workers = WorkerProfile.objects.filter(availability='available').count()
+    verified_workers = WorkerProfile.objects.filter(verification_status='verified').count()
     
     return Response({
         'users': {
@@ -150,7 +150,7 @@ def job_statistics(request):
     
     # Average applications per job
     avg_applications = JobApplication.objects.values(
-        'job_request'
+        'job'
     ).annotate(
         app_count=Count('id')
     ).aggregate(
@@ -181,9 +181,9 @@ def application_statistics(request):
     
     # Daily applications (last 30 days)
     daily_apps = JobApplication.objects.filter(
-        applied_at__gte=thirty_days_ago
+        created_at__gte=thirty_days_ago
     ).annotate(
-        date=TruncDate('applied_at')
+        date=TruncDate('created_at')
     ).values('date').annotate(
         count=Count('id')
     ).order_by('date')
@@ -210,22 +210,22 @@ def worker_statistics(request):
     """
     # Workers by availability
     by_availability = {
-        'available': WorkerProfile.objects.filter(is_available=True).count(),
-        'unavailable': WorkerProfile.objects.filter(is_available=False).count(),
+        'available': WorkerProfile.objects.filter(availability='available').count(),
+        'unavailable': WorkerProfile.objects.exclude(availability='available').count(),
     }
-    
+
     # Workers by verification status
     by_verification = {
-        'verified': WorkerProfile.objects.filter(is_verified=True).count(),
-        'unverified': WorkerProfile.objects.filter(is_verified=False).count(),
+        'verified': WorkerProfile.objects.filter(verification_status='verified').count(),
+        'unverified': WorkerProfile.objects.exclude(verification_status='verified').count(),
     }
-    
+
     # Profile completion stats
     complete_profiles = WorkerProfile.objects.filter(is_profile_complete=True).count()
     incomplete_profiles = WorkerProfile.objects.filter(is_profile_complete=False).count()
-    
+
     # Average rating
-    avg_rating = WorkerProfile.objects.aggregate(avg=Avg('rating'))
+    avg_rating = WorkerProfile.objects.aggregate(avg=Avg('average_rating'))
     
     return Response({
         'by_availability': by_availability,
@@ -259,16 +259,16 @@ def recent_activity(request):
     
     # Recent applications
     recent_applications = JobApplication.objects.select_related(
-        'worker__user', 'job_request'
-    ).order_by('-applied_at')[:limit]
-    
+        'worker__user', 'job'
+    ).order_by('-created_at')[:limit]
+
     applications_data = [
         {
             'id': app.id,
             'worker_name': f"{app.worker.user.first_name} {app.worker.user.last_name}",
-            'job_title': app.job_request.title,
+            'job_title': app.job.title,
             'status': app.status,
-            'applied_at': app.applied_at,
+            'applied_at': app.created_at,
         }
         for app in recent_applications
     ]

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from decimal import Decimal
 import uuid
@@ -78,7 +79,9 @@ class WorkerProfile(models.Model):
     state = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, default='Tanzania')
     postal_code = models.CharField(max_length=20, blank=True)
-    
+    latitude = models.FloatField(null=True, blank=True, help_text="GPS latitude, for nearest-worker matching")
+    longitude = models.FloatField(null=True, blank=True, help_text="GPS longitude, for nearest-worker matching")
+
     # Personal details
     RELIGION_CHOICES = (
         ('', 'Prefer not to say'),
@@ -107,6 +110,14 @@ class WorkerProfile(models.Model):
     availability = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='available')
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS, default='pending')
     is_featured = models.BooleanField(default=False)
+    is_public = models.BooleanField(
+        default=True,
+        help_text="Whether this worker's profile is visible to clients browsing/searching"
+    )
+    verification_tier = models.PositiveIntegerField(
+        default=1,
+        help_text="Verification tier level (see workers.badges.VerificationTier)"
+    )
     
     # Statistics
     total_jobs = models.IntegerField(default=0, validators=[MinValueValidator(0)])
@@ -115,6 +126,7 @@ class WorkerProfile(models.Model):
         max_digits=3, decimal_places=2, default=0.0,
         validators=[MinValueValidator(0), MaxValueValidator(5)]
     )
+    total_reviews = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     total_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0.0)
 
     # Agent relationship - worker may be recruited by an agent
@@ -437,7 +449,7 @@ class Payment(models.Model):
     # External payment provider data
     external_payment_id = models.CharField(max_length=255, blank=True)
     provider = models.CharField(max_length=50, default='stripe')
-    provider_data = models.JSONField(default=dict, blank=True)
+    provider_data = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     
     # Dates
     created_at = models.DateTimeField(auto_now_add=True)
@@ -446,7 +458,7 @@ class Payment(models.Model):
     
     # Metadata
     description = models.TextField(blank=True)
-    metadata = models.JSONField(default=dict, blank=True)
+    metadata = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     
     class Meta:
         ordering = ['-created_at']

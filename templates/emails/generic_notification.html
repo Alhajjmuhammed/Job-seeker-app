@@ -1,0 +1,12 @@
+{% extends "emails/base.html" %}
+
+{% block title %}{{ title }} - Worker Connect{% endblock %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+<p>{{ message }}</p>
+
+{% if action_url %}
+<a href="{{ action_url }}" class="btn">View Details</a>
+{% endif %}
+{% endblock %}

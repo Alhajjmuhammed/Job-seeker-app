@@ -1,13 +1,34 @@
+import logging
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from .notification_models import Notification, NotificationPreference, PushToken
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+logger = logging.getLogger('api')
+
+# Which NotificationPreference field gates email for a given notification_type.
+# Types with no entry here (system_alert, document_verified) always send -
+# they're operational alerts, not spam-risk content.
+NOTIFICATION_TYPE_TO_EMAIL_PREF = {
+    'job_assigned': 'email_job_assignments',
+    'job_accepted': 'email_job_assignments',  # closest existing category
+    'job_rejected': 'email_job_assignments',  # closest existing category
+    'job_application': 'email_job_applications',
+    'job_completed': 'email_job_assignments',  # closest existing category
+    'message_received': 'email_messages',
+    'payment_received': 'email_payments',
+    'review_received': 'email_reviews',
+    'promotion': 'email_promotions',
+}
+
 
 class NotificationService:
     """Service for creating and managing notifications"""
-    
+
     @staticmethod
     def create_notification(
         recipient,
@@ -31,12 +52,51 @@ class NotificationService:
             notification_data['object_id'] = content_object.pk
         
         notification = Notification.objects.create(**notification_data)
-        
+
         # Broadcast via WebSocket
         NotificationService._broadcast_notification(notification)
-        
+
+        # Email (respects the recipient's per-category preference)
+        NotificationService._email_notification(notification)
+
         return notification
-    
+
+    @staticmethod
+    def _email_notification(notification):
+        """
+        Send an email for this notification, if the recipient hasn't opted
+        out of emails for this category. Never raises - an email failure
+        (or no SMTP password configured yet) must never break notification
+        creation or whatever request triggered it, same defensive pattern
+        _broadcast_notification already uses below.
+        """
+        try:
+            recipient = notification.recipient
+            if not recipient.email:
+                return
+
+            pref_field = NOTIFICATION_TYPE_TO_EMAIL_PREF.get(notification.notification_type)
+            if pref_field:
+                prefs, _ = NotificationPreference.objects.get_or_create(user=recipient)
+                if not getattr(prefs, pref_field):
+                    return
+
+            html_message = render_to_string('emails/generic_notification.html', {
+                'title': notification.title,
+                'message': notification.message,
+            })
+
+            send_mail(
+                subject=notification.title,
+                message=notification.message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Failed to email notification {notification.id} to {notification.recipient_id}: {e}")
+
     @staticmethod
     def _broadcast_notification(notification):
         """Broadcast notification via WebSocket to connected clients"""
@@ -221,12 +281,14 @@ class NotificationService:
     @staticmethod
     def notify_service_rejected(service_request, reason=''):
         """Notify admin that worker rejected the assignment"""
-        # Notify all admins
+        # Notify all admins - routed through create_notification (not
+        # bulk_create) so each admin also gets the websocket broadcast and
+        # email, same as every other notification type.
         admins = User.objects.filter(is_staff=True)
         notifications = []
         for admin in admins:
             notifications.append(
-                Notification(
+                NotificationService.create_notification(
                     recipient=admin,
                     title="Worker Rejected Assignment ⚠️",
                     message=f"Worker rejected service: {service_request.title}. Reason: {reason or 'Not provided'}",
@@ -239,7 +301,7 @@ class NotificationService:
                     }
                 )
             )
-        return Notification.objects.bulk_create(notifications)
+        return notifications
     
     @staticmethod
     def notify_service_completed(service_request):
@@ -293,12 +355,14 @@ class NotificationService:
     @staticmethod
     def notify_admin_new_service_request(service_request):
         """Notify admin about new service request from client"""
-        # Notify all admins
+        # Notify all admins - routed through create_notification (not
+        # bulk_create) so each admin also gets the websocket broadcast and
+        # email, same as every other notification type.
         admins = User.objects.filter(is_staff=True)
         notifications = []
         for admin in admins:
             notifications.append(
-                Notification(
+                NotificationService.create_notification(
                     recipient=admin,
                     title="New Service Request 📋",
                     message=f"New {service_request.get_urgency_display()} service request: {service_request.title} in {service_request.city}",
@@ -312,4 +376,4 @@ class NotificationService:
                     }
                 )
             )
-        return Notification.objects.bulk_create(notifications)
+        return notifications

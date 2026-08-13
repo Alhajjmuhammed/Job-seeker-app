@@ -173,7 +173,17 @@
                             <span class="badge bg-info">{{ request.category.name }}</span>
                         </td>
                         <td>
-                            {% if request.assigned_worker %}
+                            {% with accepted_assignments=request.assignments.all %}
+                            {% if accepted_assignments %}
+                                {% for assignment in accepted_assignments %}
+                                <div>{{ assignment.worker.user.get_full_name }}</div>
+                                {% if assignment.worker.average_rating %}
+                                <small class="text-warning">
+                                    ★ {{ assignment.worker.average_rating|floatformat:1 }}
+                                </small>
+                                {% endif %}
+                                {% endfor %}
+                            {% elif request.assigned_worker %}
                             <div>{{ request.assigned_worker.user.get_full_name }}</div>
                             {% if request.assigned_worker.average_rating %}
                             <small class="text-warning">
@@ -183,6 +193,7 @@
                             {% else %}
                             <em class="text-muted">Not assigned</em>
                             {% endif %}
+                            {% endwith %}
                         </td>
                         <td>
                             {% if request.status == 'completed' %}
@@ -221,7 +232,7 @@
                                 ★ {{ request.client_rating }}
                             </div>
                             {% elif request.status == 'completed' %}
-                            <a href="{% url 'admin_panel:rate_worker' request.id %}" class="btn btn-sm btn-outline-warning">
+                            <a href="{% url 'service_requests_web:client_rate_worker' request.id %}" class="btn btn-sm btn-outline-warning">
                                 <i class="bi bi-star"></i> Rate
                             </a>
                             {% else %}

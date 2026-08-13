@@ -584,27 +584,29 @@ def worker_statistics(request):
         status='in_progress'
     ).count()
     
-    # Total hours and earnings
+    # Total hours and earnings. total_amount is only populated for
+    # hourly-rate billing; total_price covers the default daily-rate
+    # billing model too, matching workers/api_views.py::worker_stats.
     stats = ServiceRequest.objects.filter(
         assigned_worker=worker_profile,
         status='completed'
     ).aggregate(
         total_hours=Sum('total_hours_worked'),
-        total_earned=Sum('total_amount')
+        total_earned=Sum('total_price')
     )
     
     total_hours_worked = stats['total_hours'] or 0
     total_earned = stats['total_earned'] or 0
     
     # This week stats
-    week_start = datetime.now() - timedelta(days=7)
+    week_start = timezone.now() - timedelta(days=7)
     week_stats = ServiceRequest.objects.filter(
         assigned_worker=worker_profile,
         status='completed',
         work_completed_at__gte=week_start
     ).aggregate(
         week_hours=Sum('total_hours_worked'),
-        week_earned=Sum('total_amount')
+        week_earned=Sum('total_price')
     )
     
     this_week_hours = week_stats['week_hours'] or 0

@@ -23,12 +23,13 @@ urlpatterns = [
     path('skills/', api_views.get_skills_by_category, name='get_skills_by_category'),
     path('experiences/', api_views.work_experiences, name='work_experiences'),
     path('experiences/<int:experience_id>/', api_views.work_experience_detail, name='work_experience_detail'),
+    # Auto-generated CV
+    path('cv/', api_views.worker_cv, name='worker_cv'),
+    path('cv/download/', api_views.worker_cv_download, name='worker_cv_download'),
     # Analytics and earnings endpoints
     path('analytics/', api_views.worker_analytics, name='worker_analytics'),
     path('earnings/breakdown/', api_views.earnings_breakdown, name='earnings_breakdown'),
     path('earnings/by-category/', api_views.earnings_by_category, name='earnings_by_category'),
     path('earnings/top-clients/', api_views.top_clients, name='top_clients'),
     path('earnings/payment-history/', api_views.payment_history, name='payment_history'),
-    # Push notifications
-    path('push-token/register/', api_views.register_push_token, name='register_push_token'),
 ]

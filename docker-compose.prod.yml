@@ -29,7 +29,7 @@ services:
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
-    command: gunicorn --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 60 worker_connect.wsgi:application
+    command: sh -c "python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 60 worker_connect.wsgi:application"
     deploy:
       resources:
         limits:

@@ -54,12 +54,19 @@
                                     </span>
                                 </dd>
                                 
-                                {% if service_request.assigned_worker %}
+                                {% with accepted_assignments=service_request.assignments.all %}
+                                {% if accepted_assignments %}
+                                <dt class="col-sm-4">Assigned Worker{{ accepted_assignments|length|pluralize }}:</dt>
+                                <dd class="col-sm-8">
+                                    {% for assignment in accepted_assignments %}{{ assignment.worker.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                </dd>
+                                {% elif service_request.assigned_worker %}
                                 <dt class="col-sm-4">Assigned Worker:</dt>
                                 <dd class="col-sm-8">
                                     {{ service_request.assigned_worker.user.get_full_name }}
                                 </dd>
                                 {% endif %}
+                                {% endwith %}
                                 
                                 {% if service_request.total_price %}
                                 <dt class="col-sm-4">Total Price:</dt>
@@ -179,7 +186,7 @@
                         <li>Reach out to our support team for assistance</li>
                         <li>Check if rescheduling is possible</li>
                     </ul>
-                    <a href="{% url 'workers:contact' %}" class="btn btn-sm btn-outline-primary">
+                    <a href="mailto:sales@easyfix.co.tz" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-headset"></i> Contact Support
                     </a>
                 </div>

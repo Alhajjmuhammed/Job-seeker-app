@@ -9,6 +9,7 @@ class ClientProfile(models.Model):
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='client_profile')
     company_name = models.CharField(max_length=200, blank=True)
+    bio = models.TextField(blank=True, help_text="Brief introduction about the client")
     address = models.CharField(max_length=255, blank=True)
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)

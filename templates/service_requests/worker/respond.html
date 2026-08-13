@@ -52,7 +52,13 @@
                         </dd>
                         
                         <dt class="col-sm-3">{% trans "Duration:" %}</dt>
-                        <dd class="col-sm-9">{{ service_request.estimated_duration_hours }} {% trans "hours" %}</dd>
+                        <dd class="col-sm-9">
+                            {% if service_request.duration_type %}
+                            {{ service_request.duration_type_display }} ({{ service_request.duration_days }} {% trans "days" %})
+                            {% else %}
+                            {{ service_request.estimated_duration_hours }} {% trans "hours" %}
+                            {% endif %}
+                        </dd>
                         
                         {% if service_request.preferred_date %}
                         <dt class="col-sm-3">{% trans "Preferred Time:" %}</dt>

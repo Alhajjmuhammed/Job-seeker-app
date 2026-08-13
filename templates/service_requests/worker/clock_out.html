@@ -37,7 +37,7 @@
                         <h6><i class="fas fa-info-circle"></i> {% trans "Current Work Session" %}</h6>
                         <p class="mb-1"><strong>{% trans "Clock In Time:" %}</strong> {{ active_log.clock_in|date:"M d, Y g:i A" }}</p>
                         <p class="mb-1"><strong>{% trans "Location:" %}</strong> {{ active_log.clock_in_location|default:" " }}{% trans "Not specified" %}{{ active_log.clock_in_location|yesno:"," }}</p>
-                        <p class="mb-0"><strong>{% trans "Hourly Rate:" %}</strong> TSH {{ service_request.hourly_rate }}</p>
+                        <p class="mb-0"><strong>{% trans "Daily Rate:" %}</strong> TSH {{ service_request.daily_rate|floatformat:2 }}</p>
                     </div>
                     
                     <hr>
@@ -96,11 +96,11 @@
                         <dt class="col-sm-6">{% trans "Total Hours Worked So Far:" %}</dt>
                         <dd class="col-sm-6">{{ service_request.total_hours_worked|default:"0" }} {% trans "hours" %}</dd>
                         
-                        <dt class="col-sm-6">{% trans "Hourly Rate:" %}</dt>
-                        <dd class="col-sm-6">TSH {{ service_request.hourly_rate }}</dd>
-                        
+                        <dt class="col-sm-6">{% trans "Daily Rate:" %}</dt>
+                        <dd class="col-sm-6">TSH {{ service_request.daily_rate|floatformat:2 }}</dd>
+
                         <dt class="col-sm-6">{% trans "Estimated Earnings:" %}</dt>
-                        <dd class="col-sm-6"><strong class="text-success">TSH {{ service_request.total_amount|default:"0" }}</strong></dd>
+                        <dd class="col-sm-6"><strong class="text-success">TSH {% widthratio service_request.duration_days 1 service_request.daily_rate %}</strong></dd>
                     </dl>
                     <hr>
                     <p class="small text-muted mb-0">

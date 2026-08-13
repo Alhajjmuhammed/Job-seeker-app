@@ -145,7 +145,7 @@ def submit_report(request):
         from jobs.models import JobRequest
         try:
             job = JobRequest.objects.get(id=content_id)
-            reported_user = job.client.user
+            reported_user = job.client
         except JobRequest.DoesNotExist:
             return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     

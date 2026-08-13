@@ -237,23 +237,20 @@ def get_my_tier(request):
     
     # Get next tier requirements
     next_tier = None
-    try:
-        next_tier_obj = VerificationTier.objects.filter(
-            level__gt=current_level,
-            is_active=True
-        ).first()
-        if next_tier_obj:
-            next_tier = {
-                'level': next_tier_obj.level,
-                'name': next_tier_obj.name,
-                'requirements': {
-                    'min_reviews': next_tier_obj.min_reviews,
-                    'min_rating': float(next_tier_obj.min_rating),
-                    'min_completed_jobs': next_tier_obj.min_completed_jobs,
-                }
+    next_tier_obj = VerificationTier.objects.filter(
+        level__gt=current_level,
+        is_active=True
+    ).order_by('level').first()
+    if next_tier_obj:
+        next_tier = {
+            'level': next_tier_obj.level,
+            'name': next_tier_obj.name,
+            'requirements': {
+                'min_reviews': next_tier_obj.min_reviews,
+                'min_rating': float(next_tier_obj.min_rating),
+                'min_completed_jobs': next_tier_obj.min_completed_jobs,
             }
-    except:
-        pass
+        }
     
     return Response({
         'current_tier': tier_data,

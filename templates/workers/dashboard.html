@@ -148,8 +148,13 @@
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-info w-100 btn-quick-action">
-                                <i class="bi bi-search"></i> {% trans "Find Jobs" %}
+                            <a href="{% url 'workers:cv_preview' %}" class="btn btn-outline-dark w-100 btn-quick-action">
+                                <i class="bi bi-file-earmark-person"></i> {% trans "My CV" %}
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <a href="{% url 'service_requests_web:worker_pending' %}" class="btn btn-outline-info w-100 btn-quick-action">
+                                <i class="bi bi-bell"></i> {% trans "Pending Assignments" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
@@ -158,8 +163,8 @@
                             </a>
                         </div>
                         <div class="col-md-4 col-6">
-                            <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-warning w-100 btn-quick-action">
-                                <i class="bi bi-file-text"></i> {% trans "Applications" %}
+                            <a href="{% url 'service_requests_web:worker_assignments' %}" class="btn btn-outline-warning w-100 btn-quick-action">
+                                <i class="bi bi-file-text"></i> {% trans "My Assignments" %}
                             </a>
                         </div>
                         <div class="col-md-4 col-12">

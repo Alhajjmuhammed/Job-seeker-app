@@ -54,11 +54,11 @@
                                 <dt class="col-sm-6">{% trans "Total Hours Worked:" %}</dt>
                                 <dd class="col-sm-6"><strong>{{ service_request.total_hours_worked|default:"0" }} {% trans "hours" %}</strong></dd>
                                 
-                                <dt class="col-sm-6">{% trans "Hourly Rate:" %}</dt>
-                                <dd class="col-sm-6">TSH {{ service_request.hourly_rate }}</dd>
-                                
+                                <dt class="col-sm-6">{% trans "Daily Rate:" %}</dt>
+                                <dd class="col-sm-6">TSH {{ service_request.daily_rate|floatformat:2 }}</dd>
+
                                 <dt class="col-sm-6">{% trans "Total Earnings:" %}</dt>
-                                <dd class="col-sm-6"><strong class="text-success fs-5">TSH {{ service_request.total_amount|default:"0" }}</strong></dd>
+                                <dd class="col-sm-6"><strong class="text-success fs-5">TSH {% widthratio service_request.duration_days 1 service_request.daily_rate %}</strong></dd>
                             </dl>
                         </div>
                     </div>
@@ -106,7 +106,7 @@
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> <strong>{% trans "What Happens Next?" %}</strong>
                             <ul class="mb-0 mt-2">
-                                <li>{% blocktrans with amount=service_request.total_amount|default:'0' %}Your earnings (TSH {{ amount }}) will be recorded{% endblocktrans %}</li>
+                                <li>{% widthratio service_request.duration_days 1 service_request.daily_rate as estimated_earnings %}{% blocktrans with amount=estimated_earnings %}Your earnings (TSH {{ amount }}) will be recorded{% endblocktrans %}</li>
                                 <li>{% trans "The client will be notified that the service is complete" %}</li>
                                 <li>{% trans "The client can leave a review and rating" %}</li>
                                 <li>{% trans "Payment processing will be initiated" %}</li>

@@ -40,7 +40,7 @@ def match_skills(request):
     # If IDs provided, fetch skills from database
     if worker_id:
         worker = get_object_or_404(WorkerProfile, id=worker_id)
-        worker_skills = [s.strip() for s in (worker.skills or '').split(',') if s.strip()]
+        worker_skills = list(worker.skills.values_list('name', flat=True))
     
     if job_id:
         job = get_object_or_404(JobRequest, id=job_id)
@@ -80,10 +80,12 @@ def find_matching_workers(request, job_id):
     """
     job = get_object_or_404(JobRequest, id=job_id)
     
-    # Verify user is job owner or admin
+    # Verify user is job owner or admin. JobRequest.client is a User FK,
+    # not a ClientProfile - comparing directly to `client` always failed
+    # and 403'd every legitimate owner.
     try:
         client = ClientProfile.objects.get(user=request.user)
-        if job.client != client and not request.user.is_staff:
+        if job.client != client.user and not request.user.is_staff:
             return Response({
                 'error': 'Not authorized'
             }, status=status.HTTP_403_FORBIDDEN)
@@ -105,7 +107,7 @@ def find_matching_workers(request, job_id):
             'worker': {
                 'id': worker.id,
                 'name': worker.user.get_full_name() or worker.user.username,
-                'skills': worker.skills,
+                'skills': list(worker.skills.values_list('name', flat=True)),
                 'hourly_rate': str(worker.hourly_rate) if hasattr(worker, 'hourly_rate') and worker.hourly_rate else None,
             },
             'match_score': match['match']['score'],
@@ -164,7 +166,7 @@ def find_matching_jobs(request):
     return Response({
         'worker': {
             'id': worker.id,
-            'skills': worker.skills,
+            'skills': list(worker.skills.values_list('name', flat=True)),
         },
         'matches_count': len(result),
         'matches': result,
@@ -186,7 +188,7 @@ def suggest_skills(request):
             'error': 'Only workers can access this endpoint'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    current_skills = [s.strip() for s in (worker.skills or '').split(',') if s.strip()]
+    current_skills = list(worker.skills.values_list('name', flat=True))
     
     suggestions = SkillsMatcher.suggest_skills(current_skills)
     

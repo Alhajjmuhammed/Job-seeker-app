@@ -203,9 +203,9 @@ class ExportConfigs:
         {'field': 'name', 'header': 'Name'},
         {'field': 'email', 'header': 'Email'},
         {'field': 'phone', 'header': 'Phone'},
-        {'field': 'rating', 'header': 'Rating'},
-        {'field': 'is_available', 'header': 'Available'},
-        {'field': 'is_verified', 'header': 'Verified'},
+        {'field': 'average_rating', 'header': 'Rating'},
+        {'field': 'availability', 'header': 'Available'},
+        {'field': 'verification_status', 'header': 'Verified'},
     ]
     
     APPLICATIONS_COLUMNS = [

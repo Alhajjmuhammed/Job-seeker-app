@@ -151,21 +151,69 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="location" class="form-label">Service Location *</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="location" 
-                                               name="location" 
+                                        <input type="text"
+                                               class="form-control"
+                                               id="location"
+                                               name="location"
                                                required
                                                placeholder="Where should the service be performed?">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="city" class="form-label">City *</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="city" 
-                                               name="city" 
+                                        <input type="text"
+                                               class="form-control"
+                                               id="city"
+                                               name="city"
                                                required
                                                placeholder="City name">
+                                    </div>
+                                </div>
+
+                                <!-- How should we pick your worker? -->
+                                <input type="hidden" id="latitude" name="latitude">
+                                <input type="hidden" id="longitude" name="longitude">
+                                <input type="hidden" id="preferred_worker" name="preferred_worker">
+
+                                <div class="mb-3">
+                                    <label class="form-label d-block">How should we pick your worker?</label>
+
+                                    <div class="form-check border rounded p-2 mb-2">
+                                        <input class="form-check-input" type="radio" name="assignment_mode" id="modeAdmin" value="admin_choice" checked onchange="onAssignmentModeChange()">
+                                        <label class="form-check-label" for="modeAdmin">
+                                            <strong>Let admin choose</strong>
+                                            <div class="text-muted small">Our team picks a qualified worker for you</div>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check border rounded p-2 mb-2">
+                                        <input class="form-check-input" type="radio" name="assignment_mode" id="modeClient" value="client_choice" onchange="onAssignmentModeChange()">
+                                        <label class="form-check-label" for="modeClient">
+                                            <strong>I'll pick myself</strong>
+                                            <div class="text-muted small">Browse worker profiles and choose &mdash; admin still confirms</div>
+                                        </label>
+                                    </div>
+                                    <div id="clientChoiceDetail" class="d-none ms-4 mb-2">
+                                        <div id="preferredWorkerChosen" class="d-none alert alert-light border d-flex justify-content-between align-items-center py-2">
+                                            <span><i class="bi bi-person-circle"></i> <span id="preferredWorkerName"></span></span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearPreferredWorker()">Change</button>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="browseWorkersBtn" onclick="browseWorkers()">
+                                            <i class="bi bi-people"></i> Browse workers and pick one
+                                        </button>
+                                    </div>
+
+                                    <div class="form-check border rounded p-2 mb-2">
+                                        <input class="form-check-input" type="radio" name="assignment_mode" id="modeAuto" value="auto_nearest" onchange="onAssignmentModeChange()">
+                                        <label class="form-check-label" for="modeAuto">
+                                            <strong>Auto-assign nearest worker</strong>
+                                            <div class="text-muted small">Instantly assigns the closest available worker &mdash; needs your location</div>
+                                        </label>
+                                    </div>
+                                    <div id="autoNearestDetail" class="d-none ms-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="useMyLocation()" id="locateBtn">
+                                            <i class="bi bi-geo-alt"></i> Share my exact location
+                                        </button>
+                                        <span id="locateStatus" class="text-muted small ms-2"></span>
                                     </div>
                                 </div>
 
@@ -482,6 +530,24 @@
                 <button type="button" class="btn btn-primary" id="proceedAnywayBtn">
                     <i class="bi bi-check-circle"></i> <span id="proceedBtnText">Proceed Anyway</span>
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Browse Workers Modal -->
+<div class="modal fade" id="browseWorkersModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-people"></i> Choose a Worker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Pick who you'd like &mdash; the admin will still confirm before work starts.</p>
+                <div id="browseWorkersList">
+                    <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+                </div>
             </div>
         </div>
     </div>
@@ -957,6 +1023,98 @@ function skipScreenshot() {
     }
 }
 
+function onAssignmentModeChange() {
+    const mode = document.querySelector('input[name="assignment_mode"]:checked').value;
+
+    document.getElementById('clientChoiceDetail').classList.toggle('d-none', mode !== 'client_choice');
+    document.getElementById('autoNearestDetail').classList.toggle('d-none', mode !== 'auto_nearest');
+
+    if (mode !== 'client_choice') {
+        clearPreferredWorker();
+    }
+    if (mode === 'auto_nearest' && !document.getElementById('latitude').value) {
+        useMyLocation();
+    }
+}
+
+function useMyLocation() {
+    const status = document.getElementById('locateStatus');
+    if (!navigator.geolocation) {
+        status.textContent = 'Geolocation is not supported by this browser. Choose "Let admin choose" instead.';
+        return;
+    }
+    status.textContent = 'Locating...';
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            document.getElementById('latitude').value = position.coords.latitude;
+            document.getElementById('longitude').value = position.coords.longitude;
+            status.textContent = 'Location captured ✓ - the nearest worker will be assigned instantly';
+        },
+        (error) => {
+            status.textContent = 'Could not get your location. Choose "Let admin choose" instead, or retry.';
+        }
+    );
+}
+
+async function browseWorkers() {
+    const categoryId = document.getElementById('category').value;
+    if (!categoryId) {
+        alert('Please select a category first');
+        return;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('browseWorkersModal'));
+    const listEl = document.getElementById('browseWorkersList');
+    listEl.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    modal.show();
+
+    try {
+        const lat = document.getElementById('latitude').value;
+        const lon = document.getElementById('longitude').value;
+        let url = `/api/v1/client/browse-workers/?category=${categoryId}`;
+        if (lat && lon) {
+            url += `&latitude=${lat}&longitude=${lon}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.workers || data.workers.length === 0) {
+            listEl.innerHTML = '<p class="text-muted text-center py-3">No workers available for this category right now. You can skip this and let admin assign one.</p>';
+            return;
+        }
+
+        listEl.innerHTML = data.workers.map(w => `
+            <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2" style="cursor:pointer;" onclick="selectPreferredWorker(${w.id}, '${w.name.replace(/'/g, "\\'")}')">
+                <div>
+                    <strong>${w.name}</strong><br>
+                    <small class="text-muted">
+                        <i class="bi bi-star-fill text-warning"></i> ${w.average_rating} &middot; ${w.completed_jobs} jobs &middot; ${w.city || 'Unknown'}
+                        ${w.distance_km !== null ? ' &middot; ' + w.distance_km + ' km away' : ''}
+                    </small>
+                </div>
+                <i class="bi bi-chevron-right"></i>
+            </div>
+        `).join('');
+    } catch (error) {
+        listEl.innerHTML = '<p class="text-danger text-center py-3">Failed to load workers. Please try again.</p>';
+    }
+}
+
+function selectPreferredWorker(id, name) {
+    document.getElementById('preferred_worker').value = id;
+    document.getElementById('preferredWorkerName').textContent = name;
+    document.getElementById('preferredWorkerChosen').classList.remove('d-none');
+    document.getElementById('browseWorkersBtn').classList.add('d-none');
+    bootstrap.Modal.getInstance(document.getElementById('browseWorkersModal')).hide();
+}
+
+function clearPreferredWorker() {
+    document.getElementById('preferred_worker').value = '';
+    document.getElementById('preferredWorkerChosen').classList.add('d-none');
+    document.getElementById('browseWorkersBtn').classList.remove('d-none');
+}
+
 async function submitRequest() {
     const btn = document.getElementById('submitWithScreenshot');
     btn.disabled = true;
@@ -972,6 +1130,14 @@ async function submitRequest() {
         formData.append('description', form.description.value);
         formData.append('location', form.location.value);
         formData.append('city', form.city.value);
+        if (form.latitude.value && form.longitude.value) {
+            formData.append('latitude', form.latitude.value);
+            formData.append('longitude', form.longitude.value);
+        }
+        if (form.preferred_worker.value) {
+            formData.append('preferred_worker', form.preferred_worker.value);
+        }
+        formData.append('assignment_mode', document.querySelector('input[name="assignment_mode"]:checked').value);
         formData.append('preferred_date', form.preferred_date.value);
         formData.append('preferred_time', form.preferred_time.value);
         formData.append('duration_type', form.duration_type.value);

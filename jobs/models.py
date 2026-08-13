@@ -365,19 +365,22 @@ class Report(models.Model):
 
 class SavedJob(models.Model):
     """
-    DEPRECATED: Jobs saved by workers (linked to deprecated JobRequest).
-    
-    This model is kept only for backward compatibility and migrations.
-    DO NOT USE IN NEW CODE!
+    Jobs saved by workers for later viewing.
+
+    `job` points at ServiceRequest - the model the active admin-mediated
+    workflow (and the mobile "Browse Jobs" screen) actually lists. It used to
+    point at the deprecated JobRequest job-board model, which made
+    save/unsave/is-saved 404 for every job a worker could actually browse and
+    save, since ServiceRequest and JobRequest have independent id sequences.
     """
-    
+
     worker = models.ForeignKey(
         'workers.WorkerProfile',
         on_delete=models.CASCADE,
         related_name='saved_jobs'
     )
     job = models.ForeignKey(
-        JobRequest,
+        ServiceRequest,
         on_delete=models.CASCADE,
         related_name='saved_by'
     )

@@ -93,8 +93,10 @@ def get_worker_recommendations(request, job_id):
     # Get the job
     job = get_object_or_404(JobRequest, id=job_id)
     
-    # Verify job belongs to this client
-    if job.client != client_profile:
+    # Verify job belongs to this client (JobRequest.client is a User FK,
+    # not a ClientProfile - comparing directly to client_profile always
+    # failed and 403'd every legitimate owner).
+    if job.client != client_profile.user:
         return Response({
             'error': 'You can only get recommendations for your own jobs'
         }, status=status.HTTP_403_FORBIDDEN)

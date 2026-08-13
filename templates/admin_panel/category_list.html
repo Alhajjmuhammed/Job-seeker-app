@@ -82,7 +82,7 @@
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-1">{{ category.name }}</h5>
                                 <p class="text-muted small mb-0">
-                                    <i class="bi bi-people"></i> {{ category.workerprofile_set.count }} workers
+                                    <i class="bi bi-people"></i> {{ category.worker_count }} workers
                                 </p>
                             </div>
                         </div>
@@ -100,15 +100,15 @@
                         </div>
                         
                         <!-- Skills -->
-                        {% if category.skill_set.exists %}
+                        {% if category.skills.exists %}
                         <div class="mb-3">
                             <small class="text-muted d-block mb-1">Related Skills:</small>
                             <div class="d-flex flex-wrap gap-1">
-                                {% for skill in category.skill_set.all|slice:":5" %}
+                                {% for skill in category.skills.all|slice:":5" %}
                                 <span class="badge bg-light text-dark">{{ skill.name }}</span>
                                 {% endfor %}
-                                {% if category.skill_set.count > 5 %}
-                                <span class="badge bg-light text-dark">+{{ category.skill_set.count|add:"-5" }}</span>
+                                {% if category.skills.count > 5 %}
+                                <span class="badge bg-light text-dark">+{{ category.skills.count|add:"-5" }}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -190,10 +190,10 @@
                             </div>
                             <div class="modal-body">
                                 <p>Are you sure you want to delete <strong>{{ category.name }}</strong>?</p>
-                                {% if category.workerprofile_set.count > 0 %}
+                                {% if category.worker_count > 0 %}
                                 <div class="alert alert-warning">
                                     <i class="bi bi-exclamation-triangle"></i>
-                                    This category has <strong>{{ category.workerprofile_set.count }} worker(s)</strong> associated with it.
+                                    This category has <strong>{{ category.worker_count }} worker(s)</strong> associated with it.
                                 </div>
                                 {% endif %}
                                 <p class="text-danger small mb-0">This action cannot be undone.</p>

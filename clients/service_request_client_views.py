@@ -17,7 +17,8 @@ from jobs.service_request_serializers import (
     ServiceRequestCreateSerializer, ClientStatsSerializer,
     CategorySerializer
 )
-from workers.models import Category
+from workers.models import Category, WorkerProfile
+from workers.proximity import rank_by_distance
 from worker_connect.pagination import paginate_queryset
 
 
@@ -125,7 +126,13 @@ def client_create_service_request(request):
     # Calculate and save total price
     service_request.calculate_total_price()
     service_request.save()
-    
+
+    # Apply the client's chosen assignment mode (no-op unless auto_nearest;
+    # falls back to admin_choice if it can't auto-assign)
+    from .assignment_mode import apply_assignment_mode
+    apply_assignment_mode(service_request)
+    service_request.refresh_from_db()
+
     # Update client profile
     if hasattr(request.user, 'client_profile'):
         profile = request.user.client_profile
@@ -375,9 +382,17 @@ def client_update_request(request, pk):
     serializer = ServiceRequestCreateSerializer(service_request, data=request.data, partial=True)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     serializer.save()
-    
+
+    # If the client changed assignment_mode to auto_nearest on this update
+    # (e.g. added their location after initially picking "let admin choose"),
+    # actually try to auto-assign now - otherwise the field would silently
+    # change with no real effect, same gap the create paths guard against.
+    from .assignment_mode import apply_assignment_mode
+    apply_assignment_mode(service_request)
+    service_request.refresh_from_db()
+
     response_serializer = ServiceRequestSerializer(service_request)
     return Response({
         'message': 'Service request updated',
@@ -434,9 +449,80 @@ def client_rate_service(request, pk):
     service_request.client_rating = rating
     service_request.client_review = request.data.get('review', '').strip()
     service_request.save(update_fields=['client_rating', 'client_review'])
-    
+
+    # Roll the rating into the worker's aggregate stats (mirrors
+    # clients/api_views.py::rate_service_request). assigned_worker is the
+    # LEGACY single-worker field and is never populated by the real
+    # multi-worker assignment flow (_create_assignment()) - reading it here
+    # always silently no-ops. Rate every worker who actually completed this
+    # request via the real assignments relation instead.
+    completed_assignments = service_request.assignments.filter(status='completed').select_related('worker')
+    for assignment in completed_assignments:
+        worker = assignment.worker
+        new_total = worker.total_reviews + 1
+        worker.average_rating = round(
+            ((worker.average_rating * worker.total_reviews) + rating) / new_total, 2
+        )
+        worker.total_reviews = new_total
+        worker.save(update_fields=['average_rating', 'total_reviews'])
+
     response_serializer = ServiceRequestSerializer(service_request)
     return Response({
         'message': 'Thank you for your rating!',
         'service_request': response_serializer.data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def client_browse_workers(request):
+    """
+    Browse available workers for a category, so the client can pick who they
+    want (admin still confirms before it becomes a real assignment).
+    Only public-safe fields are returned - no phone/email, matching the
+    privacy boundary workers/views.py:worker_public_profile already sets for
+    client-facing worker data (the admin-facing equivalent exposes contact
+    info; this one must not).
+
+    GET /api/v1/client/browse-workers/?category=5&latitude=-6.8&longitude=39.28
+    """
+    if request.user.user_type != 'client':
+        return Response({'error': 'Only clients can access this'}, status=status.HTTP_403_FORBIDDEN)
+
+    category_id = request.GET.get('category')
+    if not category_id:
+        return Response({'error': 'category is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    workers = WorkerProfile.objects.filter(
+        categories__id=category_id,
+        verification_status='verified',
+        availability='available',
+        is_public=True
+    ).select_related('user').prefetch_related('categories')
+
+    lat = request.GET.get('latitude')
+    lon = request.GET.get('longitude')
+
+    if lat and lon:
+        workers = rank_by_distance(list(workers), float(lat), float(lon))
+    else:
+        workers = list(workers.order_by('-average_rating'))
+
+    workers_data = [{
+        'id': w.id,
+        'name': w.user.get_full_name(),
+        'profile_image': w.profile_image.url if w.profile_image else None,
+        'bio': w.bio[:200] if w.bio else '',
+        'average_rating': str(w.average_rating),
+        'completed_jobs': w.completed_jobs,
+        'experience_years': w.experience_years,
+        'hourly_rate': str(w.hourly_rate) if w.hourly_rate else None,
+        'city': w.city,
+        'distance_km': round(w.distance_km, 1) if hasattr(w, 'distance_km') else None,
+        'categories': [{'id': c.id, 'name': c.name} for c in w.categories.all()],
+    } for w in workers]
+
+    return Response({
+        'count': len(workers_data),
+        'workers': workers_data
     })

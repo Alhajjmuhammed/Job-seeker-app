@@ -33,10 +33,10 @@ def update_worker_ratings(self):
                     avg=Avg('overall_rating')
                 )['avg']
                 
-                if avg_rating and worker.rating != avg_rating:
-                    worker.rating = round(avg_rating, 2)
+                if avg_rating and worker.average_rating != round(avg_rating, 2):
+                    worker.average_rating = round(avg_rating, 2)
                     worker.total_reviews = reviews.count()
-                    worker.save(update_fields=['rating', 'total_reviews'])
+                    worker.save(update_fields=['average_rating', 'total_reviews'])
                     updated_count += 1
         
         logger.info(f"Updated ratings for {updated_count} workers")
@@ -122,13 +122,13 @@ def update_worker_stats(self, worker_id):
         avg_rating = reviews.aggregate(avg=Avg('overall_rating'))['avg'] or 0
         
         # Update worker profile
-        worker.total_jobs_completed = completed_jobs
+        worker.completed_jobs = completed_jobs
         worker.total_earnings = earnings
-        worker.rating = round(avg_rating, 2)
+        worker.average_rating = round(avg_rating, 2)
         worker.total_reviews = reviews.count()
         worker.save(update_fields=[
-            'total_jobs_completed', 'total_earnings', 
-            'rating', 'total_reviews'
+            'completed_jobs', 'total_earnings',
+            'average_rating', 'total_reviews'
         ])
         
         logger.info(f"Updated stats for worker {worker_id}")
@@ -206,39 +206,3 @@ def send_welcome_email(user_id, user_type):
         logger.error(f"Error sending welcome email: {e}")
 
 
-@shared_task
-def update_verification_tier(worker_id):
-    """
-    Update worker's verification tier based on badges.
-    """
-    try:
-        from workers.models import WorkerProfile
-        from workers.badges import WorkerBadge, VerificationTier
-        
-        worker = WorkerProfile.objects.get(id=worker_id)
-        
-        # Count active badges
-        active_badges = WorkerBadge.objects.filter(
-            worker=worker,
-            status='active'
-        ).count()
-        
-        # Find appropriate tier
-        tier = VerificationTier.objects.filter(
-            min_badges__lte=active_badges
-        ).order_by('-min_badges').first()
-        
-        if tier:
-            # Update worker's tier (if field exists)
-            if hasattr(worker, 'verification_tier'):
-                worker.verification_tier = tier
-                worker.save(update_fields=['verification_tier'])
-        
-        logger.info(f"Updated verification tier for worker {worker_id}")
-        return tier.name if tier else None
-    except WorkerProfile.DoesNotExist:
-        logger.error(f"Worker {worker_id} not found")
-        return None
-    except Exception as e:
-        logger.error(f"Error updating verification tier: {e}")
-        return None

@@ -56,23 +56,35 @@ class GDPRService:
             data['profile_info']['worker'] = {
                 'id': profile.id,
                 'bio': profile.bio if hasattr(profile, 'bio') else '',
-                'skills': profile.skills if hasattr(profile, 'skills') else '',
+                'skills': list(profile.skills.values_list('name', flat=True)),
                 'hourly_rate': str(profile.hourly_rate) if hasattr(profile, 'hourly_rate') and profile.hourly_rate else None,
                 'location': getattr(profile, 'location', ''),
-                'is_verified': profile.is_verified,
+                'verification_status': profile.verification_status,
                 'created_at': profile.created_at.isoformat() if hasattr(profile, 'created_at') else None,
             }
-            
-            # Applications
+
+            # Applications (legacy job board)
             from jobs.models import JobApplication
             applications = JobApplication.objects.filter(worker=profile)
             for app in applications:
                 data['applications'].append({
                     'id': app.id,
-                    'job_title': app.job_request.title,
+                    'job_title': app.job.title,
                     'status': app.status,
                     'cover_letter': app.cover_letter if hasattr(app, 'cover_letter') else '',
                     'applied_at': app.created_at.isoformat() if hasattr(app, 'created_at') else None,
+                })
+
+            # Service request assignments (current admin-mediated system)
+            from jobs.service_request_models import ServiceRequestAssignment
+            assignments = ServiceRequestAssignment.objects.filter(worker=profile)
+            for assignment in assignments:
+                data['applications'].append({
+                    'id': assignment.id,
+                    'job_title': assignment.service_request.title,
+                    'status': assignment.status,
+                    'worker_payment': str(assignment.worker_payment),
+                    'applied_at': assignment.assigned_at.isoformat(),
                 })
         
         # Client profile
@@ -142,49 +154,42 @@ class GDPRService:
             'given': [],
             'received': []
         }
-        try:
-            from jobs.review_models import Review
-            # Reviews given by user
-            given_reviews = Review.objects.filter(reviewer=user)
-            for review in given_reviews:
-                data['reviews']['given'].append({
-                    'id': review.id,
-                    'rating': review.rating,
-                    'comment': review.comment if hasattr(review, 'comment') else '',
-                    'created_at': review.created_at.isoformat() if hasattr(review, 'created_at') else None,
-                })
-            
-            # Reviews received by user (if worker)
-            if hasattr(user, 'worker_profile') and user.worker_profile:
-                received_reviews = Review.objects.filter(worker=user.worker_profile)
-                for review in received_reviews:
-                    data['reviews']['received'].append({
-                        'id': review.id,
-                        'rating': review.rating,
-                        'comment': review.comment if hasattr(review, 'comment') else '',
-                        'reviewer': review.reviewer.username if review.reviewer else 'Anonymous',
-                        'created_at': review.created_at.isoformat() if hasattr(review, 'created_at') else None,
-                    })
-        except:
-            # Review model may not exist yet
-            pass
-        
+        from jobs.reviews import Review
+        # Reviews given by user
+        given_reviews = Review.objects.filter(reviewer=user)
+        for review in given_reviews:
+            data['reviews']['given'].append({
+                'id': review.id,
+                'rating': review.overall_rating,
+                'comment': review.comment,
+                'created_at': review.created_at.isoformat() if hasattr(review, 'created_at') else None,
+            })
+
+        # Reviews received by user
+        received_reviews = Review.objects.filter(reviewee=user)
+        for review in received_reviews:
+            data['reviews']['received'].append({
+                'id': review.id,
+                'rating': review.overall_rating,
+                'comment': review.comment,
+                'reviewer': review.reviewer.username if review.reviewer else 'Anonymous',
+                'created_at': review.created_at.isoformat() if hasattr(review, 'created_at') else None,
+            })
+
         # Payment Information
         data['payments'] = []
-        try:
-            from jobs.payment_models import Payment
-            payments = Payment.objects.filter(user=user)
-            for payment in payments:
-                data['payments'].append({
-                    'id': payment.id,
-                    'amount': str(payment.amount) if hasattr(payment, 'amount') else None,
-                    'status': payment.status if hasattr(payment, 'status') else '',
-                    'method': payment.payment_method if hasattr(payment, 'payment_method') else '',
-                    'created_at': payment.created_at.isoformat() if hasattr(payment, 'created_at') else None,
-                })
-        except:
-            # Payment model may not exist or have different structure
-            pass
+        from workers.models import Payment
+        from django.db.models import Q
+        payments = Payment.objects.filter(
+            Q(client__user=user) | Q(worker__user=user)
+        )
+        for payment in payments:
+            data['payments'].append({
+                'id': str(payment.id),
+                'amount': str(payment.amount),
+                'status': payment.status,
+                'created_at': payment.created_at.isoformat() if hasattr(payment, 'created_at') else None,
+            })
         
         # Location Data
         data['location_history'] = []
@@ -233,8 +238,11 @@ class GDPRService:
         
         if hasattr(user, 'worker_profile') and user.worker_profile:
             from jobs.models import JobApplication
+            from jobs.service_request_models import ServiceRequestAssignment
             preview['profiles']['worker'] = True
             preview['applications_count'] = JobApplication.objects.filter(
+                worker=user.worker_profile
+            ).count() + ServiceRequestAssignment.objects.filter(
                 worker=user.worker_profile
             ).count()
         
@@ -259,23 +267,16 @@ class GDPRService:
         ).count()
         
         # Reviews
-        try:
-            from jobs.review_models import Review
-            preview['reviews_given_count'] = Review.objects.filter(reviewer=user).count()
-            if hasattr(user, 'worker_profile') and user.worker_profile:
-                preview['reviews_received_count'] = Review.objects.filter(
-                    worker=user.worker_profile
-                ).count()
-        except:
-            preview['reviews_given_count'] = 0
-            preview['reviews_received_count'] = 0
-        
+        from jobs.reviews import Review
+        preview['reviews_given_count'] = Review.objects.filter(reviewer=user).count()
+        preview['reviews_received_count'] = Review.objects.filter(reviewee=user).count()
+
         # Payments
-        try:
-            from jobs.payment_models import Payment
-            preview['payments_count'] = Payment.objects.filter(user=user).count()
-        except:
-            preview['payments_count'] = 0
+        from workers.models import Payment
+        from django.db.models import Q
+        preview['payments_count'] = Payment.objects.filter(
+            Q(client__user=user) | Q(worker__user=user)
+        ).count()
         
         return preview
     
@@ -363,6 +364,18 @@ class GDPRService:
         
         try:
             with transaction.atomic():
+                # Keep payment records for 7 years (legal requirement) - mark
+                # as anonymized instead of deleting. This MUST run before the
+                # worker/client profile deletions below: Payment.client and
+                # Payment.worker CASCADE off those profiles, so anonymizing
+                # after they're deleted would be anonymizing rows that no
+                # longer exist.
+                from workers.models import Payment
+                if hasattr(user, 'worker_profile') and user.worker_profile:
+                    Payment.objects.filter(worker=user.worker_profile).update(worker=None)
+                if hasattr(user, 'client_profile') and user.client_profile:
+                    Payment.objects.filter(client=user.client_profile).update(client=None)
+
                 # Delete related data first
                 if hasattr(user, 'worker_profile') and user.worker_profile:
                     from jobs.models import JobApplication
@@ -370,7 +383,7 @@ class GDPRService:
                         worker=user.worker_profile
                     ).delete()
                     user.worker_profile.delete()
-                
+
                 if hasattr(user, 'client_profile') and user.client_profile:
                     from jobs.service_request_models import ServiceRequest
                     # Delete service requests for this client
@@ -378,37 +391,25 @@ class GDPRService:
                         client=user
                     ).delete()
                     user.client_profile.delete()
-                
+
                 # Delete messages
                 from jobs.models import Message
                 Message.objects.filter(sender=user).delete()
                 Message.objects.filter(recipient=user).delete()
-                
+
                 # Delete notifications
                 from worker_connect.notification_models import Notification
                 Notification.objects.filter(recipient=user).delete()
-                
-                # Delete reviews (received reviews kept anonymized for workers)
-                try:
-                    from jobs.review_models import Review
-                    Review.objects.filter(reviewer=user).update(
-                        reviewer=None,
-                        comment="[Review author deleted account]"
-                    )
-                except:
-                    pass
-                
-                # Keep payment records for 7 years (legal requirement)
-                # Mark as anonymized instead of deleting
-                try:
-                    from jobs.payment_models import Payment
-                    Payment.objects.filter(user=user).update(
-                        user=None,  # Null the user relationship
-                        # Keep payment records for legal/tax purposes
-                    )
-                except:
-                    pass
-                
+
+                # Anonymize reviews this user wrote (kept for the reviewee's
+                # record, but author is anonymized). Review.reviewer is
+                # nullable specifically to support this.
+                from jobs.reviews import Review
+                Review.objects.filter(reviewer=user).update(
+                    reviewer=None,
+                    comment="[Review author deleted account]"
+                )
+
                 # Finally delete user
                 user_id = user.id
                 user.delete()

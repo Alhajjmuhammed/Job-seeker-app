@@ -181,7 +181,7 @@
                 {% if conv.last_message.subject %}
                     <strong>{{ conv.last_message.subject }}:</strong>
                 {% endif %}
-                {{ conv.last_message.message|truncatewords:8|safe }}
+                {{ conv.last_message.message|truncatewords:8 }}
             </div>
 
 

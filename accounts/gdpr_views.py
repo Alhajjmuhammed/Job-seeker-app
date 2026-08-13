@@ -204,11 +204,17 @@ def data_correction_request(request):
 @permission_classes([IsAuthenticated])
 def consent_status(request):
     """
-    Get current consent status for the user.
+    Get current consent status for the user. Reflects the real, persisted
+    consent fields on User (set via accounts.privacy_views.update_privacy_settings)
+    rather than a hardcoded stub.
     """
-    # In production, this would check actual consent records
+    user = request.user
+
+    def granted_or_denied(value):
+        return 'granted' if value else 'denied'
+
     return Response({
-        'user_id': request.user.id,
+        'user_id': user.id,
         'consents': {
             'essential_cookies': {
                 'status': 'granted',
@@ -216,12 +222,23 @@ def consent_status(request):
                 'can_withdraw': False,
             },
             'marketing_emails': {
-                'status': 'unknown',
+                'status': granted_or_denied(user.notification_preferences.email_marketing)
+                if hasattr(user, 'notification_preferences') else 'denied',
                 'required': False,
                 'can_withdraw': True,
             },
             'analytics': {
-                'status': 'unknown',
+                'status': granted_or_denied(user.consent_analytics),
+                'required': False,
+                'can_withdraw': True,
+            },
+            'personalization': {
+                'status': granted_or_denied(user.consent_personalization),
+                'required': False,
+                'can_withdraw': True,
+            },
+            'third_party_sharing': {
+                'status': granted_or_denied(user.consent_third_party_sharing),
                 'required': False,
                 'can_withdraw': True,
             },

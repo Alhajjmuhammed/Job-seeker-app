@@ -36,7 +36,7 @@ class CustomSkillRequestAdmin(admin.ModelAdmin):
     actions = ['approve_requests', 'reject_requests']
     
     def approve_requests(self, request, queryset):
-        from datetime import datetime
+        from django.utils import timezone
         for req in queryset.filter(status='pending'):
             if req.request_type == 'category':
                 # Create the category
@@ -44,16 +44,16 @@ class CustomSkillRequestAdmin(admin.ModelAdmin):
             elif req.request_type == 'skill' and req.category:
                 # Create the skill
                 Skill.objects.get_or_create(category=req.category, name=req.name)
-            
+
             req.status = 'approved'
-            req.reviewed_at = datetime.now()
+            req.reviewed_at = timezone.now()
             req.save()
         self.message_user(request, f"{queryset.count()} request(s) approved and created.")
     approve_requests.short_description = "Approve selected requests"
-    
+
     def reject_requests(self, request, queryset):
-        from datetime import datetime
-        queryset.update(status='rejected', reviewed_at=datetime.now())
+        from django.utils import timezone
+        queryset.update(status='rejected', reviewed_at=timezone.now())
         self.message_user(request, f"{queryset.count()} request(s) rejected.")
     reject_requests.short_description = "Reject selected requests"
 
@@ -137,7 +137,10 @@ class WorkerProfileAdmin(admin.ModelAdmin):
     
     def bulk_mark_unavailable(self, request, queryset):
         """Bulk mark workers as unavailable"""
-        count = queryset.update(availability='unavailable')
+        # AVAILABILITY_CHOICES only has available/busy/offline - 'unavailable'
+        # isn't a real value and would be silently invisible to anything
+        # filtering on availability='offline' (proximity search, etc).
+        count = queryset.update(availability='offline')
         self.message_user(request, f"{count} worker(s) marked as unavailable.")
     bulk_mark_unavailable.short_description = "🔴 Mark Unavailable"
     

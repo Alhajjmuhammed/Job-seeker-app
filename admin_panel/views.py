@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -13,8 +14,9 @@ import json
 
 from accounts.models import User
 from workers.models import WorkerProfile, WorkerDocument, Category, Skill
+from workers.proximity import rank_by_distance
 from clients.models import ClientProfile, Rating
-from jobs.models import Message
+from jobs.models import Message, JobApplication
 from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment, WorkerActivity
 
 
@@ -35,14 +37,16 @@ def dashboard(request):
     # Job statistics (ServiceRequest = new system)
     total_jobs = ServiceRequest.objects.count()
     open_jobs = ServiceRequest.objects.filter(status='pending').count()
+    active_jobs = ServiceRequest.objects.filter(status__in=['pending', 'assigned', 'in_progress']).count()
     completed_jobs = ServiceRequest.objects.filter(status='completed').count()
-    
+    total_applications = JobApplication.objects.count()
+
     # Recent activities
     recent_workers = WorkerProfile.objects.order_by('-created_at')[:5]
     recent_jobs = ServiceRequest.objects.select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
     pending_documents = WorkerDocument.objects.filter(verification_status='pending')[:10]
-    
-    context = {
+
+    stats = {
         'total_users': total_users,
         'total_workers': total_workers,
         'total_clients': total_clients,
@@ -51,12 +55,18 @@ def dashboard(request):
         'available_workers': available_workers,
         'total_jobs': total_jobs,
         'open_jobs': open_jobs,
+        'active_jobs': active_jobs,
         'completed_jobs': completed_jobs,
+        'total_applications': total_applications,
+    }
+
+    context = {
+        'stats': stats,
         'recent_workers': recent_workers,
         'recent_jobs': recent_jobs,
         'pending_documents': pending_documents,
     }
-    
+
     return render(request, 'admin_panel/dashboard.html', context)
 
 
@@ -284,10 +294,17 @@ def category_list(request):
     # GET request - display categories
     categories = Category.objects.annotate(
         worker_count=Count('workers'),
-        job_count=Count('jobs')
+        job_count=Count('service_requests')
     ).order_by('name')
-    
-    return render(request, 'admin_panel/category_list.html', {'categories': categories})
+
+    active_categories = categories.filter(is_active=True).count()
+    total_workers_using = WorkerProfile.objects.filter(categories__in=categories).distinct().count()
+
+    return render(request, 'admin_panel/category_list.html', {
+        'categories': categories,
+        'active_categories': active_categories,
+        'total_workers_using': total_workers_using,
+    })
 
 
 @staff_member_required
@@ -423,13 +440,19 @@ def reports(request):
     available_workers = WorkerProfile.objects.filter(availability='available').count()
     open_jobs = ServiceRequest.objects.filter(status='pending').count()
     in_progress_jobs = ServiceRequest.objects.filter(status='in_progress').count()
-    assigned_jobs = ServiceRequest.objects.filter(assigned_worker__isnull=False).count()
+    # assigned_worker is the legacy single-worker FK, which the live
+    # multi-worker assignment flow (_create_assignment) never populates -
+    # it only creates ServiceRequestAssignment rows. Check those instead so
+    # this doesn't always read 0.
+    assigned_jobs = ServiceRequest.objects.filter(assignments__isnull=False).distinct().count()
     
     # Average rating
     avg_rating = WorkerProfile.objects.filter(
         verification_status='verified'
     ).aggregate(Avg('average_rating'))['average_rating__avg'] or 0
-    
+
+    total_applications = JobApplication.objects.count()
+
     stats = {
         'total_users': total_users,
         'users_growth': abs(users_growth),
@@ -446,6 +469,7 @@ def reports(request):
         'open_jobs': open_jobs,
         'in_progress_jobs': in_progress_jobs,
         'assigned_jobs': assigned_jobs,
+        'total_applications': total_applications,
     }
     
     context = {
@@ -516,7 +540,7 @@ def manage_users(request):
             user_info['ratings_given'] = Rating.objects.filter(client=user).count()
         
         if user.is_worker and hasattr(user, 'worker_profile'):
-            user_info['applications'] = ServiceRequest.objects.filter(assigned_worker=user.worker_profile).count()
+            user_info['applications'] = ServiceRequest.objects.filter(assignments__worker=user.worker_profile).distinct().count()
             ratings = Rating.objects.filter(worker=user.worker_profile)
             user_info['ratings_received'] = ratings.count()
             if ratings.exists():
@@ -578,7 +602,10 @@ def user_detail(request, user_id):
     if user.is_worker and hasattr(user, 'worker_profile'):
         worker = user.worker_profile
         context['worker_profile'] = worker
-        context['applications'] = ServiceRequest.objects.filter(assigned_worker=worker).select_related('category', 'client').order_by('-created_at')
+        # Use the ServiceRequestAssignment relation (assignments__worker) rather than
+        # the legacy single-worker ServiceRequest.assigned_worker FK, which is never
+        # populated by the real admin-mediated, multi-worker assignment flow.
+        context['applications'] = ServiceRequest.objects.filter(assignments__worker=worker).select_related('category', 'client').order_by('-created_at')
         context['ratings_received'] = Rating.objects.filter(worker=worker).order_by('-created_at')
         context['documents'] = WorkerDocument.objects.filter(worker=worker)
         context['skills'] = worker.skills.all()
@@ -610,7 +637,7 @@ def user_detail(request, user_id):
     
     # Add assignment activities
     if user.is_worker and hasattr(user, 'worker_profile'):
-        for job in ServiceRequest.objects.filter(assigned_worker=user.worker_profile).order_by('-created_at')[:5]:
+        for job in ServiceRequest.objects.filter(assignments__worker=user.worker_profile).order_by('-created_at')[:5]:
             activities.append({
                 'type': 'assignment',
                 'date': job.updated_at,
@@ -799,8 +826,12 @@ def system_overview(request):
     jobs_month = ServiceRequest.objects.filter(created_at__date__gte=month_ago).count()
     
     # Application metrics
+    total_applications = ServiceRequest.objects.count()
     pending_applications = ServiceRequest.objects.filter(status='pending').count()
-    accepted_applications = ServiceRequest.objects.filter(assigned_worker__isnull=False).count()
+    # assigned_worker is the legacy single-worker FK, never populated by the
+    # live multi-worker assignment flow - use the real assignments relation.
+    accepted_applications = ServiceRequest.objects.filter(assignments__isnull=False).distinct().count()
+    rejected_applications = ServiceRequest.objects.filter(status='cancelled').count()
     
     # Rating metrics
     total_ratings = Rating.objects.count()
@@ -830,7 +861,7 @@ def system_overview(request):
     # Recent activities
     recent_users = User.objects.order_by('-date_joined')[:5]
     recent_jobs = ServiceRequest.objects.select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
-    recent_assignments = ServiceRequest.objects.filter(assigned_worker__isnull=False).select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-updated_at')[:5]
+    recent_applications = JobApplication.objects.select_related('worker__user', 'job').order_by('-created_at')[:5]
     
     context = {
         # User metrics
@@ -860,8 +891,10 @@ def system_overview(request):
         'jobs_month': jobs_month,
         
         # Application metrics
+        'total_applications': total_applications,
         'pending_applications': pending_applications,
         'accepted_applications': accepted_applications,
+        'rejected_applications': rejected_applications,
         
         # Rating metrics
         'total_ratings': total_ratings,
@@ -889,9 +922,9 @@ def system_overview(request):
         # Recent activities
         'recent_users': recent_users,
         'recent_jobs': recent_jobs,
-        'recent_assignments': recent_assignments,
+        'recent_applications': recent_applications,
     }
-    
+
     return render(request, 'admin_panel/system_overview.html', context)
 
 
@@ -941,7 +974,7 @@ def export_reports_csv(request):
     writer.writerow(['Pending Jobs', ServiceRequest.objects.filter(status='pending').count()])
     writer.writerow(['In Progress Jobs', ServiceRequest.objects.filter(status='in_progress').count()])
     writer.writerow(['Completed Jobs', ServiceRequest.objects.filter(status='completed').count()])
-    writer.writerow(['Assigned Jobs', ServiceRequest.objects.filter(assigned_worker__isnull=False).count()])
+    writer.writerow(['Assigned Jobs', ServiceRequest.objects.filter(assignments__isnull=False).distinct().count()])
     writer.writerow([])
     
     # Top Categories
@@ -1065,7 +1098,7 @@ def export_reports_json(request):
             'pending_jobs': ServiceRequest.objects.filter(status='pending').count(),
             'in_progress_jobs': ServiceRequest.objects.filter(status='in_progress').count(),
             'completed_jobs': ServiceRequest.objects.filter(status='completed').count(),
-            'assigned_jobs': ServiceRequest.objects.filter(assigned_worker__isnull=False).count()
+            'assigned_jobs': ServiceRequest.objects.filter(assignments__isnull=False).distinct().count()
         },
         'top_categories': [],
         'top_workers': []
@@ -1374,7 +1407,7 @@ def job_management(request):
     # Statistics
     total_jobs = ServiceRequest.objects.count()
     open_jobs = ServiceRequest.objects.filter(status='pending').count()
-    assigned_jobs = ServiceRequest.objects.filter(assigned_worker__isnull=False, status='in_progress').count()
+    assigned_jobs = ServiceRequest.objects.filter(assignments__isnull=False, status='in_progress').distinct().count()
     completed_jobs = ServiceRequest.objects.filter(status='completed').count()
     
     # Get all categories for filter
@@ -1528,11 +1561,12 @@ def service_request_detail(request, request_id):
     
     service_request = get_object_or_404(
         ServiceRequest.objects.select_related(
-            'client', 'category', 'assigned_worker', 'assigned_worker__user', 'assigned_by'
+            'client', 'category', 'assigned_worker', 'assigned_worker__user', 'assigned_by',
+            'preferred_worker', 'preferred_worker__user'
         ),
         id=request_id
     )
-    
+
     # Get time logs
     time_logs = service_request.time_logs.all().order_by('-clock_in')
     
@@ -1632,24 +1666,36 @@ def view_request_workers(request, request_id):
             categories=service_request.category,
             verification_status='verified',
             availability='available'
-        ).select_related('user').prefetch_related('categories').order_by('-average_rating')
+        ).select_related('user').prefetch_related('categories')
     else:
         # If no category, show all verified workers
         available_workers = WorkerProfile.objects.filter(
             verification_status='verified',
             availability='available'
-        ).select_related('user').prefetch_related('categories').order_by('-average_rating')
-    
+        ).select_related('user').prefetch_related('categories')
+
+    workers_count = available_workers.count()
+    has_location = service_request.latitude is not None and service_request.longitude is not None
+
+    if has_location:
+        # Sort nearest-first; each worker gets a .distance_km attribute
+        available_workers = rank_by_distance(
+            list(available_workers), service_request.latitude, service_request.longitude
+        )
+    else:
+        available_workers = list(available_workers.order_by('-average_rating'))
+
     context = {
         'service_request': service_request,
         'available_workers': available_workers,
-        'workers_count': available_workers.count(),
+        'workers_count': workers_count,
         'current_assignments': current_assignments,
         'assigned_worker_ids': assigned_worker_ids,
         'workers_needed': service_request.workers_needed,
         'workers_remaining': service_request.workers_needed - current_assignments.count(),
+        'has_location': has_location,
     }
-    
+
     return render(request, 'admin_panel/view_request_workers.html', context)
 
 
@@ -1678,79 +1724,153 @@ def assign_worker_to_request(request, request_id):
                 )
                 return redirect('admin_panel:service_request_detail', request_id=request_id)
             
-            # Check if worker is already assigned to this request
-            existing_assignment = ServiceRequestAssignment.objects.filter(
-                service_request=service_request,
-                worker=worker
-            ).first()
-            
-            if existing_assignment:
-                messages.warning(
-                    request,
-                    f'{worker.user.get_full_name()} is already assigned to this request'
-                )
-                return redirect('admin_panel:service_request_detail', request_id=request_id)
-            
             # Check if worker has the required category
             if service_request.category and not worker.categories.filter(id=service_request.category.id).exists():
                 messages.warning(request, f'{worker.user.get_full_name()} does not have the required category')
-            
-            # NEW: Check if we've reached the maximum workers needed
-            existing_assignments_count = ServiceRequestAssignment.objects.filter(
-                service_request=service_request
-            ).count()
-            
-            if existing_assignments_count >= service_request.workers_needed:
-                messages.error(
-                    request,
-                    f'Cannot assign more workers. This request only needs {service_request.workers_needed} worker(s) and already has {existing_assignments_count} assigned.'
+
+            # Check "already assigned" + the workers_needed capacity, and
+            # create the assignment, all under a row lock on the
+            # ServiceRequest so a concurrent assign call (this view, the
+            # API equivalent, auto-assign, or bulk-assign) on the same
+            # request can't sneak in between the count check and the
+            # create and over-allocate the request past workers_needed.
+            with transaction.atomic():
+                locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+
+                existing_assignment = ServiceRequestAssignment.objects.filter(
+                    service_request=locked_request,
+                    worker=worker
+                ).first()
+
+                if existing_assignment:
+                    messages.warning(
+                        request,
+                        f'{worker.user.get_full_name()} is already assigned to this request'
+                    )
+                    return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+                existing_assignments_count = ServiceRequestAssignment.objects.filter(
+                    service_request=locked_request
+                ).count()
+
+                if existing_assignments_count >= locked_request.workers_needed:
+                    messages.error(
+                        request,
+                        f'Cannot assign more workers. This request only needs {locked_request.workers_needed} worker(s) and already has {existing_assignments_count} assigned.'
+                    )
+                    return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+                # NEW: Create ServiceRequestAssignment record instead of using old assign_worker method
+                from admin_panel.service_request_views import _create_assignment
+                assignment = _create_assignment(
+                    locked_request, worker, request.user,
+                    assignment_number=existing_assignments_count + 1,
+                    admin_notes=admin_notes
                 )
-                return redirect('admin_panel:service_request_detail', request_id=request_id)
-            
-            # NEW: Create ServiceRequestAssignment record instead of using old assign_worker method
-            individual_payment = service_request.daily_rate * service_request.duration_days
-            assignment = ServiceRequestAssignment.objects.create(
-                service_request=service_request,
-                worker=worker,
-                assigned_by=request.user,
-                assignment_number=existing_assignments_count + 1,
-                worker_payment=individual_payment,
-                admin_notes=admin_notes
-            )
-            
-            # AUTO-UPDATE: Set worker to busy when assigned
-            worker.availability = 'busy'
-            worker.save()
-            
-            # Log activity
-            WorkerActivity.log_activity(
-                worker=worker,
-                activity_type='assigned',
-                description=f'Assigned to: {service_request.title}',
-                service_request=service_request,
-                location=service_request.location
-            )
-            
-            # Update service request status if all workers are now assigned
-            total_assignments = existing_assignments_count + 1
-            if total_assignments >= service_request.workers_needed:
-                service_request.status = 'assigned'
-                service_request.save()
-            
+
+                # Update service request status if all workers are now assigned
+                total_assignments = existing_assignments_count + 1
+                if total_assignments >= locked_request.workers_needed:
+                    locked_request.status = 'assigned'
+                    locked_request.save()
+
             messages.success(
                 request,
-                f'Successfully assigned {worker.user.get_full_name()} to "{service_request.title}" (Worker {assignment.assignment_number} of {service_request.workers_needed})'
+                f'Successfully assigned {worker.user.get_full_name()} to "{locked_request.title}" (Worker {assignment.assignment_number} of {locked_request.workers_needed})'
             )
-            
-            # Notify worker
-            from worker_connect.notification_service import NotificationService
-            NotificationService.notify_service_assigned(service_request, worker)
-            
+
         except WorkerProfile.DoesNotExist:
             messages.error(request, 'Worker not found')
         except Exception as e:
             messages.error(request, f'Error assigning worker: {str(e)}')
-    
+
+    return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+
+@staff_member_required
+def auto_assign_nearest_worker(request, request_id):
+    """Auto-assign the nearest available worker(s) to a service request by GPS distance"""
+
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+
+    if request.method != 'POST':
+        return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+    if service_request.status in ['completed', 'cancelled']:
+        messages.error(request, f'Cannot assign worker to a {service_request.status} request')
+        return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+    if service_request.latitude is None or service_request.longitude is None:
+        messages.error(request, 'This request has no location coordinates, so nearest-worker matching is not available. Assign manually instead.')
+        return redirect('admin_panel:view_request_workers', request_id=request_id)
+
+    existing_assignments = ServiceRequestAssignment.objects.filter(service_request=service_request)
+    existing_count = existing_assignments.count()
+    slots_remaining = service_request.workers_needed - existing_count
+
+    if slots_remaining <= 0:
+        messages.warning(request, f'This request already has all {service_request.workers_needed} worker(s) assigned.')
+        return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+    already_assigned_ids = set(existing_assignments.values_list('worker_id', flat=True))
+
+    candidates = WorkerProfile.objects.filter(
+        verification_status='verified',
+        availability='available'
+    ).exclude(id__in=already_assigned_ids)
+
+    if service_request.category:
+        candidates = candidates.filter(categories=service_request.category)
+
+    nearest = rank_by_distance(
+        list(candidates), service_request.latitude, service_request.longitude, limit=slots_remaining
+    )
+
+    if not nearest:
+        messages.error(request, 'No available workers with a known location match this request right now.')
+        return redirect('admin_panel:view_request_workers', request_id=request_id)
+
+    from admin_panel.service_request_views import _create_assignment
+
+    # Re-check capacity and create the assignments under a row lock on the
+    # ServiceRequest (see assign_worker_to_request above / admin_assign_worker
+    # in service_request_views.py) - the candidate ranking above is
+    # read-only and doesn't need the lock, but the count-then-create for
+    # the workers_needed cap does.
+    with transaction.atomic():
+        locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+
+        current_assignments = ServiceRequestAssignment.objects.filter(service_request=locked_request)
+        current_count = current_assignments.count()
+        current_slots_remaining = locked_request.workers_needed - current_count
+
+        if current_slots_remaining <= 0:
+            messages.warning(request, f'This request already has all {locked_request.workers_needed} worker(s) assigned.')
+            return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+        currently_assigned_ids = set(current_assignments.values_list('worker_id', flat=True))
+        to_assign = [w for w in nearest if w.id not in currently_assigned_ids][:current_slots_remaining]
+
+        if not to_assign:
+            messages.warning(request, 'This request already has all worker slots filled.')
+            return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+        assigned_names = []
+        for idx, worker in enumerate(to_assign, start=current_count + 1):
+            _create_assignment(
+                locked_request, worker, request.user,
+                assignment_number=idx,
+                activity_description=f'Auto-assigned (nearest, {worker.distance_km:.1f} km) to: {locked_request.title}'
+            )
+            assigned_names.append(f'{worker.user.get_full_name()} ({worker.distance_km:.1f} km)')
+
+        total_assignments = current_count + len(to_assign)
+        if total_assignments >= locked_request.workers_needed:
+            locked_request.status = 'assigned'
+            locked_request.save()
+
+    messages.success(request, f'Auto-assigned nearest worker(s): {", ".join(assigned_names)}')
+
     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
 

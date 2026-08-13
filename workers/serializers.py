@@ -19,10 +19,15 @@ class WorkExperienceSerializer(SanitizedSerializerMixin, serializers.ModelSerial
     """Work experience serializer with input sanitization"""
     
     sanitize_fields = ['job_title', 'company', 'location', 'description']
-    
+
+    # Read-only model @property - the mobile experience screens
+    # (app/(worker)/experience/index.tsx and edit.tsx) display this, but it
+    # was missing here so GET /api/v1/workers/experiences/ never returned it.
+    duration = serializers.ReadOnlyField()
+
     class Meta:
         model = WorkExperience
-        fields = ['id', 'job_title', 'company', 'location', 'start_date', 'end_date', 'is_current', 'description']
+        fields = ['id', 'job_title', 'company', 'location', 'start_date', 'end_date', 'is_current', 'description', 'duration']
         
     def validate(self, data):
         """Ensure end_date is after start_date"""
@@ -62,10 +67,11 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
         fields = [
             'id', 'user_id', 'email', 'first_name', 'last_name', 'phone_number',
             'worker_type', 'bio', 'profile_image', 'hourly_rate', 'city', 'state', 'country', 'postal_code',
+            'latitude', 'longitude',
             'availability', 'verification_status', 'average_rating', 'address', 'religion',
-            'can_work_everywhere', 'total_jobs', 'completed_jobs', 'total_earnings', 
-            'categories', 'category_ids', 'skills', 'skill_ids', 'experience_years', 'is_featured', 
-            'created_at', 'updated_at', 'profile_completion_percentage', 
+            'can_work_everywhere', 'total_jobs', 'completed_jobs', 'total_earnings',
+            'categories', 'category_ids', 'skills', 'skill_ids', 'experience_years', 'is_featured',
+            'created_at', 'updated_at', 'profile_completion_percentage',
             'is_profile_complete', 'has_uploaded_national_id'
         ]
         read_only_fields = ['average_rating', 'total_jobs', 'completed_jobs', 'total_earnings', 

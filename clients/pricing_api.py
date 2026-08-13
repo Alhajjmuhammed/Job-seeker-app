@@ -35,8 +35,13 @@ def calculate_price(request):
         duration_type = request.data.get('duration_type', 'daily')
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
-        workers_needed = int(request.data.get('workers_needed', 1))
-        
+        try:
+            workers_needed = int(request.data.get('workers_needed', 1))
+        except (TypeError, ValueError):
+            return Response({
+                'error': 'workers_needed must be a valid integer'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         # Validate workers_needed
         if workers_needed < 1:
             workers_needed = 1
@@ -259,7 +264,7 @@ def get_category_pricing(request):
                 'description': category.description,
                 'icon': category.icon,
                 'daily_rate': float(category.daily_rate),
-                'currency': 'USD',
+                'currency': 'TSH',
                 'pricing_examples': {
                     'daily': float(category.daily_rate * 1),
                     'monthly': float(category.daily_rate * 30),

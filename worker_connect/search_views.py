@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import APIException
 from django.db.models import Q, Avg, Count, F, Value, Case, When, Min, Max
 from django.db.models.functions import Coalesce
 import math
@@ -65,6 +66,10 @@ def general_search(request):
                 'page_size': 'Results per page (default: 20, max: 100)'
             }
         })
+    except APIException:
+        # Let DRF's own exception handling produce the correct status code
+        # (e.g. 404 for an out-of-range page) instead of masking it as a 500.
+        raise
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 
@@ -105,11 +110,12 @@ def search_jobs(request):
         if max_budget:
             jobs = jobs.filter(total_price__lte=float(max_budget))
         
-        # Location filter (city)
+        # Location filter (city). ServiceRequest.client is a User FK with no
+        # city field - ServiceRequest has its own city field to filter on.
         if city:
             jobs = jobs.filter(
                 Q(location__icontains=city) |
-                Q(client__city__icontains=city)
+                Q(city__icontains=city)
             )
         
         # Location-based filtering (simple approach without GIS)
@@ -182,6 +188,10 @@ def search_jobs(request):
             'total_count': jobs.count(),
         })
         
+    except APIException:
+        # Let DRF's own exception handling produce the correct status code
+        # (e.g. 404 for an out-of-range page) instead of masking it as a 500.
+        raise
     except Exception as e:
         return Response({
             'success': False,
@@ -205,10 +215,11 @@ def search_workers(request):
         availability = request.GET.get('availability', '')
         sort_by = request.GET.get('sort_by', 'average_rating')
         
-        # Start with verified workers
+        # Start with verified workers who haven't opted out of public visibility
         workers = WorkerProfile.objects.filter(
             verification_status='verified',
-            user__is_active=True
+            user__is_active=True,
+            is_public=True
         ).select_related('user')
         
         # Text search
@@ -315,6 +326,10 @@ def search_workers(request):
             'total_count': workers.count(),
         })
         
+    except APIException:
+        # Let DRF's own exception handling produce the correct status code
+        # (e.g. 404 for an out-of-range page) instead of masking it as a 500.
+        raise
     except Exception as e:
         return Response({
             'success': False,
@@ -407,6 +422,10 @@ def search_filters(request):
             }
         })
         
+    except APIException:
+        # Let DRF's own exception handling produce the correct status code
+        # (e.g. 404 for an out-of-range page) instead of masking it as a 500.
+        raise
     except Exception as e:
         return Response({
             'success': False,

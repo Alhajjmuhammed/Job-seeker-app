@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q
+from django.http import Http404
 from .models import (WorkerProfile, WorkerDocument, WorkExperience, Category,
                      WorkerCustomSkill, WorkerCustomCategory)
 from .forms import WorkerProfileForm, WorkerDocumentForm, WorkExperienceForm
@@ -184,8 +185,15 @@ def document_delete(request, pk):
     document = get_object_or_404(WorkerDocument, pk=pk, worker=profile)
     
     if request.method == 'POST':
+        is_id_document = document.document_type == 'id'
         document.file.delete()
         document.delete()
+        # A worker with no ID document on file can no longer be considered
+        # verified - without this, deleting an approved ID leaves
+        # verification_status='verified' in place with nothing backing it.
+        if is_id_document and profile.verification_status == 'verified':
+            profile.verification_status = 'pending'
+            profile.save()
         messages.success(request, 'Document deleted successfully!')
         return redirect('workers:document_list')
     
@@ -271,7 +279,12 @@ def experience_delete(request, pk):
 def worker_public_profile(request, pk):
     """Public view of worker profile (for clients)"""
     profile = get_object_or_404(WorkerProfile, pk=pk)
-    
+
+    is_owner = request.user.is_authenticated and profile.user_id == request.user.id
+    is_staff = request.user.is_authenticated and request.user.is_staff
+    if not profile.is_public and not is_owner and not is_staff:
+        raise Http404("Worker profile not found")
+
     context = {
         'profile': profile,
         'experiences': profile.experiences.all(),
@@ -383,13 +396,18 @@ def worker_analytics(request):
     except ValueError:
         period_days = 180
     
-    # Get all service requests for this worker
-    all_requests = ServiceRequest.objects.filter(assigned_worker=profile)
+    # Get all service requests for this worker. Use the ServiceRequestAssignment
+    # relation (assignments__worker) rather than the legacy single-worker
+    # ServiceRequest.assigned_worker FK, which is never populated by the real
+    # admin-mediated, multi-worker assignment flow and would leave this
+    # dashboard permanently empty.
+    all_requests = ServiceRequest.objects.filter(assignments__worker=profile)
     completed_requests = all_requests.filter(status='completed')
     
     # Apply period filter
-    from datetime import datetime, timedelta
-    period_start = datetime.now() - timedelta(days=period_days)
+    from datetime import timedelta
+    from django.utils import timezone
+    period_start = timezone.now() - timedelta(days=period_days)
     filtered_completed = completed_requests.filter(updated_at__gte=period_start)
     filtered_all = all_requests.filter(updated_at__gte=period_start)
     
@@ -528,8 +546,12 @@ def export_analytics_csv(request):
     writer.writerow(['Export Date:', datetime.now().strftime('%Y-%m-%d %H:%M')])
     writer.writerow([])
     
-    # Summary stats
-    all_requests = ServiceRequest.objects.filter(assigned_worker=profile)
+    # Summary stats. Use the ServiceRequestAssignment relation
+    # (assignments__worker) rather than the legacy single-worker
+    # ServiceRequest.assigned_worker FK, which is never populated by the
+    # real admin-mediated, multi-worker assignment flow and would export an
+    # all-zero CSV.
+    all_requests = ServiceRequest.objects.filter(assignments__worker=profile)
     completed_requests = all_requests.filter(status='completed')
     
     from django.db.models import Sum, Avg, Count
@@ -587,5 +609,41 @@ def export_analytics_csv(request):
             f'{earnings:.2f}',
             f'{avg_per_job:.2f}'
         ])
-    
+
+    return response
+
+
+@login_required
+def cv_preview(request):
+    """View the worker's auto-generated CV, built from their profile data"""
+    if not request.user.is_worker:
+        messages.error(request, 'Access denied. Workers only.')
+        return redirect('home')
+
+    from .cv import CVService
+
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    context = CVService.get_cv_context(profile)
+    return render(request, 'workers/cv_view.html', context)
+
+
+@login_required
+def cv_download_pdf(request):
+    """Download the worker's auto-generated CV as a PDF"""
+    if not request.user.is_worker:
+        messages.error(request, 'Access denied. Workers only.')
+        return redirect('home')
+
+    from django.http import HttpResponse
+    from .cv import CVService
+
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    pdf = CVService.generate_pdf(profile)
+
+    if not pdf:
+        messages.error(request, 'PDF generation is not available right now.')
+        return redirect('workers:cv_preview')
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{profile.user.username}_CV.pdf"'
     return response

@@ -10,6 +10,7 @@ from rest_framework import status
 
 from .notification_preferences import NotificationPreferencesService
 from .models import User
+from worker_connect.notification_models import NotificationPreference
 
 
 @api_view(['GET'])
@@ -32,9 +33,12 @@ def get_privacy_settings(request):
         'push_notifications': prefs.push_messages or prefs.push_new_jobs,
         'marketing_emails': prefs.email_marketing,
         'profile_visibility': 'public' if getattr(profile, 'is_public', True) else 'private',
-        'show_email': user.show_email if hasattr(user, 'show_email') else False,
-        'show_phone': user.show_phone if hasattr(user, 'show_phone') else False,
-        'allow_search_indexing': user.allow_search_indexing if hasattr(user, 'allow_search_indexing') else True,
+        'show_email': user.show_email,
+        'show_phone': user.show_phone,
+        'allow_search_indexing': user.allow_search_indexing,
+        'analytics': user.consent_analytics,
+        'personalization': user.consent_personalization,
+        'third_party_sharing': user.consent_third_party_sharing,
     })
 
 
@@ -83,35 +87,51 @@ def update_privacy_settings(request):
     
     if 'marketing_emails' in data:
         prefs.email_marketing = data['marketing_emails']
-    
+
     prefs.save()
-    
+
+    # The actual send-path (worker_connect.notification_service) checks
+    # worker_connect.NotificationPreference, not this accounts model - keep
+    # them in sync so toggling this settings screen actually changes what
+    # gets emailed instead of only updating a preferences row nothing reads.
+    wc_prefs, _ = NotificationPreference.objects.get_or_create(user=user)
+    if 'email_notifications' in data:
+        value = data['email_notifications']
+        wc_prefs.email_job_assignments = value
+        wc_prefs.email_job_applications = value
+        wc_prefs.email_messages = value
+        wc_prefs.email_payments = value
+        wc_prefs.email_reviews = value
+    if 'marketing_emails' in data:
+        wc_prefs.email_promotions = data['marketing_emails']
+    wc_prefs.save()
+
     # Update profile visibility (if worker)
     if hasattr(user, 'worker_profile') and user.worker_profile:
         profile = user.worker_profile
         if 'profile_visibility' in data:
             profile.is_public = data['profile_visibility'] == 'public'
-            profile.save()
-    
-    # Update user profile fields (add these fields to User model if needed)
-    user_updated = False
-    if 'show_email' in data:
-        if hasattr(user, 'show_email'):
-            user.show_email = data['show_email']
-            user_updated = True
-    
-    if 'show_phone' in data:
-        if hasattr(user, 'show_phone'):
-            user.show_phone = data['show_phone']
-            user_updated = True
-    
-    if 'allow_search_indexing' in data:
-        if hasattr(user, 'allow_search_indexing'):
-            user.allow_search_indexing = data['allow_search_indexing']
-            user_updated = True
-    
-    if user_updated:
-        user.save()
+            profile.save(update_fields=['is_public'])
+
+    # Update user-level privacy/consent fields
+    user_fields = ['show_email', 'show_phone', 'allow_search_indexing']
+    consent_field_map = {
+        'analytics': 'consent_analytics',
+        'personalization': 'consent_personalization',
+        'third_party_sharing': 'consent_third_party_sharing',
+    }
+    updated_fields = []
+    for field in user_fields:
+        if field in data:
+            setattr(user, field, bool(data[field]))
+            updated_fields.append(field)
+    for key, field in consent_field_map.items():
+        if key in data:
+            setattr(user, field, bool(data[key]))
+            updated_fields.append(field)
+
+    if updated_fields:
+        user.save(update_fields=updated_fields)
 
     # Re-fetch updated prefs to return current state
     prefs.refresh_from_db()
@@ -126,8 +146,11 @@ def update_privacy_settings(request):
             'push_notifications': prefs.push_messages or prefs.push_new_jobs,
             'marketing_emails': prefs.email_marketing,
             'profile_visibility': 'public' if getattr(profile, 'is_public', True) else 'private',
-            'show_email': getattr(user, 'show_email', False),
-            'show_phone': getattr(user, 'show_phone', False),
-            'allow_search_indexing': getattr(user, 'allow_search_indexing', True),
+            'show_email': user.show_email,
+            'show_phone': user.show_phone,
+            'allow_search_indexing': user.allow_search_indexing,
+            'analytics': user.consent_analytics,
+            'personalization': user.consent_personalization,
+            'third_party_sharing': user.consent_third_party_sharing,
         }
     })

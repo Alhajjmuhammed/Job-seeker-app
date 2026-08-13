@@ -218,22 +218,22 @@ class SkillsMatcher:
         
         # Get verified workers
         workers = WorkerProfile.objects.filter(
-            is_verified=True
+            verification_status='verified'
         ).select_related('user')
-        
+
         matches = []
         for worker in workers:
-            # Get worker skills
-            worker_skills_text = worker.skills if hasattr(worker, 'skills') else ''
+            # Get worker skills (skills is a ManyToManyField, not a text field)
+            skill_names = list(worker.skills.values_list('name', flat=True))
+            worker_skills_text = ' '.join(skill_names)
             if hasattr(worker, 'bio'):
                 worker_skills_text += ' ' + (worker.bio or '')
-            
+
             worker_skills = cls.extract_skills(worker_skills_text)
-            
+
             # Also include manually listed skills
-            if worker.skills:
-                for skill in worker.skills.split(','):
-                    worker_skills.add(cls.normalize_skill(skill))
+            for skill in skill_names:
+                worker_skills.add(cls.normalize_skill(skill))
             
             # Calculate match
             match_result = cls.calculate_skill_match(
@@ -272,16 +272,16 @@ class SkillsMatcher:
         """
         from jobs.models import JobRequest
         
-        # Get worker skills
-        worker_skills_text = worker_profile.skills if hasattr(worker_profile, 'skills') else ''
+        # Get worker skills (skills is a ManyToManyField, not a text field)
+        skill_names = list(worker_profile.skills.values_list('name', flat=True))
+        worker_skills_text = ' '.join(skill_names)
         if hasattr(worker_profile, 'bio'):
             worker_skills_text += ' ' + (worker_profile.bio or '')
-        
+
         worker_skills = cls.extract_skills(worker_skills_text)
-        
-        if worker_profile.skills:
-            for skill in worker_profile.skills.split(','):
-                worker_skills.add(cls.normalize_skill(skill))
+
+        for skill in skill_names:
+            worker_skills.add(cls.normalize_skill(skill))
         
         # Get open jobs
         jobs = JobRequest.objects.filter(

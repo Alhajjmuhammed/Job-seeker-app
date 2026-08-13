@@ -88,15 +88,17 @@ urlpatterns = [
     path('api/workers/', include('workers.api_urls')),  # Uses original namespace workers_api_v2
     
     # Search endpoints (consolidated)
+    # Note: 'api/v1/search/jobs/' is NOT separately mounted here - it would
+    # collide with worker_connect.search_urls' own 'jobs/' pattern below,
+    # silently shadowing whichever one is registered second. jobs.search_urls
+    # is still fully reachable via the mobile-compatibility mount right below.
     path('api/v1/search/', include('worker_connect.search_urls')),
-    path('api/v1/search/jobs/', include(('jobs.search_urls', 'jobs'), namespace='job_search_v1')),
     path('api/jobs/search/', include(('jobs.search_urls', 'jobs'), namespace='job_search_mobile')),  # Mobile compatibility
     path('api/search/', include(('worker_connect.search_urls', 'wc'), namespace='wc_search_mobile')),  # Mobile compatibility
     
     # Messaging and chat (consolidated)
     path('api/messages/', include('jobs.messaging_urls')),  # Mobile and web compatibility
-    path('api/v1/chat/', include('worker_connect.chat_urls')),
-    
+
     # Worker-related endpoints (consolidated)
     path('api/v1/worker-availability/', include('workers.availability_urls')),
     path('api/v1/worker-earnings/', include('workers.earnings_urls')),

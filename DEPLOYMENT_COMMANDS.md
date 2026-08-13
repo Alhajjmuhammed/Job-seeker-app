@@ -107,7 +107,7 @@ nano /etc/nginx/sites-available/worker-connect
 **Paste this Nginx config:**
 ```nginx
 upstream worker_connect_app {
-    server 127.0.0.1:8001 fail_timeout=0;
+    server 127.0.0.1:8003 fail_timeout=0;
 }
 
 server {
@@ -254,8 +254,8 @@ systemctl status nginx
 systemctl restart worker-connect
 systemctl restart nginx
 
-# Check what's listening on port 8001
-netstat -tuln | grep 8001
+# Check what's listening on port 8003
+netstat -tuln | grep 8003
 
 # Check disk space
 df -h

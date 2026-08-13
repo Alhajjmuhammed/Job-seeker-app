@@ -4,6 +4,7 @@ Context processors for providing global template variables
 from django.db.models import Q
 from workers.models import WorkerProfile, WorkerDocument
 from jobs.models import Message
+from jobs.service_request_models import ServiceRequest
 
 
 def admin_counts(request):
@@ -28,7 +29,12 @@ def admin_counts(request):
             context['pending_documents_count'] = WorkerDocument.objects.filter(
                 verification_status='pending'
             ).count()
-            
+
+            # Pending service requests awaiting assignment
+            context['pending_service_requests_count'] = ServiceRequest.objects.filter(
+                status='pending'
+            ).count()
+
             # Unread messages for admin
             context['unread_messages_count'] = Message.objects.filter(
                 recipient=request.user,
@@ -38,7 +44,9 @@ def admin_counts(request):
             # For workers and clients
             context['pending_workers_count'] = 0
             context['pending_documents_count'] = 0
-            
+            context['pending_service_requests_count'] = 0
+
+
             # Unread messages from admin
             admin_user = request.user.__class__.objects.filter(
                 Q(is_staff=True) | Q(user_type='admin')
@@ -55,6 +63,7 @@ def admin_counts(request):
     else:
         context['pending_workers_count'] = 0
         context['pending_documents_count'] = 0
+        context['pending_service_requests_count'] = 0
         context['unread_messages_count'] = 0
     
     return context

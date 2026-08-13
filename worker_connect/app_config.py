@@ -188,8 +188,8 @@ def user_config(request):
         profile = user.worker_profile
         user_specific['worker'] = {
             'profile_complete': profile.is_profile_complete,
-            'is_verified': profile.is_verified,
-            'is_available': profile.is_available,
+            'is_verified': profile.verification_status == 'verified',
+            'is_available': profile.availability == 'available',
             'can_apply_jobs': profile.is_profile_complete,
         }
     

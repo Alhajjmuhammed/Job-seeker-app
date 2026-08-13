@@ -234,16 +234,21 @@ class BadgeService:
         """
         Update worker's verification tier based on current stats.
         """
+        from jobs.reviews import Review
+
         # Get worker's active badges
         active_badges = WorkerBadge.objects.filter(
             worker=worker_profile,
             status='active'
         ).values_list('badge_id', flat=True)
-        
+
         # Get worker stats
-        completed_jobs = getattr(worker_profile, 'completed_jobs_count', 0)
-        rating = getattr(worker_profile, 'average_rating', 0) or 0
-        reviews = getattr(worker_profile, 'total_reviews', 0) or 0
+        completed_jobs = worker_profile.completed_jobs
+        rating = worker_profile.average_rating or 0
+        reviews = Review.objects.filter(
+            reviewee=worker_profile.user,
+            review_type='client_to_worker'
+        ).count()
         
         # Find highest eligible tier
         eligible_tier = None
@@ -330,11 +335,16 @@ class BadgeService:
         """
         Check and award automatic badges.
         """
+        from jobs.reviews import Review
+        from jobs.service_request_models import ServiceRequestAssignment
+
         auto_badges = VerificationBadge.objects.filter(
             is_active=True,
             auto_award=True
         )
-        
+
+        awarded = []
+
         for badge in auto_badges:
             # Skip if already has
             if WorkerBadge.objects.filter(
@@ -343,23 +353,27 @@ class BadgeService:
                 status='active'
             ).exists():
                 continue
-            
+
             # Check criteria based on badge type
             should_award = False
-            
+
             if badge.badge_type == 'top_rated':
-                rating = getattr(worker_profile, 'average_rating', 0) or 0
-                reviews = getattr(worker_profile, 'total_reviews', 0) or 0
+                rating = worker_profile.average_rating or 0
+                reviews = Review.objects.filter(
+                    reviewee=worker_profile.user,
+                    review_type='client_to_worker'
+                ).count()
                 should_award = rating >= 4.8 and reviews >= 10
-            
+
             elif badge.badge_type == 'veteran':
-                completed = getattr(worker_profile, 'completed_jobs_count', 0)
-                should_award = completed >= 50
-            
+                should_award = worker_profile.completed_jobs >= 50
+
             elif badge.badge_type == 'reliability':
                 # Check completion rate
-                completed = getattr(worker_profile, 'completed_jobs_count', 0)
-                cancelled = getattr(worker_profile, 'cancelled_jobs_count', 0)
+                completed = worker_profile.completed_jobs
+                cancelled = ServiceRequestAssignment.objects.filter(
+                    worker=worker_profile, status='cancelled'
+                ).count()
                 if completed + cancelled > 10:
                     completion_rate = completed / (completed + cancelled)
                     should_award = completion_rate >= 0.95
@@ -371,3 +385,13 @@ class BadgeService:
                     status='active',
                     issued_at=timezone.now()
                 )
+                awarded.append(badge.name)
+
+        if awarded:
+            # verify_badge() (the admin-approval path) recalculates the tier
+            # after granting a badge - auto-awarded badges need the same
+            # step, otherwise verification_tier never reflects badges a
+            # worker earned automatically.
+            BadgeService._update_worker_tier(worker_profile)
+
+        return awarded

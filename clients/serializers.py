@@ -15,7 +15,7 @@ class ClientProfileSerializer(serializers.ModelSerializer):
         model = ClientProfile
         fields = [
             'user_id', 'email', 'first_name', 'last_name', 'phone_number',
-            'company_name', 'address', 'city', 'state', 'country', 'postal_code',
+            'company_name', 'bio', 'address', 'city', 'state', 'country', 'postal_code',
             'total_jobs_posted', 'total_spent', 'created_at', 'updated_at'
         ]
         read_only_fields = ['total_jobs_posted', 'total_spent', 'created_at', 'updated_at']

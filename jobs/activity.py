@@ -4,6 +4,7 @@ Activity feed for Worker Connect dashboard.
 
 from django.db import models
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -72,7 +73,7 @@ class Activity(models.Model):
     related_object = GenericForeignKey('content_type', 'object_id')
     
     # Additional metadata
-    metadata = models.JSONField(default=dict, blank=True)
+    metadata = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     
     # Read status
     is_read = models.BooleanField(default=False)

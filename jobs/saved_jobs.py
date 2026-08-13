@@ -83,16 +83,18 @@ class SavedJobsService:
         Get all saved jobs for a worker.
         """
         from jobs.models import SavedJob
-        
+
         queryset = SavedJob.objects.filter(
             worker=worker_profile
         ).select_related(
-            'job__client__user'
+            'job__client'
         ).order_by('-created_at')
-        
+
         if not include_closed:
-            queryset = queryset.filter(job__status='open')
-        
+            # 'pending' is ServiceRequest's "open for work" status - see
+            # jobs.api_views.browse_jobs, which uses the same filter.
+            queryset = queryset.filter(job__status='pending')
+
         saved_jobs = []
         for saved in queryset[:limit]:
             job = saved.job
@@ -105,13 +107,13 @@ class SavedJobsService:
                     'description': job.description[:200] + '...' if len(job.description) > 200 else job.description,
                     'status': job.status,
                     'location': getattr(job, 'location', ''),
-                    'budget': str(job.budget) if hasattr(job, 'budget') and job.budget else None,
-                    'client_name': job.client.user.get_full_name() or job.client.user.username,
+                    'budget': str(job.total_price) if job.total_price else None,
+                    'client_name': job.client.get_full_name() or job.client.username,
                     'created_at': job.created_at.isoformat(),
                 },
-                'is_available': job.status == 'open',
+                'is_available': job.status == 'pending',
             })
-        
+
         return saved_jobs
     
     @staticmethod
@@ -143,11 +145,11 @@ class SavedJobsService:
         Remove jobs that are no longer available.
         """
         from jobs.models import SavedJob
-        
+
         deleted_count, _ = SavedJob.objects.filter(
             worker=worker_profile
         ).exclude(
-            job__status='open'
+            job__status='pending'
         ).delete()
         
         return {

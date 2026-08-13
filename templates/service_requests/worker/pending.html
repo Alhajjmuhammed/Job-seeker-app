@@ -39,7 +39,13 @@
                             {{ assignment.service_request.get_urgency_display }}
                         </span>
                     </p>
-                    <p><strong>{% trans "Estimated Duration:" %}</strong> {{ assignment.service_request.estimated_duration_hours }} {% trans "hours" %}</p>
+                    <p><strong>{% trans "Duration:" %}</strong>
+                        {% if assignment.service_request.duration_type %}
+                        {{ assignment.service_request.duration_type_display }} ({{ assignment.service_request.duration_days }} {% trans "days" %})
+                        {% else %}
+                        {{ assignment.service_request.estimated_duration_hours }} {% trans "hours" %}
+                        {% endif %}
+                    </p>
                     {% if assignment.service_request.preferred_date %}
                     <p><strong>{% trans "Preferred Date:" %}</strong> {{ assignment.service_request.preferred_date|date:"M d, Y" }} 
                        {% if assignment.service_request.preferred_time %}at {{ assignment.service_request.preferred_time|time:"h:i A" }}{% endif %}</p>

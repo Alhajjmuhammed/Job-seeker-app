@@ -72,7 +72,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='client.get_full_name', read_only=True)
     client_phone = serializers.CharField(source='client.phone_number', read_only=True)
     client_email = serializers.CharField(source='client.email', read_only=True)
-    worker_name = serializers.CharField(source='assigned_worker.user.get_full_name', read_only=True, allow_null=True)
+    worker_name = serializers.SerializerMethodField()
     assigned_by_name = serializers.CharField(source='assigned_by.get_full_name', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     urgency_display = serializers.CharField(source='get_urgency_display', read_only=True)
@@ -84,7 +84,8 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
         model = ServiceRequest
         fields = [
             'id', 'client', 'client_name', 'client_phone', 'client_email', 'category', 'category_name',
-            'title', 'description', 'location', 'city',
+            'title', 'description', 'location', 'city', 'latitude', 'longitude',
+            'preferred_worker', 'assignment_mode',
             'preferred_date', 'preferred_time',
             # NEW: Duration & Pricing fields
             'duration_type', 'duration_type_display', 'duration_days',
@@ -120,26 +121,49 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
         ).order_by('assignment_number')
         return AssignmentBasicSerializer(assignments, many=True, context=self.context).data
 
+    def get_worker_name(self, obj):
+        """
+        assigned_worker is the LEGACY single-worker field and is never
+        populated by the real multi-worker assignment flow
+        (_create_assignment()) - reading it always returned None/blank here,
+        everywhere this serializer is used (admin dashboard, client request
+        lists/detail, etc). Derive it from the real assignments relation
+        instead - the first (lowest assignment_number) non-rejected worker,
+        matching this field's original single-name intent.
+        """
+        assignment = obj.assignments.exclude(status='rejected').order_by('assignment_number').first()
+        return assignment.worker.user.get_full_name() if assignment else None
+
 
 
 class ServiceRequestCreateSerializer(serializers.ModelSerializer):
     """Serializer for client creating service request WITH PRICING"""
-    
+
+    preferred_worker = serializers.PrimaryKeyRelatedField(
+        queryset=WorkerProfile.objects.all(), required=False, allow_null=True,
+        help_text="Worker the client requested; admin still confirms or picks someone else"
+    )
+
     class Meta:
         model = ServiceRequest
         fields = [
             'category', 'title', 'description', 'location', 'city',
+            'latitude', 'longitude',
             'preferred_date', 'preferred_time',
-            # NEW: Duration fields
+            # Duration fields - duration_type/dates are client-writable so
+            # calculate_total_price() can derive the correct duration_days;
+            # duration_days itself is intentionally NOT writable here since
+            # it's always server-derived from duration_type, not client input.
+            'duration_type', 'service_start_date', 'service_end_date',
             'workers_needed',  # NEW: Multiple workers support
-            'urgency', 'client_notes'
+            'urgency', 'client_notes', 'preferred_worker', 'assignment_mode'
         ]
-    
+
     def validate_category(self, value):
         if not value.is_active:
             raise serializers.ValidationError("This category is not currently available.")
         return value
-    
+
     def validate_workers_needed(self, value):
         """Validate workers_needed is between 1 and 100"""
         if value < 1:
@@ -147,9 +171,21 @@ class ServiceRequestCreateSerializer(serializers.ModelSerializer):
         if value > 100:
             raise serializers.ValidationError("Cannot request more than 100 workers.")
         return value
-    
+
     def validate(self, data):
-        """Validate custom date range if duration_type is custom"""
+        """
+        Combined validation. This used to be two separate methods named
+        `validate` - the second definition silently shadowed the first in
+        the class body, so the preferred_worker/category check below never
+        actually ran.
+        """
+        preferred_worker = data.get('preferred_worker')
+        category = data.get('category')
+        if preferred_worker and category and not preferred_worker.categories.filter(id=category.id).exists():
+            raise serializers.ValidationError({
+                'preferred_worker': "This worker doesn't offer the requested category."
+            })
+
         if data.get('duration_type') == 'custom':
             if not data.get('service_start_date') or not data.get('service_end_date'):
                 raise serializers.ValidationError({
@@ -167,19 +203,27 @@ class ServiceRequestListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     client_name = serializers.CharField(source='client.get_full_name', read_only=True)
     client_phone = serializers.CharField(source='client.phone_number', read_only=True)
-    worker_name = serializers.CharField(source='assigned_worker.user.get_full_name', read_only=True, allow_null=True)
+    worker_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    
+
     class Meta:
         model = ServiceRequest
         fields = [
             'id', 'title', 'category_name', 'client_name', 'client_phone', 'worker_name',
             'location', 'city', 'status', 'status_display', 'urgency',
+            'assignment_mode',
             'preferred_date', 'preferred_time', 'created_at', 'worker_accepted',
             'client_rating', 'client_review',
             'total_price', 'duration_days', 'duration_type', 'estimated_duration_hours',
             'workers_needed',  # NEW: Multiple workers support
         ]
+
+    def get_worker_name(self, obj):
+        """assigned_worker is the LEGACY single-worker field, never populated
+        by the real multi-worker assignment flow - see ServiceRequestSerializer
+        .get_worker_name() for the full explanation. Same fix here."""
+        assignment = obj.assignments.exclude(status='rejected').order_by('assignment_number').first()
+        return assignment.worker.user.get_full_name() if assignment else None
 
 
 class AdminAssignWorkerSerializer(serializers.Serializer):
@@ -283,6 +327,7 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
     preferred_date = serializers.DateField(source='service_request.preferred_date', read_only=True)
     preferred_time = serializers.TimeField(source='service_request.preferred_time', read_only=True)
     estimated_duration_hours = serializers.DecimalField(source='service_request.estimated_duration_hours', max_digits=5, decimal_places=2, read_only=True)
+    duration_days = serializers.IntegerField(source='service_request.duration_days', read_only=True)
     client_name = serializers.CharField(source='service_request.client.get_full_name', read_only=True)
     client_phone = serializers.CharField(source='service_request.client.phone_number', read_only=True)
     client_email = serializers.CharField(source='service_request.client.email', read_only=True)
@@ -302,7 +347,7 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
             'assigned_at', 'updated_at',
             # Flattened service request fields for mobile app
             'title', 'description', 'category_name', 'urgency', 'location', 'city',
-            'preferred_date', 'preferred_time', 'estimated_duration_hours',
+            'preferred_date', 'preferred_time', 'estimated_duration_hours', 'duration_days',
             'client_name', 'client_phone', 'client_email', 'client_notes', 'created_at',
             'total_price'
         ]

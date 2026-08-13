@@ -460,7 +460,7 @@ def get_account_activity(request):
         activity['profile'] = {
             'is_complete': profile.is_profile_complete,
             'completion_percentage': profile.profile_completion_percentage,
-            'is_available': profile.is_available,
+            'is_available': profile.availability == 'available',
             'updated_at': profile.updated_at.isoformat() if hasattr(profile, 'updated_at') else None,
         }
     

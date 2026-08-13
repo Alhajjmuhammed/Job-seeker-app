@@ -1,0 +1,53 @@
+# Version control
+.git/
+.gitignore
+
+# Secrets - must never be baked into an image layer
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+env/
+*.sqlite3
+
+# Django runtime artifacts (created fresh inside the container)
+staticfiles/
+mediafiles/
+media/
+*.log
+logs/
+
+# Node / mobile app - not part of the Django image
+node_modules/
+React-native-app/
+.expo/
+web-build/
+
+# Tests, docs, and local tooling not needed at runtime
+tests/
+*.md
+.github/
+
+# Editor / OS cruft
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Keys & secrets
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+google-service-account.json

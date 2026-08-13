@@ -20,15 +20,40 @@ django_asgi_app = get_asgi_application()
 try:
     from channels.routing import ProtocolTypeRouter, URLRouter
     from channels.auth import AuthMiddlewareStack
-    from channels.security.websocket import AllowedHostsOriginValidator
+    from channels.security.websocket import OriginValidator
+    from django.conf import settings
     from .routing import websocket_urlpatterns
-    
+
+    class MobileFriendlyOriginValidator(OriginValidator):
+        """
+        Like channels' AllowedHostsOriginValidator, except a connection with
+        NO Origin header at all is let through instead of unconditionally
+        rejected. Browsers always send Origin on a WebSocket handshake (same
+        origin or cross-origin) - only non-browser clients omit it, e.g.
+        React Native's WebSocket implementation, which sent none and was
+        being rejected outright in production regardless of a valid auth
+        token (verified live via channels.testing.WebsocketCommunicator).
+        A malicious browser page attempting Cross-Site WebSocket Hijacking
+        DOES send an Origin header, so it's still checked and rejected below
+        when it doesn't match ALLOWED_HOSTS - this only widens the "no
+        Origin header" case, it doesn't drop origin checking altogether.
+        """
+        def valid_origin(self, parsed_origin):
+            if parsed_origin is None:
+                return True
+            return self.validate_origin(parsed_origin)
+
+    allowed_hosts = settings.ALLOWED_HOSTS
+    if settings.DEBUG and not allowed_hosts:
+        allowed_hosts = ["localhost", "127.0.0.1", "[::1]"]
+
     application = ProtocolTypeRouter({
         "http": django_asgi_app,
-        "websocket": AllowedHostsOriginValidator(
+        "websocket": MobileFriendlyOriginValidator(
             AuthMiddlewareStack(
                 URLRouter(websocket_urlpatterns)
-            )
+            ),
+            allowed_hosts,
         ),
     })
 except ImportError:

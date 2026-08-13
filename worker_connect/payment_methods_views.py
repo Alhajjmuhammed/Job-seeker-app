@@ -131,10 +131,17 @@ class SavedCardViewSet(viewsets.ModelViewSet):
 
 class BankAccountViewSet(viewsets.ModelViewSet):
     """Bank account management viewset (for workers)"""
-    
+
     serializer_class = BankAccountSerializer
     permission_classes = [IsAuthenticated]
-    
+    # A worker only ever has a handful of payout accounts on file, and the
+    # mobile app (payout-methods.tsx) expects GET .../bank-accounts/ to
+    # return a plain JSON array. Without this, the global DRF
+    # DEFAULT_PAGINATION_CLASS wraps .list() in {count, next, previous,
+    # results}, which fails the app's `Array.isArray(bankData)` check and
+    # makes every payout account silently disappear from the screen.
+    pagination_class = None
+
     def get_queryset(self):
         """Get user's bank accounts"""
         return BankAccount.objects.filter(user=self.request.user, is_active=True)
@@ -201,10 +208,13 @@ class BankAccountViewSet(viewsets.ModelViewSet):
 
 class MobileMoneyAccountViewSet(viewsets.ModelViewSet):
     """Mobile money account management viewset (for workers)"""
-    
+
     serializer_class = MobileMoneyAccountSerializer
     permission_classes = [IsAuthenticated]
-    
+    # See BankAccountViewSet.pagination_class above - same reasoning applies
+    # to the mobile app's payout-methods.tsx `Array.isArray(mobileData)` check.
+    pagination_class = None
+
     def get_queryset(self):
         """Get user's mobile money accounts"""
         return MobileMoneyAccount.objects.filter(user=self.request.user, is_active=True)

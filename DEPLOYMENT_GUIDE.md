@@ -306,8 +306,8 @@ python manage.py compilemessages
 journalctl -u worker-connect -n 50
 tail -f /var/www/worker-connect/logs/gunicorn-error.log
 
-# Check if port 8001 is in use
-netstat -tuln | grep 8001
+# Check if port 8003 is in use
+netstat -tuln | grep 8003
 
 # Verify Python path
 which python
@@ -356,7 +356,7 @@ Since you have `/var/www/restaurant` already running, you need:
 
 1. **Different ports** for Gunicorn:
    - Restaurant: 8000 (or whatever it uses)
-   - Worker Connect: 8001 (already configured)
+   - Worker Connect: 8003 (already configured)
 
 2. **Different nginx server blocks**:
    - Different domain names OR

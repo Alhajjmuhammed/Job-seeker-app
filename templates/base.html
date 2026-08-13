@@ -6,7 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{% block title %}Worker Connect - Find Your Perfect Worker{% endblock %}</title>
-    
+    <meta name="description" content="{% block meta_description %}Worker Connect is Tanzania's platform connecting clients with verified skilled workers for daily, monthly and custom jobs.{% endblock %}">
+
+    <!-- Open Graph / social link previews -->
+    <meta property="og:title" content="{% block og_title %}Worker Connect - Tanzania's #1 Job Platform{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Post a job, hire a verified professional, or find new work opportunities on Worker Connect.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon-192.png' %}{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta name="twitter:card" content="summary">
+
     <!-- Favicon - Circular PNG versions -->
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32.png' %}">
@@ -421,13 +430,13 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'jobs:job_list' %}">
-                                    <i class="bi bi-briefcase"></i> {% trans "Jobs" %}
+                                <a class="nav-link" href="{% url 'service_requests_web:worker_pending' %}">
+                                    <i class="bi bi-bell"></i> {% trans "Pending Assignments" %}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'jobs:my_applications' %}">
-                                    <i class="bi bi-file-earmark-text"></i> {% trans "My Applications" %}
+                                <a class="nav-link" href="{% url 'service_requests_web:worker_assignments' %}">
+                                    <i class="bi bi-file-earmark-text"></i> {% trans "My Assignments" %}
                                 </a>
                             </li>
                         {% elif user.is_client %}
@@ -563,7 +572,6 @@
                     <ul class="list-unstyled mb-0" style="color:white;font-size:0.91rem;">
                         <li class="mb-2"><a href="{% url 'home' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-house me-1"></i>Home</a></li>
                         <li class="mb-2"><a href="{% url 'clients:browse_services' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-grid me-1"></i>Browse Services</a></li>
-                        <li class="mb-2"><a href="{% url 'jobs:job_list' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-briefcase me-1"></i>Browse Jobs</a></li>
                         <li class="mb-2"><a href="{% url 'accounts:register_choice' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-person-plus me-1"></i>Register</a></li>
                         <li class="mb-2"><a href="{% url 'accounts:login' %}" style="color:white;text-decoration:none;" onmouseover="this.style.color='#14b8a6'" onmouseout="this.style.color='white'"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a></li>
                     </ul>

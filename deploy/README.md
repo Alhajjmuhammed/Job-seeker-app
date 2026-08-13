@@ -8,7 +8,7 @@ This directory contains all configuration files needed for deploying Worker Conn
 Nginx reverse proxy configuration
 - **Location on server:** `/etc/nginx/sites-available/worker-connect`
 - **Purpose:** Routes HTTP traffic to Gunicorn, serves static/media files
-- **Port:** Listens on 80 (HTTP), proxies to 127.0.0.1:8001
+- **Port:** Listens on 80 (HTTP), proxies to 127.0.0.1:8003
 
 ### 2. `worker-connect.service`
 Systemd service configuration
@@ -50,6 +50,6 @@ See [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md) or [DEPLOYMENT_COMMANDS.md](..
 ## 📝 Notes
 
 - All log files are stored in `/var/www/worker-connect/logs/`
-- Gunicorn runs on port 8001 (not exposed externally)
+- Gunicorn runs on port 8003 (not exposed externally)
 - Nginx handles all external traffic on port 80/443
 - Service auto-restarts on failure

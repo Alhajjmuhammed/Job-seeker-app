@@ -12,8 +12,10 @@ DEBUG = False
 # Must be set via environment variable
 SECRET_KEY = os.environ['SECRET_KEY']
 
-# Set your production domain
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+# Set your production domain. ''.split(',') would produce [''] (which
+# matches no real host and rejects every request with "Invalid HTTP_HOST
+# header") rather than an empty list, so filter blanks out explicitly.
+ALLOWED_HOSTS = [h for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 
 # Database - Use PostgreSQL in production
 DATABASES = {
@@ -63,14 +65,13 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
-# Caching with Redis
+# Caching with Redis. Uses Django's own built-in redis backend (4.0+), not
+# the third-party django-redis package - CLIENT_CLASS is a django-redis-only
+# option and isn't recognized here, so it was previously a dead no-op key.
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
         'KEY_PREFIX': 'workerconnect',
         'TIMEOUT': 300,  # 5 minutes default
     }

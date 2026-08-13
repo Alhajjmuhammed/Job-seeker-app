@@ -330,7 +330,7 @@ class BusinessMetrics:
             'new_users_today': User.objects.filter(date_joined__gte=today).count(),
             'new_users_week': User.objects.filter(date_joined__gte=week_ago).count(),
             'new_users_month': User.objects.filter(date_joined__gte=month_ago).count(),
-            'verified_workers': WorkerProfile.objects.filter(is_verified=True).count(),
+            'verified_workers': WorkerProfile.objects.filter(verification_status='verified').count(),
         }
     
     @staticmethod

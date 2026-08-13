@@ -2,6 +2,9 @@
 {% load static i18n %}
 
 {% block title %}Worker Connect - Tanzania's #1 Job Platform{% endblock %}
+{% block meta_description %}Connect with skilled, verified workers in Tanzania. Post a job, hire a professional, or find new work opportunities on Worker Connect.{% endblock %}
+{% block og_title %}Worker Connect - Tanzania's #1 Job Platform{% endblock %}
+{% block og_description %}Post a job, hire a verified professional, or find new work opportunities. Worker Connect brings clients, workers and agents together on one secure platform.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -627,23 +630,16 @@
                 <div class="app-pill client"><i class="bi bi-building"></i> {% trans "For Clients" %}</div>
             </div>
             <div class="app-badges">
-                <a href="#" class="app-badge-btn">
-                    <i class="bi bi-apple apple"></i>
+                <a href="{% url 'download_app' %}" class="app-badge-btn">
+                    <i class="bi bi-android2 android"></i>
                     <div class="app-badge-label">
-                        <small>{% trans "Download on the" %}</small>
-                        <strong>{% trans "App Store" %}</strong>
-                    </div>
-                </a>
-                <a href="#" class="app-badge-btn">
-                    <i class="bi bi-google-play android"></i>
-                    <div class="app-badge-label">
-                        <small>{% trans "Get it on" %}</small>
-                        <strong>{% trans "Google Play" %}</strong>
+                        <small>{% trans "Download for" %}</small>
+                        <strong>{% trans "Android" %}</strong>
                     </div>
                 </a>
             </div>
             <div class="app-store-note">
-                <i class="bi bi-info-circle"></i> {% trans "App coming soon — join the web platform today" %}
+                <i class="bi bi-info-circle"></i> {% trans "iOS app coming soon — Android is available now" %}
             </div>
         </div>
         <div class="reveal-r">
@@ -671,6 +667,7 @@
                             <div class="app-screen-bar"></div>
                         </div>
                     </div>
+                    
                 </div>
                 <div class="app-phone app-phone-right">
                     <div class="app-phone-screen">

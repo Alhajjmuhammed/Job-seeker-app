@@ -24,7 +24,9 @@ class Review(models.Model):
     reviewer = models.ForeignKey(
         'accounts.User',
         on_delete=models.CASCADE,
-        related_name='reviews_given'
+        related_name='reviews_given',
+        null=True, blank=True,
+        help_text="Null when the reviewing account has been deleted and the review anonymized"
     )
     reviewee = models.ForeignKey(
         'accounts.User',

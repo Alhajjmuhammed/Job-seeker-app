@@ -49,14 +49,14 @@ jobs:
           sudo apt-get install -y libmagic1
 
       - name: Install Python dependencies
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-django pytest-cov
 
       - name: Run Django tests
-        working-directory: ./Job-seeker-app
+        working-directory: .
         env:
           DEBUG: 'True'
           SECRET_KEY: 'test-secret-key-for-ci-only'
@@ -67,7 +67,7 @@ jobs:
           python manage.py test --verbosity=2
 
       - name: Run pytest with coverage
-        working-directory: ./Job-seeker-app
+        working-directory: .
         env:
           DEBUG: 'True'
           SECRET_KEY: 'test-secret-key-for-ci-only'
@@ -79,7 +79,7 @@ jobs:
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
         with:
-          files: ./Job-seeker-app/coverage.xml
+          files: ./coverage.xml
           fail_ci_if_error: false
 
   # ============================================
@@ -105,27 +105,27 @@ jobs:
           pip install flake8 bandit safety black isort
 
       - name: Run Black (formatting check)
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           black --check --diff . || echo "Formatting issues found"
 
       - name: Run isort (import sorting)
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           isort --check-only --diff . || echo "Import sorting issues found"
 
       - name: Run Flake8
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           flake8 . --max-line-length=120 --exclude=migrations,__pycache__,venv,.venv
 
       - name: Run Bandit (security)
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           bandit -r . -x ./tests,./migrations -ll
 
       - name: Run Safety (dependency check)
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           pip install -r requirements.txt
           safety check || echo "Vulnerabilities found - review required"
@@ -146,22 +146,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: './Job-seeker-app/React-native-app/my-app/package-lock.json'
+          cache-dependency-path: './React-native-app/my-app/package-lock.json'
 
       - name: Install dependencies
-        working-directory: ./Job-seeker-app/React-native-app/my-app
+        working-directory: ./React-native-app/my-app
         run: npm ci
 
       - name: Run ESLint
-        working-directory: ./Job-seeker-app/React-native-app/my-app
+        working-directory: ./React-native-app/my-app
         run: npm run lint || echo "Lint issues found"
 
       - name: Run TypeScript check
-        working-directory: ./Job-seeker-app/React-native-app/my-app
+        working-directory: ./React-native-app/my-app
         run: npx tsc --noEmit
 
       - name: Run tests
-        working-directory: ./Job-seeker-app/React-native-app/my-app
+        working-directory: ./React-native-app/my-app
         run: npm test -- --coverage --passWithNoTests
 
   # ============================================
@@ -182,13 +182,13 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Django checks
-        working-directory: ./Job-seeker-app
+        working-directory: .
         env:
           DEBUG: 'True'
           SECRET_KEY: 'test-secret-key-for-ci-only'
@@ -213,7 +213,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        working-directory: ./Job-seeker-app
+        working-directory: .
         run: |
           docker build -t workerconnect:${{ github.sha }} .
 

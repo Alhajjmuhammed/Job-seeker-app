@@ -46,7 +46,7 @@ def worker_web_dashboard(request):
     total_earned = earnings_data['total_earned'] or 0
     
     # This week - NEW multi-worker system
-    week_start = datetime.now() - timedelta(days=7)
+    week_start = timezone.now() - timedelta(days=7)
     week_data = ServiceRequestAssignment.objects.filter(
         worker=worker_profile,
         status='completed',

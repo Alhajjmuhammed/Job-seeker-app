@@ -194,10 +194,9 @@ class VerificationService:
         ).values_list('document_type', flat=True)
         
         all_verified = all(doc_type in approved_types for doc_type in required_types)
-        
-        if all_verified and not worker_profile.is_verified:
-            worker_profile.is_verified = True
-            worker_profile.verified_at = timezone.now()
+
+        if all_verified and worker_profile.verification_status != 'verified':
+            worker_profile.verification_status = 'verified'
             worker_profile.save()
             logger.info(f"Worker {worker_profile.id} is now verified")
     
@@ -237,8 +236,7 @@ class VerificationService:
             })
         
         return {
-            'is_verified': worker_profile.is_verified,
-            'verified_at': worker_profile.verified_at,
+            'is_verified': worker_profile.verification_status == 'verified',
             'required_documents': required_status,
             'all_documents': doc_status,
             'pending_count': sum(1 for d in doc_status.values() if d['status'] == VerificationStatus.PENDING),
@@ -310,10 +308,10 @@ class VerificationService:
                 VerificationService._check_worker_verification(worker)
                 
                 # If was verified but now missing required docs, un-verify
-                if worker.is_verified:
+                if worker.verification_status == 'verified':
                     status = VerificationService.get_verification_status(worker)
                     if not all(doc['approved'] for doc in status['required_documents']):
-                        worker.is_verified = False
+                        worker.verification_status = 'pending'
                         worker.save()
                         logger.info(f"Worker {worker.id} verification revoked due to expired documents")
             except Exception as e:

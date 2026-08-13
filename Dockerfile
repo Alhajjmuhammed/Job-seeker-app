@@ -30,6 +30,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgdk-pixbuf2.0-0 \
     libffi-dev \
     shared-mime-info \
+    # Required for python-magic (real file-content validation on uploads)
+    libmagic1 \
     # Clean up
     && rm -rf /var/lib/apt/lists/*
 
@@ -71,8 +73,14 @@ RUN mkdir -p /app/staticfiles /app/media /app/logs \
 # Switch to non-root user
 USER appuser
 
-# Collect static files
-RUN python manage.py collectstatic --noinput --clear
+# Collect static files. This runs at build time, before the real runtime
+# secrets (from docker-compose/docker run -e) exist, so it needs its own
+# throwaway SECRET_KEY just to let Django boot - collectstatic never reads
+# or writes anything sensitive. DEBUG=True here only relaxes the missing-
+# SECRET_KEY check in settings.py; the actual container always runs with
+# whatever DEBUG/SECRET_KEY are passed in at `docker run`/compose time.
+RUN SECRET_KEY=collectstatic-build-time-only-not-a-real-secret DEBUG=True \
+    python manage.py collectstatic --noinput --clear
 
 # Expose port
 EXPOSE 8000

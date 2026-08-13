@@ -988,7 +988,7 @@
                             </div>
                             <div class="worker-info">
                                 <h4 class="worker-name">
-                                    <a href="{% url 'clients:worker_detail' worker.id %}" class="worker-link">
+                                    <a href="{% url 'workers:public_profile' worker.id %}" class="worker-link">
                                         {{ worker.user.get_full_name }}
                                     </a>
                                 </h4>
@@ -1017,7 +1017,7 @@
 
 
                         <div class="worker-actions">
-                            <a href="{% url 'clients:worker_detail' worker.id %}" class="btn-profile">
+                            <a href="{% url 'workers:public_profile' worker.id %}" class="btn-profile">
                                 <i class="bi bi-eye"></i> View Profile
                             </a>
                             <a href="{% url 'jobs:conversation' job.id %}" class="btn-message">

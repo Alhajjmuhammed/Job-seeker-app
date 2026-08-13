@@ -29,6 +29,7 @@ class WorkerProfileForm(forms.ModelForm):
         model = WorkerProfile
         fields = [
             'bio', 'address', 'city', 'state', 'country', 'postal_code',
+            'latitude', 'longitude',
             'religion', 'can_work_everywhere',
             'categories', 'experience_years', 'hourly_rate', 'availability'
         ]
@@ -38,6 +39,8 @@ class WorkerProfileForm(forms.ModelForm):
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'state': forms.TextInput(attrs={'class': 'form-control'}),
             'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'latitude': forms.HiddenInput(attrs={'id': 'id_latitude'}),
+            'longitude': forms.HiddenInput(attrs={'id': 'id_longitude'}),
             'religion': forms.Select(attrs={'class': 'form-select'}),
             'can_work_everywhere': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'categories': forms.CheckboxSelectMultiple(),

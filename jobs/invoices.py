@@ -180,16 +180,19 @@ class InvoiceService:
         """
         try:
             invoice = Invoice.objects.get(id=invoice_id)
-            
-            # Check if user has access
-            if hasattr(user, 'worker_profile'):
-                if invoice.worker != user.worker_profile:
-                    return None
-            elif hasattr(user, 'client_profile'):
-                if invoice.client != user.client_profile:
-                    return None
-            
-            return invoice
+
+            # Default deny: only the worker who issued it, the client who
+            # received it, or staff may view it. A user with neither a
+            # worker_profile nor a client_profile (e.g. an agent) previously
+            # fell through both checks below and got the invoice regardless
+            # of ownership.
+            if user.is_staff:
+                return invoice
+            if hasattr(user, 'worker_profile') and invoice.worker == user.worker_profile:
+                return invoice
+            if hasattr(user, 'client_profile') and invoice.client == user.client_profile:
+                return invoice
+            return None
         except Invoice.DoesNotExist:
             return None
     

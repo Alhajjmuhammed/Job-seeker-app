@@ -44,6 +44,27 @@ ALLOWED_FILE_TYPES = {
     },
 }
 
+# Which real (sniffed) MIME types a given extension is allowed to actually be.
+# Needed because the "document" category allows both PDFs and .txt files, so
+# checking extension and MIME type independently isn't enough - without this,
+# a plain-text file renamed to "resume.pdf" passes both checks separately
+# (".pdf" is an allowed extension, "text/plain" is an allowed MIME type for
+# the category) even though the extension lies about the actual content.
+EXTENSION_MIME_MAP = {
+    '.jpg': ['image/jpeg'],
+    '.jpeg': ['image/jpeg'],
+    '.png': ['image/png'],
+    '.gif': ['image/gif'],
+    '.webp': ['image/webp'],
+    '.pdf': ['application/pdf'],
+    '.doc': ['application/msword'],
+    '.docx': [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/zip',  # .docx is a zip archive; some libmagic databases report this
+    ],
+    '.txt': ['text/plain'],
+}
+
 # Dangerous file signatures (magic bytes)
 DANGEROUS_SIGNATURES = [
     b'MZ',  # Windows executable
@@ -132,12 +153,13 @@ class FileValidator:
         """Validate the uploaded file."""
         if not isinstance(file, UploadedFile):
             raise ValidationError("Invalid file object")
-        
+
         self.validate_extension(file)
         self.validate_size(file)
         self.validate_mime_type(file)
+        self.validate_extension_matches_mime_type(file)
         self.validate_content(file)
-        
+
         return True
     
     def validate_extension(self, file):
@@ -167,6 +189,28 @@ class FileValidator:
                 f"allowed types for {self.file_type} files"
             )
     
+    def validate_extension_matches_mime_type(self, file):
+        """
+        Cross-check that the actual (sniffed) content matches what the
+        extension claims to be - not just that each is independently
+        allowed for this file category. Without this, e.g. a plain-text
+        file renamed to "resume.pdf" would pass both the extension check
+        (".pdf" is allowed) and the MIME check ("text/plain" is allowed,
+        since .txt uploads are also legitimate) despite lying about its
+        content.
+        """
+        ext = get_file_extension(file.name)
+        expected_mime_types = EXTENSION_MIME_MAP.get(ext)
+        if not expected_mime_types:
+            return
+
+        mime_type = get_mime_type(file)
+        if mime_type and mime_type not in expected_mime_types:
+            raise ValidationError(
+                f"File extension '{ext}' does not match its actual content "
+                f"(detected as '{mime_type}')"
+            )
+
     def validate_content(self, file):
         """Check for dangerous content."""
         if check_dangerous_content(file):

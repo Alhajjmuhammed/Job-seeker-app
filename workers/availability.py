@@ -337,24 +337,25 @@ class AvailabilityService:
                 if AvailabilityService._times_overlap(start_time, end_time, exc.start_time, exc.end_time):
                     return {'available': False, 'reason': exc.reason or 'Worker unavailable'}
         
-        # Check existing bookings
-        conflicting_booking = BookedSlot.objects.filter(
+        # Check existing bookings - must check every same-day booking, not
+        # just the first one, or a conflict with a later booking is missed.
+        existing_bookings = BookedSlot.objects.filter(
             worker=worker_profile,
             date=date,
             status__in=['pending', 'confirmed']
-        ).first()
-        
-        if conflicting_booking:
+        )
+
+        for booking in existing_bookings:
             if AvailabilityService._times_overlap(
                 start_time, end_time,
-                conflicting_booking.start_time, conflicting_booking.end_time
+                booking.start_time, booking.end_time
             ):
                 return {
                     'available': False,
                     'reason': 'Time slot already booked',
-                    'conflict_id': conflicting_booking.id
+                    'conflict_id': booking.id
                 }
-        
+
         return {'available': True}
     
     @staticmethod

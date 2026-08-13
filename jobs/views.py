@@ -124,7 +124,14 @@ def job_create(request):
             job.client = request.user
             job.save()
             
-            # Update client profile
+            # Update client profile. A freshly-registered client has no
+            # ClientProfile row yet (it's created lazily elsewhere, not at
+            # registration), so this must not assume one exists - unlike
+            # every other call site doing this same update, this one wasn't
+            # guarded and would 500 for a brand-new client's first post.
+            if not hasattr(request.user, 'client_profile'):
+                from clients.models import ClientProfile
+                ClientProfile.objects.get_or_create(user=request.user)
             profile = request.user.client_profile
             profile.total_jobs_posted += 1
             profile.save()
@@ -531,7 +538,7 @@ def request_worker_directly(request, worker_id):
     # Check if worker can accept direct hires
     if not worker.can_accept_direct_hires:
         messages.error(request, 'This worker is not available for direct hire requests. They need to upload ID and be verified.')
-        return redirect('clients:worker_detail', pk=worker_id)
+        return redirect('workers:public_profile', pk=worker_id)
     
     if request.method == 'POST':
         form = DirectHireRequestForm(request.POST, worker_hourly_rate=worker.hourly_rate)
@@ -689,28 +696,44 @@ def complete_direct_hire(request, pk):
     if request.method == 'POST':
         rating = request.POST.get('rating')
         feedback = request.POST.get('feedback', '')
-        
+
+        try:
+            rating_value = int(rating)
+        except (TypeError, ValueError):
+            rating_value = None
+
         hire_request.status = 'completed'
         hire_request.completed_at = timezone.now()
         hire_request.client_rating = rating
         hire_request.client_feedback = feedback
         hire_request.save()
-        
+
         # Update worker stats
         worker = hire_request.worker
         worker.completed_jobs += 1
         worker.total_jobs += 1
         worker.total_earnings += hire_request.total_amount
         worker.availability = 'available'  # Make worker available again
-        
-        # Update average rating
+
+        # Persist the rating as a real Rating row so it actually counts
+        # toward the worker's average and shows up in their review list -
+        # previously only hire_request.client_rating was set, which nothing
+        # else ever read.
         from clients.models import Rating
+        if rating_value and 1 <= rating_value <= 5:
+            Rating.objects.update_or_create(
+                client=request.user,
+                worker=worker,
+                defaults={'rating': rating_value, 'review': feedback},
+            )
+
         ratings = Rating.objects.filter(worker=worker)
         if ratings.exists():
             from django.db.models import Avg
             avg = ratings.aggregate(Avg('rating'))['rating__avg']
             worker.average_rating = round(avg, 2)
-        
+            worker.total_reviews = ratings.count()
+
         worker.save()
         
         messages.success(request, 'Work completed! Thank you for your feedback.')

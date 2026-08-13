@@ -687,16 +687,6 @@
                 <span class="nav-text">{% trans "Request History" %}</span>
             </a>
             
-            <div class="sidebar-section-title section-title">{% trans "JOBS" %}</div>
-            <a href="{% url 'jobs:job_create' %}" class="sidebar-nav-item {% if active_menu == 'post_job' %}active{% endif %}">
-                <i class="bi bi-plus-circle"></i> 
-                <span class="nav-text">{% trans "Post a Job" %}</span>
-            </a>
-            <a href="{% url 'jobs:job_list' %}" class="sidebar-nav-item {% if active_menu == 'my_jobs' %}active{% endif %}">
-                <i class="bi bi-list-ul"></i> 
-                <span class="nav-text">{% trans "My Jobs" %}</span>
-            </a>
-            
             <div class="sidebar-section-title section-title">{% trans "COMMUNICATION" %}</div>
             <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> 

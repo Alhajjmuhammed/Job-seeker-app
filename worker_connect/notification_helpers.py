@@ -3,15 +3,13 @@ Notification Helper Functions
 Provides easy-to-use functions for creating notifications throughout the application.
 """
 
-from django.contrib.contenttypes.models import ContentType
-from .notification_models import Notification
 from .notification_service import NotificationService
 
 
 def create_notification(user, title, message, notification_type, related_object=None, extra_data=None):
     """
     Create a notification for a user.
-    
+
     Args:
         user: User instance who will receive the notification
         title: Notification title (max 200 chars)
@@ -19,20 +17,23 @@ def create_notification(user, title, message, notification_type, related_object=
         notification_type: One of the NOTIFICATION_TYPES choices
         related_object: Optional related model instance
         extra_data: Optional dict with additional data
-    
+
     Returns:
         Notification instance
     """
-    notification = Notification.objects.create(
+    # Delegates to NotificationService.create_notification (not a direct
+    # Notification.objects.create) so calls through this helper also get the
+    # websocket broadcast and email that go through that single choke point -
+    # this module used to duplicate notification creation independently,
+    # silently skipping both.
+    return NotificationService.create_notification(
         recipient=user,
         title=title,
         message=message,
         notification_type=notification_type,
         content_object=related_object,
-        extra_data=extra_data or {}
+        extra_data=extra_data
     )
-    
-    return notification
 
 
 def notify_service_request_created(service_request):
@@ -284,13 +285,13 @@ def broadcast_notification(users, title, message, notification_type, extra_data=
     """
     notifications = []
     for user in users:
-        notification = Notification.objects.create(
+        notification = NotificationService.create_notification(
             recipient=user,
             title=title,
             message=message,
             notification_type=notification_type,
-            extra_data=extra_data or {}
+            extra_data=extra_data
         )
         notifications.append(notification)
-    
+
     return notifications

@@ -5,11 +5,32 @@ import mimetypes
 from django.core.exceptions import ValidationError
 
 
+def _try_strong_validation(file, kind):
+    """
+    Try the real content-sniffing validator (worker_connect.file_validators,
+    backed by python-magic). Returns True if it ran (file is already
+    validated), False if it isn't available in this environment (e.g. the
+    system libmagic library isn't installed) so the caller should fall back
+    to the weaker header-based check below instead of failing every upload.
+    """
+    try:
+        from worker_connect.file_validators import validate_profile_image, validate_worker_document
+    except ImportError:
+        return False
+
+    validator = validate_profile_image if kind == 'image' else validate_worker_document
+    validator(file)
+    return True
+
+
 def validate_image_file(file):
     """
     Validate that uploaded file is an actual image by checking MIME type.
     More secure than just checking file extension.
     """
+    if _try_strong_validation(file, 'image'):
+        return True
+
     # Check file size (max 5MB)
     max_size = 5 * 1024 * 1024  # 5MB in bytes
     if file.size > max_size:
@@ -58,6 +79,9 @@ def validate_document_file(file):
     """
     Validate uploaded document files (for worker documents like ID, certificates)
     """
+    if _try_strong_validation(file, 'document'):
+        return True
+
     # Check file size (max 10MB for documents)
     max_size = 10 * 1024 * 1024  # 10MB
     if file.size > max_size:

@@ -1,14 +1,18 @@
 import logging
+from datetime import datetime
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q, Count, Avg
 from django.utils import timezone
 from .models import ClientProfile, Favorite, Rating
 from workers.models import WorkerProfile, Category
+from workers.file_validators import validate_image_file
 from jobs.service_request_models import ServiceRequest
+from .assignment_mode import apply_assignment_mode
 from worker_connect.pagination import paginate_queryset
 from .serializers import (
     ClientProfileSerializer, WorkerSearchSerializer,
@@ -83,20 +87,42 @@ def services_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def client_stats(request):
-    """Get client dashboard statistics"""
+    """Get client dashboard statistics.
+
+    NOTE: this is the endpoint the mobile client dashboard
+    (apiService.getClientStatistics() -> GET /v1/clients/stats/) actually
+    calls. It previously returned active_jobs/completed_jobs/total_spent/
+    favorites, but dashboard.tsx's ClientStats interface reads
+    total_requests/active_requests/completed_requests/pending_requests -
+    a pure key-name mismatch that meant every stat card silently showed 0.
+    Both the legacy keys and the new ones are returned to avoid breaking
+    any other caller relying on the old shape.
+    """
     try:
         from jobs.service_request_models import ServiceRequest
-        # Count active service requests (pending, assigned, or in_progress)
-        active_jobs = ServiceRequest.objects.filter(
+        total_requests = ServiceRequest.objects.filter(client=request.user).count()
+
+        pending_requests = ServiceRequest.objects.filter(
             client=request.user,
-            status__in=['pending', 'assigned', 'in_progress']
+            status='pending'
         ).count()
-        
-        completed_jobs = ServiceRequest.objects.filter(
+
+        # "Active" = accepted work in flight (assigned or in_progress),
+        # distinct from "pending" (not yet assigned/accepted).
+        active_requests = ServiceRequest.objects.filter(
+            client=request.user,
+            status__in=['assigned', 'in_progress']
+        ).count()
+
+        completed_requests = ServiceRequest.objects.filter(
             client=request.user,
             status='completed'
         ).count()
-        
+
+        # Legacy combined count (pending + assigned + in_progress), kept
+        # for any caller still relying on the old 'active_jobs' key.
+        active_jobs = pending_requests + active_requests
+
         # Total spent on completed requests
         from django.db.models import Sum
         total_spent_result = ServiceRequest.objects.filter(
@@ -104,14 +130,20 @@ def client_stats(request):
             status='completed'
         ).aggregate(total=Sum('total_price'))
         total_spent = float(total_spent_result['total'] or 0)
-        
+
         # Count favorites
         favorites = Favorite.objects.filter(client=request.user).count()
-        
+
         return Response({
-            'active_jobs': active_jobs,
-            'completed_jobs': completed_jobs,
+            # Fields consumed by the mobile client dashboard
+            'total_requests': total_requests,
+            'active_requests': active_requests,
+            'completed_requests': completed_requests,
+            'pending_requests': pending_requests,
             'total_spent': total_spent,
+            # Legacy keys, kept for backward compatibility
+            'active_jobs': active_jobs,
+            'completed_jobs': completed_requests,
             'favorites': favorites,
         })
     except Exception as e:
@@ -220,11 +252,46 @@ def request_service(request, category_id):
                     'error': f'{field.replace("_", " ").title()} is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Get duration and pricing info
+        # Get duration and pricing info. duration_days is ALWAYS derived
+        # server-side from duration_type (and, for 'custom', the start/end
+        # dates) - it must never be trusted from the client. The mobile app
+        # only ever sends duration_type (see request-service.tsx), so
+        # trusting a client-supplied duration_days here previously meant it
+        # silently defaulted to 1 for every single request regardless of
+        # duration_type, undercharging every non-daily booking (monthly,
+        # 3/6-month, yearly, custom) down to a single day's rate.
         duration_type = request.data.get('duration_type', 'daily')
         daily_rate = category.daily_rate or 0
-        duration_days = request.data.get('duration_days', 1)
-        
+
+        duration_map = {
+            'daily': 1,
+            'monthly': 30,
+            '3_months': 90,
+            '6_months': 180,
+            'yearly': 365,
+        }
+        service_start_date = request.data.get('service_start_date') or None
+        service_end_date = request.data.get('service_end_date') or None
+        if duration_type == 'custom':
+            if not service_start_date or not service_end_date:
+                return Response({
+                    'error': 'service_start_date and service_end_date are required for custom duration'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                start = datetime.strptime(service_start_date, '%Y-%m-%d').date()
+                end = datetime.strptime(service_end_date, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({
+                    'error': 'Invalid date format for service_start_date/service_end_date. Use YYYY-MM-DD'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if end < start:
+                return Response({
+                    'error': 'service_end_date must be after service_start_date'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            duration_days = (end - start).days + 1
+        else:
+            duration_days = duration_map.get(duration_type, 1)
+
         # NEW: Get number of workers needed
         workers_needed = int(request.data.get('workers_needed', 1))
         if workers_needed < 1:
@@ -265,7 +332,37 @@ def request_service(request, category_id):
         # Handle date/time fields - convert empty strings to None
         preferred_date = request.data.get('preferred_date') or None
         preferred_time = request.data.get('preferred_time') or None
-        
+
+        # Optional GPS coordinates for the service location (form data
+        # always arrives as strings - must cast, or later distance math
+        # blows up with "must be real number, not str")
+        try:
+            latitude = float(request.data.get('latitude')) if request.data.get('latitude') else None
+            longitude = float(request.data.get('longitude')) if request.data.get('longitude') else None
+        except (TypeError, ValueError):
+            latitude = None
+            longitude = None
+
+        # Optional worker the client requested themselves - admin still
+        # confirms this before it becomes a real assignment (see
+        # ServiceRequest.preferred_worker)
+        preferred_worker = None
+        preferred_worker_id = request.data.get('preferred_worker')
+        if preferred_worker_id:
+            try:
+                preferred_worker = WorkerProfile.objects.get(id=preferred_worker_id)
+            except WorkerProfile.DoesNotExist:
+                return Response({'error': 'Preferred worker not found'}, status=status.HTTP_404_NOT_FOUND)
+            if not preferred_worker.categories.filter(id=category.id).exists():
+                return Response({'error': "This worker doesn't offer the requested category"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # How the client wants their worker selected: admin picks (default),
+        # client already picked one above (preferred_worker), or auto-assign
+        # the nearest available worker right now (see assignment_mode.py)
+        assignment_mode = request.data.get('assignment_mode', 'admin_choice')
+        if assignment_mode not in dict(ServiceRequest.ASSIGNMENT_MODE_CHOICES):
+            assignment_mode = 'admin_choice'
+
         # Create service request without any worker assignment
         service_request = ServiceRequest.objects.create(
             client=request.user,
@@ -274,10 +371,16 @@ def request_service(request, category_id):
             description=request.data.get('description', ''),
             location=request.data.get('location', ''),
             city=request.data.get('city', ''),
+            latitude=latitude,
+            longitude=longitude,
+            preferred_worker=preferred_worker,
+            assignment_mode=assignment_mode,
             preferred_date=preferred_date,
             preferred_time=preferred_time,
             duration_type=duration_type,
             duration_days=duration_days,
+            service_start_date=service_start_date,
+            service_end_date=service_end_date,
             workers_needed=workers_needed,  # NEW: Store workers needed
             daily_rate=daily_rate,
             total_price=total_price,
@@ -293,24 +396,35 @@ def request_service(request, category_id):
         
         # Handle payment screenshot if provided
         if 'payment_screenshot' in request.FILES:
-            service_request.payment_screenshot = request.FILES['payment_screenshot']
+            screenshot = request.FILES['payment_screenshot']
+            try:
+                validate_image_file(screenshot)
+            except ValidationError as e:
+                service_request.delete()
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            service_request.payment_screenshot = screenshot
             service_request.save()
-        
-        # Handle custom date range - convert empty strings to None
-        if duration_type == 'custom':
-            service_request.service_start_date = request.data.get('service_start_date') or None
-            service_request.service_end_date = request.data.get('service_end_date') or None
-            service_request.save()
-        
+
+        # Apply the client's chosen assignment mode (no-op unless
+        # auto_nearest; falls back to admin_choice if it can't auto-assign)
+        apply_assignment_mode(service_request)
+        service_request.refresh_from_db()
+
+        auto_assigned = service_request.assignment_mode == 'auto_nearest' and service_request.status == 'assigned'
+        details = f'Our admin will review your payment and assign {workers_needed} suitable worker(s). You will be notified once workers are assigned.' if workers_needed > 1 else 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.'
+        if auto_assigned:
+            details = 'A worker has been automatically assigned based on proximity to your location!'
+
         return Response({
             'id': service_request.id,
             'message': f'Your {category.name} service request has been submitted successfully!',
-            'details': f'Our admin will review your payment and assign {workers_needed} suitable worker(s). You will be notified once workers are assigned.' if workers_needed > 1 else 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.',
+            'details': details,
             'workers_needed': workers_needed,
             'available_workers': available_workers,
             'availability_status': availability_status,
             'availability_message': availability_message,
-            'status': 'pending_assignment',
+            'status': service_request.status,
+            'assignment_mode': service_request.assignment_mode,
             'payment_status': service_request.payment_status,
             'total_price': float(total_price),
             'has_screenshot': bool(service_request.payment_screenshot),
@@ -469,6 +583,81 @@ def complete_service_request(request, request_id):
         return Response({'error': 'Failed to mark service as completed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_service_request(request, request_id):
+    """
+    Client rates a completed service request. ServiceRequest.client_rating/
+    client_review already existed on the model and in ServiceRequestSerializer,
+    but had no endpoint to actually set them - the mobile app's rating screen
+    called a URL that was never registered.
+    """
+    try:
+        service_request = ServiceRequest.objects.get(id=request_id, client=request.user)
+
+        if service_request.status != 'completed':
+            return Response(
+                {'error': 'Only completed service requests can be rated'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Guard against re-rating: without this, calling the endpoint twice
+        # (e.g. a network retry, or the user re-opening the rating screen)
+        # rolled the rating into the worker's average_rating/total_reviews
+        # a second time, permanently corrupting the aggregate.
+        if service_request.client_rating is not None:
+            return Response(
+                {'error': 'You have already rated this service request'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        rating = request.data.get('rating')
+        review = request.data.get('review', '')
+
+        try:
+            rating = int(rating)
+        except (TypeError, ValueError):
+            return Response({'error': 'rating must be an integer 1-5'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if rating < 1 or rating > 5:
+            return Response({'error': 'rating must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
+
+        service_request.client_rating = rating
+        service_request.client_review = review
+        service_request.save(update_fields=['client_rating', 'client_review'])
+
+        # Roll the rating into the worker's aggregate stats. assigned_worker
+        # is the LEGACY single-worker field and is never populated by the
+        # real multi-worker assignment flow (_create_assignment()) - reading
+        # it here always silently no-ops. The actual assigned worker(s) live
+        # on the assignments relation; rate every worker who completed this
+        # request (usually exactly one, but a multi-worker job should credit
+        # all of them, not an arbitrary "first" one).
+        completed_assignments = service_request.assignments.filter(status='completed').select_related('worker')
+        for assignment in completed_assignments:
+            worker = assignment.worker
+            new_total = worker.total_reviews + 1
+            worker.average_rating = round(
+                ((worker.average_rating * worker.total_reviews) + rating) / new_total, 2
+            )
+            worker.total_reviews = new_total
+            worker.save(update_fields=['average_rating', 'total_reviews'])
+
+        return Response({
+            'message': 'Rating submitted successfully',
+            'service_request': {
+                'id': service_request.id,
+                'client_rating': service_request.client_rating,
+                'client_review': service_request.client_review,
+            }
+        })
+    except ServiceRequest.DoesNotExist:
+        return Response({'error': 'Service request not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error rating service request: {str(e)}", exc_info=True)
+        return Response({'error': 'Failed to submit rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_service_request(request, request_id):
@@ -478,9 +667,15 @@ def update_service_request(request, request_id):
 
         # Check if we're uploading a payment screenshot
         if 'payment_screenshot' in request.FILES:
-            service_request.payment_screenshot = request.FILES['payment_screenshot']
+            screenshot = request.FILES['payment_screenshot']
+            try:
+                validate_image_file(screenshot)
+            except ValidationError as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            service_request.payment_screenshot = screenshot
             service_request.save()
-            
+
             return Response({
                 'message': 'Payment screenshot uploaded successfully',
                 'service_request': {
@@ -490,14 +685,26 @@ def update_service_request(request, request_id):
                 }
             })
         
-        # Otherwise, update other fields
-        allowed_fields = ['title', 'description', 'location', 'city', 'preferred_date', 
-                         'preferred_time', 'estimated_duration_hours', 'urgency', 'client_notes']
-        
+        # Otherwise, update other fields. 'workers_needed' is editable from
+        # the mobile edit-service-request screen (see
+        # app/(client)/edit-service-request/[id].tsx) but was missing here,
+        # so that field was silently dropped on every save - the client
+        # would change the worker count, get a "success" response, and the
+        # value would just revert back on reload.
+        allowed_fields = ['title', 'description', 'location', 'city', 'preferred_date',
+                         'preferred_time', 'estimated_duration_hours', 'urgency', 'client_notes',
+                         'workers_needed']
+
         for field in allowed_fields:
             if field in request.data:
                 setattr(service_request, field, request.data[field])
-        
+
+        # workers_needed feeds directly into total_price (daily_rate *
+        # duration_days * workers_needed) - recalculate so an edited worker
+        # count doesn't leave the client with a stale, now-wrong price.
+        if 'workers_needed' in request.data:
+            service_request.calculate_total_price()
+
         service_request.save()
         
         return Response({
@@ -605,15 +812,17 @@ def favorites_list(request):
         favorites = Favorite.objects.filter(
             client=request.user
         ).select_related('worker', 'worker__user').order_by('-created_at')
-        
+
         # Paginate
-        page = int(request.GET.get('page', 1))
+        from django.core.paginator import Paginator
+        page_number = int(request.GET.get('page', 1))
         page_size = int(request.GET.get('page_size', 20))
-        result = paginate_queryset(favorites, page, page_size)
-        
+        paginator = Paginator(favorites, page_size)
+        page_obj = paginator.get_page(page_number)
+
         # Serialize favorites with worker details
         favorites_data = []
-        for favorite in result['results']:
+        for favorite in page_obj.object_list:
             worker = favorite.worker
             worker_data = {
                 'id': favorite.id,
@@ -621,24 +830,23 @@ def favorites_list(request):
                 'worker_name': worker.user.get_full_name(),
                 'worker_username': worker.user.username,
                 'categories': [cat.name for cat in worker.categories.all()],
-                'rating': worker.rating,
+                'rating': worker.average_rating,
                 'total_reviews': worker.total_reviews,
                 'completed_jobs': worker.completed_jobs,
                 'hourly_rate': worker.hourly_rate,
-                'daily_rate': worker.daily_rate,
                 'availability': worker.availability,
                 'bio': worker.bio,
                 'city': worker.city,
-                'profile_picture': request.build_absolute_uri(worker.profile_picture.url) if worker.profile_picture else None,
+                'profile_picture': request.build_absolute_uri(worker.profile_image.url) if worker.profile_image else None,
                 'added_at': favorite.created_at.isoformat(),
             }
             favorites_data.append(worker_data)
         
         return Response({
             'results': favorites_data,
-            'count': result['count'],
-            'next': result['next'],
-            'previous': result['previous'],
+            'count': paginator.count,
+            'next': page_obj.next_page_number() if page_obj.has_next() else None,
+            'previous': page_obj.previous_page_number() if page_obj.has_previous() else None,
         })
     except Exception as e:
         logger.error(f"Error fetching favorites: {str(e)}", exc_info=True)

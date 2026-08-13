@@ -104,10 +104,23 @@
         <h5 class="mb-0">
             <i class="bi bi-people-fill me-2"></i>
             {{ workers_count }} Worker{{ workers_count|pluralize }} Available
+            {% if has_location %}
+            <span class="badge bg-info text-dark ms-2"><i class="bi bi-geo-alt-fill"></i> Sorted by distance</span>
+            {% endif %}
         </h5>
-        {% if service_request.category %}
-        <span class="badge bg-light text-dark">Category: {{ service_request.category.name }}</span>
-        {% endif %}
+        <div class="d-flex align-items-center gap-2">
+            {% if service_request.category %}
+            <span class="badge bg-light text-dark">Category: {{ service_request.category.name }}</span>
+            {% endif %}
+            {% if has_location and workers_remaining > 0 %}
+            <form method="post" action="{% url 'admin_panel:auto_assign_nearest_worker' service_request.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Auto-assign the {{ workers_remaining }} nearest available worker(s)?');">
+                    <i class="bi bi-lightning-fill me-1"></i> Auto-Assign Nearest Available
+                </button>
+            </form>
+            {% endif %}
+        </div>
     </div>
 
     {% if available_workers %}
@@ -166,7 +179,12 @@
                         <div class="row g-2 mb-2">
                             <div class="col-6">
                                 <small class="text-muted d-block">Location</small>
-                                <span class="small"><i class="bi bi-geo-alt me-1"></i>{{ worker.city|default:"Not specified" }}</span>
+                                <span class="small">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ worker.city|default:"Not specified" }}
+                                    {% if worker.distance_km is not None %}
+                                    <span class="badge bg-info text-dark ms-1">{{ worker.distance_km|floatformat:1 }} km away</span>
+                                    {% endif %}
+                                </span>
                             </div>
                             <div class="col-6">
                                 <small class="text-muted d-block">Experience</small>

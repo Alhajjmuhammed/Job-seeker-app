@@ -8,13 +8,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 from django.utils import timezone
-from django.core.mail import send_mass_mail
 
 from accounts.models import User
 from workers.models import WorkerProfile
 from clients.models import ClientProfile
 from jobs.models import JobApplication
 from jobs.service_request_models import ServiceRequest
+from worker_connect.notification_service import NotificationService
 
 
 @api_view(['POST'])
@@ -63,7 +63,7 @@ def bulk_user_action(request):
             # Verify associated profiles
             for user in users:
                 if hasattr(user, 'worker_profile'):
-                    user.worker_profile.is_verified = True
+                    user.worker_profile.verification_status = 'verified'
                     user.worker_profile.save()
                     affected_count += 1
     
@@ -106,10 +106,10 @@ def bulk_worker_action(request):
     
     with transaction.atomic():
         if action == 'verify':
-            affected_count = workers.update(is_verified=True)
-        
+            affected_count = workers.update(verification_status='verified')
+
         elif action == 'unverify':
-            affected_count = workers.update(is_verified=False)
+            affected_count = workers.update(verification_status='pending')
         
         elif action == 'feature':
             affected_count = workers.update(is_featured=True)
@@ -118,10 +118,18 @@ def bulk_worker_action(request):
             affected_count = workers.update(is_featured=False)
         
         elif action == 'suspend':
-            # Deactivate user accounts
+            # Deactivate user accounts. Also flip availability away from
+            # 'available' - every "who can be assigned right now" query in
+            # the admin panel (admin_available_workers, admin_assign_worker,
+            # admin_bulk_assign_workers, admin_auto_assign_nearest_workers)
+            # filters on WorkerProfile.availability, not on the linked
+            # User.is_active, so a worker suspended without this would keep
+            # showing up as assignable despite the deactivated account.
             for worker in workers:
                 worker.user.is_active = False
                 worker.user.save()
+                worker.availability = 'offline'
+                worker.save()
                 affected_count += 1
     
     return Response({
@@ -137,47 +145,46 @@ def bulk_worker_action(request):
 def bulk_job_action(request):
     """
     Perform bulk actions on jobs.
-    
+
     Request body:
         {
             "job_ids": [1, 2, 3],
-            "action": "approve" | "reject" | "close" | "delete" | "feature"
+            "action": "reject" | "close" | "delete"
         }
+
+    Note: ServiceRequest has no "approved"/"featured" state - requests go
+    live as 'pending' immediately on creation, so there is nothing for an
+    "approve"/"feature" action to do. Those actions were removed rather
+    than kept as silent no-ops that reported success.
     """
     job_ids = request.data.get('job_ids', [])
     action = request.data.get('action')
     reason = request.data.get('reason', '')
-    
+
     if not job_ids:
         return Response({
             'error': 'job_ids required'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    valid_actions = ['approve', 'reject', 'close', 'delete', 'feature', 'unfeature']
+
+    valid_actions = ['reject', 'close', 'delete']
     if action not in valid_actions:
         return Response({
             'error': f'Invalid action. Must be one of: {valid_actions}'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
     jobs = ServiceRequest.objects.filter(id__in=job_ids)
     affected_count = 0
-    
+
     with transaction.atomic():
-        if action == 'approve':
-            affected_count = jobs.update(status='pending')
-        
-        elif action == 'reject':
+        if action == 'reject':
             affected_count = jobs.update(status='cancelled')
-        
+
         elif action == 'close':
             affected_count = jobs.update(status='cancelled')
-        
+
         elif action == 'delete':
             affected_count = jobs.count()
             jobs.delete()
-        
-        elif action in ('feature', 'unfeature'):
-            affected_count = jobs.count()  # ServiceRequest has no is_featured field
     
     return Response({
         'success': True,
@@ -196,30 +203,33 @@ def bulk_application_action(request):
     Request body:
         {
             "application_ids": [1, 2, 3],
-            "action": "approve" | "reject" | "shortlist"
+            "action": "approve" | "reject"
         }
+
+    Note: "shortlist" was removed - JobApplication.STATUS_CHOICES has no
+    'shortlisted' value, so it wrote a status nothing else in the app
+    recognizes or ever transitions out of.
     """
     application_ids = request.data.get('application_ids', [])
     action = request.data.get('action')
-    
+
     if not application_ids:
         return Response({
             'error': 'application_ids required'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    valid_actions = ['approve', 'reject', 'shortlist']
+
+    valid_actions = ['approve', 'reject']
     if action not in valid_actions:
         return Response({
             'error': f'Invalid action. Must be one of: {valid_actions}'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
     applications = JobApplication.objects.filter(id__in=application_ids)
     affected_count = 0
-    
+
     status_map = {
         'approve': 'accepted',
         'reject': 'rejected',
-        'shortlist': 'shortlisted',
     }
     
     with transaction.atomic():
@@ -246,18 +256,24 @@ def bulk_send_notification(request):
             "message": "Message content",
             "notification_type": "email" | "push" | "both"
         }
+
+    Note: push notification delivery is not implemented anywhere in this
+    codebase (device push tokens are registered but nothing ever sends to
+    them), so "push"/"both" requests still only produce an in-app +
+    email notification - the response says so via "warning" rather than
+    silently claiming success for a push that never went out.
     """
     user_ids = request.data.get('user_ids', [])
     user_type = request.data.get('user_type')
     subject = request.data.get('subject')
     message = request.data.get('message')
     notification_type = request.data.get('notification_type', 'email')
-    
+
     if not subject or not message:
         return Response({
             'error': 'subject and message are required'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
     # Get users
     if user_ids:
         users = User.objects.filter(id__in=user_ids, is_active=True)
@@ -277,39 +293,42 @@ def bulk_send_notification(request):
         return Response({
             'error': 'Either user_ids or user_type required'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    total_users = users.count()
     sent_count = 0
     failed_count = 0
-    
-    if notification_type in ['email', 'both']:
-        # Prepare email messages
-        emails = []
-        for user in users.exclude(email=''):
-            emails.append((
-                subject,
-                message,
-                'noreply@workerconnect.com',
-                [user.email],
-            ))
-        
-        # Send in batches
+
+    # Routed through NotificationService so this creates a real in-app
+    # Notification (visible in the app + over websocket) and a properly
+    # addressed email via settings.DEFAULT_FROM_EMAIL, instead of the
+    # previous raw send_mass_mail() call that left no record and hardcoded
+    # a fake from-address.
+    for user in users:
         try:
-            sent_count = send_mass_mail(emails, fail_silently=True)
-        except Exception as e:
-            failed_count = len(emails)
-    
-    if notification_type in ['push', 'both']:
-        # Push notification logic would go here
-        # This is a placeholder for push notification service integration
-        pass
-    
-    return Response({
+            NotificationService.create_notification(
+                recipient=user,
+                title=subject,
+                message=message,
+                notification_type='system_alert',
+            )
+            sent_count += 1
+        except Exception:
+            failed_count += 1
+
+    response_data = {
         'success': True,
         'sent_count': sent_count,
         'failed_count': failed_count,
-        'total_users': users.count(),
-        'message': f'Notification sent to {sent_count} users'
-    })
+        'total_users': total_users,
+        'message': f'Notification sent to {sent_count} users',
+    }
+    if notification_type in ('push', 'both'):
+        response_data['warning'] = (
+            'Push delivery is not implemented; recipients received an '
+            'in-app + email notification only.'
+        )
+
+    return Response(response_data)
 
 
 @api_view(['POST'])

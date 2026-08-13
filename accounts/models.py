@@ -1,10 +1,28 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserManager
 from django.core.validators import RegexValidator, EmailValidator
+
+
+class UserManager(DjangoUserManager):
+    """
+    Default createsuperuser doesn't set user_type (it's not in
+    REQUIRED_FIELDS, and create_superuser() doesn't call full_clean()), so a
+    freshly-created superuser ends up with user_type='' instead of 'admin' -
+    is_admin_user/is_staff-based checks still work, but anything filtering
+    or displaying by user_type='admin' specifically would silently miss
+    them. Default it to 'admin' here so day-one deployment superusers are
+    correctly typed without relying on every admin-detection code path
+    remembering to also check is_staff.
+    """
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('user_type', 'admin')
+        return super().create_superuser(username, email, password, **extra_fields)
 
 
 class User(AbstractUser):
     """Custom user model with role-based access"""
+
+    objects = UserManager()
     
     USER_TYPE_CHOICES = (
         ('worker', 'Worker'),
@@ -31,6 +49,20 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     email_verified = models.BooleanField(default=False)
     phone_verified = models.BooleanField(default=False)
+
+    # Profile visibility preferences
+    show_email = models.BooleanField(default=False, help_text="Show email on public profile")
+    show_phone = models.BooleanField(default=False, help_text="Show phone number on public profile")
+    allow_search_indexing = models.BooleanField(default=True, help_text="Allow profile to appear in search results")
+
+    # GDPR consent flags (Article 6/7) - explicit opt-in for non-essential
+    # data uses. essential_cookies/data_processing are not stored here since
+    # they're required for the service to function and aren't withdrawable
+    # without account deletion (see accounts/gdpr_views.py::consent_status).
+    consent_analytics = models.BooleanField(default=False, help_text="Consent to usage analytics tracking")
+    consent_personalization = models.BooleanField(default=False, help_text="Consent to personalized recommendations")
+    consent_third_party_sharing = models.BooleanField(default=False, help_text="Consent to sharing data with third-party partners")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -65,3 +97,11 @@ class User(AbstractUser):
     @property
     def is_agent(self):
         return self.user_type == 'agent'
+
+
+# NotificationPreferences is defined in notification_preferences.py, not
+# here - Django only auto-discovers models actually imported into an app's
+# models.py, so without this import the model is invisible to the app
+# registry (no reverse relation on User, no cascade-delete on user removal)
+# even though its table and migrations are real. This import is the fix.
+from .notification_preferences import NotificationPreferences  # noqa: E402,F401

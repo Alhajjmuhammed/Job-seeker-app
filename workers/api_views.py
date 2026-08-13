@@ -1,6 +1,7 @@
 import logging
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view, permission_classes, parser_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
@@ -12,6 +13,24 @@ from .serializers import WorkerProfileSerializer, CategorySerializer
 from workers.file_validators import validate_document_file
 
 logger = logging.getLogger(__name__)
+
+
+class QueryParamTokenAuthentication(TokenAuthentication):
+    """
+    Same as TokenAuthentication, but also accepts the token via a `?token=`
+    query parameter. Used only for the CV PDF download link, which the
+    mobile app opens in an external browser tab (no Authorization header).
+    """
+
+    def authenticate(self, request):
+        auth = super().authenticate(request)
+        if auth is not None:
+            return auth
+
+        token = request.query_params.get('token')
+        if not token:
+            return None
+        return self.authenticate_credentials(token)
 
 
 @api_view(['GET'])
@@ -100,15 +119,14 @@ def update_worker_availability(request):
 def featured_workers(request):
     """Get featured workers for client dashboard"""
     try:
-        # Get top-rated available workers
+        # Get top-rated available workers. average_rating/completed_jobs
+        # are already real, maintained fields on WorkerProfile - no need
+        # to (mis)annotate them from unrelated relations.
         featured = WorkerProfile.objects.filter(
             availability='available',
             is_profile_complete=True,
-        ).annotate(
-            average_rating=Avg('ratings__rating'),
-            completed_jobs=Count('directhire_worker', filter=Q(directhire_worker__status='completed'))
-        ).filter(
-            average_rating__gte=4.0  # Only workers with 4+ rating
+            is_public=True,
+            average_rating__gte=4.0,  # Only workers with 4+ rating
         ).order_by('-average_rating', '-completed_jobs')[:6]
         
         # Serialize data
@@ -486,6 +504,12 @@ def delete_document(request, document_id):
         # Update profile if National ID was deleted
         if is_national_id:
             profile.has_uploaded_national_id = False
+            # A worker with no ID document on file can no longer be considered
+            # verified - without this, deleting an approved ID leaves
+            # verification_status='verified' (and the "Verified Worker" badge)
+            # in place with nothing backing it.
+            if profile.verification_status == 'verified':
+                profile.verification_status = 'pending'
             # Recalculate completion percentage
             optional_docs = profile.documents.exclude(document_type='id').count()
             base_percentage = 20  # Registration complete
@@ -627,47 +651,118 @@ def work_experience_detail(request, experience_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def worker_cv(request):
+    """Get the auto-generated CV data for the authenticated worker (mobile app)"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        profile = WorkerProfile.objects.get(user=request.user)
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    from .cv import CVService
+    context = CVService.get_cv_context(profile)
+
+    return Response({
+        'full_name': context['full_name'],
+        'email': context['email'],
+        'phone_number': context['phone_number'],
+        'location': context['location'],
+        'bio': context['bio'],
+        'worker_type': context['worker_type'],
+        'experience_years': context['experience_years'],
+        'hourly_rate': str(context['hourly_rate']) if context['hourly_rate'] else None,
+        'average_rating': str(context['average_rating']),
+        'completed_jobs': context['completed_jobs'],
+        'verification_status': context['verification_status'],
+        'profile_image_url': request.build_absolute_uri(context['profile_image_url']) if context['profile_image_url'] else None,
+        'is_complete': context['is_complete'],
+        'categories': [{'id': c.id, 'name': c.name} for c in context['categories']],
+        'skills': [{'id': s.id, 'name': s.name} for s in context['skills']],
+        'experiences': [
+            {
+                'id': exp.id,
+                'job_title': exp.job_title,
+                'company': exp.company,
+                'location': exp.location,
+                'start_date': exp.start_date.isoformat() if exp.start_date else None,
+                'end_date': exp.end_date.isoformat() if exp.end_date else None,
+                'is_current': exp.is_current,
+                'description': exp.description,
+                'duration': exp.duration,
+            }
+            for exp in context['experiences']
+        ],
+    })
+
+
+@api_view(['GET'])
+@authentication_classes([QueryParamTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def worker_cv_download(request):
+    """Download the authenticated worker's auto-generated CV as a PDF (mobile app)"""
+    if request.user.user_type != 'worker':
+        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        profile = WorkerProfile.objects.get(user=request.user)
+    except WorkerProfile.DoesNotExist:
+        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    from django.http import HttpResponse
+    from .cv import CVService
+
+    pdf = CVService.generate_pdf(profile)
+    if not pdf:
+        return Response({'error': 'PDF generation not available'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{profile.user.username}_CV.pdf"'
+    return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def worker_analytics(request):
     """Get worker analytics data for analytics screen"""
     if request.user.user_type != 'worker':
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from django.db.models import Avg, Count
-        from jobs.service_request_models import ServiceRequest
-        
+        from jobs.service_request_models import ServiceRequestAssignment
+
         profile = WorkerProfile.objects.get(user=request.user)
-        
+
+        # Use ServiceRequestAssignment - the real per-worker assignment
+        # relation that supports multiple workers on one ServiceRequest.
+        # The legacy ServiceRequest.assigned_worker field only ever points
+        # at one worker, so a second/third worker assigned to the same
+        # request would show zero analytics if we filtered on that instead.
+        my_assignments = ServiceRequestAssignment.objects.filter(worker=profile)
+
         # Total assignments (ever assigned to this worker)
-        total_assignments = ServiceRequest.objects.filter(
-            assigned_worker=profile
+        total_assignments = my_assignments.count()
+
+        # Completed assignments
+        completed_jobs = my_assignments.filter(status='completed').count()
+
+        # Accepted assignments (not pending/rejected/cancelled)
+        accepted_assignments = my_assignments.filter(
+            status__in=['accepted', 'in_progress', 'completed']
         ).count()
-        
-        # Completed jobs
-        completed_jobs = ServiceRequest.objects.filter(
-            assigned_worker=profile,
-            status='completed'
-        ).count()
-        
-        # Accepted assignments (not cancelled)
-        accepted_assignments = ServiceRequest.objects.filter(
-            assigned_worker=profile,
-            status__in=['assigned', 'in_progress', 'completed']
-        ).count()
-        
+
         # Success rate (completed / total)
         success_rate = (completed_jobs / total_assignments * 100) if total_assignments > 0 else 0
-        
+
         # Response rate (accepted / total)
         response_rate = (accepted_assignments / total_assignments * 100) if total_assignments > 0 else 0
-        
-        # Average rating from completed ServiceRequests with ratings
-        avg_rating = ServiceRequest.objects.filter(
-            assigned_worker=profile,
-            status='completed',
-            client_rating__isnull=False
-        ).aggregate(avg=Avg('client_rating'))['avg'] or 0.0
-        
+
+        # Average rating - use the maintained WorkerProfile field rather than
+        # recomputing from ServiceRequest.client_rating, which rates the
+        # overall (possibly multi-worker) service request, not this worker.
+        avg_rating = float(profile.average_rating or 0)
+
         # Profile completeness
         profile_completeness = profile.profile_completion_percentage
         
@@ -695,29 +790,35 @@ def earnings_breakdown(request):
     try:
         from django.db.models import Sum
         from django.db.models.functions import TruncMonth, TruncWeek
-        from jobs.service_request_models import ServiceRequest
-        
+        from jobs.service_request_models import ServiceRequestAssignment
+
         profile = WorkerProfile.objects.get(user=request.user)
         group_by = request.GET.get('group_by', 'month')  # 'week' or 'month'
         periods = int(request.GET.get('periods', 6))
-        
-        # Get completed ServiceRequests
-        jobs = ServiceRequest.objects.filter(
-            assigned_worker=profile,
-            status='completed'
+
+        # Get this worker's completed assignments (the real, current
+        # multi-worker relation - not the legacy ServiceRequest.assigned_worker).
+        # Exclude rows with no work_completed_at: TruncMonth/TruncWeek group
+        # them under a None period, and formatting that period below would
+        # crash with AttributeError: 'NoneType' object has no attribute
+        # 'strftime' instead of just omitting them from the breakdown.
+        jobs = ServiceRequestAssignment.objects.filter(
+            worker=profile,
+            status='completed',
+            work_completed_at__isnull=False,
         )
-        
+
         if group_by == 'month':
             earnings_data = jobs.annotate(
-                period=TruncMonth('updated_at')
+                period=TruncMonth('work_completed_at')
             ).values('period').annotate(
-                earnings=Sum('total_price')
+                earnings=Sum('worker_payment')
             ).order_by('-period')[:periods]
         else:  # week
             earnings_data = jobs.annotate(
-                period=TruncWeek('updated_at')
+                period=TruncWeek('work_completed_at')
             ).values('period').annotate(
-                earnings=Sum('total_price')
+                earnings=Sum('worker_payment')
             ).order_by('-period')[:periods]
         
         # Format the data
@@ -748,23 +849,24 @@ def earnings_by_category(request):
     
     try:
         from django.db.models import Sum, Count
-        from jobs.service_request_models import ServiceRequest
-        
+        from jobs.service_request_models import ServiceRequestAssignment
+
         profile = WorkerProfile.objects.get(user=request.user)
-        
-        # Group completed ServiceRequests by category
-        category_data = ServiceRequest.objects.filter(
-            assigned_worker=profile,
+
+        # Group this worker's completed assignments by category (real,
+        # current multi-worker relation - not the legacy assigned_worker FK)
+        category_data = ServiceRequestAssignment.objects.filter(
+            worker=profile,
             status='completed'
-        ).values('category__name').annotate(
+        ).values('service_request__category__name').annotate(
             jobs_count=Count('id'),
-            earnings=Sum('total_price')
+            earnings=Sum('worker_payment')
         ).order_by('-earnings')
         
         result = []
         for item in category_data:
             result.append({
-                'category': item['category__name'] or 'Uncategorised',
+                'category': item['service_request__category__name'] or 'Uncategorised',
                 'earnings': str(item['earnings'] or 0),
                 'jobs_count': item['jobs_count'],
             })
@@ -784,25 +886,30 @@ def top_clients(request):
     
     try:
         from django.db.models import Sum, Count
-        from jobs.service_request_models import ServiceRequest
-        
+        from jobs.service_request_models import ServiceRequestAssignment
+
         profile = WorkerProfile.objects.get(user=request.user)
         limit = int(request.GET.get('limit', 5))
-        
-        # Get top clients from completed ServiceRequests
-        top_clients_data = ServiceRequest.objects.filter(
-            assigned_worker=profile,
+
+        # Get top clients from this worker's completed assignments (real,
+        # current multi-worker relation - not the legacy assigned_worker FK)
+        top_clients_data = ServiceRequestAssignment.objects.filter(
+            worker=profile,
             status='completed'
-        ).values('client__id', 'client__first_name', 'client__last_name').annotate(
-            total_earnings=Sum('total_price'),
+        ).values(
+            'service_request__client__id',
+            'service_request__client__first_name',
+            'service_request__client__last_name',
+        ).annotate(
+            total_earnings=Sum('worker_payment'),
             jobs_count=Count('id')
         ).order_by('-total_earnings')[:limit]
         
         result = []
         for item in top_clients_data:
             result.append({
-                'client_id': item['client__id'],
-                'client_name': f"{item['client__first_name']} {item['client__last_name']}",
+                'client_id': item['service_request__client__id'],
+                'client_name': f"{item['service_request__client__first_name']} {item['service_request__client__last_name']}",
                 'total_earnings': str(item['total_earnings'] or 0),
                 'jobs_count': item['jobs_count'],
             })
@@ -821,25 +928,27 @@ def payment_history(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from jobs.service_request_models import ServiceRequest
+        from jobs.service_request_models import ServiceRequestAssignment
         profile = WorkerProfile.objects.get(user=request.user)
         limit = int(request.GET.get('limit', 20))
-        
-        # Get completed ServiceRequests as payment history
-        payments = ServiceRequest.objects.filter(
-            assigned_worker=profile,
+
+        # Get this worker's completed assignments as payment history (real,
+        # current multi-worker relation - not the legacy assigned_worker FK)
+        payments = ServiceRequestAssignment.objects.filter(
+            worker=profile,
             status='completed'
-        ).select_related('client').order_by('-updated_at')[:limit]
-        
+        ).select_related('service_request__client').order_by('-work_completed_at')[:limit]
+
         result = []
-        for payment in payments:
+        for assignment in payments:
+            service_request = assignment.service_request
             result.append({
-                'id': payment.id,
-                'job_id': payment.id,
-                'job_title': payment.title,
-                'client_name': payment.client.get_full_name(),
-                'amount': str(payment.total_price or 0),
-                'date': payment.updated_at.isoformat(),
+                'id': assignment.id,
+                'job_id': service_request.id,
+                'job_title': service_request.title,
+                'client_name': service_request.client.get_full_name(),
+                'amount': str(assignment.worker_payment or 0),
+                'date': (assignment.work_completed_at or assignment.assigned_at).isoformat(),
                 'status': 'completed',
             })
         
@@ -849,29 +958,7 @@ def payment_history(request):
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def register_push_token(request):
-    """Register push notification token for the user"""
-    token = request.data.get('token')
-    platform = request.data.get('platform', 'unknown')
-    
-    if not token:
-        return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    try:
-        # Store the push token (create a PushToken model if needed)
-        # For now, we'll just acknowledge receipt
-        # TODO: Create PushToken model to store tokens
-        
-        logger.info(f"Registered push token for user {request.user.id} on {platform}")
-        
-        return Response({
-            'message': 'Push token registered successfully',
-            'token': token,
-            'platform': platform,
-        })
-        
-    except Exception as e:
-        logger.error(f"Error registering push token: {str(e)}")
-        return Response({'error': 'Failed to register push token'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# NOTE: push token registration lives in worker_connect/notification_views.py
+# (backed by the PushToken model). This module used to have its own
+# register_push_token that accepted tokens but never persisted them, and
+# nothing in the mobile app called it - removed rather than duplicated.

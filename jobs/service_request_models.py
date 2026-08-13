@@ -56,7 +56,33 @@ class ServiceRequest(models.Model):
     # Location
     location = models.CharField(max_length=255, help_text="Service location address")
     city = models.CharField(max_length=100)
-    
+    latitude = models.FloatField(null=True, blank=True, help_text="GPS latitude of the service location")
+    longitude = models.FloatField(null=True, blank=True, help_text="GPS longitude of the service location")
+
+    # Client's requested worker (optional) - admin still confirms before it
+    # becomes a real assignment; separate from assigned_worker/assignments
+    # below, which always represent an admin's actual decision.
+    preferred_worker = models.ForeignKey(
+        'workers.WorkerProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='preferred_by_requests',
+        help_text="Worker the client requested; admin confirms or picks someone else"
+    )
+
+    ASSIGNMENT_MODE_CHOICES = (
+        ('admin_choice', 'Admin Chooses'),
+        ('client_choice', 'Client Chose a Worker'),
+        ('auto_nearest', 'Auto-Assigned Nearest'),
+    )
+    assignment_mode = models.CharField(
+        max_length=20,
+        choices=ASSIGNMENT_MODE_CHOICES,
+        default='admin_choice',
+        help_text="How the worker for this request is meant to be selected"
+    )
+
     # Scheduling
     preferred_date = models.DateField(null=True, blank=True, help_text="Preferred date for service")
     preferred_time = models.TimeField(null=True, blank=True, help_text="Preferred time for service")
@@ -258,11 +284,19 @@ class ServiceRequest(models.Model):
     
     def calculate_total_price(self):
         """Calculate total price based on daily rate, duration, and number of workers"""
-        # Only recalculate duration_days if it's custom range or not already set
-        if self.duration_type == 'custom' and (self.service_start_date and self.service_end_date):
-            self.duration_days = self.calculate_duration_days()
-        elif not self.duration_days or self.duration_days == 0:
-            # If duration_days not set, calculate from duration_type
+        # For fixed duration types (daily/monthly/3_months/6_months/yearly),
+        # duration_type is authoritative - always derive duration_days from
+        # it rather than trusting whatever duration_days currently holds
+        # (which defaults to 1 and previously only got recalculated if it
+        # was still unset/zero, silently billing every non-daily request
+        # for a single day whenever a caller didn't also set duration_days
+        # explicitly). Only 'custom' relies on the start/end date range.
+        if self.duration_type == 'custom':
+            if self.service_start_date and self.service_end_date:
+                self.duration_days = self.calculate_duration_days()
+            elif not self.duration_days or self.duration_days == 0:
+                self.duration_days = self.calculate_duration_days()
+        else:
             self.duration_days = self.calculate_duration_days()
         
         if self.daily_rate and self.duration_days:
@@ -688,9 +722,18 @@ class ServiceRequestAssignment(models.Model):
         # AUTO-UPDATE: Set worker to available if no other active jobs
         if not self._worker_has_other_active_jobs():
             self.worker.availability = 'available'
-        
+
         self.worker.save()
-        
+
+        # Credit the recruiting agent's commission, if this worker has one.
+        # AgentProfile.total_commission_earned previously existed but was
+        # never actually incremented anywhere in the codebase.
+        if self.worker.agent_id:
+            agent = self.worker.agent
+            commission = (self.worker_payment * agent.commission_rate / 100).quantize(Decimal('0.01'))
+            agent.total_commission_earned += commission
+            agent.save(update_fields=['total_commission_earned'])
+
         # Check if all assignments are completed
         self._check_all_completed()
         
@@ -710,9 +753,13 @@ class ServiceRequestAssignment(models.Model):
     def _update_main_request_status(self):
         """Update main service request status based on assignments"""
         sr = self.service_request
-        
-        # If any worker accepted, update main request to "in_progress"
-        if self.status == 'in_progress':
+
+        # If any worker accepted, update main request to "in_progress". This
+        # is called right after self.status is set to 'accepted' (see
+        # accept_assignment() above) - checking for 'in_progress' here never
+        # matched, so the main request silently stayed on "assigned" forever
+        # even once a worker was actively working on it.
+        if self.status == 'accepted':
             if sr.status == 'pending' or sr.status == 'assigned':
                 sr.status = 'in_progress'
                 sr.save()

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -9,6 +10,8 @@ User = get_user_model()
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
         ('job_assigned', 'Job Assigned'),
+        ('job_accepted', 'Job Accepted'),
+        ('job_rejected', 'Job Rejected'),
         ('job_completed', 'Job Completed'),
         ('job_application', 'Job Application'),
         ('message_received', 'Message Received'),
@@ -40,7 +43,10 @@ class Notification(models.Model):
     pushed_at = models.DateTimeField(null=True, blank=True)
     
     # Additional data (JSON for flexibility)
-    extra_data = models.JSONField(default=dict, blank=True)
+    # DjangoJSONEncoder (not the plain default) so Decimal/date/datetime/UUID
+    # values commonly passed in extra_data (e.g. payment amounts, hours
+    # worked) serialize instead of raising TypeError at save time.
+    extra_data = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     
     class Meta:
         ordering = ['-created_at']

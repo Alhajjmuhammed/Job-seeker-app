@@ -245,7 +245,7 @@
                 {% if msg.subject %}
                 <div class="message-subject">{{ msg.subject }}</div>
                 {% endif %}
-                <div class="message-text">{{ msg.message|safe }}</div>
+                <div class="message-text">{{ msg.message }}</div>
                 <div class="message-time">
                     {% load humanize %}
                     {{ msg.created_at|naturaltime }}

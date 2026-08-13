@@ -587,22 +587,22 @@
     </div>
 </div>
 
-<!-- Recent Jobs -->
+<!-- Recent Service Requests -->
 <div class="info-card">
     <div class="section-header">
         <h2 class="section-title">
-            <i class="bi bi-briefcase"></i> Recent Jobs
+            <i class="bi bi-briefcase"></i> Recent Requests
         </h2>
-        <a href="{% url 'jobs:job_list' %}" class="view-all-link">
+        <a href="{% url 'service_requests_web:client_my_requests' %}" class="view-all-link">
             View All <i class="bi bi-arrow-right"></i>
         </a>
     </div>
 
-    {% if recent_jobs %}
-        {% for job in recent_jobs %}
+    {% if recent_requests %}
+        {% for job in recent_requests %}
         <div class="job-item">
             <div class="job-item-header">
-                <a href="{% url 'jobs:job_detail' job.pk %}" class="job-title">{{ job.title }}</a>
+                <a href="{% url 'service_requests_web:client_request_detail' job.pk %}" class="job-title">{{ job.title }}</a>
                 <span class="job-badge badge-{{ job.status|lower|cut:' ' }}">{{ job.get_status_display }}</span>
             </div>
             <div class="job-meta">
@@ -612,7 +612,7 @@
                 </div>
                 <div class="job-meta-item">
                     <i class="bi bi-cash"></i>
-                    <span>TSH {{ job.total_price|default:job.budget }}</span>
+                    <span>TSH {{ job.total_price }}</span>
                 </div>
                 <div class="job-meta-item">
                     <i class="bi bi-calendar"></i>
@@ -620,7 +620,7 @@
                 </div>
                 <div class="job-meta-item">
                     <i class="bi bi-people"></i>
-                    <span>{{ job.applications.count }} application{{ job.applications.count|pluralize }}</span>
+                    <span>{{ job.workers_needed }} worker{{ job.workers_needed|pluralize }} needed</span>
                 </div>
             </div>
         </div>
@@ -628,7 +628,7 @@
     {% else %}
         <div class="empty-state">
             <i class="bi bi-briefcase"></i>
-            <p>No jobs posted yet</p>
+            <p>No service requests yet</p>
         </div>
     {% endif %}
 </div>
@@ -654,7 +654,7 @@
         
         <div class="rating-content">
             <div class="rating-header">
-                <a href="{% url 'clients:worker_detail' rating.worker.pk %}" class="rating-worker-name">
+                <a href="{% url 'workers:public_profile' rating.worker.pk %}" class="rating-worker-name">
                     {{ rating.worker.user.get_full_name }}
                 </a>
                 <div class="rating-stars">

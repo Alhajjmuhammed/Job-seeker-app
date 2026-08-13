@@ -572,19 +572,28 @@
                     </form>
                     {% endif %}
                     
-                    {% if service_request.status == 'completed' and not service_request.client_rating and service_request.assigned_worker %}
-                    <a href="{% url 'service_requests_web:client_rate_worker' service_request.id %}" 
-                       class="btn btn-warning w-100 mb-2">
-                        <i class="bi bi-star"></i> Rate Worker
-                    </a>
+                    {% if service_request.status == 'completed' and not service_request.client_rating %}
+                        {% if assignments or service_request.assigned_worker %}
+                        <a href="{% url 'service_requests_web:client_rate_worker' service_request.id %}"
+                           class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-star"></i> Rate Worker
+                        </a>
+                        {% endif %}
                     {% endif %}
-                    
-                    {% if service_request.assigned_worker %}
-                    <a href="{% url 'jobs:conversation' service_request.assigned_worker.user.id %}" 
+
+                    {% with first_assignment=assignments.first %}
+                    {% if first_assignment %}
+                    <a href="{% url 'jobs:conversation' first_assignment.worker.user.id %}"
+                       class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-chat-dots"></i> Message Worker
+                    </a>
+                    {% elif service_request.assigned_worker %}
+                    <a href="{% url 'jobs:conversation' service_request.assigned_worker.user.id %}"
                        class="btn btn-primary w-100 mb-2">
                         <i class="bi bi-chat-dots"></i> Message Worker
                     </a>
                     {% endif %}
+                    {% endwith %}
                     
                     <a href="{% url 'service_requests_web:client_my_requests' %}" 
                        class="btn btn-outline-secondary w-100">

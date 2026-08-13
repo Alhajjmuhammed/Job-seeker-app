@@ -40,7 +40,7 @@ def send_job_reminders(self):
         # Find service requests starting tomorrow
         upcoming_jobs = ServiceRequest.objects.filter(
             status='assigned',
-            scheduled_date=tomorrow
+            service_start_date=tomorrow
         ).select_related('client', 'assigned_worker__user')
         
         for job in upcoming_jobs:
@@ -48,16 +48,16 @@ def send_job_reminders(self):
             send_job_reminder_email.delay(
                 job.client.email,
                 job.title,
-                str(job.scheduled_date),
+                str(job.service_start_date),
                 'client'
             )
-            
+
             # Send reminder to assigned worker (if exists)
             if job.assigned_worker:
                 send_job_reminder_email.delay(
                     job.assigned_worker.user.email,
                     job.title,
-                    str(job.scheduled_date),
+                    str(job.service_start_date),
                     'worker'
                 )
         

@@ -9,6 +9,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from jobs.models import JobRequest
+from jobs.service_request_models import ServiceRequest
 from workers.models import WorkerProfile
 from clients.models import ClientProfile
 from .completion import JobCompletionService
@@ -211,11 +212,11 @@ def job_timeline(request, job_id):
     """
     job = get_object_or_404(JobRequest, id=job_id)
     
-    # Verify user is involved
+    # Verify user is involved (JobRequest.client is a User FK)
     from jobs.models import JobApplication
-    is_client = (job.client.user == request.user)
+    is_client = (job.client == request.user)
     is_worker = JobApplication.objects.filter(
-        job_request=job,
+        job=job,
         worker__user=request.user
     ).exists()
     
@@ -249,8 +250,10 @@ def save_job(request, job_id):
             'error': 'Only workers can save jobs'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    job = get_object_or_404(JobRequest, id=job_id)
-    
+    # Saved jobs are ServiceRequest-based - see jobs.api_views.browse_jobs,
+    # which is what actually feeds the mobile "Browse Jobs" -> save button.
+    job = get_object_or_404(ServiceRequest, id=job_id)
+
     result = SavedJobsService.save_job(worker, job)
     
     return Response(result)
@@ -269,8 +272,8 @@ def unsave_job(request, job_id):
             'error': 'Only workers can manage saved jobs'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    job = get_object_or_404(JobRequest, id=job_id)
-    
+    job = get_object_or_404(ServiceRequest, id=job_id)
+
     result = SavedJobsService.unsave_job(worker, job)
     
     if not result['success']:
@@ -321,8 +324,8 @@ def is_job_saved(request, job_id):
             'error': 'Only workers can check saved jobs'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    job = get_object_or_404(JobRequest, id=job_id)
-    
+    job = get_object_or_404(ServiceRequest, id=job_id)
+
     is_saved = SavedJobsService.is_saved(worker, job)
     
     return Response({

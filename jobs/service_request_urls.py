@@ -16,6 +16,7 @@ admin_urlpatterns = [
     path('service-requests/<int:pk>/assign/', admin_views.admin_assign_worker, name='admin_assign_worker'),
     path('service-requests/<int:pk>/bulk-assign/', admin_views.admin_bulk_assign_workers, name='admin_bulk_assign_workers'),
     path('service-requests/<int:pk>/reassign/', admin_views.admin_reassign_worker, name='admin_reassign_worker'),
+    path('service-requests/<int:pk>/auto-assign-nearest/', admin_views.admin_auto_assign_nearest_workers, name='admin_auto_assign_nearest_workers'),
     path('service-requests/dashboard/', admin_views.admin_dashboard_stats, name='admin_service_dashboard_stats'),
     path('service-requests/workers/', admin_views.admin_available_workers, name='admin_available_workers'),
 ]
@@ -49,7 +50,8 @@ worker_urlpatterns = [
 # Client URLs - prefix: /api/v1/client/
 client_urlpatterns = [
     path('categories/', client_views.client_categories, name='client_categories'),
-    
+    path('browse-workers/', client_views.client_browse_workers, name='client_browse_workers'),
+
     # Pricing & Payment APIs
     path('calculate-price/', pricing_api.calculate_price, name='calculate_price'),
     path('process-payment/', pricing_api.process_fake_payment, name='process_payment'),

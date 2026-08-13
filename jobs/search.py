@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Avg, Count, Min, Max
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from jobs.models import JobRequest
 from workers.models import WorkerProfile
@@ -40,9 +40,9 @@ def search_jobs(request):
     max_budget = request.query_params.get('max_budget')
     category = request.query_params.get('category', '').strip()
     sort = request.query_params.get('sort', 'newest')
-    page = int(request.query_params.get('page', 1))
+    page = max(int(request.query_params.get('page', 1)), 1)
     page_size = min(int(request.query_params.get('page_size', 20)), 50)
-    
+
     # Base queryset - only open jobs for public search
     jobs = JobRequest.objects.filter(status='open')
     
@@ -146,58 +146,59 @@ def search_workers(request):
     verified_only = request.query_params.get('verified_only', 'false').lower() == 'true'
     min_rating = request.query_params.get('min_rating')
     sort = request.query_params.get('sort', 'rating')
-    page = int(request.query_params.get('page', 1))
+    page = max(int(request.query_params.get('page', 1)), 1)
     page_size = min(int(request.query_params.get('page_size', 20)), 50)
-    
+
     # Base queryset
     workers = WorkerProfile.objects.select_related('user').filter(
-        user__is_active=True
+        user__is_active=True,
+        is_public=True
     )
     
     # Availability filter
     if available_only:
-        workers = workers.filter(is_available=True)
-    
+        workers = workers.filter(availability='available')
+
     # Verified filter
     if verified_only:
-        workers = workers.filter(is_verified=True)
+        workers = workers.filter(verification_status='verified')
     
-    # Search query
+    # Search query (skills is a ManyToManyField - filter via skills__name)
     if query:
         workers = workers.filter(
             Q(bio__icontains=query) |
-            Q(skills__icontains=query) |
+            Q(skills__name__icontains=query) |
             Q(user__first_name__icontains=query) |
             Q(user__last_name__icontains=query)
-        )
-    
+        ).distinct()
+
     # Skills filter
     if skills:
         skill_list = [s.strip() for s in skills.split(',') if s.strip()]
         for skill in skill_list:
-            workers = workers.filter(skills__icontains=skill)
-    
-    # Location filter
+            workers = workers.filter(skills__name__icontains=skill)
+
+    # Location filter (WorkerProfile has no `location` field - use address/city)
     if location:
         workers = workers.filter(
-            Q(location__icontains=location) |
+            Q(address__icontains=location) |
             Q(city__icontains=location)
         )
     
     # Rating filter
     if min_rating:
         try:
-            workers = workers.filter(rating__gte=float(min_rating))
+            workers = workers.filter(average_rating__gte=float(min_rating))
         except ValueError:
             pass
-    
+
     # Sorting
     if sort == 'experience':
-        workers = workers.order_by('-years_of_experience', '-rating')
+        workers = workers.order_by('-experience_years', '-average_rating')
     elif sort == 'newest':
         workers = workers.order_by('-user__date_joined')
     else:  # rating (default)
-        workers = workers.order_by('-rating', '-total_reviews')
+        workers = workers.order_by('-average_rating', '-completed_jobs')
     
     # Pagination
     total_count = workers.count()
@@ -272,8 +273,8 @@ def get_filter_options(request):
     budget_range = JobRequest.objects.filter(
         status='open', budget__isnull=False
     ).aggregate(
-        min_budget=Avg('budget') * 0 if not JobRequest.objects.exists() else None,
-        max_budget=Avg('budget') * 2 if not JobRequest.objects.exists() else None,
+        min_budget=Min('budget'),
+        max_budget=Max('budget'),
     )
     
     return Response({
