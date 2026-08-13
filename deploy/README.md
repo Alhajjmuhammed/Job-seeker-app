@@ -13,20 +13,32 @@ Nginx reverse proxy configuration
 ### 2. `worker-connect.service`
 Systemd service configuration
 - **Location on server:** `/etc/systemd/system/worker-connect.service`
-- **Purpose:** Manages Gunicorn as a system service
+- **Purpose:** Manages Gunicorn (HTTP/WSGI) as a system service
 - **Features:** Auto-restart, runs as www-data user
 
-### 3. `.env.production`
+### 3. `worker-connect-daphne.service`
+Systemd service configuration for the WebSocket server
+- **Location on server:** `/etc/systemd/system/worker-connect-daphne.service`
+- **Purpose:** Manages Daphne (ASGI) as a system service - handles everything
+  under `/ws/`. Gunicorn/WSGI cannot serve WebSocket connections at all, so
+  without this service running, real-time notifications silently fail
+  while the rest of the site looks completely normal.
+- **Must be enabled AND started**, not just started - `systemctl enable
+  --now worker-connect-daphne` - so it survives a reboot. `deploy.sh`
+  restarts it on every deploy, but if it's ever stopped manually outside
+  of a deploy, nothing brings it back on its own.
+
+### 4. `.env.production`
 Production environment variables template
 - **Location on server:** `/var/www/worker-connect/.env`
 - **Purpose:** Configure sensitive settings (SECRET_KEY, DATABASE_URL, etc.)
 - **⚠️ NEVER commit actual .env file to git!**
 
-### 4. `deploy.sh`
+### 5. `deploy.sh`
 Automated deployment script
 - **Purpose:** Quick deployment updates
 - **Usage:** `bash deploy.sh` (run on server)
-- **Actions:** Pull code, install deps, migrate, collect static, restart service
+- **Actions:** Pull code, install deps, migrate, collect static, restart both the Gunicorn and Daphne services
 
 ## 🚀 Quick Start
 

@@ -1,0 +1,14 @@
+[Unit]
+Description=Worker Connect Daphne (WebSocket)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/worker-connect
+Environment="DJANGO_SETTINGS_MODULE=worker_connect.settings"
+ExecStart=/var/www/worker-connect/venv/bin/daphne -b 127.0.0.1 -p 8004 worker_connect.asgi:application
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

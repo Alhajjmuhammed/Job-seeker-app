@@ -45,17 +45,37 @@ python manage.py collectstatic --noinput
 echo -e "${YELLOW}🔄 Restarting Gunicorn service...${NC}"
 systemctl restart worker-connect
 
-echo -e "${YELLOW}⏳ Waiting for service to start...${NC}"
+echo -e "${YELLOW}🔄 Restarting Daphne (WebSocket) service...${NC}"
+# This used to be missing entirely, so the daphne service would silently
+# stay dead after any manual stop/crash - every deploy "succeeded" while
+# real-time notifications were quietly broken in production. Enable it too
+# so it survives reboots, not just this deploy.
+systemctl enable --now worker-connect-daphne >/dev/null 2>&1
+systemctl restart worker-connect-daphne
+
+echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
 sleep 3
 
 echo -e "${YELLOW}✅ Checking service status...${NC}"
+DEPLOY_OK=true
 if systemctl is-active --quiet worker-connect; then
-    echo -e "${GREEN}✅ Deployment successful! Service is running.${NC}"
-    systemctl status worker-connect --no-pager -l
+    echo -e "${GREEN}✅ Gunicorn is running.${NC}"
 else
-    echo -e "${RED}❌ Deployment failed! Service is not running.${NC}"
-    echo -e "${YELLOW}Checking logs:${NC}"
+    echo -e "${RED}❌ Gunicorn is not running.${NC}"
     journalctl -u worker-connect -n 20 --no-pager
+    DEPLOY_OK=false
+fi
+
+if systemctl is-active --quiet worker-connect-daphne; then
+    echo -e "${GREEN}✅ Daphne (WebSocket) is running.${NC}"
+else
+    echo -e "${RED}❌ Daphne (WebSocket) is not running.${NC}"
+    journalctl -u worker-connect-daphne -n 20 --no-pager
+    DEPLOY_OK=false
+fi
+
+if [ "$DEPLOY_OK" = false ]; then
+    echo -e "${RED}❌ Deployment failed! See logs above.${NC}"
     exit 1
 fi
 
