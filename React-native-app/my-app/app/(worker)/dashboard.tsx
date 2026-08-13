@@ -1,0 +1,1147 @@
+﻿import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Image,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import apiService from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
+import '../../services/i18n';
+
+interface DirectHireRequest {
+  id: number;
+  client_name: string;
+  duration_type: string;
+  offered_rate: number;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  message?: string;
+}
+
+interface AssignedJob {
+  id: number;
+  title: string;
+  status: string;
+  urgency: string;
+  location: string;
+  city: string;
+  total_price?: number;
+  created_at: string;
+  client_name: string;
+  client_phone?: string;
+  category_name?: string;
+}
+
+interface PendingAssignment {
+  id: number;
+  category_name: string;
+  urgency: string;
+  status: string;
+  created_at: string;
+  client_name: string;
+}
+
+export default function WorkerDashboard() {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const { theme, isDark } = useTheme();
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<DirectHireRequest[]>([]);
+  const [assignedJobs, setAssignedJobs] = useState<AssignedJob[]>([]);
+  const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
+  const [stats, setStats] = useState({
+    assigned_jobs: 0,
+    active_jobs: 0,
+    completed_jobs: 0,
+    pending_jobs: 0,
+  });
+  
+  // Check if user is professional worker
+  const isProfessional = user?.workerType === 'professional';
+
+  // Redirect if wrong user type
+  useEffect(() => {
+    let mounted = true;
+    
+    if (user && user.userType !== 'worker') {
+      console.log('Wrong user type for worker dashboard, redirecting to client');
+      router.replace('/(client)/dashboard');
+      return;
+    }
+    
+    // Only load data if user type is correct and component is mounted
+    if (user && user.userType === 'worker' && mounted) {
+      fetchDashboardData();
+    }
+    
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  // Create theme-aware styles
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    greetingSection: {
+      borderRadius: 20,
+      marginBottom: 16,
+      overflow: 'hidden',
+      backgroundColor: '#0D6E68',
+      shadowColor: '#0F766E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.35,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    greetingBg: {
+      padding: 20,
+    },
+    greetingTopRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 18,
+      gap: 10,
+    },
+    greetingLogo: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+    },
+    greetingAppName: {
+      fontSize: 14,
+      fontFamily: theme.fontBold,
+      color: 'rgba(255,255,255,0.95)',
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+    greetingAppTagline: {
+      fontSize: 11,
+      fontFamily: theme.fontRegular,
+      color: 'rgba(255,255,255,0.6)',
+      letterSpacing: 0.3,
+    },
+    greetingBottomRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+    },
+    greeting: {
+      fontSize: 13,
+      marginBottom: 4,
+      fontFamily: theme.fontMedium,
+      color: 'rgba(255,255,255,0.75)',
+    },
+    name: {
+      fontSize: 22,
+      fontFamily: theme.fontBold,
+      color: '#FFFFFF',
+    },
+    greetingDecorCircle: {
+      position: 'absolute',
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      right: -20,
+      top: -30,
+    },
+    greetingDecorCircle2: {
+      position: 'absolute',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: 'rgba(255,255,255,0.05)',
+      right: 40,
+      bottom: -20,
+    },
+    scrollContent: {
+      padding: 16,
+    },
+    availabilityCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    availabilityInfo: {
+      flex: 1,
+      marginRight: 12,
+    },
+    availabilityTitle: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginBottom: 4,
+    },
+    availabilitySubtitle: {
+      fontSize: 12,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 20,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '47%',
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    statValue: {
+      fontSize: 28,
+      fontFamily: theme.fontBold,
+      color: theme.primary,
+      marginBottom: 6,
+    },
+    statLabel: {
+      fontSize: 13,
+      fontFamily: theme.fontMedium,
+      color: theme.textSecondary,
+      textAlign: 'center',
+    },
+    section: {
+      marginBottom: 20,
+    },
+    activeServiceBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 16,
+    },
+    activeServiceBannerText: {
+      flex: 1,
+      color: '#fff',
+      fontSize: 15,
+      fontFamily: 'Poppins_600SemiBold',
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontFamily: theme.fontBold,
+      color: theme.text,
+      marginBottom: 14,
+      paddingHorizontal: 2,
+    },
+    requestCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    requestHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    clientName: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginBottom: 4,
+    },
+    requestTime: {
+      fontSize: 12,
+      fontFamily: theme.fontRegular,
+      color: theme.textTertiary,
+    },
+    amountBadge: {
+      backgroundColor: isDark ? theme.primaryDark : '#ECFDF5',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    amountText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: theme.primary,
+    },
+    requestDetails: {
+      marginBottom: 16,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    detailLabel: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+    },
+    detailValue: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+    },
+    requestActions: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    rejectButton: {
+      flex: 1,
+      height: 44,
+      backgroundColor: theme.card,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    rejectButtonText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: theme.textSecondary,
+    },
+    acceptButton: {
+      flex: 2,
+      height: 44,
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    acceptButtonText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: '#FFFFFF',
+    },
+    emptyState: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 40,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    emptyStateText: {
+      fontSize: 56,
+      marginBottom: 16,
+    },
+    emptyStateTitle: {
+      fontSize: 18,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      marginBottom: 6,
+    },
+    emptyStateSubtitle: {
+      fontSize: 15,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+      textAlign: 'center',
+    },
+    infoCard: {
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    infoCardTitle: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      marginBottom: 4,
+    },
+    infoCardSubtitle: {
+      fontSize: 13,
+      fontFamily: theme.fontRegular,
+    },
+    actionButtonsContainer: {
+      gap: 12,
+      marginBottom: 20,
+    },
+    browseJobsButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    browseJobsButtonText: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+      color: '#FFFFFF',
+    },
+    savedJobsButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+      borderRadius: 16,
+      borderWidth: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    savedJobsButtonText: {
+      fontSize: 16,
+      fontFamily: theme.fontSemiBold,
+    },
+    quickActions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      minWidth: '47%',
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 24,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    actionIcon: {
+      fontSize: 36,
+      marginBottom: 10,
+    },
+    actionText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: theme.text,
+      textAlign: 'center',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      fontFamily: theme.fontRegular,
+    },
+    pendingAlert: {
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    alertContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    alertIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#FEF3C7',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    alertText: {
+      flex: 1,
+    },
+    alertTitle: {
+      fontSize: 15,
+      fontFamily: theme.fontSemiBold,
+      color: '#92400E',
+      marginBottom: 2,
+    },
+    alertSubtitle: {
+      fontSize: 13,
+      fontFamily: theme.fontRegular,
+      color: '#78350F',
+    },
+    quickActionsContainer: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 20,
+    },
+    quickActionCard: {
+      flex: 1,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      position: 'relative',
+    },
+    quickActionTitle: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      marginTop: 8,
+    },
+    badge: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      backgroundColor: '#EF4444',
+      borderRadius: 12,
+      minWidth: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 6,
+    },
+    badgeText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontFamily: theme.fontBold,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      minWidth: 50,
+      alignItems: 'center',
+    },
+    statusText: {
+      fontSize: 10,
+      fontFamily: theme.fontBold,
+      color: '#FFFFFF',
+    },
+    jobListCard: {
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.08,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    jobListItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    jobListItemContent: {
+      flex: 1,
+      gap: 3,
+    },
+    jobListItemTitle: {
+      fontSize: 15,
+      fontFamily: theme.fontSemiBold,
+    },
+    jobListItemMeta: {
+      fontSize: 13,
+      fontFamily: theme.fontRegular,
+    },
+    jobListItemPrice: {
+      fontSize: 13,
+      fontFamily: theme.fontSemiBold,
+    },
+    jobStatusBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 8,
+      minWidth: 58,
+      alignItems: 'center',
+    },
+    jobStatusText: {
+      fontSize: 11,
+      fontFamily: theme.fontBold,
+      color: '#FFFFFF',
+      letterSpacing: 0.5,
+    },
+    jobListDivider: {
+      height: 1,
+      marginLeft: 16,
+    },
+    viewAllButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 13,
+      borderRadius: 12,
+      alignItems: 'center',
+      marginTop: 12,
+    },
+    viewAllText: {
+      fontSize: 14,
+      fontFamily: theme.fontSemiBold,
+      color: '#FFFFFF',
+    },
+  });
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async (isMounted = () => true) => {
+    try {
+      setLoading(true);
+      const [assignedJobsData, pendingAssignmentsData] = await Promise.all([
+        apiService.getWorkerAssignments().catch(err => {
+          console.log('Error fetching assigned jobs:', err);
+          return { results: [] };
+        }),
+        apiService.getPendingAssignments().catch(err => {
+          console.log('Error fetching pending assignments:', err);
+          return { results: [] };
+        }),
+      ]);
+      
+      // Only update state if component is still mounted
+      if (isMounted()) {
+        // Handle paginated response from getWorkerAssignments
+        const assignmentsList = assignedJobsData?.results || (Array.isArray(assignedJobsData) ? assignedJobsData : []);
+        setAssignedJobs(assignmentsList);
+        setPendingAssignments(pendingAssignmentsData?.results || pendingAssignmentsData || []);
+
+        // Calculate stats directly from assignments data (more reliable than separate API call)
+        const computedStats = {
+          assigned_jobs: assignmentsList.length,
+          active_jobs: assignmentsList.filter((j: any) => j.status === 'in_progress').length,
+          completed_jobs: assignmentsList.filter((j: any) => j.status === 'completed').length,
+          pending_jobs: assignmentsList.filter((j: any) => ['pending', 'assigned', 'accepted'].includes(j.status)).length,
+        };
+        setStats(computedStats);
+      }
+    } catch (error: any) {
+      console.log('Error fetching dashboard data:', error?.response?.data || error?.message);
+    } finally {
+      if (isMounted()) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboardData();
+    setRefreshing(false);
+  };
+
+  const handleAcceptRequest = async (requestId: number) => {
+    Alert.alert(
+      'Accept Request',
+      'Are you sure you want to accept this job request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Accept',
+          onPress: async () => {
+            try {
+              await apiService.acceptDirectHireRequest(requestId);
+              Alert.alert(t('common.success'), 'Request accepted! Client will be notified.');
+              fetchDashboardData(); // Refresh data
+            } catch (error) {
+              console.error('Error accepting request:', error);
+              Alert.alert(t('common.error'), 'Failed to accept request. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRejectRequest = async (requestId: number) => {
+    Alert.alert(
+      'Reject Request',
+      'Are you sure you want to reject this job request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.rejectDirectHireRequest(requestId);
+              Alert.alert('Request Rejected', 'You declined the job request.');
+              fetchDashboardData(); // Refresh data
+            } catch (error) {
+              console.error('Error rejecting request:', error);
+              Alert.alert(t('common.error'), 'Failed to reject request. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const toggleAvailability = async () => {
+    const newValue = !isAvailable;
+    try {
+      await apiService.updateWorkerAvailability(newValue);
+      setIsAvailable(newValue);
+      Alert.alert(
+        'Success', 
+        newValue ? 'You are now available for work' : 'You are now unavailable',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error updating availability:', error);
+      Alert.alert(t('common.error'), t('profile.failedUpdateAvailability'));
+    }
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
+      
+      {/* Header Component */}
+      <Header 
+        showNotifications 
+        showSearch 
+        onNotificationPress={() => Alert.alert(t('settings.notifications'), t('nav.notifications'))}
+        onSearchPress={() => router.push('/(worker)/jobs')}
+      />
+
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('client.loadingDashboard')}</Text>
+        </View>
+      ) : (
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.primary}
+          />
+        }
+      >
+        {/* Greeting Section */}
+        <View style={styles.greetingSection}>
+          {/* Decorative circles */}
+          <View style={styles.greetingDecorCircle} />
+          <View style={styles.greetingDecorCircle2} />
+
+          <View style={styles.greetingBg}>
+            {/* Top row: logo + app name */}
+            <View style={styles.greetingTopRow}>
+              <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.greetingLogo}
+                resizeMode="contain"
+              />
+              <View>
+                <Text style={styles.greetingAppName}>Worker Connect</Text>
+                <Text style={styles.greetingAppTagline}>Your work, your terms</Text>
+              </View>
+            </View>
+
+            {/* Bottom row: greeting + verification badge */}
+            <View style={styles.greetingBottomRow}>
+              <View>
+                <Text style={styles.greeting}>{t('dashboard.welcome')} 👋</Text>
+                <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+              </View>
+              {user?.verificationStatus && (
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  backgroundColor:
+                    user.verificationStatus === 'verified' ? 'rgba(52,211,153,0.25)' :
+                    user.verificationStatus === 'rejected' ? 'rgba(248,113,113,0.25)' : 'rgba(251,191,36,0.25)',
+                }}>
+                  <Ionicons
+                    name={
+                      user.verificationStatus === 'verified' ? 'checkmark-circle' :
+                      user.verificationStatus === 'rejected' ? 'close-circle' : 'time'
+                    }
+                    size={14}
+                    color={
+                      user.verificationStatus === 'verified' ? '#34D399' :
+                      user.verificationStatus === 'rejected' ? '#F87171' : '#FBBF24'
+                    }
+                  />
+                  <Text style={{
+                    fontSize: 11,
+                    fontFamily: theme.fontSemiBold,
+                    color:
+                      user.verificationStatus === 'verified' ? '#34D399' :
+                      user.verificationStatus === 'rejected' ? '#F87171' : '#FBBF24',
+                  }}>
+                    {user.verificationStatus === 'verified' ? t('profile.verified') :
+                     user.verificationStatus === 'rejected' ? t('profile.notVerified') : t('assignments.pending')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+        {/* Availability Toggle */}
+        <View style={styles.availabilityCard}>
+          <View style={styles.availabilityInfo}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons 
+                name={isAvailable ? 'checkmark-circle' : 'pause-circle'} 
+                size={20} 
+                color={isAvailable ? theme.success : theme.textSecondary} 
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.availabilityTitle}>
+                {isAvailable ? t('profile.availableForWork') : 'Currently Unavailable'}
+              </Text>
+            </View>
+            <Text style={styles.availabilitySubtitle}>
+              {isAvailable
+                ? 'Clients can send you direct hire requests'
+                : 'You are not visible to clients'}
+            </Text>
+          </View>
+          <Switch
+            value={isAvailable}
+            onValueChange={toggleAvailability}
+            trackColor={{ false: '#D1D5DB', true: '#6EE7B7' }}
+            thumbColor={isAvailable ? '#0F766E' : '#9CA3AF'}
+          />
+        </View>
+
+        {/* Profile Verification Alert */}
+        {user?.verificationStatus && user.verificationStatus !== 'verified' && (
+          <View style={{
+            marginBottom: 16,
+            borderRadius: 12,
+            borderWidth: 1.5,
+            borderColor: user.verificationStatus === 'rejected' ? '#FCA5A5' : '#FCD34D',
+            backgroundColor: user.verificationStatus === 'rejected' ? '#FEF2F2' : '#FFFBEB',
+            padding: 14,
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: 10,
+          }}>
+            <Ionicons
+              name={user.verificationStatus === 'rejected' ? 'close-circle' : 'time'}
+              size={22}
+              color={user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706'}
+              style={{ marginTop: 1 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 14,
+                fontFamily: theme.fontSemiBold,
+                color: user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
+                marginBottom: 2,
+              }}>
+                Profile Verification: {user.verificationStatus === 'rejected' ? 'Rejected' : 'Under Review'}
+              </Text>
+              <Text style={{
+                fontSize: 13,
+                fontFamily: theme.fontRegular,
+                color: '#6B7280',
+                lineHeight: 18,
+              }}>
+                {user.verificationStatus === 'rejected'
+                  ? 'Your profile was rejected. Please update your documents and try again.'
+                  : 'Your profile is under review. You\'ll be notified once verified.'}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Pending Assignments Alert */}
+        {pendingAssignments.length > 0 && (
+          <TouchableOpacity
+            style={[styles.pendingAlert, { backgroundColor: '#FEF3C7', borderWidth: 2, borderColor: '#F59E0B' }]}
+            onPress={() => router.push('/(worker)/service-assignments')}
+          >
+            <View style={styles.alertContent}>
+              <View style={styles.alertIcon}>
+                <Ionicons name="alert-circle" size={28} color="#D97706" />
+              </View>
+              <View style={styles.alertText}>
+                <Text style={[styles.alertTitle, { fontSize: 16 }]}>
+                  🔔 {pendingAssignments.length} Pending Assignment{pendingAssignments.length > 1 ? 's' : ''}
+                </Text>
+                <Text style={styles.alertSubtitle}>
+                  You have service requests waiting for your response
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={28} color="#D97706" />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Browse Jobs Button - Professional Workers Only */}
+        {isProfessional && (
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={[styles.browseJobsButton, { backgroundColor: theme.primary }]}
+              onPress={() => router.push('/(worker)/browse-jobs' as any)}
+            >
+              <Ionicons name="search" size={20} color="#FFFFFF" />
+              <Text style={styles.browseJobsButtonText}>{t('nav.jobs')}</Text>
+              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
+              onPress={() => router.push('/(worker)/saved-jobs' as any)}
+            >
+              <Ionicons name="heart" size={20} color={theme.primary} />
+              <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('savedJobs.savedJobs')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Stats Grid */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.assigned_jobs}</Text>
+            <Text style={styles.statLabel}>{t('dashboard.totalAssigned')}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.active_jobs}</Text>
+            <Text style={styles.statLabel}>{t('assignments.active')}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.completed_jobs}</Text>
+            <Text style={styles.statLabel}>{t('assignments.completed')}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.pending_jobs}</Text>
+            <Text style={styles.statLabel}>{t('assignments.pending')}</Text>
+          </View>
+        </View>
+
+        {/* Active Service Quick Access */}
+        {stats.active_jobs > 0 && (
+          <TouchableOpacity
+            style={[styles.activeServiceBanner, { backgroundColor: theme.primary }]}
+            onPress={() => router.push('/(worker)/active-service' as any)}
+          >
+            <Ionicons name="time" size={22} color="#fff" />
+            <Text style={styles.activeServiceBannerText}>{t('assignments.active')}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+
+        {/* Assigned Jobs Section */}
+        {assignedJobs.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your Assigned Jobs ({assignedJobs.length})</Text>
+            <View style={[styles.jobListCard, { backgroundColor: theme.surface }]}>
+              {assignedJobs.slice(0, 3).map((job, index) => (
+                <View key={job.id}>
+                  <TouchableOpacity
+                    style={styles.jobListItem}
+                    onPress={() => {
+                      if (job.status === 'in_progress') {
+                        router.push('/(worker)/active-service' as any);
+                      } else {
+                        router.push(`/(worker)/service-assignment/${job.id}` as any);
+                      }
+                    }}
+                  >
+                    <View style={[
+                      styles.jobStatusBadge,
+                      {
+                        backgroundColor:
+                          job.status === 'pending' ? '#FF9500' :
+                          job.status === 'in_progress' ? '#2196F3' :
+                          job.status === 'completed' ? '#4CAF50' : '#FF6B6B',
+                      }
+                    ]}>
+                      <Text style={styles.jobStatusText}>
+                        {job.status === 'pending' ? 'NEW' :
+                         job.status === 'in_progress' ? 'ACTIVE' :
+                         job.status === 'completed' ? 'DONE' : 'ASSIGNED'}
+                      </Text>
+                    </View>
+                    <View style={styles.jobListItemContent}>
+                      <Text style={[styles.jobListItemTitle, { color: theme.text }]} numberOfLines={1}>
+                        {job.title}
+                      </Text>
+                      <Text style={[styles.jobListItemMeta, { color: theme.textSecondary }]}>
+                        Client: {job.client_name}
+                      </Text>
+                      <Text style={[styles.jobListItemPrice, { color: theme.primary }]}>
+                        {job.total_price ? `TSH ${job.total_price}` : 'Price not set'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+                  </TouchableOpacity>
+                  {index < Math.min(assignedJobs.length, 3) - 1 && (
+                    <View style={[styles.jobListDivider, { backgroundColor: theme.border }]} />
+                  )}
+                </View>
+              ))}
+            </View>
+            {assignedJobs.length > 3 && (
+              <TouchableOpacity
+                style={[styles.viewAllButton, { backgroundColor: theme.primary }]}
+                onPress={() => router.push('/(worker)/service-assignments' as any)}
+              >
+                <Text style={styles.viewAllText}>
+                  View All {assignedJobs.length} Jobs
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+
+        {/* Pending Requests */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pending Requests ({pendingRequests.length})</Text>
+          {pendingRequests.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
+              <Text style={styles.emptyStateTitle}>{t('assignments.pending')}</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                New job requests will appear here
+              </Text>
+            </View>
+          ) : (
+            pendingRequests.map((request) => (
+              <View key={request.id} style={styles.requestCard}>
+                <View style={styles.requestHeader}>
+                  <View>
+                    <Text style={styles.clientName}>{request.client_name}</Text>
+                    <Text style={styles.requestTime}>{new Date(request.created_at).toLocaleDateString()}</Text>
+                  </View>
+                  <View style={styles.amountBadge}>
+                    <Text style={styles.amountText}>
+                      TSH {request.offered_rate}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.requestDetails}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{t('requestService.duration')}</Text>
+                    <Text style={styles.detailValue}>{request.duration_type}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Total Amount:</Text>
+                    <Text style={styles.detailValue}>
+                      TSH {request.total_amount.toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.requestActions}>
+                  <TouchableOpacity
+                    style={styles.rejectButton}
+                    onPress={() => handleRejectRequest(request.id)}
+                  >
+                    <Text style={styles.rejectButtonText}>Decline</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.acceptButton}
+                    onPress={() => handleAcceptRequest(request.id)}
+                  >
+                    <Text style={styles.acceptButtonText}>Accept Job</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('client.quickActions')}</Text>
+          <View style={styles.quickActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/(worker)/notifications' as any)}
+            >
+              <Ionicons name="notifications-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>{t('settings.notifications')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/(worker)/analytics' as any)}
+            >
+              <Ionicons name="analytics-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>{t('privacy.analyticsData')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/(worker)/profile')}
+            >
+              <Ionicons name="person-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>{t('profile.myProfile')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/(worker)/earnings')}
+            >
+              <Ionicons name="cash-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>{t('earnings.title')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/(worker)/documents')}
+            >
+              <Ionicons name="document-text-outline" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
+              <Text style={styles.actionText}>{t('profile.documents')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+      )}
+    </View>
+  );
+}

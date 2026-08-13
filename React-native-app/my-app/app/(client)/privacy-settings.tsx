@@ -1,0 +1,344 @@
+﻿import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import Header from '../../components/Header';
+import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
+
+interface ConsentSettings {
+  marketing_emails: boolean;
+  analytics: boolean;
+  personalization: boolean;
+  third_party_sharing: boolean;
+}
+
+export default function PrivacySettingsScreen() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [consents, setConsents] = useState<ConsentSettings>({
+    marketing_emails: false,
+    analytics: true,
+    personalization: true,
+    third_party_sharing: false,
+  });
+
+  useEffect(() => {
+    loadConsentSettings();
+  }, []);
+
+  const loadConsentSettings = async () => {
+    try {
+      const data = await apiService.getPrivacySettings();
+      if (data) {
+        setConsents({
+          marketing_emails: data.marketing_emails ?? false,
+          analytics: data.analytics ?? true,
+          personalization: data.personalization ?? true,
+          third_party_sharing: data.third_party_sharing ?? false,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading consent settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateConsent = async (key: keyof ConsentSettings, value: boolean) => {
+    try {
+      setSaving(true);
+      const newConsents = { ...consents, [key]: value };
+      setConsents(newConsents);
+      
+      await apiService.updatePrivacySettings({ [key]: value });
+      
+      Alert.alert(t('common.success'), t('privacy.privacySettingUpdated'));
+    } catch (error) {
+      console.error('Error updating consent:', error);
+      // Revert on error
+      setConsents(consents);
+      Alert.alert(t('common.error'), t('privacy.failedUpdatePrivacy'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDataRetention = () => {
+    router.push('/(client)/data-retention' as any);
+  };
+
+  const handleExportData = async () => {
+    try {
+      Alert.alert(
+        t('privacy.exportData') || 'Export My Data',
+        'We will prepare a complete export of all your data and email it to you. This may take a few minutes.',
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: 'Export',
+            onPress: () => {
+              Alert.alert(
+                'Export Started',
+                'Your data export has been initiated. You will receive an email shortly.'
+              );
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Header title="Privacy Settings" />
+      
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
+          <Ionicons name="shield-checkmark" size={32} color={theme.primary} />
+          <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('privacy.controlDataUsage')}</Text>
+        </View>
+
+        {/* Data Consent Settings */}
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy.dataUsageConsent')}</Text>
+        
+        <View style={[styles.card, { backgroundColor: theme.card }]}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.marketingEmails')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.receivePromotional')}</Text>
+            </View>
+            <Switch
+              value={consents.marketing_emails}
+              onValueChange={(value) => updateConsent('marketing_emails', value)}
+              disabled={saving}
+              trackColor={{ false: theme.border, true: theme.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.analyticsData')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.helpImprove')}</Text>
+            </View>
+            <Switch
+              value={consents.analytics}
+              onValueChange={(value) => updateConsent('analytics', value)}
+              disabled={saving}
+              trackColor={{ false: theme.border, true: theme.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.personalization')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.customizeExperience')}</Text>
+            </View>
+            <Switch
+              value={consents.personalization}
+              onValueChange={(value) => updateConsent('personalization', value)}
+              disabled={saving}
+              trackColor={{ false: theme.border, true: theme.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>{t('privacy.thirdPartySharing')}</Text>
+              <Text style={[styles.settingDescription, { color: theme.textSecondary }]}>{t('privacy.shareWithPartners')}</Text>
+            </View>
+            <Switch
+              value={consents.third_party_sharing}
+              onValueChange={(value) => updateConsent('third_party_sharing', value)}
+              disabled={saving}
+              trackColor={{ false: theme.border, true: theme.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        {/* Data Management */}
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy.dataManagement')}</Text>
+        
+        <View style={[styles.card, { backgroundColor: theme.card }]}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleDataRetention}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="time-outline" size={24} color={theme.primary} />
+              <View style={styles.menuText}>
+                <Text style={[styles.menuTitle, { color: theme.text }]}>{t('privacy.dataRetentionPolicy')}</Text>
+                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>{t('privacy.viewDataRetention')}</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+          </TouchableOpacity>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleExportData}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="download-outline" size={24} color={theme.primary} />
+              <View style={styles.menuText}>
+                <Text style={[styles.menuTitle, { color: theme.text }]}>{t('clientSettings.exportDataTitle')}</Text>
+                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>{t('privacy.downloadPersonalData')}</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+          </TouchableOpacity>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/(client)/settings' as any)}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="trash-outline" size={24} color="#EF4444" />
+              <View style={styles.menuText}>
+                <Text style={[styles.menuTitle, { color: '#EF4444' }]}>{t('clientSettings.deleteAccountTitle')}</Text>
+                <Text style={[styles.menuDescription, { color: theme.textSecondary }]}>{t('privacy.permanentlyRemove')}</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* GDPR Rights Info */}
+        <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
+          <Text style={[styles.infoTitle, { color: theme.text }]}>{t('privacy.yourGDPRRights')}</Text>
+          <Text style={[styles.infoText, { color: theme.textSecondary }]}>
+            • Right to Access - View your personal data{'\n'}
+            • Right to Rectification - Correct inaccurate data{'\n'}
+            • Right to Erasure - Delete your data{'\n'}
+            • Right to Data Portability - Export your data{'\n'}
+            • Right to Object - Opt out of processing
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  infoCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins_700Bold',
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins_700Bold',
+    marginBottom: 12,
+  },
+  card: {
+    borderRadius: 12,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  divider: {
+    height: 1,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  menuLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  menuText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    marginBottom: 2,
+  },
+  menuDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
