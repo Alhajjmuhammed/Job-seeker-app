@@ -524,12 +524,18 @@ REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'worker_connect.error_codes.custom_excepti
 
 # Production Security Settings
 if not DEBUG:
-    # HTTPS Security settings (enabled - SSL certificate active on wc.easyfixsoft.com)
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # HTTPS-dependent settings used to be unconditionally True here,
+    # ignoring whatever .env said - correct for a server with a real SSL
+    # cert (wc.easyfixsoft.com), but it silently forced an HTTP-redirect
+    # loop and non-functional (never-sent) secure cookies on any
+    # deployment without HTTPS in front of it (e.g. a bare-IP mirror).
+    # .env is now authoritative; defaults still assume HTTPS is present,
+    # matching prior behavior for anyone who doesn't set these explicitly.
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
