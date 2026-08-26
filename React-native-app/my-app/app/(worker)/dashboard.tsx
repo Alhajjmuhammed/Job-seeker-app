@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import apiService from '../../services/api';
@@ -625,9 +625,16 @@ export default function WorkerDashboard() {
     },
   });
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  // This tab screen stays mounted while navigating to e.g.
+  // assignments/respond/[id] (registered as a hidden tab, not pushed on a
+  // stack), so a mount-only effect never re-ran after accepting/rejecting
+  // an assignment - the pending-assignments banner and stat counters kept
+  // showing pre-action numbers until a manual pull-to-refresh.
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchDashboardData();
+    }, [])
+  );
 
   const fetchDashboardData = async (isMounted = () => true) => {
     try {

@@ -809,6 +809,7 @@ export default function RequestServiceScreen() {
         onClose={handleScreenshotModalClose}
         onSubmit={handleScreenshotSubmit}
         onSkip={handleScreenshotSkip}
+        uploading={submitting}
       />
     </View>
   );

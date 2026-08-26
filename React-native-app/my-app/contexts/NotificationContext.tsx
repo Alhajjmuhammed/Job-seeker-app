@@ -69,11 +69,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   const handleNotificationReceived = (notification: any) => {
-    // Increment unread count
-    setUnreadCount(prev => prev + 1);
-    
-    // Update badge
-    pushNotificationService.setBadgeCount(unreadCount + 1);
+    // This listener is registered once in the mount-only effect above, so
+    // it permanently closes over unreadCount's value at that time (0) -
+    // reading `unreadCount` directly here set the OS badge to 1 on every
+    // notification after the first, regardless of how many had actually
+    // arrived. Set it from inside the functional updater instead, which
+    // always sees the true current count.
+    setUnreadCount(prev => {
+      const next = prev + 1;
+      pushNotificationService.setBadgeCount(next);
+      return next;
+    });
   };
 
   const handleNotificationTap = (response: any) => {

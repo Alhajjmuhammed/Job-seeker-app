@@ -20,6 +20,13 @@ interface PaymentScreenshotModalProps {
   onClose: () => void;
   onSubmit: (screenshot: any) => void;
   onSkip: () => void;
+  // Driven by the parent's own submit state (not tracked locally) so a
+  // failed submission - network error, backend 400/500, oversized image -
+  // actually re-enables Submit/Skip instead of leaving the modal stuck
+  // forever. It has no close button and blocks the hardware back button by
+  // design, so a permanently-disabled spinner here was a real dead end:
+  // the parent never closed the modal on failure, only showed an Alert.
+  uploading: boolean;
 }
 
 export default function PaymentScreenshotModal({
@@ -28,19 +35,17 @@ export default function PaymentScreenshotModal({
   onClose,
   onSubmit,
   onSkip,
+  uploading,
 }: PaymentScreenshotModalProps) {
   const [screenshot, setScreenshot] = useState<any>(null);
-  const [uploading, setUploading] = useState(false);
   const { t } = useTranslation();
 
-  // Clear screenshot and reset state when modal opens or closes
+  // Clear the picked screenshot when the modal closes (uploading is now
+  // owned by the parent, which resets it in a try/finally regardless of
+  // success or failure - see the comment on the prop above)
   useEffect(() => {
-    console.log('PaymentScreenshotModal - visible:', visible, 'paymentData:', paymentData);
-    
     if (!visible) {
-      // Clear all state when modal closes
       setScreenshot(null);
-      setUploading(false);
     }
   }, [visible]);
 
@@ -116,7 +121,6 @@ export default function PaymentScreenshotModal({
       return;
     }
     
-    setUploading(true);
     onSubmit(screenshot);
   };
 

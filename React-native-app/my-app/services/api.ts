@@ -13,6 +13,13 @@ class ApiService {
   // 🛡️ Lock-based guards to prevent concurrent clock in/out calls
   private isClockingIn: { [key: number]: boolean } = {};
   private isClockingOut: { [key: number]: boolean } = {};
+  // accept/reject/complete only had a `disabled={submitting}` guard on the
+  // calling screen, which takes effect after a re-render rather than
+  // synchronously like these locks - a fast double-tap could fire the
+  // handler twice before that re-render commits, sending duplicate
+  // accept/reject/complete requests back-to-back.
+  private isRespondingToAssignment: { [key: number]: boolean } = {};
+  private isCompletingAssignment: { [key: number]: boolean } = {};
 
   constructor() {
     this.api = axios.create({
@@ -61,10 +68,22 @@ class ApiService {
           return Promise.reject(error);
         }
 
-        // Only retry on network errors or 5xx server errors
-        const shouldRetry = 
-          !error.response || 
-          (error.response.status >= 500 && error.response.status < 600);
+        // Only retry safe (read-only) methods, and only on network errors
+        // or 5xx server errors. This used to retry every method uniformly,
+        // including requestService/processPayment/acceptAssignment/
+        // completeService/cancelServiceRequest/deleteAccount - none of
+        // which carry an idempotency key. If the original write actually
+        // committed server-side but the response was lost (a real,
+        // ordinary failure mode: proxy timeout, gateway restart, a flaky
+        // mobile network), the retry would silently resubmit the same
+        // mutation - duplicate service requests/payments, or a second
+        // accept/complete call the user never asked for.
+        const method = (config.method || 'get').toLowerCase();
+        const isSafeMethod = method === 'get' || method === 'head' || method === 'options';
+        const shouldRetry =
+          isSafeMethod &&
+          (!error.response ||
+            (error.response.status >= 500 && error.response.status < 600));
 
         if (!shouldRetry) {
           if (error.response?.status === 401) {
@@ -701,19 +720,39 @@ class ApiService {
   }
 
   async acceptAssignment(assignmentId: number, notes?: string) {
-    const response = await this.api.post(
-      `/v1/worker/my-assignments/${assignmentId}/respond/`,
-      { accepted: true, notes }
-    );
-    return response.data;
+    if (this.isRespondingToAssignment[assignmentId]) {
+      console.log('⚠️ API LOCK: Assignment response already in progress - rejecting duplicate');
+      throw new Error('Assignment response already in progress');
+    }
+
+    this.isRespondingToAssignment[assignmentId] = true;
+    try {
+      const response = await this.api.post(
+        `/v1/worker/my-assignments/${assignmentId}/respond/`,
+        { accepted: true, notes }
+      );
+      return response.data;
+    } finally {
+      this.isRespondingToAssignment[assignmentId] = false;
+    }
   }
 
   async rejectAssignment(assignmentId: number, reason: string) {
-    const response = await this.api.post(
-      `/v1/worker/my-assignments/${assignmentId}/respond/`,
-      { accepted: false, rejection_reason: reason }
-    );
-    return response.data;
+    if (this.isRespondingToAssignment[assignmentId]) {
+      console.log('⚠️ API LOCK: Assignment response already in progress - rejecting duplicate');
+      throw new Error('Assignment response already in progress');
+    }
+
+    this.isRespondingToAssignment[assignmentId] = true;
+    try {
+      const response = await this.api.post(
+        `/v1/worker/my-assignments/${assignmentId}/respond/`,
+        { accepted: false, rejection_reason: reason }
+      );
+      return response.data;
+    } finally {
+      this.isRespondingToAssignment[assignmentId] = false;
+    }
   }
 
   async clockIn(assignmentId: number, location?: { latitude: number; longitude: number }) {
@@ -764,11 +803,21 @@ class ApiService {
   }
 
   async completeService(assignmentId: number, completionNotes: string) {
-    const response = await this.api.post(
-      `/v1/worker/my-assignments/${assignmentId}/complete/`,
-      { completion_notes: completionNotes }
-    );
-    return response.data;
+    if (this.isCompletingAssignment[assignmentId]) {
+      console.log('⚠️ API LOCK: Assignment completion already in progress - rejecting duplicate');
+      throw new Error('Assignment completion already in progress');
+    }
+
+    this.isCompletingAssignment[assignmentId] = true;
+    try {
+      const response = await this.api.post(
+        `/v1/worker/my-assignments/${assignmentId}/complete/`,
+        { completion_notes: completionNotes }
+      );
+      return response.data;
+    } finally {
+      this.isCompletingAssignment[assignmentId] = false;
+    }
   }
 
   async getWorkerActivity() {
