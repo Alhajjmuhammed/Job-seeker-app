@@ -552,20 +552,42 @@ def complete_service_request(request, request_id):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # This used to just flip ServiceRequest.status - same class of bug
+        # as cancellation: every active assignment was left untouched, so
+        # the worker(s) stayed 'busy' forever, completed_jobs never
+        # incremented, and no agent commission was credited. Route each
+        # active assignment through mark_completed() for those side
+        # effects, then set the parent status directly too, since the
+        # client force-completing is an explicit override and shouldn't
+        # depend on mark_completed()'s own "all assignments done" count
+        # (which never fires if there happen to be zero real assignments).
+        for assignment in service_request.assignments.filter(status__in=['accepted', 'in_progress']):
+            assignment.mark_completed()
+            assignment.calculate_payment()
+
+        service_request.refresh_from_db()
         service_request.status = 'completed'
         service_request.completed_at = timezone.now()
         service_request.save()
 
-        # Notify worker that client has marked work as finished
+        # Notify every worker that the client marked their assignment
+        # finished. The import here used to be `from jobs.notifications
+        # import NotificationService` - that module doesn't exist, so this
+        # always raised ModuleNotFoundError, silently swallowed below, so
+        # no worker was ever notified.
         try:
-            if service_request.assigned_worker:
-                from jobs.notifications import NotificationService
+            from worker_connect.notification_service import NotificationService
+            for assignment in service_request.assignments.filter(status='completed'):
                 NotificationService.create_notification(
-                    recipient=service_request.assigned_worker.user,
-                    title=f"✅ Service Marked as Finished",
+                    recipient=assignment.worker.user,
+                    title="✅ Service Marked as Finished",
                     message=f"Client has marked '{service_request.title}' as finished. Great work!",
                     notification_type='job_completed',
-                    related_job_id=service_request.id
+                    content_object=service_request,
+                    extra_data={
+                        'service_request_id': service_request.id,
+                        'assignment_id': assignment.id,
+                    }
                 )
         except Exception as notify_error:
             logger.warning(f"Failed to send completion notification: {notify_error}")

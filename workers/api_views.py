@@ -159,45 +159,46 @@ def worker_stats(request):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from jobs.service_request_models import ServiceRequest
+        from jobs.service_request_models import ServiceRequestAssignment
         worker_profile = WorkerProfile.objects.get(user=request.user)
-        
-        # Count assigned jobs by status (ServiceRequest model)
-        assigned_jobs_total = ServiceRequest.objects.filter(
-            assigned_worker=worker_profile
+
+        # This used to filter ServiceRequest.assigned_worker - the legacy
+        # single-worker FK the real multi-worker assignment flow
+        # (_create_assignment) never populates, so every count/sum here
+        # was always zero for every worker. Use the real per-worker
+        # ServiceRequestAssignment relation instead (matching the pattern
+        # already established in worker_analytics() below).
+        my_assignments = ServiceRequestAssignment.objects.filter(worker=worker_profile)
+
+        assigned_jobs_total = my_assignments.count()
+        active_jobs = my_assignments.filter(status='in_progress').count()
+        completed_jobs = my_assignments.filter(status='completed').count()
+        pending_jobs = my_assignments.filter(status='pending').count()
+
+        # Accepted (not yet finished) - used for response_rate below
+        accepted_jobs = my_assignments.filter(
+            status__in=['accepted', 'in_progress', 'completed']
         ).count()
-        
-        # Count active assigned jobs (in progress)
-        active_jobs = ServiceRequest.objects.filter(
-            assigned_worker=worker_profile,
-            status='in_progress'
-        ).count()
-        
-        # Count completed jobs
-        completed_jobs = ServiceRequest.objects.filter(
-            assigned_worker=worker_profile,
-            status='completed'
-        ).count()
-        
-        # Count pending jobs (pending or assigned but not started)
-        pending_jobs = ServiceRequest.objects.filter(
-            assigned_worker=worker_profile,
-            status__in=['pending', 'assigned']
-        ).count()
-        
+
         from django.db.models import Sum
-        # Earnings from completed jobs
-        total_earnings = ServiceRequest.objects.filter(
-            assigned_worker=worker_profile,
+        # Earnings from completed assignments - worker_payment is this
+        # worker's own cut, not the request's total_price (which covers
+        # every worker on a multi-worker request)
+        total_earnings = my_assignments.filter(
             status='completed'
-        ).aggregate(total=Sum('total_price'))['total'] or 0
-        
-        # Pending earnings from active/assigned jobs (earned but pending payment)
-        pending_earnings = ServiceRequest.objects.filter(
-            assigned_worker=worker_profile,
+        ).aggregate(total=Sum('worker_payment'))['total'] or 0
+
+        # Pending earnings from active jobs (earned but pending payment)
+        pending_earnings = my_assignments.filter(
             status='in_progress'
-        ).aggregate(total=Sum('total_price'))['total'] or 0
-        
+        ).aggregate(total=Sum('worker_payment'))['total'] or 0
+
+        # response_rate is the one field the mobile app's profile screen
+        # actually reads from this endpoint (statsData.response_rate) -
+        # it was missing from the response entirely, so it always showed
+        # 0% regardless of the worker's real accept rate.
+        response_rate = (accepted_jobs / assigned_jobs_total * 100) if assigned_jobs_total > 0 else 0
+
         stats = {
             'assigned_jobs': assigned_jobs_total,
             'active_jobs': active_jobs,
@@ -206,8 +207,9 @@ def worker_stats(request):
             'total_earnings': float(total_earnings),
             'pending_earnings': float(pending_earnings),
             'withdrawn_earnings': 0,
+            'response_rate': round(response_rate, 1),
         }
-        
+
         return Response(stats)
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -223,11 +225,14 @@ def assigned_jobs(request):
     try:
         from jobs.service_request_models import ServiceRequest
         profile = WorkerProfile.objects.get(user=request.user)
-        
-        # Get service requests assigned to this worker
+
+        # Get service requests assigned to this worker - via the real
+        # assignments relation, not the legacy assigned_worker FK that the
+        # live multi-worker assignment flow never populates (this always
+        # returned an empty list before).
         jobs = ServiceRequest.objects.filter(
-            assigned_worker=profile
-        ).select_related('client', 'category').order_by('-created_at')
+            assignments__worker=profile
+        ).distinct().select_related('client', 'category').order_by('-created_at')
         
         # Serialize the jobs
         jobs_data = []
@@ -268,33 +273,50 @@ def update_job_status(request, job_id):
         return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
-        from jobs.service_request_models import ServiceRequest
+        from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
         profile = WorkerProfile.objects.get(user=request.user)
-        
-        # Get the service request and verify worker is assigned
+
+        # Get the service request and verify worker is assigned - via the
+        # real assignments relation. assigned_worker_id is the legacy
+        # single-worker FK the live multi-worker assignment flow never
+        # populates, so this always 403'd for every worker before.
         job = ServiceRequest.objects.get(id=job_id)
-        if job.assigned_worker_id != profile.id:
+        assignment = ServiceRequestAssignment.objects.filter(
+            service_request=job, worker=profile
+        ).exclude(status__in=['rejected', 'cancelled']).first()
+        if not assignment:
             return Response({'error': 'You are not assigned to this job'}, status=status.HTTP_403_FORBIDDEN)
-        
+
         new_status = request.data.get('status')
         valid_statuses = ['in_progress', 'completed']
-        
+
         if new_status not in valid_statuses:
             return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Update job status
-        job.status = new_status
-        job.save()
-        
+
+        if new_status == 'completed':
+            # mark_completed() is what actually frees the worker back to
+            # 'available', increments completed_jobs, and credits any
+            # recruiting agent's commission - setting job.status directly
+            # skipped all of that.
+            assignment.mark_completed()
+            assignment.calculate_payment()
+        else:
+            assignment.status = new_status
+            assignment.save(update_fields=['status', 'updated_at'])
+            job.status = new_status
+            job.save(update_fields=['status'])
+
         # Send notification to client
-        from worker_connect.notifications import send_notification
-        send_notification(
-            user=job.client,
+        from worker_connect.notification_service import NotificationService
+        NotificationService.create_notification(
+            recipient=job.client,
             title='Job Status Updated',
             message=f'Your job "{job.title}" is now {new_status.replace("_", " ").title()}',
-            notification_type='job_update'
+            notification_type='job_completed' if new_status == 'completed' else 'system_alert',
+            content_object=job,
+            extra_data={'service_request_id': job.id, 'assignment_id': assignment.id}
         )
-        
+
         return Response({'message': 'Job status updated successfully', 'status': new_status})
     except WorkerProfile.DoesNotExist:
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
