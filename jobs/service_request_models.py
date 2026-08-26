@@ -376,7 +376,51 @@ class ServiceRequest(models.Model):
         # Notify client
         from worker_connect.notification_service import NotificationService
         NotificationService.notify_service_completed(self)
-        
+
+        return True
+
+    def cancel(self, reason=''):
+        """
+        Cancel this request: release every active assignment and free up
+        each assigned worker's availability (if they have no other active
+        job), then mark the request cancelled and notify the affected
+        workers.
+
+        Every call site used to just flip status to 'cancelled' directly,
+        leaving ServiceRequestAssignment rows and worker.availability
+        untouched - a worker marked 'busy' by an accepted assignment
+        stayed busy forever (invisible to admin's available-workers list),
+        and could still clock in or mark the job complete after the client
+        had already cancelled it.
+        """
+        from django.db import transaction
+
+        with transaction.atomic():
+            locked = ServiceRequest.objects.select_for_update().get(pk=self.pk)
+            active_assignments = locked.assignments.filter(
+                status__in=['pending', 'accepted', 'in_progress']
+            ).select_related('worker')
+
+            for assignment in active_assignments:
+                assignment.status = 'cancelled'
+                assignment.save(update_fields=['status', 'updated_at'])
+                if not assignment._worker_has_other_active_jobs():
+                    assignment.worker.availability = 'available'
+                    assignment.worker.save(update_fields=['availability'])
+
+            locked.status = 'cancelled'
+            locked.cancelled_at = timezone.now()
+            if reason:
+                locked.cancellation_reason = reason
+            locked.save(update_fields=['status', 'cancelled_at', 'cancellation_reason'])
+
+        self.status = locked.status
+        self.cancelled_at = locked.cancelled_at
+        self.cancellation_reason = locked.cancellation_reason
+
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_service_cancelled(self)
+
         return True
 
 

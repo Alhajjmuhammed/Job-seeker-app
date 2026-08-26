@@ -417,21 +417,11 @@ def client_web_cancel_request(request, pk):
             context = {'service_request': service_request}
             return render(request, 'service_requests/client/cancel_confirm.html', context)
         
-        # Update request
-        service_request.status = 'cancelled'
-        service_request.cancelled_at = timezone.now()
-        service_request.cancellation_reason = f"[{cancellation_reason_type}] {cancellation_reason}"
-        service_request.save()
-        
-        # Notify worker if assigned
-        if service_request.assigned_worker:
-            try:
-                from worker_connect.notification_service import NotificationService
-                NotificationService.notify_service_cancelled(service_request)
-            except Exception as e:
-                # Don't fail cancellation if notification fails
-                print(f"Failed to send cancellation notification: {e}")
-        
+        # cancel() releases every active assignment and frees up each
+        # worker's availability, and notifies them - a plain status flip
+        # here used to leave assignments/worker availability untouched.
+        service_request.cancel(reason=f"[{cancellation_reason_type}] {cancellation_reason}")
+
         messages.success(request, '✅ Service request has been cancelled.')
         return redirect('service_requests_web:client_my_requests')
     

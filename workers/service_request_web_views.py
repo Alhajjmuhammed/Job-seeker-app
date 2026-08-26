@@ -196,44 +196,62 @@ def worker_web_respond_assignment(request, pk):
     
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+
+        # Both branches used to hand-set status fields and .save() directly
+        # instead of calling the model's accept_assignment()/reject_assignment().
+        # Those methods are what actually flip worker.availability, run the
+        # first-acceptance service-request status update, and (via the
+        # notifications below, mirroring the API-layer's equivalent view)
+        # tell the client - none of that happened for anyone using this web
+        # page instead of the app, so a worker who accepted here stayed
+        # 'available' and could be double-booked, and the client was never
+        # notified either way.
+        from worker_connect.notification_service import NotificationService
+
         if action == 'accept':
-            # Accept assignment
-            assignment.status = 'accepted'
-            assignment.worker_accepted = True
-            assignment.worker_response_at = timezone.now()
-            assignment.save()
-            
-            # Log activity
-            WorkerActivity.log_activity(
-                worker=worker_profile,
-                activity_type='accepted',
-                description=f'Accepted assignment: {assignment.service_request.title} (Worker {assignment.assignment_number} of {assignment.service_request.workers_needed})',
-                service_request=assignment.service_request,
-                location=assignment.service_request.location
+            assignment.accept_assignment()
+
+            NotificationService.create_notification(
+                recipient=assignment.service_request.client,
+                title="✅ Worker Accepted Your Request",
+                message=f"{worker_profile.user.get_full_name()} accepted your service request: '{assignment.service_request.title}'",
+                notification_type='job_accepted',
+                content_object=assignment.service_request,
+                extra_data={
+                    'service_request_id': assignment.service_request.id,
+                    'assignment_id': assignment.id,
+                    'worker': worker_profile.user.get_full_name(),
+                    'assignment_number': assignment.assignment_number
+                }
             )
-            
+
             messages.success(request, '✅ Assignment accepted! You can now start work.')
             return redirect('service_requests_web:worker_assignment_detail', pk=pk)
-            
+
         elif action == 'reject':
             reason = request.POST.get('reason', '')
-            
-            # Reject assignment
-            assignment.status = 'rejected'
-            assignment.worker_accepted = False
-            assignment.worker_response_at = timezone.now()
-            assignment.worker_rejection_reason = reason
-            assignment.save()
-            
-            # Log activity
-            WorkerActivity.log_activity(
-                worker=worker_profile,
-                activity_type='rejected',
-                description=f'Rejected assignment: {assignment.service_request.title}. Reason: {reason}',
-                service_request=assignment.service_request
-            )
-            
+            assignment.reject_assignment(reason)
+
+            # assigned_by is None for auto-assigned assignments (see
+            # clients/assignment_mode.py) - fall back to notifying all staff
+            # instead of crashing on a required-FK recipient.
+            from accounts.models import User
+            recipients = [assignment.assigned_by] if assignment.assigned_by else list(User.objects.filter(is_staff=True))
+            for recipient in recipients:
+                NotificationService.create_notification(
+                    recipient=recipient,
+                    title="❌ Worker Rejected Assignment",
+                    message=f"{worker_profile.user.get_full_name()} rejected: '{assignment.service_request.title}'. Reason: {reason}",
+                    notification_type='job_rejected',
+                    content_object=assignment.service_request,
+                    extra_data={
+                        'service_request_id': assignment.service_request.id,
+                        'assignment_id': assignment.id,
+                        'worker': worker_profile.user.get_full_name(),
+                        'rejection_reason': reason
+                    }
+                )
+
             messages.info(request, 'Assignment rejected.')
             return redirect('service_requests_web:worker_assignments')
     
@@ -454,35 +472,36 @@ def worker_web_complete_service(request, pk):
     
     if request.method == 'POST':
         completion_notes = request.POST.get('completion_notes', '')
-        
-        # Mark assignment as completed
-        assignment.status = 'completed'
-        assignment.work_completed_at = timezone.now()
-        assignment.completion_notes = completion_notes
-        assignment.save()
-        
-        # Check if all assignments are completed
-        all_completed = not service_request.assignments.exclude(
-            status='completed'
-        ).filter(
-            status__in=['accepted', 'in_progress']
-        ).exists()
-        
-        if all_completed:
-            service_request.status = 'completed'
-            service_request.work_completed_at = timezone.now()
-            service_request.save()
-        
-        # Log activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='completed',
-            description=f'Completed service: {service_request.title} (Worker {assignment.assignment_number})',
-            service_request=service_request,
-            location=service_request.location,
-            amount_earned=assignment.worker_payment
+
+        # This used to hand-set status fields and .save() directly instead
+        # of calling the model's mark_completed(). That method is what
+        # actually increments worker.completed_jobs, frees the worker back
+        # to 'available' (if they have no other active job), and credits
+        # the recruiting agent's commission - none of that happened for
+        # anyone completing a job through this web page instead of the app.
+        # mark_completed() also runs its own "are all assignments done"
+        # check and notifies the client when the whole request closes, so
+        # the inline duplicate of that logic below is no longer needed.
+        assignment.mark_completed(completion_notes)
+        assignment.calculate_payment()
+
+        from worker_connect.notification_service import NotificationService
+        NotificationService.create_notification(
+            recipient=service_request.client,
+            title="✅ Worker Completed Their Assignment",
+            message=f"{worker_profile.user.get_full_name()} completed their work on: '{service_request.title}'",
+            notification_type='job_completed',
+            content_object=service_request,
+            extra_data={
+                'service_request_id': service_request.id,
+                'assignment_id': assignment.id,
+                'worker': worker_profile.user.get_full_name(),
+                'assignment_number': assignment.assignment_number,
+                'total_hours': str(assignment.total_hours_worked),
+                'payment': str(assignment.worker_payment)
+            }
         )
-        
+
         messages.success(request, f'✅ Service completed! Earned: TSH {assignment.worker_payment}')
         return redirect('service_requests_web:worker_activity')
     

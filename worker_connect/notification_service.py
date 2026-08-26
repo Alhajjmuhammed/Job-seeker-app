@@ -338,20 +338,31 @@ class NotificationService:
     
     @staticmethod
     def notify_service_cancelled(service_request):
-        """Notify worker that service was cancelled by client"""
-        if service_request.assigned_worker:
-            return NotificationService.create_notification(
-                recipient=service_request.assigned_worker.user,
+        """Notify every worker whose assignment was just cancelled."""
+        # assigned_worker is the LEGACY single-worker field and is never
+        # populated by the real multi-worker assignment flow - reading it
+        # here always silently no-op'd, so no worker was ever notified of
+        # a cancellation. ServiceRequest.cancel() calls this right after
+        # flipping each active assignment to 'cancelled', so that status is
+        # exactly the set of workers actually affected by this cancellation
+        # (a previously rejected/completed assignment keeps its own status
+        # and is correctly left out).
+        notifications = []
+        for assignment in service_request.assignments.filter(status='cancelled').select_related('worker__user'):
+            notifications.append(NotificationService.create_notification(
+                recipient=assignment.worker.user,
                 title="Service Cancelled",
                 message=f"Service request '{service_request.title}' was cancelled by the client",
                 notification_type='system_alert',
                 content_object=service_request,
                 extra_data={
                     'service_request_id': service_request.id,
+                    'assignment_id': assignment.id,
                     'status': 'cancelled'
                 }
-            )
-    
+            ))
+        return notifications
+
     @staticmethod
     def notify_admin_new_service_request(service_request):
         """Notify admin about new service request from client"""

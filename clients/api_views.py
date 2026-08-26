@@ -526,8 +526,10 @@ def cancel_service_request(request, request_id):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        service_request.status = 'cancelled'
-        service_request.save()
+        # cancel() releases every active assignment and frees up each
+        # worker's availability, and notifies them - a plain status flip
+        # here used to leave assignments/worker availability untouched.
+        service_request.cancel()
 
         return Response({'message': 'Service request cancelled successfully'})
     except ServiceRequest.DoesNotExist:

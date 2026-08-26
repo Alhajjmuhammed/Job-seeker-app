@@ -176,11 +176,14 @@ def bulk_job_action(request):
     affected_count = 0
 
     with transaction.atomic():
-        if action == 'reject':
-            affected_count = jobs.update(status='cancelled')
-
-        elif action == 'close':
-            affected_count = jobs.update(status='cancelled')
+        if action in ('reject', 'close'):
+            # A raw .update(status='cancelled') here used to bypass
+            # cancel() entirely (QuerySet.update() never calls model
+            # methods), leaving every active assignment and worker's
+            # availability untouched for anything cancelled in bulk.
+            for job in jobs:
+                job.cancel()
+                affected_count += 1
 
         elif action == 'delete':
             affected_count = jobs.count()

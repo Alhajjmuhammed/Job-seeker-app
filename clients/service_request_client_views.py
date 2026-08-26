@@ -310,14 +310,11 @@ def client_cancel_request(request, pk):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    service_request.status = 'cancelled'
-    service_request.save()
-    
-    # Notify worker if assigned
-    if service_request.assigned_worker:
-        from worker_connect.notification_service import NotificationService
-        NotificationService.notify_service_cancelled(service_request)
-    
+    # cancel() releases every active assignment and frees up each worker's
+    # availability, and notifies them - a plain status flip here used to
+    # leave assignments/worker availability untouched.
+    service_request.cancel()
+
     serializer = ServiceRequestSerializer(service_request)
     return Response({
         'message': 'Service request cancelled',
