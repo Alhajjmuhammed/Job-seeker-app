@@ -14,20 +14,45 @@ class Category(models.Model):
     icon = models.CharField(max_length=50, blank=True, help_text="Bootstrap icon class")
     is_active = models.BooleanField(default=True)
     daily_rate = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         default=25.00,
         validators=[MinValueValidator(0)],
-        help_text="Daily rate in USD for this service category"
+        help_text=(
+            "Amount charged per worker for one request in this category (TSh). "
+            "Pricing is per request, not per day - the field keeps its original "
+            "name because the API and the released mobile app read it."
+        )
+    )
+    service_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(0)],
+        help_text=(
+            "Platform service fee added once per request (TSh). Defaults to 0 "
+            "so adding this column never silently reprices existing categories "
+            "- set the real fee per category in the admin."
+        )
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ['name']
-    
+
     def __str__(self):
         return self.name
+
+    @property
+    def total_for_one_worker(self):
+        """What a client pays for a single-worker request in this category."""
+        return (self.daily_rate or Decimal('0.00')) + (self.service_fee or Decimal('0.00'))
+
+    def price_for(self, workers_needed=1):
+        """Total for N workers: (amount x workers) + one service fee."""
+        workers = max(1, int(workers_needed or 1))
+        return ((self.daily_rate or Decimal('0.00')) * workers) + (self.service_fee or Decimal('0.00'))
 
 
 class Skill(models.Model):

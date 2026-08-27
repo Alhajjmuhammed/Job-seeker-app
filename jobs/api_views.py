@@ -13,7 +13,8 @@ from .serializers import (
     JobApplicationCreateSerializer
 )
 from .service_request_serializers import (
-    ServiceRequestSerializer, ServiceRequestListSerializer, ServiceRequestCreateSerializer
+    ServiceRequestSerializer, ServiceRequestListSerializer,
+    ServiceRequestCreateSerializer, ServiceRequestPublicSerializer
 )
 
 
@@ -319,7 +320,11 @@ def browse_jobs(request):
     if city:
         jobs = jobs.filter(city__icontains=city)
 
-    return paginate_queryset(request, jobs, ServiceRequestListSerializer)
+    # The public serializer: ServiceRequestListSerializer still carries
+    # client_phone and the exact street address, so browsing the open pool
+    # handed every worker the contact details and home address of every
+    # client. Those become available once a worker is actually assigned.
+    return paginate_queryset(request, jobs, ServiceRequestPublicSerializer)
 
 
 @api_view(['GET'])

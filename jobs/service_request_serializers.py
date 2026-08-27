@@ -198,6 +198,39 @@ class ServiceRequestCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+class ServiceRequestPublicSerializer(serializers.ModelSerializer):
+    """
+    Reduced view of a service request for people who do not own it.
+
+    The list and full serializers both expose client_phone and the exact
+    street address. Browsing the open job pool returned those to every
+    authenticated worker, handing out the phone number and home address of
+    every client on the platform before anyone was even assigned. Everything
+    a worker needs in order to judge an open job is kept - city, category,
+    dates, crew size, price - contact details are not.
+    """
+
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    client_name = serializers.CharField(source='client.get_full_name', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    urgency_display = serializers.CharField(source='get_urgency_display', read_only=True)
+    duration_type_display = serializers.CharField(source='get_duration_type_display', read_only=True)
+
+    class Meta:
+        model = ServiceRequest
+        fields = [
+            'id', 'client_name', 'category', 'category_name',
+            'title', 'description', 'city',
+            'preferred_date', 'preferred_time',
+            'duration_type', 'duration_type_display', 'duration_days',
+            'service_start_date', 'service_end_date',
+            'workers_needed', 'daily_rate', 'service_fee', 'total_price',
+            'status', 'status_display', 'urgency', 'urgency_display',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
 class ServiceRequestListSerializer(serializers.ModelSerializer):
     """Simplified serializer for list views"""
     category_name = serializers.CharField(source='category.name', read_only=True)

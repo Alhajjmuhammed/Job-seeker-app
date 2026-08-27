@@ -11,6 +11,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone as django_timezone
 from workers.models import Category
+from jobs.service_request_models import ServiceRequest
+from clients.models import PaymentTransaction
 
 logger = logging.getLogger(__name__)
 
@@ -97,16 +99,22 @@ def calculate_price(request):
         else:
             duration_days = duration_map.get(duration_type, 1)
         
-        # Calculate total price: daily_rate × duration_days × workers_needed
-        total_price = daily_rate * Decimal(str(duration_days)) * Decimal(str(workers_needed))
-        
+        # Price per request: (category amount x workers) + one service fee.
+        # duration_days is still returned so the client can show the schedule,
+        # but it no longer affects the total. This quote comes from the same
+        # model method the booking uses, so the two can never disagree.
+        quote = ServiceRequest.quote(category, workers_needed)
+        total_price = quote['total_price']
+
         return Response({
             'category_id': category.id,
             'category_name': category.name,
             'duration_type': duration_type,
             'duration_days': duration_days,
             'daily_rate': float(daily_rate),
+            'amount_per_worker': float(quote['amount_per_worker']),
             'workers_needed': workers_needed,
+            'service_fee': float(quote['service_fee']),
             'total_price': float(total_price),
             'currency': 'TSH',
             'start_date': start_date if duration_type == 'custom' else None,
@@ -219,6 +227,17 @@ def process_fake_payment(request):
         success = random.random() < 0.98
         
         if success:
+            # Record the reference we just issued. A booking can only be
+            # marked paid by presenting a reference recorded here, to this
+            # client, for this amount, and not already spent - otherwise any
+            # made-up string was accepted as proof of payment.
+            PaymentTransaction.objects.create(
+                reference=transaction_id,
+                client=request.user,
+                amount=amount,
+                method='card' if payment_type == 'card' else 'mpesa',
+                is_demo=True,
+            )
             return Response({
                 'success': True,
                 'transaction_id': transaction_id,
@@ -264,13 +283,17 @@ def get_category_pricing(request):
                 'description': category.description,
                 'icon': category.icon,
                 'daily_rate': float(category.daily_rate),
+                'amount_per_worker': float(category.daily_rate),
+                'service_fee': float(category.service_fee or 0),
                 'currency': 'TSH',
+                # Pricing is per request, so the duration a client picks does
+                # not change the price. These examples show the effect of
+                # crew size instead, which is what actually varies the total.
                 'pricing_examples': {
-                    'daily': float(category.daily_rate * 1),
-                    'monthly': float(category.daily_rate * 30),
-                    '3_months': float(category.daily_rate * 90),
-                    '6_months': float(category.daily_rate * 180),
-                    'yearly': float(category.daily_rate * 365),
+                    '1_worker': float(category.price_for(1)),
+                    '2_workers': float(category.price_for(2)),
+                    '3_workers': float(category.price_for(3)),
+                    '5_workers': float(category.price_for(5)),
                 }
             })
         

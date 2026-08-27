@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q, Count, Avg
 from django.utils import timezone
-from .models import ClientProfile, Favorite, Rating
+from .models import ClientProfile, Favorite, Rating, PaymentTransaction
 from workers.models import WorkerProfile, Category
 from workers.file_validators import validate_image_file
 from jobs.service_request_models import ServiceRequest
@@ -326,8 +326,13 @@ def request_service(request, category_id):
         else:
             availability_message = f'{available_workers} worker(s) available. Your request will be processed quickly.'
         
-        # Calculate total price: daily_rate × duration_days × workers_needed
-        total_price = daily_rate * int(duration_days) * workers_needed
+        # Price per request: (category amount x workers) + one service fee.
+        # Duration is scheduling information and does not affect the price.
+        # The quote and the stored record come from the same model method so
+        # they can never disagree.
+        quote = ServiceRequest.quote(category, workers_needed)
+        service_fee = quote['service_fee']
+        total_price = quote['total_price']
         
         # Handle date/time fields - convert empty strings to None
         preferred_date = request.data.get('preferred_date') or None
@@ -383,16 +388,45 @@ def request_service(request, category_id):
             service_end_date=service_end_date,
             workers_needed=workers_needed,  # NEW: Store workers needed
             daily_rate=daily_rate,
+            # snapshot the fee so a later category change cannot rewrite history
+            service_fee=service_fee,
             total_price=total_price,
             urgency=request.data.get('urgency', 'normal'),
             client_notes=request.data.get('client_notes', ''),
             status='pending',  # Admin will review and assign worker(s)
-            # Payment info
-            payment_status='paid' if request.data.get('payment_transaction_id') else 'pending',
+            # Payment info. Deliberately created unpaid: the reference the
+            # caller supplied is verified below before anything is marked paid.
+            payment_status='pending',
             payment_method=request.data.get('payment_method', ''),
-            payment_transaction_id=request.data.get('payment_transaction_id', ''),
-            paid_at=timezone.now() if request.data.get('payment_transaction_id') else None,
+            payment_transaction_id='',
+            paid_at=None,
         )
+
+        # A booking used to be marked 'paid' purely because the caller sent a
+        # payment_transaction_id - any string at all, so a client could declare
+        # their own booking paid and receive the service for free. Only a
+        # reference this server issued, to this client, for this amount, and
+        # not already spent, is accepted.
+        supplied_reference = (request.data.get('payment_transaction_id') or '').strip()
+        if supplied_reference:
+            txn = PaymentTransaction.redeem(
+                supplied_reference, request.user, expected_amount=total_price
+            )
+            if txn is not None:
+                txn.consumed_by = service_request
+                txn.consumed_at = timezone.now()
+                txn.save(update_fields=['consumed_by', 'consumed_at'])
+                service_request.payment_status = 'paid'
+                service_request.payment_transaction_id = txn.reference
+                service_request.paid_at = timezone.now()
+                service_request.save(update_fields=[
+                    'payment_status', 'payment_transaction_id', 'paid_at', 'updated_at',
+                ])
+            else:
+                logger.warning(
+                    "Rejected unverifiable payment reference %r from user %s",
+                    supplied_reference[:32], request.user.pk,
+                )
         
         # Handle payment screenshot if provided
         if 'payment_screenshot' in request.FILES:

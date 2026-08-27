@@ -3,6 +3,8 @@ Web Views for Clients - Service Request System
 Clients can use web browser to request services and view history
 """
 
+from decimal import Decimal
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -137,8 +139,9 @@ def client_web_request_service(request):
             service_start_date = request.POST.get('service_start_date')
             service_end_date = request.POST.get('service_end_date')
             
-            # Calculate duration and pricing
-            daily_rate = float(category.daily_rate)  # Use category-specific daily rate
+            # Calculate duration and pricing. Keep this a Decimal - mixing
+            # float and Decimal raises TypeError once the fee is added in.
+            daily_rate = category.daily_rate or Decimal('0.00')
             duration_days = 1
             
             if duration_type == 'daily':
@@ -156,8 +159,13 @@ def client_web_request_service(request):
                 end_date = datetime.strptime(service_end_date, '%Y-%m-%d').date()
                 duration_days = (end_date - start_date).days + 1
             
-            # Calculate total: daily_rate × duration_days × workers_needed
-            total_price = duration_days * daily_rate * workers_needed
+            # Price per request: (category amount x workers) + one service
+            # fee. duration_days above is kept for the schedule only and no
+            # longer affects the total. Same model method the API uses, so
+            # web and mobile can never quote different prices.
+            quote = ServiceRequest.quote(category, workers_needed)
+            service_fee = quote['service_fee']
+            total_price = quote['total_price']
             
             # Get payment data
             payment_method = request.POST.get('payment_method', 'pending')
@@ -214,6 +222,8 @@ def client_web_request_service(request):
                 duration_type=duration_type,
                 duration_days=duration_days,
                 daily_rate=daily_rate,
+                # snapshot the fee so a later category change cannot rewrite history
+                service_fee=service_fee,
                 total_price=total_price,
                 preferred_date=preferred_date if preferred_date else None,
                 preferred_time=preferred_time if preferred_time else None,

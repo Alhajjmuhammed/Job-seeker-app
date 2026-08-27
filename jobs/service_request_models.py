@@ -114,13 +114,19 @@ class ServiceRequest(models.Model):
         max_digits=10,
         decimal_places=2,
         default=0,
-        help_text="Daily rate per worker at time of booking"
+        help_text="Category amount per worker at time of booking"
+    )
+    service_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Platform service fee at time of booking, charged once per request"
     )
     total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        help_text="Total price (daily_rate × duration_days × workers_needed)"
+        help_text="Total price ((daily_rate × workers_needed) + service_fee)"
     )
     
     # Payment
@@ -299,12 +305,31 @@ class ServiceRequest(models.Model):
         else:
             self.duration_days = self.calculate_duration_days()
         
-        if self.daily_rate and self.duration_days:
-            # Calculate: daily_rate × duration_days × workers_needed
-            workers_count = self.workers_needed if self.workers_needed else 1
-            self.total_price = self.daily_rate * Decimal(str(self.duration_days)) * Decimal(str(workers_count))
-            return self.total_price
-        return Decimal('0.00')
+        # Pricing is per request, not per day: (amount x workers) + one
+        # service fee. duration_days is still derived above so the schedule is
+        # recorded accurately, but it no longer affects what the client pays.
+        workers_count = self.workers_needed if self.workers_needed else 1
+        rate = Decimal(str(self.daily_rate or '0.00'))
+        fee = Decimal(str(self.service_fee or '0.00'))
+        self.total_price = (rate * Decimal(str(workers_count))) + fee
+        return self.total_price
+
+    @staticmethod
+    def quote(category, workers_needed=1):
+        """
+        Price a request without creating one, so the quote a client is shown
+        and the record that is stored can never disagree.
+        """
+        workers = max(1, int(workers_needed or 1))
+        rate = Decimal(str(getattr(category, 'daily_rate', None) or '0.00'))
+        fee = Decimal(str(getattr(category, 'service_fee', None) or '0.00'))
+        return {
+            'daily_rate': rate,
+            'amount_per_worker': rate,
+            'workers_needed': workers,
+            'service_fee': fee,
+            'total_price': (rate * Decimal(str(workers))) + fee,
+        }
     
     def calculate_total_amount(self):
         """Calculate total based on hours worked and hourly rate (legacy)"""
@@ -669,7 +694,7 @@ class ServiceRequestAssignment(models.Model):
         max_digits=10,
         decimal_places=2,
         default=0,
-        help_text="Payment amount for this worker (daily_rate × duration)"
+        help_text="What this worker earns for the request (the category amount, once)"
     )
     total_hours_worked = models.DecimalField(
         max_digits=5,
@@ -828,15 +853,16 @@ class ServiceRequestAssignment(models.Model):
             NotificationService.notify_service_completed(sr)
     
     def calculate_payment(self):
-        """Calculate payment for this individual worker"""
-        if self.service_request.daily_rate and self.service_request.duration_days:
-            self.worker_payment = (
-                self.service_request.daily_rate * 
-                Decimal(str(self.service_request.duration_days))
-            )
-            self.save()
-            return self.worker_payment
-        return Decimal('0.00')
+        """
+        What this worker earns for the request.
+
+        Pricing is per request, so a worker earns the category amount once -
+        not multiplied by duration. The platform's service_fee is the
+        marketplace's margin and is deliberately never part of worker income.
+        """
+        self.worker_payment = Decimal(str(self.service_request.daily_rate or '0.00'))
+        self.save(update_fields=['worker_payment', 'updated_at'])
+        return self.worker_payment
     
     def _worker_has_other_active_jobs(self):
         """Check if worker has other active assignments (excluding this one)"""
