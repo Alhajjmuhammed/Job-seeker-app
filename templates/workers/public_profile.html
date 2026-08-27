@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ profile.user.get_full_name }} - {% trans "Worker Profile" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 text-center">
+          {% if profile.profile_image %}
+            <img src="{{ profile.profile_image.url }}" alt="" class="rounded-circle mb-3" style="width:110px;height:110px;object-fit:cover;">
+          {% else %}
+            <div class="rounded-circle bg-secondary-subtle d-inline-flex align-items-center justify-content-center mb-3" style="width:110px;height:110px;font-size:2.5rem;">
+              {{ profile.user.get_full_name|first|upper }}
+            </div>
+          {% endif %}
+
+          <h1 class="h4 mb-1">{{ profile.user.get_full_name }}</h1>
+          {% if categories %}
+            <p class="text-muted mb-2">{{ categories.0.name }}</p>
+          {% endif %}
+
+          <div class="d-flex justify-content-center gap-2 mb-3">
+            {% if profile.verification_status == 'verified' %}
+              <span class="badge bg-success"><i class="bi bi-patch-check me-1"></i>{% trans "Verified" %}</span>
+            {% endif %}
+            {% if profile.availability == 'available' %}
+              <span class="badge bg-success-subtle text-success-emphasis">{% trans "Available" %}</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ profile.get_availability_display }}</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-center gap-4 border-top pt-3">
+            <div>
+              <div class="fw-semibold">{{ profile.average_rating|default:0|floatformat:1 }}</div>
+              <div class="small text-muted">{% trans "Rating" %}</div>
+            </div>
+            <div>
+              <div class="fw-semibold">{{ profile.completed_jobs }}</div>
+              <div class="small text-muted">{% trans "Jobs done" %}</div>
+            </div>
+            <div>
+              <div class="fw-semibold">{{ profile.experience_years }}</div>
+              <div class="small text-muted">{% trans "Years" %}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Details" %}</h2>
+          <dl class="row mb-0 small">
+            <dt class="col-5 fw-normal text-muted">{% trans "Location" %}</dt>
+            <dd class="col-7">{{ profile.city|default:"&mdash;" }}{% if profile.country %}, {{ profile.country }}{% endif %}</dd>
+
+            <dt class="col-5 fw-normal text-muted">{% trans "Hourly rate" %}</dt>
+            <dd class="col-7">{% if profile.hourly_rate %}TSH {{ profile.hourly_rate }}{% else %}&mdash;{% endif %}</dd>
+
+            {% if profile.can_work_everywhere %}
+              <dt class="col-5 fw-normal text-muted">{% trans "Travel" %}</dt>
+              <dd class="col-7">{% trans "Available anywhere" %}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "About" %}</h2>
+          <p class="mb-0">{{ profile.bio|default:_("This worker has not added a bio yet.")|linebreaksbr }}</p>
+        </div>
+      </div>
+
+      {% if categories or skills %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Services and skills" %}</h2>
+          {% for c in categories %}
+            <span class="badge bg-primary-subtle text-primary-emphasis border me-1 mb-1">{{ c.name }}</span>
+          {% endfor %}
+          {% for s in skills %}
+            <span class="badge bg-light text-dark border me-1 mb-1">{{ s.name }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Work experience" %}</h2>
+          {% for exp in experiences %}
+            <div class="{% if not forloop.last %}border-bottom pb-3 mb-3{% endif %}">
+              <div class="fw-semibold">{{ exp.job_title }}</div>
+              <div class="small text-muted">
+                {{ exp.company }}{% if exp.location %} &middot; {{ exp.location }}{% endif %}
+              </div>
+              <div class="small text-muted">
+                {{ exp.start_date|date:"M Y" }} &ndash;
+                {% if exp.is_current %}{% trans "Present" %}{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}
+              </div>
+              {% if exp.description %}
+                <p class="small mt-2 mb-0">{{ exp.description|linebreaksbr }}</p>
+              {% endif %}
+            </div>
+          {% empty %}
+            <p class="text-muted mb-0">{% trans "No work experience listed yet." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

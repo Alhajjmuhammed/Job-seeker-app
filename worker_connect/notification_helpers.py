@@ -41,9 +41,12 @@ def notify_service_request_created(service_request):
     # Notify all workers who match the category
     from workers.models import WorkerProfile
     
+    # The field is `availability` (a choice), not a boolean `is_available` -
+    # filtering on the latter raised FieldError, so nobody was ever notified
+    # that a new request had come in.
     workers = WorkerProfile.objects.filter(
         categories=service_request.category,
-        is_available=True,
+        availability='available',
         is_profile_complete=True
     )
     

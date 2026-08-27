@@ -19,13 +19,14 @@ class QueryOptimizer:
         """
         Optimize job queries with related data.
         """
+        # client is already a User (no 'user' hop), and JobRequest has no
+        # required_skills relation at all - both raised FieldError.
         return queryset.select_related(
-            'client__user',
+            'client',
             'category',
         ).prefetch_related(
             'assigned_workers__user',
             'applications__worker__user',
-            'required_skills',
         )
     
     @staticmethod
@@ -50,8 +51,9 @@ class QueryOptimizer:
         """
         from jobs.models import JobRequest, JobApplication
         
+        # JobRequest.client is already a User, so there is no 'user' hop below it
         return JobRequest.objects.select_related(
-            'client__user',
+            'client',
             'category',
         ).prefetch_related(
             Prefetch(
@@ -59,7 +61,6 @@ class QueryOptimizer:
                 queryset=JobApplication.objects.select_related('worker__user')
             ),
             'assigned_workers__user',
-            'required_skills',
         ).get(id=job_id)
     
     # Worker-related optimizations
@@ -136,7 +137,8 @@ class QueryOptimizer:
         return JobApplication.objects.filter(
             worker=worker
         ).select_related(
-            'job__client__user',
+            # job.client is already a User; there is no further 'user' hop
+            'job__client',
             'job__category',
         ).order_by('-created_at')
     

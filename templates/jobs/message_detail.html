@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Message" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <a href="{% url 'jobs:inbox' %}" class="btn btn-link px-0 mb-2">
+        <i class="bi bi-arrow-left me-1"></i>{% trans "Back to inbox" %}
+      </a>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h1 class="h5 mb-1">{{ message.subject|default:_("(no subject)") }}</h1>
+          <p class="text-muted small mb-4">
+            {% trans "From" %} <strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>
+            {% trans "to" %} <strong>{{ message.recipient.get_full_name|default:message.recipient.username }}</strong><br>
+            {{ message.created_at|date:"d M Y, H:i" }}
+          </p>
+
+          {% if message.job %}
+            <div class="alert alert-light border small">
+              {% trans "About job" %}:
+              <a href="{% url 'jobs:job_detail' message.job.pk %}">{{ message.job.title }}</a>
+            </div>
+          {% endif %}
+
+          <div class="border-top pt-3">
+            {{ message.message|linebreaksbr }}
+          </div>
+
+          <a href="{% url 'jobs:conversation' message.sender.pk %}" class="btn btn-primary mt-4">
+            <i class="bi bi-reply me-1"></i>{% trans "Reply" %}
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

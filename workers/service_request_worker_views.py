@@ -698,8 +698,10 @@ def worker_my_assignments(request):
         'service_request__client', 
         'service_request__category',
         'assigned_by'
-    ).order_by('-created_at')
-    
+    # ServiceRequestAssignment records assigned_at, not created_at - ordering
+    # on a field the model does not have raised FieldError.
+    ).order_by('-assigned_at')
+
     # Filter by status
     status_filter = request.GET.get('status')
     if status_filter:

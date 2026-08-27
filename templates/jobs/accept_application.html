@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Accept Application" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;">
+              <i class="bi bi-person-check fs-4"></i>
+            </div>
+            <div>
+              <h1 class="h4 mb-1">{% trans "Accept this application?" %}</h1>
+              <p class="text-muted mb-0">
+                {% trans "This assigns the worker to the job and declines every other application." %}
+              </p>
+            </div>
+          </div>
+
+          <div class="border rounded p-3 bg-light mb-4">
+            <div class="fw-semibold">{{ application.worker.user.get_full_name }}</div>
+            <div class="small text-muted mt-1">
+              {{ application.job.title }}<br>
+              {% if application.proposed_rate %}
+                {% trans "Proposed rate" %}: TSH {{ application.proposed_rate }} &middot;
+              {% endif %}
+              {% trans "Rating" %} {{ application.worker.average_rating|default:0|floatformat:1 }}
+            </div>
+          </div>
+
+          <form method="post" class="d-flex flex-wrap gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check2 me-1"></i>{% trans "Accept and assign" %}
+            </button>
+            <a href="{% url 'jobs:job_detail' application.job.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

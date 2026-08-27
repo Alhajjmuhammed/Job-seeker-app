@@ -1,0 +1,42 @@
+{% extends 'workers/base_worker.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Document" %}{% endblock %}
+{% block page_title %}{% trans "Delete Document" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;">
+            <i class="bi bi-file-earmark-x fs-4"></i>
+          </div>
+          <div>
+            <h2 class="h5 mb-1">{% trans "Delete this document?" %}</h2>
+            <p class="text-muted mb-0">{% trans "You will need to upload it again for verification." %}</p>
+          </div>
+        </div>
+
+        <div class="border rounded p-3 bg-light mb-4">
+          <div class="fw-semibold">{{ document.title }}</div>
+          <div class="small text-muted mt-1">
+            {{ document.get_document_type_display }} &middot;
+            {% trans "Status" %}: {{ document.get_verification_status_display }} &middot;
+            {% trans "Uploaded" %} {{ document.uploaded_at|date:"d M Y" }}
+          </div>
+        </div>
+
+        <form method="post" class="d-flex flex-wrap gap-2">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>{% trans "Delete document" %}
+          </button>
+          <a href="{% url 'workers:document_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

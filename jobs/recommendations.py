@@ -51,7 +51,10 @@ class RecommendationEngine:
             status='open'
         ).exclude(
             id__in=applied_job_ids
-        ).select_related('client', 'client__user')
+        # JobRequest.client is already a User, so there is no further 'user'
+        # hop - asking for one raised FieldError and 500'd every call to the
+        # recommendations endpoint.
+        ).select_related('client')
         
         # Score each job
         scored_jobs = []

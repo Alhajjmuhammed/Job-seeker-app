@@ -11,12 +11,18 @@ from worker_connect.serializer_mixins import SanitizedSerializerMixin
 
 class DirectHireRequestSerializer(serializers.ModelSerializer):
     client_name = serializers.SerializerMethodField()
-    
+    # The model field is `description` - what the client wrote when they
+    # requested this worker. Declaring a bare `message` field that the model
+    # does not have made DRF fail while building the serializer, so every
+    # call to the worker's direct-hire list returned 500.
+    message = serializers.CharField(source='description', read_only=True)
+
     class Meta:
         model = DirectHireRequest
         fields = [
-            'id', 'client_name', 'duration_type', 'offered_rate', 
-            'total_amount', 'status', 'created_at', 'message'
+            'id', 'client_name', 'title', 'duration_type', 'duration_value',
+            'offered_rate', 'total_amount', 'status', 'created_at',
+            'start_datetime', 'location', 'message'
         ]
     
     def get_client_name(self, obj):

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ hire_request.title }} - {% trans "Direct Hire" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center g-4">
+    <div class="col-lg-8">
+
+      <a href="{% url 'jobs:my_direct_hire_requests' %}" class="btn btn-link px-0 mb-2">
+        <i class="bi bi-arrow-left me-1"></i>{% trans "Back to requests" %}
+      </a>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <h1 class="h4 mb-0">{{ hire_request.title }}</h1>
+            <span class="badge align-self-center
+              {% if hire_request.status == 'accepted' %}bg-success
+              {% elif hire_request.status == 'rejected' or hire_request.status == 'cancelled' %}bg-danger
+              {% elif hire_request.status == 'completed' %}bg-primary
+              {% else %}bg-secondary{% endif %}">
+              {{ hire_request.get_status_display }}
+            </span>
+          </div>
+
+          <p class="mb-4">{{ hire_request.description|linebreaksbr }}</p>
+
+          <dl class="row mb-0 small">
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Client" %}</dt>
+            <dd class="col-sm-8">{{ hire_request.client.get_full_name|default:hire_request.client.username }}</dd>
+
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Worker" %}</dt>
+            <dd class="col-sm-8">
+              <a href="{% url 'workers:public_profile' hire_request.worker.pk %}">
+                {{ hire_request.worker.user.get_full_name }}
+              </a>
+            </dd>
+
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Location" %}</dt>
+            <dd class="col-sm-8">{{ hire_request.location }}</dd>
+
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Starts" %}</dt>
+            <dd class="col-sm-8">{{ hire_request.start_datetime|date:"d M Y, H:i" }}</dd>
+
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Duration" %}</dt>
+            <dd class="col-sm-8">{{ hire_request.duration_value }} {{ hire_request.get_duration_type_display|lower }}</dd>
+
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Offered rate" %}</dt>
+            <dd class="col-sm-8">TSH {{ hire_request.offered_rate }}</dd>
+
+            <dt class="col-sm-4 fw-normal text-muted">{% trans "Total" %}</dt>
+            <dd class="col-sm-8"><strong>TSH {{ hire_request.total_amount }}</strong></dd>
+          </dl>
+
+          {% if hire_request.worker_response_message %}
+            <div class="alert alert-light border mt-4 mb-0">
+              <div class="small text-muted mb-1">{% trans "Worker's response" %}</div>
+              {{ hire_request.worker_response_message|linebreaksbr }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if is_worker and hire_request.status == 'pending' %}
+          <a href="{% url 'jobs:worker_accept_direct_hire' hire_request.pk %}" class="btn btn-success">
+            <i class="bi bi-check2-circle me-1"></i>{% trans "Accept request" %}
+          </a>
+          <a href="{% url 'jobs:worker_reject_direct_hire' hire_request.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-x-circle me-1"></i>{% trans "Decline" %}
+          </a>
+        {% endif %}
+
+        {% if hire_request.status == 'accepted' %}
+          <a href="{% url 'jobs:complete_direct_hire' hire_request.pk %}" class="btn btn-primary">
+            <i class="bi bi-flag me-1"></i>{% trans "Mark as complete" %}
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

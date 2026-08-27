@@ -1,0 +1,91 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Review Document" %}{% endblock %}
+{% block page_title %}{% trans "Review Document" %}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <h2 class="h5 mb-1">{{ document.title }}</h2>
+        <p class="text-muted mb-4">
+          {{ document.get_document_type_display }} &middot;
+          {% trans "uploaded" %} {{ document.uploaded_at|date:"d M Y, H:i" }}
+        </p>
+
+        <div class="border rounded bg-light d-flex align-items-center justify-content-center p-4 mb-3" style="min-height:260px;">
+          {% if document.file %}
+            <div class="text-center">
+              <i class="bi bi-file-earmark-text display-4 text-secondary d-block mb-3"></i>
+              <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="btn btn-outline-primary">
+                <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Open document" %}
+              </a>
+            </div>
+          {% else %}
+            <span class="text-muted">{% trans "No file attached." %}</span>
+          {% endif %}
+        </div>
+
+        {% if document.rejection_reason %}
+          <div class="alert alert-danger mb-0">
+            <strong>{% trans "Previously rejected:" %}</strong> {{ document.rejection_reason }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h3 class="h6 text-uppercase text-muted mb-3">{% trans "Submitted by" %}</h3>
+        <div class="fw-semibold">{{ document.worker.user.get_full_name }}</div>
+        <div class="small text-muted">{{ document.worker.user.email }}</div>
+        <a href="{% url 'admin_panel:verify_worker' document.worker.pk %}" class="btn btn-sm btn-outline-secondary mt-3">
+          {% trans "View worker" %}
+        </a>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="h6 text-uppercase text-muted mb-3">{% trans "Decision" %}</h3>
+        <p class="small text-muted">
+          {% trans "Current status" %}:
+          <span class="badge {% if document.verification_status == 'approved' %}bg-success{% elif document.verification_status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+            {{ document.get_verification_status_display }}
+          </span>
+        </p>
+
+        <form method="post" class="mb-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="approve">
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-check2-circle me-1"></i>{% trans "Approve document" %}
+          </button>
+        </form>
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reject">
+          <div class="mb-2">
+            <label for="reason" class="form-label small text-muted">{% trans "Reason for rejection" %}</label>
+            <textarea name="reason" id="reason" rows="3" class="form-control" placeholder="{% trans 'Tell the worker what to fix' %}"></textarea>
+          </div>
+          <button type="submit" class="btn btn-outline-danger w-100">
+            <i class="bi bi-x-circle me-1"></i>{% trans "Reject document" %}
+          </button>
+        </form>
+
+        <a href="{% url 'admin_panel:document_verification_list' %}" class="btn btn-link px-0 mt-3">
+          <i class="bi bi-arrow-left me-1"></i>{% trans "Back to document queue" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

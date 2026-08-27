@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Job" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;">
+              <i class="bi bi-trash fs-4"></i>
+            </div>
+            <div>
+              <h1 class="h4 mb-1">{% trans "Delete this job?" %}</h1>
+              <p class="text-muted mb-0">{% trans "This removes the job and every application to it. It cannot be undone." %}</p>
+            </div>
+          </div>
+
+          <div class="border rounded p-3 bg-light mb-4">
+            <div class="fw-semibold">{{ job.title }}</div>
+            <div class="small text-muted mt-1">
+              {{ job.city }} &middot; {% trans "Budget" %} TSH {{ job.budget }} &middot;
+              {% trans "Applications" %}: {{ job.applications.count }}
+            </div>
+          </div>
+
+          <form method="post" class="d-flex flex-wrap gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash me-1"></i>{% trans "Delete job" %}
+            </button>
+            <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

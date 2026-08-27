@@ -1,0 +1,127 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Verify Worker" %}{% endblock %}
+{% block page_title %}{% trans "Verify Worker" %}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          {% if worker.profile_image %}
+            <img src="{{ worker.profile_image.url }}" alt="" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;">
+          {% else %}
+            <div class="rounded-circle bg-secondary-subtle d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:1.5rem;">
+              {{ worker.user.get_full_name|first|upper }}
+            </div>
+          {% endif %}
+          <div>
+            <h2 class="h5 mb-0">{{ worker.user.get_full_name }}</h2>
+            <div class="small text-muted">{{ worker.user.email }}</div>
+          </div>
+        </div>
+
+        <dl class="row mb-0 small">
+          <dt class="col-5 text-muted fw-normal">{% trans "Phone" %}</dt>
+          <dd class="col-7">{{ worker.user.phone_number|default:"&mdash;" }}</dd>
+
+          <dt class="col-5 text-muted fw-normal">{% trans "Location" %}</dt>
+          <dd class="col-7">{{ worker.city|default:"&mdash;" }}{% if worker.country %}, {{ worker.country }}{% endif %}</dd>
+
+          <dt class="col-5 text-muted fw-normal">{% trans "Categories" %}</dt>
+          <dd class="col-7">
+            {% for c in worker.categories.all %}<span class="badge bg-light text-dark border me-1">{{ c.name }}</span>{% empty %}&mdash;{% endfor %}
+          </dd>
+
+          <dt class="col-5 text-muted fw-normal">{% trans "Experience" %}</dt>
+          <dd class="col-7">{{ worker.experience_years }} {% trans "years" %}</dd>
+
+          <dt class="col-5 text-muted fw-normal">{% trans "Current status" %}</dt>
+          <dd class="col-7"><span class="badge bg-secondary">{{ worker.get_verification_status_display }}</span></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h3 class="h6 text-uppercase text-muted mb-3">{% trans "Identity document" %}</h3>
+
+        {% if id_approved %}
+          <div class="alert alert-success d-flex align-items-center gap-2 mb-0">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{% trans "ID document uploaded and approved. This worker can be verified." %}</span>
+          </div>
+        {% elif has_id %}
+          <div class="alert alert-warning d-flex align-items-center gap-2 mb-0">
+            <i class="bi bi-hourglass-split"></i>
+            <span>{% trans "ID document uploaded but not yet approved. Approve the document first." %}</span>
+          </div>
+        {% else %}
+          <div class="alert alert-danger d-flex align-items-center gap-2 mb-0">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{% trans "No ID document uploaded. This worker cannot be verified yet." %}</span>
+          </div>
+        {% endif %}
+
+        {% if worker.documents.all %}
+          <ul class="list-group list-group-flush mt-3">
+            {% for doc in worker.documents.all %}
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span>
+                  <i class="bi bi-file-earmark-text me-2 text-muted"></i>{{ doc.title }}
+                  <span class="text-muted small">({{ doc.get_document_type_display }})</span>
+                </span>
+                <span>
+                  <span class="badge {% if doc.verification_status == 'approved' %}bg-success{% elif doc.verification_status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ doc.get_verification_status_display }}
+                  </span>
+                  <a href="{% url 'admin_panel:verify_document' doc.pk %}" class="btn btn-sm btn-outline-secondary ms-2">{% trans "Review" %}</a>
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="h6 text-uppercase text-muted mb-3">{% trans "Decision" %}</h3>
+
+        <form method="post" class="mb-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="verify">
+          <button type="submit" class="btn btn-success" {% if not id_approved %}disabled{% endif %}>
+            <i class="bi bi-patch-check me-1"></i>{% trans "Verify worker" %}
+          </button>
+          {% if not id_approved %}
+            <div class="form-text">{% trans "Enabled once the ID document is approved." %}</div>
+          {% endif %}
+        </form>
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reject">
+          <div class="mb-2">
+            <label for="reason" class="form-label small text-muted">{% trans "Reason for rejection" %}</label>
+            <textarea name="reason" id="reason" rows="2" class="form-control" placeholder="{% trans 'Explain what the worker needs to correct' %}"></textarea>
+          </div>
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-x-circle me-1"></i>{% trans "Reject worker" %}
+          </button>
+        </form>
+
+        <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-link px-0 mt-3">
+          <i class="bi bi-arrow-left me-1"></i>{% trans "Back to verification queue" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

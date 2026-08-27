@@ -59,7 +59,9 @@ class WorkerEarningSerializer(serializers.ModelSerializer):
             'amount',
             'earned_at',
         ]
-        read_only_fields = '__all__'
+        # DRF requires a list or tuple here; the string '__all__' is not
+        # special-cased and made the serializer fail to build.
+        read_only_fields = fields
 
 
 class SavedCardSerializer(serializers.ModelSerializer):

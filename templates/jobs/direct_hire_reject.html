@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Decline Request" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;">
+              <i class="bi bi-x-circle fs-4"></i>
+            </div>
+            <div>
+              <h1 class="h4 mb-1">{% trans "Decline this job?" %}</h1>
+              <p class="text-muted mb-0">{% trans "The client will see your reason and can request someone else." %}</p>
+            </div>
+          </div>
+
+          <div class="border rounded p-3 bg-light mb-4">
+            <div class="fw-semibold">{{ hire_request.title }}</div>
+            <div class="small text-muted mt-1">
+              {{ hire_request.location }} &middot;
+              {% trans "starts" %} {{ hire_request.start_datetime|date:"d M Y, H:i" }}
+            </div>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="reason" class="form-label">{% trans "Reason" %}</label>
+              <textarea name="reason" id="reason" rows="3" class="form-control"
+                        placeholder="{% trans 'For example: already booked that day' %}"></textarea>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-lg me-1"></i>{% trans "Decline job" %}
+              </button>
+              <a href="{% url 'jobs:direct_hire_detail' hire_request.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

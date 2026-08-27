@@ -184,7 +184,8 @@ def send_message(request, job_id):
     
     # Get job and determine recipient
     try:
-        job = JobRequest.objects.select_related('client__user').get(id=job_id)
+        # JobRequest.client is already a User; there is no further 'user' hop
+        job = JobRequest.objects.select_related('client').get(id=job_id)
     except JobRequest.DoesNotExist:
         return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
     

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Accept Request" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;">
+              <i class="bi bi-check2-circle fs-4"></i>
+            </div>
+            <div>
+              <h1 class="h4 mb-1">{% trans "Accept this job?" %}</h1>
+              <p class="text-muted mb-0">{% trans "Accepting marks you as busy until the work is complete." %}</p>
+            </div>
+          </div>
+
+          <div class="border rounded p-3 bg-light mb-4">
+            <div class="fw-semibold">{{ hire_request.title }}</div>
+            <div class="small text-muted mt-1">
+              {{ hire_request.location }}<br>
+              {% trans "Starts" %} {{ hire_request.start_datetime|date:"d M Y, H:i" }} &middot;
+              {{ hire_request.duration_value }} {{ hire_request.get_duration_type_display|lower }}<br>
+              <strong>{% trans "Total" %}: TSH {{ hire_request.total_amount }}</strong>
+            </div>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="response_message" class="form-label">{% trans "Message to the client" %} <span class="text-muted small">({% trans "optional" %})</span></label>
+              <textarea name="response_message" id="response_message" rows="3" class="form-control"
+                        placeholder="{% trans 'Anything the client should know before you start' %}"></textarea>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check2 me-1"></i>{% trans "Accept job" %}
+              </button>
+              <a href="{% url 'jobs:direct_hire_detail' hire_request.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
