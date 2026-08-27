@@ -469,7 +469,11 @@
             {% endif %}
             
             <!-- Payment Information -->
-            {% if service_request.payment_method or service_request.payment_transaction_id %}
+            {# A client who paid offline and uploaded proof has no
+               payment_method or transaction id, so this card - and with it
+               their own screenshot and its verification status - was hidden
+               from exactly the people the upload feature exists for. #}
+            {% if service_request.payment_method or service_request.payment_transaction_id or service_request.payment_screenshot %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="bi bi-credit-card"></i> Payment Information</h5>

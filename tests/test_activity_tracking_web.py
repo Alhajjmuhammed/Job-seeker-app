@@ -161,7 +161,9 @@ class ActivityTrackingWebTestCase(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'View Activity Log')
-        self.assertContains(response, 'client_request_activity')
+        # {% url %} renders the path, never the route's name, so asserting on
+        # the name could not match no matter how the page behaved.
+        self.assertContains(response, '/activity/')
     
     def test_activity_pagination(self):
         """Test that pagination works for many activities"""
