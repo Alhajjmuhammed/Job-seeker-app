@@ -119,6 +119,53 @@ check('assigned worker display names the worker',
       wu.get_full_name() in sr.assigned_worker_display or 'bx_worker' in sr.assigned_worker_display,
       sr.assigned_worker_display)
 
+# --- 8. the client is told who is on their job -----------------------
+cc = TC(); cc.force_login(cu)
+# There are two client-jobs endpoints, served by different views.
+r = cc.get('/api/v1/clients/jobs/')
+d = r.json() if r.status_code == 200 else {}
+job = next((j for j in d.get('jobs', []) if j.get('title') == 'BX job'), {})
+check('client jobs API reports the assigned worker',
+      job.get('worker_assigned') is True and job.get('worker_name'),
+      f"HTTP {r.status_code} worker_assigned={job.get('worker_assigned')} name={job.get('worker_name')}")
+
+r = cc.get(f'/api/v1/clients/jobs/{sr.id}/')
+d = r.json() if r.status_code == 200 else {}
+check('client job detail names the assigned worker',
+      d.get('worker_assigned') is True and d.get('worker_name'),
+      f"HTTP {r.status_code} worker_assigned={d.get('worker_assigned')} name={d.get('worker_name')}")
+
+r = cc.get(f'/api/v1/jobs/client/jobs/{sr.id}/')
+d = r.json() if r.status_code == 200 else {}
+check('the other client-jobs endpoint agrees on the worker',
+      d.get('worker_name'), f"HTTP {r.status_code} worker_name={d.get('worker_name')}")
+
+# --- the client's own web pages name the worker -----------------------
+for url, label in (('/clients/dashboard/', 'client dashboard'),
+                   ('/clients/service-requests/', 'client request list')):
+    resp = cc.get(url)
+    if resp.status_code != 200:
+        continue
+    page = resp.content.decode('utf8', 'replace')
+    check(f'{label} names the assigned worker',
+          'bx_worker' in page or (wu.get_full_name() or 'zz') in page,
+          f'HTTP {resp.status_code} - shows nobody assigned')
+
+# --- 9. every template still parses ----------------------------------
+import pathlib
+from django.template.loader import get_template
+from django.template import TemplateSyntaxError
+broken = []
+root = pathlib.Path('templates')
+for t in sorted(root.rglob('*.html')):
+    try:
+        get_template(str(t.relative_to(root)))
+    except TemplateSyntaxError as exc:
+        broken.append(f'{t}: {exc}')
+    except Exception:
+        pass
+check('every template parses', not broken, '; '.join(broken[:3]))
+
 print(f'\n  {ok} passed, {fail} failed\n')
 for u in User.objects.filter(username__startswith='bx_'): u.delete()
 _runner.teardown_databases(_old_config)

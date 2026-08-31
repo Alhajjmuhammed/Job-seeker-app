@@ -132,7 +132,14 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
         matching this field's original single-name intent.
         """
         assignment = obj.assignments.exclude(status='rejected').order_by('assignment_number').first()
-        return assignment.worker.user.get_full_name() if assignment else None
+        if not assignment:
+            return None
+        # get_full_name() is empty for an account with no first or last name,
+        # which showed the client a blank where a worker's name belongs.
+        # Fall back to the username, as assigned_worker_display does, so the
+        # two surfaces never disagree about who is on a job.
+        user = assignment.worker.user
+        return user.get_full_name() or user.username
 
 
 

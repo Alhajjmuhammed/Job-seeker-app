@@ -209,8 +209,8 @@
                                         </span>
                                     </td>
                                     <td>
-                                        {% if request.assigned_worker %}
-                                        <i class="bi bi-person-check me-1"></i>{{ request.assigned_worker.user.get_full_name }}
+                                        {% if request.assigned_worker_display %}
+                                        <i class="bi bi-person-check me-1"></i>{{ request.assigned_worker_display }}
                                         {% else %}
                                         <span class="text-muted">
                                             <i class="bi bi-person-x me-1"></i>{% trans "Not assigned" %}

@@ -818,7 +818,11 @@ def client_jobs(request):
                 'status_display': job.get_status_display(),
                 'category': job.category.name if job.category else None,
                 'created_at': job.created_at.isoformat(),
-                'worker_assigned': job.assigned_worker is not None,
+                # Through the assignment rows. The legacy assigned_worker FK
+                # is never populated by the multi-worker assignment flow, so
+                # this told every client their job had nobody on it.
+                'worker_assigned': bool(job.assigned_workers_list),
+                'worker_name': job.assigned_worker_display or None,
                 'total_price': str(job.total_price) if job.total_price else None,
             })
         
@@ -847,8 +851,8 @@ def client_job_detail(request, job_id):
             'total_price': str(job.total_price) if job.total_price else None,
             'duration_days': job.duration_days,
             'created_at': job.created_at.isoformat(),
-            'worker_assigned': job.assigned_worker is not None,
-            'worker_name': job.assigned_worker.user.get_full_name() if job.assigned_worker else None,
+            'worker_assigned': bool(job.assigned_workers_list),
+            'worker_name': job.assigned_worker_display or None,
         }
         
         return Response(job_detail)

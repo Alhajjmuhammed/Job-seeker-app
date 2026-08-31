@@ -98,10 +98,10 @@
                         </div>
                         
                         <div class="col-md-4 text-end">
-                            {% if request.assigned_worker %}
+                            {% if request.assigned_worker_display %}
                             <div class="mb-2">
                                 <small class="text-muted">{% trans "Assigned Worker:" %}</small><br>
-                                <strong>{{ request.assigned_worker.user.get_full_name }}</strong>
+                                <strong>{{ request.assigned_worker_display }}</strong>
                             </div>
                             {% endif %}
                             

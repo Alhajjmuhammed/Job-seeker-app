@@ -268,12 +268,12 @@ class NotificationService:
         return NotificationService.create_notification(
             recipient=service_request.client,
             title="Worker Accepted Assignment ✅",
-            message=f"{service_request.assigned_worker.user.get_full_name()} accepted your service request: {service_request.title}",
+            message=f"{service_request.assigned_worker_display or 'A worker'} accepted your service request: {service_request.title}",
             notification_type='job_assigned',
             content_object=service_request,
             extra_data={
                 'service_request_id': service_request.id,
-                'worker': service_request.assigned_worker.user.get_full_name(),
+                'worker': service_request.assigned_worker_display or None,
                 'status': 'accepted'
             }
         )

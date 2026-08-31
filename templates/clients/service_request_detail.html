@@ -261,7 +261,7 @@
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
                                 <h6>{% trans "Worker Assigned" %}</h6>
-                                {% if request.assigned_worker %}
+                                {% if request.assigned_worker_display %}
                                 <small class="text-muted">{{ request.assigned_at|date:"M d, Y g:i A" }}</small>
                                 {% else %}
                                 <small class="text-muted">{% trans "Pending assignment..." %}</small>
