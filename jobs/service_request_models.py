@@ -785,14 +785,22 @@ class ServiceRequestAssignment(models.Model):
         
         # Note: Notifications are handled in the API view layer
         
-        # Update worker completed jobs count
-        self.worker.completed_jobs += 1
-        
+        # Update worker completed jobs count and credit what they earned.
+        # total_earnings was never incremented anywhere in the service-request
+        # flow, so a worker's lifetime earnings sat at zero however much work
+        # they finished. F() rather than read-modify-write, so two devices
+        # completing at once cannot lose one of the increments.
+        payment = Decimal(str(self.worker_payment or '0.00'))
+        WorkerProfile.objects.filter(pk=self.worker_id).update(
+            completed_jobs=models.F('completed_jobs') + 1,
+            total_earnings=models.F('total_earnings') + payment,
+        )
+        self.worker.refresh_from_db(fields=['completed_jobs', 'total_earnings'])
+
         # AUTO-UPDATE: Set worker to available if no other active jobs
         if not self._worker_has_other_active_jobs():
             self.worker.availability = 'available'
-
-        self.worker.save()
+            self.worker.save(update_fields=['availability'])
 
         # Credit the recruiting agent's commission, if this worker has one.
         # AgentProfile.total_commission_earned previously existed but was

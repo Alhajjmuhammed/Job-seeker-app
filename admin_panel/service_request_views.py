@@ -32,7 +32,11 @@ def _create_assignment(service_request, worker, admin_user, assignment_number, a
     reassign, bulk-assign, and auto-assign-nearest so this isn't duplicated
     four times.
     """
-    individual_payment = service_request.daily_rate * service_request.duration_days
+    # Pricing is per request, not per day: a worker earns the category amount
+    # once. Multiplying by duration_days here paid a worker on a monthly
+    # booking thirty times over, and paid their agent thirty times the
+    # commission, because this value is what both are calculated from.
+    individual_payment = service_request.daily_rate
     assignment = ServiceRequestAssignment.objects.create(
         service_request=service_request,
         worker=worker,
