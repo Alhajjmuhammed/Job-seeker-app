@@ -64,9 +64,14 @@ export default function EarningsScreen() {
       const completedJobs = assignmentsList.filter((j: any) => j.status === 'completed');
       const activeJobs = assignmentsList.filter((j: any) => j.status === 'in_progress');
 
-      // Use total_price (service price) - same as web dashboard
-      const computed_total = completedJobs.reduce((sum: number, j: any) => sum + parseFloat(j.total_price || j.worker_payment || 0), 0);
-      const computed_pending = activeJobs.reduce((sum: number, j: any) => sum + parseFloat(j.total_price || j.worker_payment || 0), 0);
+      // A worker earns their assignment's worker_payment. total_price is what
+      // the CLIENT pays: it covers every worker on the job and includes the
+      // platform's service fee, so falling back to it overstates what this
+      // worker actually made - on a 15,000/day job with a 30,000 fee it
+      // reported 45,000. Only worker_payment is this worker's income.
+      const workerPay = (j: any) => parseFloat(j.worker_payment ?? 0) || 0;
+      const computed_total = completedJobs.reduce((sum: number, j: any) => sum + workerPay(j), 0);
+      const computed_pending = activeJobs.reduce((sum: number, j: any) => sum + workerPay(j), 0);
 
       setTotalEarnings(computed_total);
       setPendingAmount(computed_pending);

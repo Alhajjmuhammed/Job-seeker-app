@@ -31,7 +31,9 @@ interface ServiceCategory {
 interface PriceCalculation {
   duration_days: number;
   daily_rate: number;
+  amount_per_worker: number;
   workers_needed: number;
+  service_fee: number;
   total_price: number;
   duration_type_display: string;
 }
@@ -667,18 +669,26 @@ export default function RequestServiceScreen() {
               </Text>
             </View>
             
+            <View style={styles.priceRow}>
+              <Ionicons name="briefcase-outline" size={20} color={theme.primary} />
+              <Text style={[styles.priceLabel, { color: theme.text }]}>{t('requestService.serviceFee')}</Text>
+              <Text style={[styles.priceValue, { color: theme.text }]}>
+                TSH {(priceCalculation.service_fee ?? 0).toLocaleString()}
+              </Text>
+            </View>
+
             <View style={styles.priceDivider} />
             
             <View style={[styles.priceRow, styles.totalPriceRow]}>
               <Ionicons name="wallet-outline" size={24} color={theme.primary} />
               <Text style={[styles.totalPriceLabel, { color: theme.text }]}>{t('requestService.totalPrice')}</Text>
               <Text style={[styles.totalPriceValue, { color: theme.primary }]}>
-                TSH {priceCalculation.total_price.toLocaleString().toLocaleString()}
+                TSH {priceCalculation.total_price.toLocaleString()}
               </Text>
             </View>
             
             <Text style={[styles.priceFormula, { color: theme.textSecondary }]}>
-              💡 {priceCalculation.workers_needed || workersNeeded} workers × {priceCalculation.duration_days} days × TSH {priceCalculation.daily_rate.toLocaleString()} = TSH {priceCalculation.total_price.toLocaleString()}
+              💡 {priceCalculation.workers_needed || workersNeeded} × TSH {(priceCalculation.amount_per_worker ?? priceCalculation.daily_rate).toLocaleString()} + TSH {(priceCalculation.service_fee ?? 0).toLocaleString()} = TSH {priceCalculation.total_price.toLocaleString()}
             </Text>
           </View>
         )}

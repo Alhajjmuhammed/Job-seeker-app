@@ -828,7 +828,7 @@
     "priceBreakdown": "Price Breakdown",
     "workers": "Workers:",
     "duration": "Duration:",
-    "rateDayWorker": "Rate/Day/Worker:",
+    "rateDayWorker": "Rate per worker:",
     "totalPrice": "Total Price:",
     "urgencyLevel": "Urgency Level",
     "normal": "Normal",
@@ -851,7 +851,8 @@
     "endDateAfterStart": "End date must be after start date",
     "failedLoadCategories": "Failed to load service categories",
     "serviceRequestSuccess": "Your service request has been submitted and payment has been processed! Our admin will review your payment and assign a qualified worker soon.",
-    "viewMyRequests": "View My Requests"
+    "viewMyRequests": "View My Requests",
+    "serviceFee": "Service fee:"
   },
   "clientSettings": {
     "security": "Security",
