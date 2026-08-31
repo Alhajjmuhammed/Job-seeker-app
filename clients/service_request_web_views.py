@@ -261,11 +261,9 @@ def client_web_request_service(request):
                 service_request.payment_screenshot = payment_screenshot
                 service_request.save()
             
-            # Update client profile
-            if hasattr(request.user, 'client_profile'):
-                profile = request.user.client_profile
-                profile.total_jobs_posted += 1
-                profile.save()
+            # The client's totals are recomputed by a post_save hook on
+            # ServiceRequest, so every booking path keeps them right - this
+            # one used to be the only path that did.
 
             # Apply the client's chosen assignment mode (no-op unless
             # auto_nearest; falls back to admin_choice if it can't auto-assign)

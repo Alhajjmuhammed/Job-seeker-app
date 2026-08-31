@@ -25,7 +25,28 @@ class ClientProfile(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    def recalculate_totals(self, save=True):
+        """Recompute this client's job and spend totals from their requests.
+
+        These were kept by a += in one of the four places a booking can be
+        created, so a client who booked through the mobile app or either API
+        never had them move: all three live clients showed 0 jobs and 0
+        spent while every one of them had posted and paid. Recomputing
+        rather than incrementing means it cannot drift again, and it is
+        idempotent however many times it runs.
+        """
+        from django.db.models import Sum
+        from jobs.service_request_models import ServiceRequest
+
+        requests = ServiceRequest.objects.filter(client=self.user)
+        self.total_jobs_posted = requests.count()
+        self.total_spent = requests.filter(payment_status='paid').aggregate(
+            total=Sum('total_price'))['total'] or 0
+        if save:
+            self.save(update_fields=['total_jobs_posted', 'total_spent'])
+        return self.total_jobs_posted, self.total_spent
+
     class Meta:
         ordering = ['-created_at']
         indexes = [

@@ -182,6 +182,64 @@ check('the ID flag is repaired from the documents on file',
       wp.has_uploaded_national_id is True,
       'flag still False despite an ID document existing')
 
+# --- a client's totals track their bookings, whatever created them ----
+cp.refresh_from_db()
+own = ServiceRequest.objects.filter(client=cu)
+check('client job count matches their actual bookings',
+      cp.total_jobs_posted == own.count(),
+      f'stored={cp.total_jobs_posted} actual={own.count()}')
+paid = own.filter(payment_status='paid').aggregate(t=__import__(
+    'django.db.models', fromlist=['Sum']).Sum('total_price'))['t'] or 0
+check('client spend matches what they have paid',
+      D(str(cp.total_spent)) == D(str(paid)),
+      f'stored={cp.total_spent} actual={paid}')
+
+# a booking made directly, bypassing every view, must still be counted
+before = cp.total_jobs_posted
+extra = ServiceRequest.objects.create(
+    client=cu, category=cat, title='BX counter', description='d',
+    location='Dar', workers_needed=1, daily_rate=D('1000'),
+    service_fee=D('30000'), preferred_date=timezone.now().date(),
+    status='pending')
+cp.refresh_from_db()
+check('a booking made by any path updates the totals',
+      cp.total_jobs_posted == before + 1,
+      f'{before} -> {cp.total_jobs_posted}, expected {before + 1}')
+
+# --- both accept routes must have the same effect ---------------------
+# There are two endpoints for a worker accepting an assignment. One used to
+# set the fields inline, skipping the worker going busy and the parent
+# request advancing, so the same action gave two different outcomes.
+def fresh_assignment(title):
+    r = ServiceRequest.objects.create(
+        client=cu, category=cat, title=title, description='d', location='Dar',
+        workers_needed=1, daily_rate=D('20000'), service_fee=D('30000'),
+        preferred_date=timezone.now().date(), status='pending')
+    r.total_price = r.calculate_total_price(); r.save()
+    return ServiceRequestAssignment.objects.create(
+        service_request=r, worker=wp, status='pending', worker_payment=r.daily_rate)
+
+outcomes = []
+for route, title in (('/api/v1/worker/service-requests/{id}/respond/', 'BX route A'),
+                     ('/api/v1/worker/my-assignments/{id}/respond/', 'BX route B')):
+    wp.availability = 'available'; wp.save()
+    a = fresh_assignment(title)
+    resp = c.post(route.format(id=a.id), {'accepted': True},
+                  content_type='application/json')
+    a.refresh_from_db(); wp.refresh_from_db(); a.service_request.refresh_from_db()
+    outcomes.append({
+        'http': resp.status_code,
+        'assignment_status': a.status,
+        'worker_availability': wp.availability,
+        'request_status': a.service_request.status,
+    })
+
+check('both accept routes leave the same state',
+      outcomes[0] == outcomes[1], f'{outcomes[0]} vs {outcomes[1]}')
+check('accepting marks the worker busy',
+      all(o['worker_availability'] == 'busy' for o in outcomes),
+      f"availability: {[o['worker_availability'] for o in outcomes]}")
+
 # --- 9. every template still parses ----------------------------------
 import pathlib
 from django.template.loader import get_template

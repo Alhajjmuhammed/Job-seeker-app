@@ -185,39 +185,20 @@ def worker_respond_to_assignment(request, pk):
     accepted = serializer.validated_data['accepted']
     
     if accepted:
-        # Accept assignment - NEW system
-        assignment.status = 'accepted'
-        assignment.worker_accepted = True
-        assignment.worker_response_at = timezone.now()
-        assignment.save()
-        
-        # Log activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='accepted',
-            description=f'Accepted assignment: {service_request.title} (Worker {assignment.assignment_number} of {service_request.workers_needed})',
-            service_request=service_request,
-            location=service_request.location
-        )
-        
+        # Through the model, not by setting the fields here. Doing it inline
+        # skipped marking the worker busy and skipped advancing the parent
+        # request's status, so a worker who accepted through this route
+        # stayed bookable for overlapping jobs and the client's request
+        # still read as unaccepted. accept_assignment() logs the activity.
+        assignment.accept_assignment()
+
         message = 'Assignment accepted successfully'
     else:
-        # Reject assignment - NEW system
         rejection_reason = serializer.validated_data.get('rejection_reason', '')
-        assignment.status = 'rejected'
-        assignment.worker_accepted = False
-        assignment.worker_response_at = timezone.now()
-        assignment.worker_rejection_reason = rejection_reason
-        assignment.save()
-        
-        # Log activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='rejected',
-            description=f'Rejected assignment: {service_request.title}. Reason: {rejection_reason}',
-            service_request=service_request
-        )
-        
+        # Same reason: rejecting inline never released the worker back to
+        # available. reject_assignment() logs the activity.
+        assignment.reject_assignment(rejection_reason)
+
         message = 'Assignment rejected'
     
     response_serializer = ServiceRequestAssignmentSerializer(assignment)
