@@ -22,7 +22,7 @@ interface Application {
   job_id: number;
   job_title: string;
   client_name: string;
-  applied_date: string;
+  created_at: string;
   status: string;
   cover_letter?: string;
   offered_rate?: string;
@@ -47,8 +47,7 @@ export default function ApplicationsScreen() {
     try {
       setLoading(true);
       const data = await apiService.getWorkerApplications();
-      // getWorkerApplications() returns a paginated {results: [...]} envelope, not a bare array
-      setApplications(Array.isArray(data) ? data : data?.results || []);
+      setApplications(data || []);
     } catch (error) {
       console.error('Error loading applications:', error);
       Alert.alert(t('common.error'), t('applications.failedLoadApplications'));
@@ -302,7 +301,7 @@ export default function ApplicationsScreen() {
                   <View style={styles.infoRow}>
                     <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
                     <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-                      Applied {formatDate(application.applied_date)}
+                      Applied {formatDate(application.created_at)}
                     </Text>
                   </View>
 

@@ -19,12 +19,12 @@ import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: number;
-  type: string;
+  notification_type: string;
   title: string;
   message: string;
   is_read: boolean;
   created_at: string;
-  data?: any;
+  extra_data?: any;
 }
 
 export default function NotificationsScreen() {
@@ -87,38 +87,67 @@ export default function NotificationsScreen() {
       handleMarkAsRead(notification.id);
     }
 
-    // Navigate based on type
-    const data = notification.data || {};
-    if (notification.type === 'job_posted' || notification.type === 'job_update') {
-      if (data.job_id) {
-        router.push(`/job/${data.job_id}` as any);
-      }
-    } else if (notification.type === 'application_accepted' || notification.type === 'application_rejected') {
-      router.push('/(worker)/jobs' as any);
-    } else if (notification.type === 'new_message') {
-      if (data.user_id) {
-        router.push(`/(worker)/conversation/${data.user_id}` as any);
-      }
-    } else if (notification.type === 'direct_hire_request') {
-      router.push('/(worker)/dashboard' as any);
+    // Navigate based on type. These keys mirror what the server actually
+    // sends: the payload field is extra_data (not data), and the vocabulary is
+    // the notification_type choices on the Notification model.
+    const data = notification.extra_data || {};
+    const assignmentId = data.assignment_id;
+    const requestId = data.service_request_id ?? data.request_id ?? data.job_id;
+    switch (notification.notification_type) {
+      case 'job_assigned':
+        if (assignmentId) {
+          router.push(`/(worker)/service-assignment/${assignmentId}` as any);
+        } else if (requestId) {
+          router.push(`/(worker)/service-assignment/${requestId}` as any);
+        } else {
+          router.push('/(worker)/jobs' as any);
+        }
+        break;
+      case 'job_accepted':
+      case 'job_rejected':
+      case 'job_application':
+        router.push('/(worker)/jobs' as any);
+        break;
+      case 'job_completed':
+      case 'payment_received':
+        router.push('/(worker)/earnings' as any);
+        break;
+      case 'message_received':
+        if (data.sender_id ?? data.user_id) {
+          router.push(`/(worker)/conversation/${data.sender_id ?? data.user_id}` as any);
+        } else {
+          router.push('/(worker)/messages' as any);
+        }
+        break;
+      default:
+        // account_update, document_verified, promotion, review_received, system_alert
+        router.push('/(worker)/dashboard' as any);
     }
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'job_posted':
-      case 'job_update':
+      case 'job_assigned':
         return 'briefcase';
-      case 'application_accepted':
+      case 'job_accepted':
         return 'checkmark-circle';
-      case 'application_rejected':
+      case 'job_rejected':
+      case 'system_alert':
         return 'close-circle';
-      case 'new_message':
+      case 'message_received':
         return 'chatbubble';
-      case 'direct_hire_request':
+      case 'job_application':
         return 'person-add';
       case 'payment_received':
         return 'cash';
+      case 'job_completed':
+        return 'ribbon';
+      case 'review_received':
+        return 'star';
+      case 'document_verified':
+        return 'shield-checkmark';
+      case 'promotion':
+        return 'megaphone';
       default:
         return 'notifications';
     }
@@ -126,14 +155,19 @@ export default function NotificationsScreen() {
 
   const getNotificationColor = (type: string) => {
     switch (type) {
-      case 'application_accepted':
+      case 'job_accepted':
       case 'payment_received':
+      case 'job_completed':
+      case 'review_received':
+      case 'document_verified':
         return '#10B981';
-      case 'application_rejected':
+      case 'job_rejected':
+      case 'system_alert':
         return '#EF4444';
-      case 'new_message':
+      case 'message_received':
         return '#3B82F6';
-      case 'direct_hire_request':
+      case 'job_application':
+      case 'job_assigned':
         return '#8B5CF6';
       default:
         return theme.primary;
@@ -266,7 +300,7 @@ export default function NotificationsScreen() {
                         : isDark
                         ? 'rgba(15, 118, 110, 0.1)'
                         : '#F0FDF4',
-                      borderLeftColor: getNotificationColor(notification.type),
+                      borderLeftColor: getNotificationColor(notification.notification_type),
                     },
                   ]}
                   onPress={() => handleNotificationPress(notification)}
@@ -274,13 +308,13 @@ export default function NotificationsScreen() {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: getNotificationColor(notification.type) + '20' },
+                      { backgroundColor: getNotificationColor(notification.notification_type) + '20' },
                     ]}
                   >
                     <Ionicons
-                      name={getNotificationIcon(notification.type) as any}
+                      name={getNotificationIcon(notification.notification_type) as any}
                       size={24}
-                      color={getNotificationColor(notification.type)}
+                      color={getNotificationColor(notification.notification_type)}
                     />
                   </View>
 

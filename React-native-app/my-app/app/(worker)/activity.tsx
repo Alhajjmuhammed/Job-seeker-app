@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,8 +20,8 @@ interface Activity {
   activity_type: string;
   description: string;
   created_at: string;
-  // The API (WorkerActivitySerializer) sends the raw service_request FK id
-  // plus a flattened service_title string - not a nested object.
+  // The API returns the request id plus a flat service_title; there is no
+  // nested object here, so reading .title off it rendered an empty tag.
   service_request?: number;
   service_title?: string;
   location?: string;
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 28,
-    fontFamily: 'Poppins_700Bold',
+    fontWeight: '700',
     marginBottom: 4,
   },
   statLabel: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 20,
-    fontFamily: 'Poppins_600SemiBold',
+    fontWeight: '600',
     marginTop: 16,
     textAlign: 'center',
   },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   },
   dateHeader: {
     fontSize: 16,
-    fontFamily: 'Poppins_700Bold',
+    fontWeight: '700',
     marginBottom: 12,
   },
   activityCard: {
