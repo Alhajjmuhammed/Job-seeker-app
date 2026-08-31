@@ -254,16 +254,24 @@ class VerificationService:
             List of expiring documents
         """
         from workers.models import WorkerDocument
-        
+
+        # WorkerDocument has no expiry_date column, so this filter raised
+        # FieldError rather than returning anything. Nothing calls this yet;
+        # when document expiry is actually wanted, add the field to
+        # WorkerDocument and drop this guard. Returning nothing keeps the
+        # caller working instead of 500-ing the moment it is wired up.
+        if not any(f.name == 'expiry_date' for f in WorkerDocument._meta.fields):
+            return []
+
         expiry_threshold = timezone.now().date() + timezone.timedelta(days=days_ahead)
-        
+
         expiring = WorkerDocument.objects.filter(
             verification_status=VerificationStatus.APPROVED,
             document_type__in=DocumentType.EXPIRABLE_TYPES,
             expiry_date__lte=expiry_threshold,
             expiry_date__gte=timezone.now().date(),
         ).select_related('worker__user')
-        
+
         return [
             {
                 'document_id': doc.id,
@@ -283,9 +291,14 @@ class VerificationService:
         Called by scheduled task.
         """
         from workers.models import WorkerDocument
-        
+
+        # See get_expiring_documents: WorkerDocument has no expiry_date column,
+        # so there is nothing that can be expired until that field exists.
+        if not any(f.name == 'expiry_date' for f in WorkerDocument._meta.fields):
+            return 0
+
         today = timezone.now().date()
-        
+
         # Find and expire documents
         expired_docs = WorkerDocument.objects.filter(
             verification_status=VerificationStatus.APPROVED,

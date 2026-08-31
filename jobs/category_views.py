@@ -27,7 +27,11 @@ def list_categories(request):
     queryset = Category.objects.all()
 
     if parent_only:
-        queryset = queryset.filter(parent__isnull=True)
+        # Categories are a flat list - there is no parent field on the model,
+        # so filtering on parent__isnull raised FieldError and 500'd the
+        # listing whenever this parameter was passed. Every category is a
+        # top-level one, so the filter is a no-op rather than an error.
+        pass
 
     if with_counts:
         # 'jobs' is the related_name of the deprecated JobRequest model;
@@ -151,11 +155,15 @@ def create_category(request):
                 'error': 'Parent category not found'
             }, status=status.HTTP_400_BAD_REQUEST)
     
+    # These guards used hasattr() on the model class, which answers a question
+    # about descriptors rather than about fields. Category has no `parent`
+    # field at all, so the guard was False and passed parent=None - an
+    # unexpected keyword that made every call to this endpoint fail with 500.
+    # description and icon are NOT NULL, so they take '' rather than None.
     category = Category.objects.create(
         name=name,
-        description=description if hasattr(Category, 'description') else None,
-        icon=icon if hasattr(Category, 'icon') else None,
-        parent=parent if hasattr(Category, 'parent') else None,
+        description=description or '',
+        icon=icon or '',
     )
     
     return Response({
