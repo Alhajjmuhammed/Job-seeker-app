@@ -382,9 +382,9 @@ def worker_analytics(request):
         messages.error(request, 'Access denied. Workers only.')
         return redirect('home')
     
-    from django.db.models import Sum, Avg, Count
+    from django.db.models import Sum, Avg, Count, OuterRef, Subquery, DecimalField
     from django.db.models.functions import TruncMonth, TruncWeek, TruncDay
-    from jobs.service_request_models import ServiceRequest
+    from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
     import json
     
     profile = get_object_or_404(WorkerProfile, user=request.user)
@@ -396,12 +396,28 @@ def worker_analytics(request):
     except ValueError:
         period_days = 180
     
-    # Get all service requests for this worker. Use the ServiceRequestAssignment
-    # relation (assignments__worker) rather than the legacy single-worker
-    # ServiceRequest.assigned_worker FK, which is never populated by the real
-    # admin-mediated, multi-worker assignment flow and would leave this
-    # dashboard permanently empty.
-    all_requests = ServiceRequest.objects.filter(assignments__worker=profile)
+    # The requests this worker is actually on. A rejected or cancelled
+    # assignment is not their work, so it must not count towards their totals.
+    live_assignments = ServiceRequestAssignment.objects.filter(
+        worker=profile
+    ).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES)
+
+    # What THIS worker earns on each request. total_price is what the CLIENT
+    # pays: it covers every worker on the job and includes the platform
+    # service fee, so summing it reports income the worker never received -
+    # on a three-worker job it showed each of them the whole invoice.
+    my_pay = ServiceRequestAssignment.objects.filter(
+        service_request=OuterRef('pk'), worker=profile
+    ).exclude(
+        status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES
+    ).values('worker_payment')[:1]
+
+    all_requests = ServiceRequest.objects.filter(
+        id__in=live_assignments.values('service_request_id')
+    ).annotate(
+        my_earnings=Subquery(
+            my_pay, output_field=DecimalField(max_digits=12, decimal_places=2))
+    )
     completed_requests = all_requests.filter(status='completed')
     
     # Apply period filter
@@ -417,8 +433,8 @@ def worker_analytics(request):
     active_jobs = all_requests.filter(status='in_progress').count()  # Current active jobs (not period filtered)
     
     # Earnings
-    total_earnings = filtered_completed.aggregate(total=Sum('total_price'))['total'] or 0
-    pending_earnings = all_requests.filter(status='in_progress').aggregate(total=Sum('total_price'))['total'] or 0
+    total_earnings = filtered_completed.aggregate(total=Sum('my_earnings'))['total'] or 0
+    pending_earnings = all_requests.filter(status='in_progress').aggregate(total=Sum('my_earnings'))['total'] or 0
     
     # Performance metrics
     success_rate = (completed_jobs / total_assignments * 100) if total_assignments > 0 else 0
@@ -430,7 +446,7 @@ def worker_analytics(request):
         time_earnings = filtered_completed.annotate(
             time_period=TruncDay('updated_at')
         ).values('time_period').annotate(
-            earnings=Sum('total_price'),
+            earnings=Sum('my_earnings'),
             jobs=Count('id')
         ).order_by('time_period')
     elif period_days <= 90:
@@ -438,7 +454,7 @@ def worker_analytics(request):
         time_earnings = filtered_completed.annotate(
             time_period=TruncWeek('updated_at')
         ).values('time_period').annotate(
-            earnings=Sum('total_price'),
+            earnings=Sum('my_earnings'),
             jobs=Count('id')
         ).order_by('time_period')
     else:
@@ -446,7 +462,7 @@ def worker_analytics(request):
         time_earnings = filtered_completed.annotate(
             time_period=TruncMonth('updated_at')
         ).values('time_period').annotate(
-            earnings=Sum('total_price'),
+            earnings=Sum('my_earnings'),
             jobs=Count('id')
         ).order_by('time_period')
     
@@ -454,7 +470,7 @@ def worker_analytics(request):
     category_earnings = filtered_completed.values(
         'category__name', 'category__icon'
     ).annotate(
-        earnings=Sum('total_price'),
+        earnings=Sum('my_earnings'),
         jobs=Count('id')
     ).order_by('-earnings')[:10]
     
@@ -530,7 +546,8 @@ def export_analytics_csv(request):
     import csv
     from django.http import HttpResponse
     from datetime import datetime
-    from jobs.service_request_models import ServiceRequest
+    from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
+    from django.db.models import OuterRef, Subquery, DecimalField
     
     profile = get_object_or_404(WorkerProfile, user=request.user)
     
@@ -551,13 +568,26 @@ def export_analytics_csv(request):
     # ServiceRequest.assigned_worker FK, which is never populated by the
     # real admin-mediated, multi-worker assignment flow and would export an
     # all-zero CSV.
-    all_requests = ServiceRequest.objects.filter(assignments__worker=profile)
+    live_assignments = ServiceRequestAssignment.objects.filter(
+        worker=profile
+    ).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES)
+    my_pay = ServiceRequestAssignment.objects.filter(
+        service_request=OuterRef('pk'), worker=profile
+    ).exclude(
+        status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES
+    ).values('worker_payment')[:1]
+    all_requests = ServiceRequest.objects.filter(
+        id__in=live_assignments.values('service_request_id')
+    ).annotate(
+        my_earnings=Subquery(
+            my_pay, output_field=DecimalField(max_digits=12, decimal_places=2))
+    )
     completed_requests = all_requests.filter(status='completed')
-    
+
     from django.db.models import Sum, Avg, Count
     total_assignments = all_requests.count()
     completed_jobs = completed_requests.count()
-    total_earnings = completed_requests.aggregate(total=Sum('total_price'))['total'] or 0
+    total_earnings = completed_requests.aggregate(total=Sum('my_earnings'))['total'] or 0
     avg_rating = completed_requests.filter(client_rating__isnull=False).aggregate(avg=Avg('client_rating'))['avg'] or 0
     success_rate = (completed_jobs / total_assignments * 100) if total_assignments > 0 else 0
     
@@ -579,7 +609,7 @@ def export_analytics_csv(request):
             job.category.name if job.category else 'N/A',
             job.client.get_full_name(),
             job.title,
-            f'{job.total_price:.2f}' if job.total_price else '0.00',
+            f'{job.my_earnings:.2f}' if job.my_earnings else '0.00',
             job.client_rating if job.client_rating else 'N/A',
             job.updated_at.strftime('%Y-%m-%d') if job.updated_at else 'N/A'
         ])
@@ -590,7 +620,7 @@ def export_analytics_csv(request):
     category_earnings = completed_requests.values(
         'category__name'
     ).annotate(
-        earnings=Sum('total_price'),
+        earnings=Sum('my_earnings'),
         jobs=Count('id')
     ).order_by('-earnings')
     

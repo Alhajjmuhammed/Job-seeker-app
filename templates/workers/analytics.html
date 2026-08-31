@@ -426,7 +426,7 @@
                                             </span>
                                         </td>
                                         <td>{{ job.client.get_full_name }}</td>
-                                        <td class="fw-bold text-success">TSH {{ job.total_price|floatformat:0 }}</td>
+                                        <td class="fw-bold text-success">TSH {{ job.my_earnings|floatformat:0 }}</td>
                                         <td class="text-muted small">{{ job.updated_at|date:"M d, Y" }}</td>
                                     </tr>
                                     {% endfor %}

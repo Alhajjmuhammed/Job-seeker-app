@@ -574,25 +574,23 @@ def worker_statistics(request):
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
     # Total services
-    total_services = ServiceRequest.objects.filter(assigned_worker=worker_profile).count()
-    completed_services = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
-        status='completed'
-    ).count()
-    in_progress_services = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
-        status='in_progress'
-    ).count()
+    # Counted from the worker's own assignment rows. The legacy
+    # ServiceRequest.assigned_worker field is never populated by the
+    # assignment flow, so counting on it always returned zero.
+    mine = ServiceRequestAssignment.objects.filter(worker=worker_profile)
+    total_services = mine.count()
+    completed_services = mine.filter(status='completed').count()
+    in_progress_services = mine.filter(status='in_progress').count()
     
     # Total hours and earnings. total_amount is only populated for
     # hourly-rate billing; total_price covers the default daily-rate
     # billing model too, matching workers/api_views.py::worker_stats.
-    stats = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
-        status='completed'
-    ).aggregate(
+    # A worker earns their assignment's worker_payment. total_price is what
+    # the CLIENT pays and includes the platform service fee, so reporting it
+    # as worker income overstates what they actually made.
+    stats = mine.filter(status='completed').aggregate(
         total_hours=Sum('total_hours_worked'),
-        total_earned=Sum('total_price')
+        total_earned=Sum('worker_payment')
     )
     
     total_hours_worked = stats['total_hours'] or 0
@@ -600,13 +598,12 @@ def worker_statistics(request):
     
     # This week stats
     week_start = timezone.now() - timedelta(days=7)
-    week_stats = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
+    week_stats = mine.filter(
         status='completed',
         work_completed_at__gte=week_start
     ).aggregate(
         week_hours=Sum('total_hours_worked'),
-        week_earned=Sum('total_price')
+        week_earned=Sum('worker_payment')
     )
     
     this_week_hours = week_stats['week_hours'] or 0
@@ -614,11 +611,10 @@ def worker_statistics(request):
     
     # Average rating from completed service requests
     from django.db.models import Avg
-    rating_data = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
+    rating_data = mine.filter(
         status='completed',
-        client_rating__isnull=False
-    ).aggregate(avg=Avg('client_rating'))
+        service_request__client_rating__isnull=False
+    ).aggregate(avg=Avg('service_request__client_rating'))
     average_rating = round(rating_data['avg'], 2) if rating_data['avg'] else None
     
     stats_serializer = WorkerStatsSerializer(data={
@@ -649,10 +645,15 @@ def worker_current_assignment(request):
         return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
     # Get current assignment
-    current = ServiceRequest.objects.filter(
-        assigned_worker=worker_profile,
-        status='in_progress'
-    ).select_related('client', 'category').first()
+    # Through the worker's own assignment row; the legacy assigned_worker
+    # field is never populated.
+    active = ServiceRequestAssignment.objects.filter(
+        worker=worker_profile,
+        status__in=('accepted', 'in_progress')
+    ).select_related(
+        'service_request', 'service_request__client', 'service_request__category'
+    ).order_by('-work_started_at', '-assigned_at').first()
+    current = active.service_request if active else None
     
     if not current:
         return Response({'message': 'No active assignment'})

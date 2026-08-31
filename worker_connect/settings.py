@@ -525,10 +525,25 @@ CACHES = {
 }
 
 # Redis cache for production
-if config('REDIS_URL', default=None):
+#
+# This server also hosts another Django project, which runs on Redis db 2 but
+# whose settings fall back to db 0 if its own .env is ever lost. A REDIS_URL
+# with no database path also means db 0, so the two would silently share one
+# keyspace - and cache.clear() is a FLUSHDB, which would wipe the other
+# project's data. Pin an explicit database, and prefix our keys, so neither
+# project can reach the other's.
+_redis_url = config('REDIS_URL', default=None)
+if _redis_url:
+    from urllib.parse import urlparse, urlunparse
+
+    _parts = urlparse(_redis_url)
+    if _parts.path in ('', '/'):
+        _redis_url = urlunparse(_parts._replace(path='/1'))
+
     CACHES['default'] = {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': config('REDIS_URL'),
+        'LOCATION': _redis_url,
+        'KEY_PREFIX': 'wc',
     }
 
 # Custom Exception Handler for standardized error responses

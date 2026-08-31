@@ -400,6 +400,44 @@ class ServiceRequest(models.Model):
 
         return True
 
+    # Work reaches a worker through a ServiceRequestAssignment row. The
+    # legacy assigned_worker column is never populated by that flow, so
+    # anything counting or naming workers has to go through the assignments.
+    LIVE_ASSIGNMENT_STATUSES = ('pending', 'accepted', 'in_progress')
+    DEAD_ASSIGNMENT_STATUSES = ('rejected', 'cancelled')
+
+    @classmethod
+    def with_workers(cls):
+        """Requests that have at least one worker actually on them."""
+        return cls.objects.filter(
+            assignments__status__in=cls.LIVE_ASSIGNMENT_STATUSES + ('completed',)
+        ).distinct()
+
+    @property
+    def active_assignments(self):
+        """Assignment rows still live on this request."""
+        return [a for a in self.assignments.all()
+                if a.status not in self.DEAD_ASSIGNMENT_STATUSES]
+
+    @property
+    def assigned_workers_list(self):
+        """The WorkerProfiles actually working this request."""
+        workers = [a.worker for a in self.active_assignments]
+        if not workers and self.assigned_worker_id:
+            workers = [self.assigned_worker]
+        return workers
+
+    @property
+    def assigned_worker_display(self):
+        """Human-readable name of the worker(s) on this request, or ''."""
+        names = [w.user.get_full_name() or w.user.username
+                 for w in self.assigned_workers_list]
+        if not names:
+            return ''
+        if len(names) == 1:
+            return names[0]
+        return f"{names[0]} +{len(names) - 1} more"
+
     def cancel(self, reason=''):
         """
         Cancel this request: release every active assignment and free up
