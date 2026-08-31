@@ -1,4 +1,5 @@
 {% extends 'workers/base_worker.html' %}
+{% load i18n %}
 {% load static %}
 
 <!-- LEGACY TEMPLATE: Uses old JobRequest system. New development should use ServiceRequest templates. -->
@@ -449,8 +450,8 @@
 <div class="applications-container">
     <!-- Page Header -->
     <div class="page-header">
-        <h1><i class="bi bi-file-earmark-text"></i> My Applications</h1>
-        <p>Track and manage all your job applications in one place</p>
+        <h1><i class="bi bi-file-earmark-text"></i> {% trans "My Applications" %}</h1>
+        <p>{% trans "Track and manage all your job applications in one place" %}</p>
     </div>
 
     <!-- Statistics -->
@@ -461,7 +462,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ total_apps }}</h3>
-                <p>Total Applications</p>
+                <p>{% trans "Total Applications" %}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -470,7 +471,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ pending_apps }}</h3>
-                <p>Pending</p>
+                <p>{% trans "Pending" %}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -479,7 +480,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ accepted_apps }}</h3>
-                <p>Accepted</p>
+                <p>{% trans "Accepted" %}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -488,7 +489,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ rejected_apps }}</h3>
-                <p>Rejected</p>
+                <p>{% trans "Rejected" %}</p>
             </div>
         </div>
     </div>
@@ -537,17 +538,17 @@
                 <div class="job-info">
                     <div class="job-info-item">
                         <i class="bi bi-currency-dollar"></i>
-                        <span class="label">Budget:</span>
+                        <span class="label">{% trans "Budget:" %}</span>
                         <span class="value">TSH {{ app.job.budget }}</span>
                     </div>
                     <div class="job-info-item">
                         <i class="bi bi-clock"></i>
-                        <span class="label">Duration:</span>
+                        <span class="label">{% trans "Duration:" %}</span>
                         <span class="value">{{ app.job.get_duration_display }}</span>
                     </div>
                     <div class="job-info-item">
                         <i class="bi bi-speedometer2"></i>
-                        <span class="label">Job Status:</span>
+                        <span class="label">{% trans "Job Status:" %}</span>
                         <span class="value">{{ app.job.get_status_display }}</span>
                     </div>
                 </div>
@@ -555,7 +556,7 @@
                 <!-- Cover Letter -->
                 {% if app.cover_letter %}
                 <div class="cover-letter">
-                    <h4><i class="bi bi-envelope"></i> Your Cover Letter</h4>
+                    <h4><i class="bi bi-envelope"></i> {% trans "Your Cover Letter" %}</h4>
                     <p>{{ app.cover_letter }}</p>
                 </div>
                 {% endif %}
@@ -573,10 +574,10 @@
                 </div>
                 <div class="application-actions">
                     <a href="{% url 'jobs:job_detail' app.job.pk %}" class="btn-view">
-                        <i class="bi bi-eye"></i> View Job
+                        <i class="bi bi-eye"></i> {% trans "View Job" %}
                     </a>
                     <a href="{% url 'jobs:send_message' app.job.client.id %}" class="btn-message">
-                        <i class="bi bi-chat-dots"></i> Message Client
+                        <i class="bi bi-chat-dots"></i> {% trans "Message Client" %}
                     </a>
                 </div>
             </div>
@@ -586,10 +587,10 @@
     {% else %}
     <div class="empty-state">
         <i class="bi bi-inbox"></i>
-        <h3>No Applications Yet</h3>
-        <p>You haven't applied to any jobs yet. Start browsing available jobs and apply to ones that match your skills!</p>
+        <h3>{% trans "No Applications Yet" %}</h3>
+        <p>{% trans "You haven't applied to any jobs yet. Start browsing available jobs and apply to ones that match your skills!" %}</p>
         <a href="{% url 'jobs:job_list' %}" class="btn-primary">
-            <i class="bi bi-briefcase"></i> Browse Available Jobs
+            <i class="bi bi-briefcase"></i> {% trans "Browse Available Jobs" %}
         </a>
     </div>
     {% endif %}

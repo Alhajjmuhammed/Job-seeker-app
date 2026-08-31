@@ -1,5 +1,6 @@
 {% extends "emails/base.html" %}
 
+{% load i18n %}
 {% block title %}Invoice from Worker Connect{% endblock %}
 
 {% block content %}
@@ -11,34 +12,34 @@
 
 <div class="details-list">
     <div class="item">
-        <span class="label">Invoice Number</span>
+        <span class="label">{% trans "Invoice Number" %}</span>
         <span class="value">{{ invoice.invoice_number }}</span>
     </div>
     <div class="item">
-        <span class="label">Issue Date</span>
+        <span class="label">{% trans "Issue Date" %}</span>
         <span class="value">{{ invoice.issue_date|date:"M d, Y" }}</span>
     </div>
     <div class="item">
-        <span class="label">Due Date</span>
+        <span class="label">{% trans "Due Date" %}</span>
         <span class="value">{{ invoice.due_date|date:"M d, Y" }}</span>
     </div>
     {% if invoice.job %}
     <div class="item">
-        <span class="label">Related Job</span>
+        <span class="label">{% trans "Related Job" %}</span>
         <span class="value">{{ invoice.job.title }}</span>
     </div>
     {% endif %}
 </div>
 
-<h3>Invoice Details</h3>
+<h3>{% trans "Invoice Details" %}</h3>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
     <thead>
         <tr style="background-color: #f3f4f6;">
-            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Description</th>
-            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Qty</th>
-            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Rate</th>
-            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Amount</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">{% trans "Description" %}</th>
+            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">{% trans "Qty" %}</th>
+            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">{% trans "Rate" %}</th>
+            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">{% trans "Amount" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -55,7 +56,7 @@
 
 <div class="details-list" style="background-color: #f0f9ff;">
     <div class="item">
-        <span class="label">Subtotal</span>
+        <span class="label">{% trans "Subtotal" %}</span>
         <span class="value">TSH {{ invoice.subtotal }}</span>
     </div>
     {% if invoice.tax_amount %}
@@ -66,32 +67,32 @@
     {% endif %}
     {% if invoice.discount %}
     <div class="item">
-        <span class="label">Discount</span>
+        <span class="label">{% trans "Discount" %}</span>
         <span class="value">-TSH {{ invoice.discount }}</span>
     </div>
     {% endif %}
     <div class="item" style="font-size: 18px;">
-        <span class="label"><strong>Total Due</strong></span>
+        <span class="label"><strong>{% trans "Total Due" %}</strong></span>
         <span class="value"><strong>TSH {{ invoice.total }}</strong></span>
     </div>
 </div>
 
 {% if invoice.notes %}
 <div class="info-box">
-    <h3>Notes</h3>
+    <h3>{% trans "Notes" %}</h3>
     <p>{{ invoice.notes }}</p>
 </div>
 {% endif %}
 
 <p style="text-align: center;">
-    <a href="{{ payment_url }}" class="btn">Pay Now</a>
-    <a href="{{ invoice_url }}" class="btn btn-secondary" style="margin-left: 10px;">View Invoice</a>
+    <a href="{{ payment_url }}" class="btn">{% trans "Pay Now" %}</a>
+    <a href="{{ invoice_url }}" class="btn btn-secondary" style="margin-left: 10px;">{% trans "View Invoice" %}</a>
 </p>
 
 <p style="color: #6b7280; font-size: 13px;">
     {{ invoice.terms|default:"Payment is due within 30 days of the invoice date." }}
 </p>
 
-<p>Best regards,<br>
+<p>{% trans "Best regards," %}<br>
 <strong>{{ worker_name }}</strong></p>
 {% endblock %}

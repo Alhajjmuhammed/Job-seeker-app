@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
+{% load i18n %}
 {% block title %}Bad Request - Worker Connect{% endblock %}
 
 {% block content %}
 <div class="container py-5 text-center">
     <h1 class="display-1 text-warning">400</h1>
-    <h2 class="mb-4">Bad Request</h2>
-    <p class="lead text-muted mb-4">The request could not be understood by the server.</p>
-    <a href="{% url 'home' %}" class="btn btn-primary">Go Home</a>
+    <h2 class="mb-4">{% trans "Bad Request" %}</h2>
+    <p class="lead text-muted mb-4">{% trans "The request could not be understood by the server." %}</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Go Home" %}</a>
 </div>
 {% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'clients/base_client.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "Direct Hire Requests" %} - Worker Connect{% endblock %}
+{% block page_title %}{% trans "Direct Hire Requests" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <p class="text-muted mb-3">{% trans "Requests you have sent directly to a worker." %}</p>
+
+    <ul class="nav nav-pills mb-3 flex-wrap gap-1">
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'all' %}active{% endif %}"
+               href="?status=all">{% trans "All" %}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}"
+               href="?status=pending">{% trans "Pending" %} ({{ status_counts.pending }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'accepted' %}active{% endif %}"
+               href="?status=accepted">{% trans "Accepted" %} ({{ status_counts.accepted }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'completed' %}active{% endif %}"
+               href="?status=completed">{% trans "Completed" %} ({{ status_counts.completed }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'rejected' %}active{% endif %}"
+               href="?status=rejected">{% trans "Rejected" %} ({{ status_counts.rejected }})</a>
+        </li>
+    </ul>
+
+    {% if hire_requests %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0">{% trans "Worker" %}</th>
+                        <th class="border-0">{% trans "Title" %}</th>
+                        <th class="border-0">{% trans "Amount" %}</th>
+                        <th class="border-0">{% trans "Status" %}</th>
+                        <th class="border-0">{% trans "Sent" %}</th>
+                        <th class="border-0 text-end">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hire in hire_requests %}
+                    <tr>
+                        <td>{{ hire.worker.user.get_full_name|default:hire.worker.user.username }}</td>
+                        <td>{{ hire.title }}</td>
+                        <td>TSH {{ hire.total_amount|floatformat:0 }}</td>
+                        <td>
+                            <span class="badge bg-{% if hire.status == 'accepted' %}success{% elif hire.status == 'completed' %}primary{% elif hire.status == 'rejected' or hire.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                {{ hire.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">{{ hire.created_at|date:"M d, Y" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'jobs:direct_hire_detail' hire.pk %}"
+                               class="btn btn-sm btn-outline-primary">{% trans "View" %}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-send text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-3 mb-0">{% trans "You have not sent any direct hire requests yet." %}</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

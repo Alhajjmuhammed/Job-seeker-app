@@ -1,4 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}Edit User{% endblock %}
@@ -186,8 +187,8 @@
     <div class="form-container">
         <div class="form-card">
             <div class="form-header">
-                <h2><i class="bi bi-pencil-square"></i> Edit User</h2>
-                <p>Update user information</p>
+                <h2><i class="bi bi-pencil-square"></i> {% trans "Edit User" %}</h2>
+                <p>{% trans "Update user information" %}</p>
                 <div class="user-badge">
                     <i class="bi bi-person-circle"></i>
                     <strong>{{ user.get_full_name }}</strong> ({{ user.get_user_type_display }})
@@ -199,58 +200,58 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="first_name" class="required">First Name</label>
+                        <label for="first_name" class="required">{% trans "First Name" %}</label>
                         <input type="text" id="first_name" name="first_name" class="form-control" 
                                value="{{ user.first_name }}" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="last_name" class="required">Last Name</label>
+                        <label for="last_name" class="required">{% trans "Last Name" %}</label>
                         <input type="text" id="last_name" name="last_name" class="form-control" 
                                value="{{ user.last_name }}" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="email" class="required">Email Address</label>
+                    <label for="email" class="required">{% trans "Email Address" %}</label>
                     <input type="email" id="email" name="email" class="form-control" 
                            value="{{ user.email }}" required>
-                    <p class="help-text">This will also be used as the username</p>
+                    <p class="help-text">{% trans "This will also be used as the username" %}</p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="phone_number">Phone Number</label>
+                    <label for="phone_number">{% trans "Phone Number" %}</label>
                     <input type="tel" id="phone_number" name="phone_number" class="form-control" 
-                           value="{{ user.phone_number|default:'' }}" placeholder="+249-XXX-XXXX">
+                           value="{{ user.phone_number|default:'' }}" placeholder="{% trans "+249-XXX-XXXX" %}">
                 </div>
                 
                 <div class="form-group">
-                    <label>User Type</label>
+                    <label>{% trans "User Type" %}</label>
                     <input type="text" class="form-control" value="{{ user.get_user_type_display }}" disabled>
-                    <p class="help-text">User type cannot be changed</p>
+                    <p class="help-text">{% trans "User type cannot be changed" %}</p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">New Password (optional)</label>
+                    <label for="password">{% trans "New Password (optional)" %}</label>
                     <input type="password" id="password" name="password" class="form-control" minlength="8">
-                    <p class="help-text">Leave blank to keep current password. Minimum 8 characters if changing.</p>
+                    <p class="help-text">{% trans "Leave blank to keep current password. Minimum 8 characters if changing." %}</p>
                 </div>
                 
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="is_active" name="is_active" 
                                {% if user.is_active %}checked{% endif %}>
-                        <label for="is_active">Active</label>
+                        <label for="is_active">{% trans "Active" %}</label>
                     </div>
-                    <p class="help-text">Inactive users cannot log in</p>
+                    <p class="help-text">{% trans "Inactive users cannot log in" %}</p>
                 </div>
                 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
-                        <i class="bi bi-check-circle"></i> Save Changes
+                        <i class="bi bi-check-circle"></i> {% trans "Save Changes" %}
                     </button>
                     <a href="{% url 'admin_panel:user_detail' user.id %}" class="btn-secondary">
-                        <i class="bi bi-x-circle"></i> Cancel
+                        <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                     </a>
                 </div>
             </form>

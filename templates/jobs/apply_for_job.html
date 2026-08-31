@@ -1,4 +1,5 @@
 {% extends 'workers/base_worker.html' %}
+{% load i18n %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -147,14 +148,14 @@
 <div class="apply-container">
     <!-- Back Button -->
     <a href="{% url 'jobs:job_detail' job.pk %}" class="back-button">
-        <i class="bi bi-arrow-left"></i> Back to Job Details
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Job Details" %}
     </a>
 
     <div class="content-wrapper">
         <!-- Job Info Card -->
         <div class="info-card">
             <div class="card-header-custom">
-                <i class="bi bi-briefcase"></i> Job Information
+                <i class="bi bi-briefcase"></i> {% trans "Job Information" %}
             </div>
             
             <h4 class="mb-3">{{ job.title }}</h4>
@@ -169,7 +170,7 @@
                 {% endif %}
             </p>
             <div class="border-top pt-3 mt-3">
-                <h6 class="mb-2">Job Description:</h6>
+                <h6 class="mb-2">{% trans "Job Description:" %}</h6>
                 <p class="mb-0">{{ job.description }}</p>
             </div>
         </div>
@@ -177,7 +178,7 @@
         <!-- Application Form -->
         <div class="info-card">
             <div class="card-header-custom card-header-green">
-                <i class="bi bi-send"></i> Submit Your Application
+                <i class="bi bi-send"></i> {% trans "Submit Your Application" %}
             </div>
 
             <form method="post" action="" enctype="multipart/form-data">
@@ -188,14 +189,14 @@
                     <div class="col-md-6">
                         <div class="form-section">
                             <label for="{{ form.cover_letter_file.id_for_label }}" class="form-label">
-                                Upload Application Letter <span class="text-danger">*</span>
+                                {% trans "Upload Application Letter" %} <span class="text-danger">*</span>
                             </label>
                             {{ form.cover_letter_file|add_class:"form-control" }}
                             {% if form.cover_letter_file.errors %}
                                 <div class="text-danger small mt-1">{{ form.cover_letter_file.errors.0 }}</div>
                             {% endif %}
                             <div class="help-text">
-                                <i class="bi bi-info-circle"></i> Accepted formats: PDF, DOC, DOCX (Max 5MB)
+                                <i class="bi bi-info-circle"></i> {% trans "Accepted formats: PDF, DOC, DOCX (Max 5MB)" %}
                             </div>
                         </div>
                     </div>
@@ -203,7 +204,7 @@
                     <div class="col-md-6">
                         <div class="form-section">
                             <label for="{{ form.proposed_rate.id_for_label }}" class="form-label">
-                                Your Proposed Rate (per hour) <span class="text-danger">*</span>
+                                {% trans "Your Proposed Rate (per hour)" %} <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
@@ -212,7 +213,7 @@
                             {% if form.proposed_rate.errors %}
                                 <div class="text-danger small mt-1">{{ form.proposed_rate.errors.0 }}</div>
                             {% endif %}
-                            <div class="help-text">Enter your hourly rate for this job</div>
+                            <div class="help-text">{% trans "Enter your hourly rate for this job" %}</div>
                         </div>
                     </div>
                 </div>
@@ -220,19 +221,19 @@
                 <!-- Row 2: Additional Notes (Full Width) -->
                 <div class="form-section">
                     <label for="{{ form.cover_letter.id_for_label }}" class="form-label">
-                        Additional Notes (Optional)
+                        {% trans "Additional Notes (Optional)" %}
                     </label>
                     {{ form.cover_letter|add_class:"form-control" }}
                     {% if form.cover_letter.errors %}
                         <div class="text-danger small mt-1">{{ form.cover_letter.errors.0 }}</div>
                     {% endif %}
-                    <div class="help-text">Add any brief message or summary if needed</div>
+                    <div class="help-text">{% trans "Add any brief message or summary if needed" %}</div>
                 </div>
 
                 <div class="form-section">
                     <div class="alert-info">
                         <i class="bi bi-info-circle"></i>
-                        <strong>Note:</strong> Once you submit your application, the client will be able to review your profile and contact you if interested.
+                        <strong>{% trans "Note:" %}</strong> {% trans "Once you submit your application, the client will be able to review your profile and contact you if interested." %}
                     </div>
                 </div>
 
@@ -240,12 +241,12 @@
                 <div class="row">
                     <div class="col-6">
                         <a href="{% url 'jobs:job_detail' job.pk %}" class="btn-cancel">
-                            <i class="bi bi-x-circle"></i> Cancel
+                            <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                         </a>
                     </div>
                     <div class="col-6">
                         <button type="submit" class="btn-submit">
-                            <i class="bi bi-send"></i> Submit Application
+                            <i class="bi bi-send"></i> {% trans "Submit Application" %}
                         </button>
                     </div>
                 </div>

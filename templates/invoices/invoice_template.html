@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -286,11 +287,11 @@
         <!-- Header -->
         <div class="invoice-header">
             <div class="company-info">
-                <h1>Worker Connect</h1>
-                <p>Connecting skilled workers with opportunities</p>
+                <h1>{% trans "Worker Connect" %}</h1>
+                <p>{% trans "Connecting skilled workers with opportunities" %}</p>
             </div>
             <div class="invoice-title">
-                <h2>INVOICE</h2>
+                <h2>{% trans "INVOICE" %}</h2>
                 <div class="invoice-number">#{{ invoice.invoice_number }}</div>
                 <span class="status-badge status-{{ invoice.status }}">{{ invoice.status }}</span>
             </div>
@@ -299,12 +300,12 @@
         <!-- Parties -->
         <div class="parties">
             <div class="party-box">
-                <h3>From</h3>
+                <h3>{% trans "From" %}</h3>
                 <div class="name">{{ invoice.worker.user.get_full_name|default:invoice.worker.user.username }}</div>
                 <p>{{ invoice.worker.user.email }}</p>
             </div>
             <div class="party-box">
-                <h3>Bill To</h3>
+                <h3>{% trans "Bill To" %}</h3>
                 <div class="name">{{ invoice.client.user.get_full_name|default:invoice.client.user.username }}</div>
                 <p>{{ invoice.client.user.email }}</p>
             </div>
@@ -314,16 +315,16 @@
         <div class="invoice-details">
             <div class="detail-box">
                 <div class="item">
-                    <span class="label">Invoice Date:</span>
+                    <span class="label">{% trans "Invoice Date:" %}</span>
                     <span class="value">{{ invoice.issue_date|date:"F d, Y" }}</span>
                 </div>
                 <div class="item">
-                    <span class="label">Due Date:</span>
+                    <span class="label">{% trans "Due Date:" %}</span>
                     <span class="value due-date">{{ invoice.due_date|date:"F d, Y" }}</span>
                 </div>
                 {% if invoice.paid_date %}
                 <div class="item">
-                    <span class="label">Paid Date:</span>
+                    <span class="label">{% trans "Paid Date:" %}</span>
                     <span class="value" style="color: #059669;">{{ invoice.paid_date|date:"F d, Y" }}</span>
                 </div>
                 {% endif %}
@@ -334,10 +335,10 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th>Description</th>
-                    <th style="text-align: center;">Qty</th>
-                    <th style="text-align: center;">Rate</th>
-                    <th>Amount</th>
+                    <th>{% trans "Description" %}</th>
+                    <th style="text-align: center;">{% trans "Qty" %}</th>
+                    <th style="text-align: center;">{% trans "Rate" %}</th>
+                    <th>{% trans "Amount" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -350,7 +351,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="text-align: center; color: #999;">No items</td>
+                    <td colspan="4" style="text-align: center; color: #999;">{% trans "No items" %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -360,7 +361,7 @@
         <div class="totals">
             <div class="totals-box">
                 <div class="row subtotal">
-                    <span class="label">Subtotal</span>
+                    <span class="label">{% trans "Subtotal" %}</span>
                     <span class="value">TSH {{ invoice.subtotal }}</span>
                 </div>
                 {% if invoice.tax_amount %}
@@ -371,12 +372,12 @@
                 {% endif %}
                 {% if invoice.discount %}
                 <div class="row">
-                    <span class="label">Discount</span>
+                    <span class="label">{% trans "Discount" %}</span>
                     <span class="value">-TSH {{ invoice.discount }}</span>
                 </div>
                 {% endif %}
                 <div class="row total">
-                    <span>Total Due</span>
+                    <span>{% trans "Total Due" %}</span>
                     <span>TSH {{ invoice.total }}</span>
                 </div>
             </div>
@@ -385,21 +386,21 @@
         {% if invoice.notes %}
         <!-- Notes -->
         <div class="notes">
-            <h4>Notes</h4>
+            <h4>{% trans "Notes" %}</h4>
             <p>{{ invoice.notes }}</p>
         </div>
         {% endif %}
         
         <!-- Terms -->
         <div class="terms">
-            <h4>Terms & Conditions</h4>
+            <h4>{% trans "Terms & Conditions" %}</h4>
             <p>{{ invoice.terms|default:"Payment is due within 30 days of the invoice date. Please make payments to the account specified or through our secure platform." }}</p>
         </div>
         
         <!-- Footer -->
         <div class="invoice-footer">
-            <p>Thank you for your business!</p>
-            <p>Generated by Worker Connect | workerconnect.com</p>
+            <p>{% trans "Thank you for your business!" %}</p>
+            <p>{% trans "Generated by Worker Connect | workerconnect.com" %}</p>
         </div>
     </div>
 </body>

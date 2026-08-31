@@ -666,20 +666,22 @@ def my_direct_hire_requests(request):
         messages.error(request, 'Access denied.')
         return redirect('home')
     
-    # Filter by status
-    status_filter = request.GET.get('status', 'all')
-    if status_filter != 'all':
-        hire_requests = hire_requests.filter(status=status_filter)
-    
-    hire_requests = hire_requests.order_by('-created_at')
-    
-    # Count by status
+    # Count over everything, before the filter is applied. Counting the
+    # filtered queryset made every other tab read zero as soon as one was
+    # selected, so the tabs could not be used to navigate.
     status_counts = {
         'pending': hire_requests.filter(status='pending').count(),
         'accepted': hire_requests.filter(status='accepted').count(),
         'rejected': hire_requests.filter(status='rejected').count(),
         'completed': hire_requests.filter(status='completed').count(),
     }
+
+    # Filter by status
+    status_filter = request.GET.get('status', 'all')
+    if status_filter != 'all':
+        hire_requests = hire_requests.filter(status=status_filter)
+
+    hire_requests = hire_requests.order_by('-created_at')
     
     context = {
         'hire_requests': hire_requests,

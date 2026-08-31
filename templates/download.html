@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Download Worker Connect App{% endblock %}
@@ -211,63 +212,63 @@
     <!-- LEFT: Brand + QR -->
     <div class="dl-left">
         <div class="dl-brand">
-            <img src="{% static 'images/logo.png' %}" alt="Worker Connect" class="dl-logo"
+            <img src="{% static 'images/logo.png' %}" alt="{% trans "Worker Connect" %}" class="dl-logo"
                  onerror="this.src='https://via.placeholder.com/90/0D6E68/fff?text=WC'">
-            <div class="dl-app-name">Worker Connect</div>
-            <div class="dl-app-sub">Connect with skilled workers near you</div>
+            <div class="dl-app-name">{% trans "Worker Connect" %}</div>
+            <div class="dl-app-sub">{% trans "Connect with skilled workers near you" %}</div>
             <div class="dl-pills">
-                <span class="dl-pill"><i class="bi bi-android2"></i> Android</span>
+                <span class="dl-pill"><i class="bi bi-android2"></i> {% trans "Android" %}</span>
                 <span class="dl-pill">v{{ app_version }}</span>
-                <span class="dl-pill"><i class="bi bi-shield-fill-check"></i> Safe</span>
-                <span class="dl-pill"><i class="bi bi-gift-fill"></i> Free</span>
+                <span class="dl-pill"><i class="bi bi-shield-fill-check"></i> {% trans "Safe" %}</span>
+                <span class="dl-pill"><i class="bi bi-gift-fill"></i> {% trans "Free" %}</span>
             </div>
         </div>
 
         <div class="dl-qr-card">
-            <div class="dl-qr-label"><i class="bi bi-qr-code-scan"></i> Scan to Download</div>
+            <div class="dl-qr-label"><i class="bi bi-qr-code-scan"></i> {% trans "Scan to Download" %}</div>
             <div id="qrcode"></div>
-            <div class="dl-qr-hint">Point your camera at the code above</div>
+            <div class="dl-qr-hint">{% trans "Point your camera at the code above" %}</div>
         </div>
     </div>
 
     <!-- RIGHT: Content -->
     <div class="dl-right">
         <div>
-            <div class="dl-title">Download the<br>Mobile App</div>
-            <p class="dl-desc">Get instant access to thousands of verified workers — hire, chat, pay, and review, all from your phone.</p>
+            <div class="dl-title">{% trans "Download the" %}<br>{% trans "Mobile App" %}</div>
+            <p class="dl-desc">{% trans "Get instant access to thousands of verified workers — hire, chat, pay, and review, all from your phone." %}</p>
         </div>
 
         <a href="{{ apk_url }}" class="btn-dl" id="downloadBtn">
             <i class="bi bi-android2 btn-dl-icon"></i>
             <div class="btn-dl-text">
-                <div class="btn-dl-main-text">Download for Android</div>
+                <div class="btn-dl-main-text">{% trans "Download for Android" %}</div>
                 <div class="btn-dl-sub-text">{{ apk_size }} &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; Free</div>
             </div>
         </a>
 
         <div class="dl-meta">
-            <div class="dl-meta-item"><i class="bi bi-shield-fill-check"></i> Virus-free &amp; safe</div>
-            <div class="dl-meta-item"><i class="bi bi-download"></i> Direct APK install</div>
-            <div class="dl-meta-item"><i class="bi bi-arrow-repeat"></i> Free updates</div>
+            <div class="dl-meta-item"><i class="bi bi-shield-fill-check"></i> {% trans "Virus-free &amp; safe" %}</div>
+            <div class="dl-meta-item"><i class="bi bi-download"></i> {% trans "Direct APK install" %}</div>
+            <div class="dl-meta-item"><i class="bi bi-arrow-repeat"></i> {% trans "Free updates" %}</div>
         </div>
 
         <div class="dl-steps-card">
-            <div class="dl-steps-title"><i class="bi bi-list-ol"></i> How to Install</div>
+            <div class="dl-steps-title"><i class="bi bi-list-ol"></i> {% trans "How to Install" %}</div>
             <div class="dl-steps-list">
-                <div class="dl-step"><div class="dl-step-n">1</div><div class="dl-step-t">Tap <strong>Download for Android</strong> above to save the file</div></div>
-                <div class="dl-step"><div class="dl-step-n">2</div><div class="dl-step-t">Open the <strong>.apk</strong> file from your downloads or notification bar</div></div>
-                <div class="dl-step"><div class="dl-step-n">3</div><div class="dl-step-t">If prompted, allow <strong>Install from Unknown Sources</strong> in settings</div></div>
-                <div class="dl-step"><div class="dl-step-n">4</div><div class="dl-step-t">Tap <strong>Install</strong>, then open Worker Connect and sign up!</div></div>
+                <div class="dl-step"><div class="dl-step-n">1</div><div class="dl-step-t">{% trans "Tap" %} <strong>{% trans "Download for Android" %}</strong> {% trans "above to save the file" %}</div></div>
+                <div class="dl-step"><div class="dl-step-n">2</div><div class="dl-step-t">{% trans "Open the" %} <strong>{% trans ".apk" %}</strong> {% trans "file from your downloads or notification bar" %}</div></div>
+                <div class="dl-step"><div class="dl-step-n">3</div><div class="dl-step-t">{% trans "If prompted, allow" %} <strong>{% trans "Install from Unknown Sources" %}</strong> {% trans "in settings" %}</div></div>
+                <div class="dl-step"><div class="dl-step-n">4</div><div class="dl-step-t">{% trans "Tap" %} <strong>{% trans "Install" %}</strong>{% trans ", then open Worker Connect and sign up!" %}</div></div>
             </div>
         </div>
 
         <div class="dl-feats">
-            <div class="dl-feat"><i class="bi bi-people-fill"></i> Find skilled workers</div>
-            <div class="dl-feat"><i class="bi bi-send-fill"></i> Post service requests</div>
-            <div class="dl-feat"><i class="bi bi-chat-dots-fill"></i> Real-time chat</div>
-            <div class="dl-feat"><i class="bi bi-credit-card-2-front-fill"></i> Secure payments</div>
-            <div class="dl-feat"><i class="bi bi-geo-alt-fill"></i> Track workers live</div>
-            <div class="dl-feat"><i class="bi bi-star-fill"></i> Rate &amp; review</div>
+            <div class="dl-feat"><i class="bi bi-people-fill"></i> {% trans "Find skilled workers" %}</div>
+            <div class="dl-feat"><i class="bi bi-send-fill"></i> {% trans "Post service requests" %}</div>
+            <div class="dl-feat"><i class="bi bi-chat-dots-fill"></i> {% trans "Real-time chat" %}</div>
+            <div class="dl-feat"><i class="bi bi-credit-card-2-front-fill"></i> {% trans "Secure payments" %}</div>
+            <div class="dl-feat"><i class="bi bi-geo-alt-fill"></i> {% trans "Track workers live" %}</div>
+            <div class="dl-feat"><i class="bi bi-star-fill"></i> {% trans "Rate &amp; review" %}</div>
         </div>
     </div>
 

@@ -1,4 +1,5 @@
 {% extends base_template %}
+{% load i18n %}
 {% load static %}
 
 <!-- LEGACY TEMPLATE: This template uses the old JobRequest system with M2M assigned_workers and budget field. -->
@@ -902,7 +903,7 @@
 {% block content %}
 <div class="job-detail-container">
     <a href="{% url 'jobs:job_list' %}" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to Jobs
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Jobs" %}
     </a>
 
     <div class="job-detail-grid">
@@ -926,7 +927,7 @@
                     {% if job.urgency == 'urgent' %}
                     <div class="job-meta-item" style="color: #dc2626;">
                         <i class="bi bi-exclamation-triangle"></i>
-                        <span><strong>Urgent</strong></span>
+                        <span><strong>{% trans "Urgent" %}</strong></span>
                     </div>
                     {% endif %}
                 </div>
@@ -937,14 +938,14 @@
 
             <!-- Description -->
             <div class="job-section">
-                <h2><i class="bi bi-file-text"></i> Description</h2>
+                <h2><i class="bi bi-file-text"></i> {% trans "Description" %}</h2>
                 <p class="job-description">{{ job.description }}</p>
             </div>
 
             <!-- Requirements -->
             {% if job.requirements %}
             <div class="job-section">
-                <h2><i class="bi bi-list-check"></i> Requirements</h2>
+                <h2><i class="bi bi-list-check"></i> {% trans "Requirements" %}</h2>
                 <ul class="job-requirements">
                     {% for req in job.requirements.splitlines %}
                         {% if req.strip %}
@@ -968,7 +969,7 @@
                     </span>
                     {% else %}
                     <span style="background: #d1fae5; color: #065f46; padding: 0.375rem 0.75rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600;">
-                        <i class="bi bi-check-circle"></i> Fully Staffed
+                        <i class="bi bi-check-circle"></i> {% trans "Fully Staffed" %}
                     </span>
                     {% endif %}
                 </div>
@@ -993,7 +994,7 @@
                                     </a>
                                 </h4>
                                 <p class="worker-status">
-                                    <i class="bi bi-check-circle-fill"></i> Assigned Worker
+                                    <i class="bi bi-check-circle-fill"></i> {% trans "Assigned Worker" %}
                                 </p>
                                 <div class="worker-rating">
                                     {% if worker.average_rating %}
@@ -1005,12 +1006,12 @@
                                         <span class="rating-text">{{ worker.average_rating|floatformat:1 }}/5.0</span>
                                         <span class="rating-count">({{ worker.total_ratings }} review{{ worker.total_ratings|pluralize }})</span>
                                     {% else %}
-                                        <span class="no-rating">No ratings yet</span>
+                                        <span class="no-rating">{% trans "No ratings yet" %}</span>
                                     {% endif %}
                                 </div>
                             </div>
                             <span class="active-badge">
-                                <i class="bi bi-person-check"></i> Active
+                                <i class="bi bi-person-check"></i> {% trans "Active" %}
                             </span>
                         </div>
 
@@ -1018,10 +1019,10 @@
 
                         <div class="worker-actions">
                             <a href="{% url 'workers:public_profile' worker.id %}" class="btn-profile">
-                                <i class="bi bi-eye"></i> View Profile
+                                <i class="bi bi-eye"></i> {% trans "View Profile" %}
                             </a>
                             <a href="{% url 'jobs:conversation' job.id %}" class="btn-message">
-                                <i class="bi bi-chat-dots"></i> Message
+                                <i class="bi bi-chat-dots"></i> {% trans "Message" %}
                             </a>
                         </div>
                     </div>
@@ -1029,7 +1030,7 @@
                 {% else %}
                     <div style="text-align: center; padding: 3rem 1rem; background: #f9fafb; border-radius: 12px; border: 2px dashed #d1d5db;">
                         <i class="bi bi-people" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
-                        <h3 style="color: #374151; margin-bottom: 0.5rem;">No Workers Assigned Yet</h3>
+                        <h3 style="color: #374151; margin-bottom: 0.5rem;">{% trans "No Workers Assigned Yet" %}</h3>
                         <p style="color: #6b7280; margin: 0;">
                             This job needs {{ job.workers_needed }} worker{{ job.workers_needed|pluralize }}. 
                             Admin will assign suitable workers soon.
@@ -1045,24 +1046,24 @@
             <div class="sidebar-card">
                 <div class="budget-display">
                     <span class="budget-amount">TSH {{ job.budget }}</span>
-                    <p class="budget-label">Project Budget</p>
+                    <p class="budget-label">{% trans "Project Budget" %}</p>
                 </div>
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">
-                            <i class="bi bi-clock"></i> Duration
+                            <i class="bi bi-clock"></i> {% trans "Duration" %}
                         </span>
                         <span class="info-value">{{ job.duration_days }} day{{ job.duration_days|pluralize }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">
-                            <i class="bi bi-flag"></i> Urgency
+                            <i class="bi bi-flag"></i> {% trans "Urgency" %}
                         </span>
                         <span class="info-value">{{ job.get_urgency_display }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">
-                            <i class="bi bi-calendar-check"></i> Posted
+                            <i class="bi bi-calendar-check"></i> {% trans "Posted" %}
                         </span>
                         <span class="info-value">{{ job.created_at|date:"M d, Y" }}</span>
                     </div>
@@ -1072,7 +1073,7 @@
             <!-- Client Info (Worker View) -->
             {% if user.is_worker %}
             <div class="sidebar-card">
-                <h3><i class="bi bi-person-circle"></i> Client Info</h3>
+                <h3><i class="bi bi-person-circle"></i> {% trans "Client Info" %}</h3>
                 <div class="client-info">
                     <div class="client-avatar">
                         {{ job.client.get_full_name|first|upper }}
@@ -1082,7 +1083,7 @@
                         <p>{{ job.client.email }}</p>
                         <div class="client-stats">
                             <span class="client-stat">
-                                <strong>{{ job.client.client_profile.total_jobs_posted }}</strong> jobs posted
+                                <strong>{{ job.client.client_profile.total_jobs_posted }}</strong> {% trans "jobs posted" %}
                             </span>
                         </div>
                     </div>
@@ -1091,37 +1092,37 @@
 
             <!-- Action Buttons (Worker) -->
             <div class="sidebar-card">
-                <h3><i class="bi bi-lightning"></i> Actions</h3>
+                <h3><i class="bi bi-lightning"></i> {% trans "Actions" %}</h3>
                 <div class="action-buttons">
                     {% if request.user.worker_profile.verification_status == 'rejected' %}
                         <div class="alert alert-danger">
                             <i class="bi bi-x-circle-fill"></i>
-                            <span><strong>Profile Rejected</strong><br>Please contact admin for support.</span>
+                            <span><strong>{% trans "Profile Rejected" %}</strong><br>{% trans "Please contact admin for support." %}</span>
                         </div>
                     {% elif request.user.worker_profile.verification_status == 'pending' %}
                         <div class="alert alert-warning">
                             <i class="bi bi-clock-fill"></i>
-                            <span><strong>Verification Pending</strong><br>Complete your profile to be considered for jobs.</span>
+                            <span><strong>{% trans "Verification Pending" %}</strong><br>{% trans "Complete your profile to be considered for jobs." %}</span>
                         </div>
                         <a href="{% url 'workers:profile_edit' %}" class="btn-secondary">
-                            <i class="bi bi-person-check"></i> Complete Profile
+                            <i class="bi bi-person-check"></i> {% trans "Complete Profile" %}
                         </a>
                     {% endif %}
                     
                     {% if job.status == 'open' %}
                         <div class="alert-info">
                             <i class="bi bi-info-circle-fill"></i>
-                            <span>Interested in this job? Contact admin to be assigned.</span>
+                            <span>{% trans "Interested in this job? Contact admin to be assigned." %}</span>
                         </div>
                     {% else %}
                         <div class="alert alert-warning">
                             <i class="bi bi-lock"></i>
-                            <span>This job is no longer available.</span>
+                            <span>{% trans "This job is no longer available." %}</span>
                         </div>
                     {% endif %}
                     
                     <a href="{% url 'jobs:inbox' %}" class="btn-primary">
-                        <i class="bi bi-chat-dots"></i> Message Admin
+                        <i class="bi bi-chat-dots"></i> {% trans "Message Admin" %}
                     </a>
                 </div>
             </div>
@@ -1130,11 +1131,11 @@
             <!-- Action Buttons (Client) -->
             {% if user.is_client and user == job.client %}
             <div class="sidebar-card">
-                <h3><i class="bi bi-lightning"></i> Manage Job</h3>
+                <h3><i class="bi bi-lightning"></i> {% trans "Manage Job" %}</h3>
                 <div class="action-buttons">
                     {% if job.status != 'completed' %}
                     <a href="{% url 'jobs:job_edit' job.pk %}" class="btn-primary">
-                        <i class="bi bi-pencil"></i> Edit Job
+                        <i class="bi bi-pencil"></i> {% trans "Edit Job" %}
                     </a>
                     {% endif %}
                     
@@ -1142,14 +1143,14 @@
                     <form method="post" action="{% url 'jobs:job_close' job.pk %}" style="margin: 0;">
                         {% csrf_token %}
                         <button type="submit" class="btn-danger" style="width: 100%;">
-                            <i class="bi bi-x-circle"></i> Close Job
+                            <i class="bi bi-x-circle"></i> {% trans "Close Job" %}
                         </button>
                     </form>
                     {% endif %}
                     
                     {% if job.status == 'completed' %}
                     <button type="button" class="btn-danger" style="width: 100%;" data-bs-toggle="modal" data-bs-target="#deleteJobModal">
-                        <i class="bi bi-trash"></i> Delete Job
+                        <i class="bi bi-trash"></i> {% trans "Delete Job" %}
                     </button>
                     {% endif %}
                 </div>
@@ -1166,15 +1167,15 @@
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title" id="deleteJobModalLabel">
-                    <i class="bi bi-exclamation-triangle text-danger"></i> Delete Job
+                    <i class="bi bi-exclamation-triangle text-danger"></i> {% trans "Delete Job" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning mb-3">
-                    <i class="bi bi-info-circle"></i> This action cannot be undone.
+                    <i class="bi bi-info-circle"></i> {% trans "This action cannot be undone." %}
                 </div>
-                <p class="mb-2">Are you sure you want to delete this job?</p>
+                <p class="mb-2">{% trans "Are you sure you want to delete this job?" %}</p>
                 <div class="bg-light p-3 rounded">
                     <strong>{{ job.title }}</strong>
                     <div class="text-muted small mt-1">
@@ -1182,17 +1183,17 @@
                     </div>
                 </div>
                 <p class="text-muted small mt-3 mb-0">
-                    All job details, applications, and related data will be permanently deleted.
+                    {% trans "All job details, applications, and related data will be permanently deleted." %}
                 </p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x"></i> Cancel
+                    <i class="bi bi-x"></i> {% trans "Cancel" %}
                 </button>
                 <form method="post" action="{% url 'jobs:job_delete' job.pk %}" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Delete Job
+                        <i class="bi bi-trash"></i> {% trans "Delete Job" %}
                     </button>
                 </form>
             </div>

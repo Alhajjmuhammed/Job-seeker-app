@@ -1,4 +1,5 @@
 ﻿{% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Document Reviews - Admin Panel{% endblock %}
@@ -8,14 +9,14 @@
 <div class="row mb-4">
     <div class="col-md-8">
         <h2 class="h4 mb-1">
-            <i class="bi bi-file-earmark-check"></i> Document Verification Queue
+            <i class="bi bi-file-earmark-check"></i> {% trans "Document Verification Queue" %}
         </h2>
-        <p class="text-muted mb-0">Select a worker to review their documents</p>
+        <p class="text-muted mb-0">{% trans "Select a worker to review their documents" %}</p>
     </div>
     <div class="col-md-4 text-end">
         {% if selected_worker %}
         <a href="{% url 'admin_panel:document_verification_list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Workers
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Workers" %}
         </a>
         {% endif %}
     </div>
@@ -27,7 +28,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-warning mb-1">{{ pending_count }}</h3>
-                <small class="text-muted">Pending Review</small>
+                <small class="text-muted">{% trans "Pending Review" %}</small>
             </div>
         </div>
     </div>
@@ -35,7 +36,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-success mb-1">{{ approved_count }}</h3>
-                <small class="text-muted">Approved</small>
+                <small class="text-muted">{% trans "Approved" %}</small>
             </div>
         </div>
     </div>
@@ -43,7 +44,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-danger mb-1">{{ rejected_count }}</h3>
-                <small class="text-muted">Rejected</small>
+                <small class="text-muted">{% trans "Rejected" %}</small>
             </div>
         </div>
     </div>
@@ -51,7 +52,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-info mb-1">{{ total_count }}</h3>
-                <small class="text-muted">Total Documents</small>
+                <small class="text-muted">{% trans "Total Documents" %}</small>
             </div>
         </div>
     </div>
@@ -61,7 +62,7 @@
 <!-- Workers List -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-people"></i> Workers with Documents</h5>
+        <h5 class="mb-0"><i class="bi bi-people"></i> {% trans "Workers with Documents" %}</h5>
     </div>
     <div class="card-body">
         {% if workers_with_docs %}
@@ -69,13 +70,13 @@
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>Worker</th>
-                        <th>Email</th>
-                        <th>Total Documents</th>
-                        <th>Pending</th>
-                        <th>Approved</th>
-                        <th>Rejected</th>
-                        <th class="text-end">Action</th>
+                        <th>{% trans "Worker" %}</th>
+                        <th>{% trans "Email" %}</th>
+                        <th>{% trans "Total Documents" %}</th>
+                        <th>{% trans "Pending" %}</th>
+                        <th>{% trans "Approved" %}</th>
+                        <th>{% trans "Rejected" %}</th>
+                        <th class="text-end">{% trans "Action" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,7 +108,7 @@
                         <td><span class="badge bg-danger">{{ worker.rejected_docs }}</span></td>
                         <td class="text-end">
                             <a href="?worker={{ worker.id }}" class="btn btn-sm btn-primary">
-                                <i class="bi bi-folder-open"></i> View Documents
+                                <i class="bi bi-folder-open"></i> {% trans "View Documents" %}
                             </a>
                         </td>
                     </tr>
@@ -118,7 +119,7 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-inbox fs-1 text-muted"></i>
-            <p class="text-muted mt-3">No workers with documents found</p>
+            <p class="text-muted mt-3">{% trans "No workers with documents found" %}</p>
         </div>
         {% endif %}
     </div>
@@ -163,18 +164,18 @@
                                 <small class="text-muted">@{{ doc.worker.user.username }}</small>
                             </div>
                             {% if doc.verification_status == 'pending' %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending</span>
+                            <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> {% trans "Pending" %}</span>
                             {% elif doc.verification_status == 'approved' %}
-                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Approved</span>
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> {% trans "Approved" %}</span>
                             {% elif doc.verification_status == 'rejected' %}
-                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rejected</span>
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> {% trans "Rejected" %}</span>
                             {% endif %}
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-md-3 mb-3 mb-md-0">
-                                <small class="text-muted d-block mb-1">Document Type</small>
+                                <small class="text-muted d-block mb-1">{% trans "Document Type" %}</small>
                                 <p class="mb-0 fw-bold">
                                     {% if doc.document_type == 'cv' %}
                                     <i class="bi bi-file-earmark-text text-primary"></i> CV/Resume
@@ -190,22 +191,22 @@
                                 </p>
                             </div>
                             <div class="col-md-3 mb-3 mb-md-0">
-                                <small class="text-muted d-block mb-1">Uploaded</small>
+                                <small class="text-muted d-block mb-1">{% trans "Uploaded" %}</small>
                                 <p class="mb-0">{{ doc.uploaded_at|date:"M d, Y" }}</p>
                             </div>
                             <div class="col-md-6">
                                 <div class="d-flex gap-2">
                                     <a href="{{ doc.file.url }}" target="_blank" class="btn btn-outline-primary btn-sm flex-fill">
-                                        <i class="bi bi-download"></i> View/Download
+                                        <i class="bi bi-download"></i> {% trans "View/Download" %}
                                     </a>
                                     {% if doc.verification_status == 'pending' %}
                                     <button type="button" class="btn btn-success btn-sm flex-fill" data-bs-toggle="modal" 
                                             data-bs-target="#approveModal{{ doc.id }}">
-                                        <i class="bi bi-check-lg"></i> Approve
+                                        <i class="bi bi-check-lg"></i> {% trans "Approve" %}
                                     </button>
                                     <button type="button" class="btn btn-danger btn-sm flex-fill" data-bs-toggle="modal" 
                                             data-bs-target="#rejectModal{{ doc.id }}">
-                                        <i class="bi bi-x-lg"></i> Reject
+                                        <i class="bi bi-x-lg"></i> {% trans "Reject" %}
                                     </button>
                                     {% endif %}
                                 </div>
@@ -214,19 +215,19 @@
                         
                         {% if doc.title %}
                         <div class="mt-3">
-                            <small class="text-muted d-block mb-1">Title</small>
+                            <small class="text-muted d-block mb-1">{% trans "Title" %}</small>
                             <p class="mb-0">{{ doc.title }}</p>
                         </div>
                         {% endif %}
                         
                         {% if doc.verification_status == 'rejected' and doc.rejection_reason %}
                         <div class="alert alert-danger mt-3 mb-0">
-                            <small><strong><i class="bi bi-exclamation-triangle"></i> Rejection Reason:</strong></small>
+                            <small><strong><i class="bi bi-exclamation-triangle"></i> {% trans "Rejection Reason:" %}</strong></small>
                             <p class="mb-0 small mt-1">{{ doc.rejection_reason }}</p>
                         </div>
                         {% elif doc.verification_notes %}
                         <div class="alert alert-info mt-3 mb-0">
-                            <small><strong><i class="bi bi-info-circle"></i> Admin Notes:</strong></small>
+                            <small><strong><i class="bi bi-info-circle"></i> {% trans "Admin Notes:" %}</strong></small>
                             <p class="mb-0 small mt-1">{{ doc.verification_notes }}</p>
                         </div>
                         {% endif %}
@@ -242,21 +243,21 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="approve">
                             <div class="modal-header bg-success text-white">
-                                <h5 class="modal-title"><i class="bi bi-check-circle"></i> Approve Document</h5>
+                                <h5 class="modal-title"><i class="bi bi-check-circle"></i> {% trans "Approve Document" %}</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <p>Approve document from <strong>{{ doc.worker.user.get_full_name }}</strong>?</p>
+                                <p>{% trans "Approve document from" %} <strong>{{ doc.worker.user.get_full_name }}</strong>?</p>
                                 <div class="mb-3">
-                                    <label for="notes{{ doc.id }}" class="form-label">Notes (optional)</label>
+                                    <label for="notes{{ doc.id }}" class="form-label">{% trans "Notes (optional)" %}</label>
                                     <textarea class="form-control" id="notes{{ doc.id }}" name="notes" rows="2" 
                                               placeholder="Add any verification notes..."></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-lg"></i> Approve Document
+                                    <i class="bi bi-check-lg"></i> {% trans "Approve Document" %}
                                 </button>
                             </div>
                         </form>
@@ -272,22 +273,22 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="reject">
                             <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject Document</h5>
+                                <h5 class="modal-title"><i class="bi bi-x-circle"></i> {% trans "Reject Document" %}</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <p>Reject document from <strong>{{ doc.worker.user.get_full_name }}</strong>?</p>
+                                <p>{% trans "Reject document from" %} <strong>{{ doc.worker.user.get_full_name }}</strong>?</p>
                                 <div class="mb-3">
-                                    <label for="reject_reason{{ doc.id }}" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                                    <label for="reject_reason{{ doc.id }}" class="form-label">{% trans "Rejection Reason" %} <span class="text-danger">*</span></label>
                                     <textarea class="form-control" id="reject_reason{{ doc.id }}" name="reason" rows="3" 
                                               placeholder="Explain why this document is being rejected..." required></textarea>
-                                    <small class="text-muted">This will be visible to the worker</small>
+                                    <small class="text-muted">{% trans "This will be visible to the worker" %}</small>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                                 <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-x-lg"></i> Reject Document
+                                    <i class="bi bi-x-lg"></i> {% trans "Reject Document" %}
                                 </button>
                             </div>
                         </form>
@@ -299,7 +300,7 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-inbox fs-1 text-muted"></i>
-            <p class="text-muted mt-3">No documents found for this worker</p>
+            <p class="text-muted mt-3">{% trans "No documents found for this worker" %}</p>
         </div>
         {% endif %}
     </div>
@@ -308,7 +309,7 @@
 <!-- Worker Verification Section -->
 <div class="card border-0 shadow-sm mt-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-person-check"></i> Worker Verification</h5>
+        <h5 class="mb-0"><i class="bi bi-person-check"></i> {% trans "Worker Verification" %}</h5>
     </div>
     <div class="card-body">
         <div class="row align-items-center">
@@ -330,11 +331,11 @@
                         <p class="mb-0 text-muted">@{{ selected_worker.user.username }}</p>
                         <div class="mt-1">
                             {% if selected_worker.verification_status == 'verified' %}
-                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Verified</span>
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> {% trans "Verified" %}</span>
                             {% elif selected_worker.verification_status == 'pending' %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending Verification</span>
+                            <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> {% trans "Pending Verification" %}</span>
                             {% elif selected_worker.verification_status == 'rejected' %}
-                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rejected</span>
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> {% trans "Rejected" %}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -346,14 +347,14 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="verify">
                     <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-check-circle"></i> Verify Worker
+                        <i class="bi bi-check-circle"></i> {% trans "Verify Worker" %}
                     </button>
                 </form>
                 {% endif %}
                 {% if selected_worker.verification_status != 'rejected' %}
                 <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" 
                         data-bs-target="#rejectWorkerModal">
-                    <i class="bi bi-x-circle"></i> Reject Worker
+                    <i class="bi bi-x-circle"></i> {% trans "Reject Worker" %}
                 </button>
                 {% endif %}
             </div>
@@ -362,19 +363,19 @@
         <div class="mt-3 pt-3 border-top">
             <div class="row">
                 <div class="col-6 col-md-3">
-                    <small class="text-muted d-block">Email</small>
+                    <small class="text-muted d-block">{% trans "Email" %}</small>
                     <p class="mb-2">{{ selected_worker.user.email }}</p>
                 </div>
                 <div class="col-6 col-md-3">
-                    <small class="text-muted d-block">Phone</small>
+                    <small class="text-muted d-block">{% trans "Phone" %}</small>
                     <p class="mb-2">{{ selected_worker.user.phone_number|default:"-" }}</p>
                 </div>
                 <div class="col-6 col-md-3">
-                    <small class="text-muted d-block">Experience</small>
+                    <small class="text-muted d-block">{% trans "Experience" %}</small>
                     <p class="mb-2">{{ selected_worker.experience_years }} years</p>
                 </div>
                 <div class="col-6 col-md-3">
-                    <small class="text-muted d-block">Profile Completion</small>
+                    <small class="text-muted d-block">{% trans "Profile Completion" %}</small>
                     <p class="mb-2">{{ selected_worker.profile_completion }}%</p>
                 </div>
             </div>
@@ -390,22 +391,22 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reject">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject Worker</h5>
+                    <h5 class="modal-title"><i class="bi bi-x-circle"></i> {% trans "Reject Worker" %}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to reject <strong>{{ selected_worker.user.get_full_name }}</strong>?</p>
+                    <p>{% trans "Are you sure you want to reject" %} <strong>{{ selected_worker.user.get_full_name }}</strong>?</p>
                     <div class="mb-3">
-                        <label for="reject_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <label for="reject_reason" class="form-label">{% trans "Rejection Reason" %} <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="reject_reason" name="reason" rows="3" 
                                   placeholder="Explain why this worker is being rejected..." required></textarea>
-                        <small class="text-muted">This will be visible to the worker</small>
+                        <small class="text-muted">{% trans "This will be visible to the worker" %}</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-x-lg"></i> Reject Worker
+                        <i class="bi bi-x-lg"></i> {% trans "Reject Worker" %}
                     </button>
                 </div>
             </form>

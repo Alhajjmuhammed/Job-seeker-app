@@ -1,5 +1,6 @@
 {% extends 'admin_panel/base_admin.html' %}
 
+{% load i18n %}
 {% block title %}System Overview - Admin Panel{% endblock %}
 {% block page_title %}System Overview{% endblock %}
 
@@ -205,23 +206,23 @@
 <!-- User Metrics -->
 <h2 class="section-header">
     <i class="bi bi-people-fill"></i>
-    User Metrics
+    {% trans "User Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Users</h3>
+        <h3>{% trans "Total Users" %}</h3>
         <p class="stat-value">{{ total_users }}</p>
     </div>
     <div class="stat-card highlight-teal">
-        <h3>New Today</h3>
+        <h3>{% trans "New Today" %}</h3>
         <p class="stat-value">{{ new_users_today }}</p>
     </div>
     <div class="stat-card highlight-blue">
-        <h3>New This Week</h3>
+        <h3>{% trans "New This Week" %}</h3>
         <p class="stat-value">{{ new_users_week }}</p>
     </div>
     <div class="stat-card">
-        <h3>New This Month</h3>
+        <h3>{% trans "New This Month" %}</h3>
         <p class="stat-value">{{ new_users_month }}</p>
     </div>
 </div>
@@ -229,24 +230,24 @@
 <!-- Worker Metrics -->
 <h2 class="section-header">
     <i class="bi bi-person-workspace"></i>
-    Worker Metrics
+    {% trans "Worker Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Workers</h3>
+        <h3>{% trans "Total Workers" %}</h3>
         <p class="stat-value">{{ total_workers }}</p>
     </div>
     <div class="stat-card highlight-green">
-        <h3>Verified</h3>
+        <h3>{% trans "Verified" %}</h3>
         <p class="stat-value">{{ verified_workers }}</p>
         <p class="stat-subtitle">{{ verified_workers }} of {{ total_workers }}</p>
     </div>
     <div class="stat-card highlight-blue">
-        <h3>Available</h3>
+        <h3>{% trans "Available" %}</h3>
         <p class="stat-value">{{ available_workers }}</p>
     </div>
     <div class="stat-card highlight-yellow">
-        <h3>Pending Verification</h3>
+        <h3>{% trans "Pending Verification" %}</h3>
         <p class="stat-value">{{ pending_verification }}</p>
     </div>
 </div>
@@ -254,59 +255,59 @@
 <!-- Client Metrics -->
 <h2 class="section-header">
     <i class="bi bi-briefcase-fill"></i>
-    Client Metrics
+    {% trans "Client Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Clients</h3>
+        <h3>{% trans "Total Clients" %}</h3>
         <p class="stat-value">{{ total_clients }}</p>
     </div>
     <div class="stat-card highlight-green">
-        <h3>Active Clients</h3>
+        <h3>{% trans "Active Clients" %}</h3>
         <p class="stat-value">{{ active_clients }}</p>
-        <p class="stat-subtitle">Posted at least one job</p>
+        <p class="stat-subtitle">{% trans "Posted at least one job" %}</p>
     </div>
 </div>
 
 <!-- Job Metrics -->
 <h2 class="section-header">
     <i class="bi bi-briefcase"></i>
-    Job Metrics
+    {% trans "Job Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Jobs</h3>
+        <h3>{% trans "Total Jobs" %}</h3>
         <p class="stat-value">{{ total_jobs }}</p>
     </div>
     <div class="stat-card highlight-blue">
-        <h3>Open Jobs</h3>
+        <h3>{% trans "Open Jobs" %}</h3>
         <p class="stat-value">{{ open_jobs }}</p>
     </div>
     <div class="stat-card highlight-yellow">
-        <h3>In Progress</h3>
+        <h3>{% trans "In Progress" %}</h3>
         <p class="stat-value">{{ in_progress_jobs }}</p>
     </div>
     <div class="stat-card highlight-green">
-        <h3>Completed</h3>
+        <h3>{% trans "Completed" %}</h3>
         <p class="stat-value">{{ completed_jobs }}</p>
     </div>
     <div class="stat-card highlight-red">
-        <h3>Cancelled</h3>
+        <h3>{% trans "Cancelled" %}</h3>
         <p class="stat-value">{{ cancelled_jobs }}</p>
     </div>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card highlight-teal">
-        <h3>Jobs Today</h3>
+        <h3>{% trans "Jobs Today" %}</h3>
         <p class="stat-value">{{ jobs_today }}</p>
     </div>
     <div class="stat-card">
-        <h3>Jobs This Week</h3>
+        <h3>{% trans "Jobs This Week" %}</h3>
         <p class="stat-value">{{ jobs_week }}</p>
     </div>
     <div class="stat-card">
-        <h3>Jobs This Month</h3>
+        <h3>{% trans "Jobs This Month" %}</h3>
         <p class="stat-value">{{ jobs_month }}</p>
     </div>
 </div>
@@ -314,23 +315,23 @@
 <!-- Application Metrics -->
 <h2 class="section-header">
     <i class="bi bi-file-earmark-text"></i>
-    Application Metrics
+    {% trans "Application Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Applications</h3>
+        <h3>{% trans "Total Applications" %}</h3>
         <p class="stat-value">{{ total_applications }}</p>
     </div>
     <div class="stat-card highlight-yellow">
-        <h3>Pending</h3>
+        <h3>{% trans "Pending" %}</h3>
         <p class="stat-value">{{ pending_applications }}</p>
     </div>
     <div class="stat-card highlight-green">
-        <h3>Accepted</h3>
+        <h3>{% trans "Accepted" %}</h3>
         <p class="stat-value">{{ accepted_applications }}</p>
     </div>
     <div class="stat-card highlight-red">
-        <h3>Rejected</h3>
+        <h3>{% trans "Rejected" %}</h3>
         <p class="stat-value">{{ rejected_applications }}</p>
     </div>
 </div>
@@ -338,20 +339,20 @@
 <!-- Rating Metrics -->
 <h2 class="section-header">
     <i class="bi bi-star-fill"></i>
-    Rating Metrics
+    {% trans "Rating Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Ratings</h3>
+        <h3>{% trans "Total Ratings" %}</h3>
         <p class="stat-value">{{ total_ratings }}</p>
     </div>
     <div class="stat-card highlight-yellow">
-        <h3>Average Rating</h3>
+        <h3>{% trans "Average Rating" %}</h3>
         <p class="stat-value">{{ avg_rating }}</p>
-        <p class="stat-subtitle">Out of 5.0</p>
+        <p class="stat-subtitle">{% trans "Out of 5.0" %}</p>
     </div>
     <div class="stat-card highlight-teal">
-        <h3>Ratings This Week</h3>
+        <h3>{% trans "Ratings This Week" %}</h3>
         <p class="stat-value">{{ ratings_week }}</p>
     </div>
 </div>
@@ -359,41 +360,41 @@
 <!-- Financial Metrics -->
 <h2 class="section-header">
     <i class="bi bi-cash-stack"></i>
-    Financial Metrics
+    {% trans "Financial Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Budget</h3>
+        <h3>{% trans "Total Budget" %}</h3>
         <p class="stat-value">TSH {{ total_budget|floatformat:0 }}</p>
-        <p class="stat-subtitle">All jobs combined</p>
+        <p class="stat-subtitle">{% trans "All jobs combined" %}</p>
     </div>
     <div class="stat-card highlight-green">
-        <h3>Completed Budget</h3>
+        <h3>{% trans "Completed Budget" %}</h3>
         <p class="stat-value">TSH {{ completed_budget|floatformat:0 }}</p>
-        <p class="stat-subtitle">Finished jobs only</p>
+        <p class="stat-subtitle">{% trans "Finished jobs only" %}</p>
     </div>
 </div>
 
 <!-- Document Metrics -->
 <h2 class="section-header">
     <i class="bi bi-file-earmark-check"></i>
-    Document Metrics
+    {% trans "Document Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Documents</h3>
+        <h3>{% trans "Total Documents" %}</h3>
         <p class="stat-value">{{ total_documents }}</p>
     </div>
     <div class="stat-card highlight-yellow">
-        <h3>Pending Review</h3>
+        <h3>{% trans "Pending Review" %}</h3>
         <p class="stat-value">{{ pending_documents }}</p>
     </div>
     <div class="stat-card highlight-green">
-        <h3>Approved</h3>
+        <h3>{% trans "Approved" %}</h3>
         <p class="stat-value">{{ approved_documents }}</p>
     </div>
     <div class="stat-card highlight-red">
-        <h3>Rejected</h3>
+        <h3>{% trans "Rejected" %}</h3>
         <p class="stat-value">{{ rejected_documents }}</p>
     </div>
 </div>
@@ -401,15 +402,15 @@
 <!-- Message Metrics -->
 <h2 class="section-header">
     <i class="bi bi-chat-dots-fill"></i>
-    Message Metrics
+    {% trans "Message Metrics" %}
 </h2>
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Messages</h3>
+        <h3>{% trans "Total Messages" %}</h3>
         <p class="stat-value">{{ total_messages }}</p>
     </div>
     <div class="stat-card highlight-teal">
-        <h3>Messages Today</h3>
+        <h3>{% trans "Messages Today" %}</h3>
         <p class="stat-value">{{ messages_today }}</p>
     </div>
 </div>
@@ -419,14 +420,14 @@
     <div class="col-md-4">
         <!-- Most Popular Categories -->
         <div class="info-card">
-            <h5><i class="bi bi-grid-3x3"></i>Most Popular Categories</h5>
+            <h5><i class="bi bi-grid-3x3"></i>{% trans "Most Popular Categories" %}</h5>
             {% for category in most_popular_categories %}
             <div class="category-item">
                 <span class="category-name">{{ category.name }}</span>
                 <span class="category-count">{{ category.job_count }} jobs</span>
             </div>
             {% empty %}
-            <p class="text-muted text-center py-3">No categories yet</p>
+            <p class="text-muted text-center py-3">{% trans "No categories yet" %}</p>
             {% endfor %}
         </div>
     </div>
@@ -434,7 +435,7 @@
     <div class="col-md-8">
         <!-- Recent Activity -->
         <div class="info-card">
-            <h5><i class="bi bi-activity"></i>Recent Activity</h5>
+            <h5><i class="bi bi-activity"></i>{% trans "Recent Activity" %}</h5>
             <div class="activity-list">
                 <!-- Recent Users -->
                 {% for user in recent_users %}
@@ -443,13 +444,13 @@
                         <i class="bi bi-person-plus"></i>
                     </div>
                     <div class="activity-content">
-                        <h6>New User Registered</h6>
+                        <h6>{% trans "New User Registered" %}</h6>
                         <p>
                             {{ user.get_full_name|default:user.username }} joined
                             {% if user.is_worker %}
-                                <span class="badge badge-primary">Worker</span>
+                                <span class="badge badge-primary">{% trans "Worker" %}</span>
                             {% elif user.is_client %}
-                                <span class="badge badge-warning">Client</span>
+                                <span class="badge badge-warning">{% trans "Client" %}</span>
                             {% endif %}
                             <span class="text-muted ms-2">{{ user.date_joined|timesince }} ago</span>
                         </p>
@@ -464,7 +465,7 @@
                         <i class="bi bi-briefcase"></i>
                     </div>
                     <div class="activity-content">
-                        <h6>New Job Posted</h6>
+                        <h6>{% trans "New Job Posted" %}</h6>
                         <p>
                             {{ job.title }} by {{ job.client.get_full_name|default:job.client.username }}
                             <span class="badge badge-success">TSH {{ job.total_price|default:"0" }}</span>
@@ -481,7 +482,7 @@
                         <i class="bi bi-file-earmark-text"></i>
                     </div>
                     <div class="activity-content">
-                        <h6>New Application</h6>
+                        <h6>{% trans "New Application" %}</h6>
                         <p>
                             {{ app.worker.user.get_full_name|default:app.worker.user.username }} applied to {{ app.job.title }}
                             <span class="text-muted ms-2">{{ app.created_at|timesince }} ago</span>

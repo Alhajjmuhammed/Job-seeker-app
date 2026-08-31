@@ -1,9 +1,10 @@
 {% extends "emails/base.html" %}
 
+{% load i18n %}
 {% block title %}New Review Received{% endblock %}
 
 {% block content %}
-<h2>You Received a New Review! ⭐</h2>
+<h2>{% trans "You Received a New Review! ⭐" %}</h2>
 
 <p>Hi {{ recipient_name }},</p>
 
@@ -27,30 +28,30 @@
 {% if review.communication_rating or review.quality_rating %}
 <div class="details-list">
     <div class="item">
-        <span class="label">Communication</span>
+        <span class="label">{% trans "Communication" %}</span>
         <span class="value">{{ review.communication_rating|default:"-" }}/5</span>
     </div>
     <div class="item">
-        <span class="label">Quality</span>
+        <span class="label">{% trans "Quality" %}</span>
         <span class="value">{{ review.quality_rating|default:"-" }}/5</span>
     </div>
     <div class="item">
-        <span class="label">Punctuality</span>
+        <span class="label">{% trans "Punctuality" %}</span>
         <span class="value">{{ review.punctuality_rating|default:"-" }}/5</span>
     </div>
     <div class="item">
-        <span class="label">Professionalism</span>
+        <span class="label">{% trans "Professionalism" %}</span>
         <span class="value">{{ review.professionalism_rating|default:"-" }}/5</span>
     </div>
 </div>
 {% endif %}
 
 <p style="text-align: center;">
-    <a href="{{ review_url }}" class="btn">View Review</a>
+    <a href="{{ review_url }}" class="btn">{% trans "View Review" %}</a>
 </p>
 
-<p>Keep up the great work! Your rating helps build trust with future clients.</p>
+<p>{% trans "Keep up the great work! Your rating helps build trust with future clients." %}</p>
 
-<p>Best regards,<br>
-<strong>The Worker Connect Team</strong></p>
+<p>{% trans "Best regards," %}<br>
+<strong>{% trans "The Worker Connect Team" %}</strong></p>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}Assign Worker{% endblock %}
@@ -366,11 +367,11 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="page-title mb-2">Assign Worker to Job</h1>
-            <p class="text-muted">Select a qualified worker for this job</p>
+            <h1 class="page-title mb-2">{% trans "Assign Worker to Job" %}</h1>
+            <p class="text-muted">{% trans "Select a qualified worker for this job" %}</p>
         </div>
         <a href="{% url 'admin_panel:job_management' %}" class="btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Jobs
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Jobs" %}
         </a>
     </div>
     
@@ -380,26 +381,26 @@
         <div class="job-meta">
             <div class="meta-item">
                 <i class="bi bi-person"></i>
-                <span><strong>Client:</strong> {{ job.client.get_full_name }}</span>
+                <span><strong>{% trans "Client:" %}</strong> {{ job.client.get_full_name }}</span>
             </div>
             <div class="meta-item">
                 <i class="bi bi-tag"></i>
-                <span><strong>Category:</strong> {{ job.category.name|default:"No Category" }}</span>
+                <span><strong>{% trans "Category:" %}</strong> {{ job.category.name|default:"No Category" }}</span>
             </div>
             <div class="meta-item">
                 <i class="bi bi-geo-alt"></i>
-                <span><strong>Location:</strong> {{ job.city }}</span>
+                <span><strong>{% trans "Location:" %}</strong> {{ job.city }}</span>
             </div>
             <div class="meta-item">
                 <i class="bi bi-currency-dollar"></i>
-                <span><strong>Budget:</strong> TSH {{ job.budget|floatformat:0 }}</span>
+                <span><strong>{% trans "Budget:" %}</strong> TSH {{ job.budget|floatformat:0 }}</span>
             </div>
             <div class="meta-item">
                 <i class="bi bi-clock"></i>
-                <span><strong>Duration:</strong> {{ job.duration_days }} days</span>
+                <span><strong>{% trans "Duration:" %}</strong> {{ job.duration_days }} days</span>
             </div>
         </div>
-        <p><strong>Description:</strong></p>
+        <p><strong>{% trans "Description:" %}</strong></p>
         <p>{{ job.description }}</p>
     </div>
     
@@ -412,10 +413,10 @@
             
             {% if suggested_workers %}
             <h3 class="section-title">
-                <i class="bi bi-stars"></i> Suggested Workers (Matching Category)
+                <i class="bi bi-stars"></i> {% trans "Suggested Workers (Matching Category)" %}
             </h3>
             <div class="search-box">
-                <input type="text" id="searchSuggested" placeholder="Search suggested workers...">
+                <input type="text" id="searchSuggested" placeholder="{% trans "Search suggested workers..." %}">
             </div>
             <div id="suggestedWorkersList">
                 {% for worker in suggested_workers %}
@@ -429,7 +430,7 @@
                             <p>{{ worker.user.email }}</p>
                         </div>
                         <span class="badge-suggested">
-                            <i class="bi bi-check-circle"></i> Suggested
+                            <i class="bi bi-check-circle"></i> {% trans "Suggested" %}
                         </span>
                     </div>
                     <div class="worker-stats">
@@ -457,26 +458,26 @@
             {% endif %}
             
             <h3 class="section-title mt-4">
-                <i class="bi bi-people"></i> All Verified Workers
+                <i class="bi bi-people"></i> {% trans "All Verified Workers" %}
                 <span class="text-muted fs-6">({{ all_workers|length }} total)</span>
             </h3>
             <div class="search-filters mb-3">
                 <div class="row">
                     <div class="col-md-6">
-                        <input type="text" id="searchAll" class="form-control" placeholder="Search workers by name...">
+                        <input type="text" id="searchAll" class="form-control" placeholder="{% trans "Search workers by name..." %}">
                     </div>
                     <div class="col-md-3">
                         <select id="filterAvailability" class="form-select">
-                            <option value="">All Availability</option>
-                            <option value="available">Available</option>
-                            <option value="busy">Busy</option>
+                            <option value="">{% trans "All Availability" %}</option>
+                            <option value="available">{% trans "Available" %}</option>
+                            <option value="busy">{% trans "Busy" %}</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <select id="sortWorkers" class="form-select">
-                            <option value="name">Sort by Name</option>
-                            <option value="rating">Sort by Rating</option>
-                            <option value="jobs">Sort by Jobs Done</option>
+                            <option value="name">{% trans "Sort by Name" %}</option>
+                            <option value="rating">{% trans "Sort by Rating" %}</option>
+                            <option value="jobs">{% trans "Sort by Jobs Done" %}</option>
                         </select>
                     </div>
                 </div>
@@ -503,7 +504,7 @@
                             </div>
                             <div class="worker-actions">
                                 <button type="button" class="btn btn-sm btn-outline-primary select-worker-btn">
-                                    Select
+                                    {% trans "Select" %}
                                 </button>
                             </div>
                         </div>
@@ -519,8 +520,8 @@
                     {% empty %}
                     <div class="no-workers">
                         <i class="bi bi-person-x"></i>
-                        <p>No available workers found</p>
-                        <small class="text-muted">All verified workers are currently busy with other assignments</small>
+                        <p>{% trans "No available workers found" %}</p>
+                        <small class="text-muted">{% trans "All verified workers are currently busy with other assignments" %}</small>
                     </div>
                     {% endfor %}
                 </div>
@@ -530,10 +531,10 @@
             
             <div class="form-actions">
                 <button type="submit" class="btn-primary" id="assignBtn" disabled>
-                    <i class="bi bi-person-check"></i> Assign Selected Worker
+                    <i class="bi bi-person-check"></i> {% trans "Assign Selected Worker" %}
                 </button>
                 <a href="{% url 'admin_panel:job_management' %}" class="btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancel
+                    <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                 </a>
             </div>
         </form>

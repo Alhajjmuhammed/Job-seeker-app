@@ -1,4 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}Create New User{% endblock %}
@@ -169,8 +170,8 @@
     <div class="form-container">
         <div class="form-card">
             <div class="form-header">
-                <h2><i class="bi bi-person-plus"></i> Create New User</h2>
-                <p>Add a new user to the system</p>
+                <h2><i class="bi bi-person-plus"></i> {% trans "Create New User" %}</h2>
+                <p>{% trans "Add a new user to the system" %}</p>
             </div>
             
             <form method="post" id="createUserForm">
@@ -178,57 +179,57 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="first_name" class="required">First Name</label>
+                        <label for="first_name" class="required">{% trans "First Name" %}</label>
                         <input type="text" id="first_name" name="first_name" class="form-control" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="last_name" class="required">Last Name</label>
+                        <label for="last_name" class="required">{% trans "Last Name" %}</label>
                         <input type="text" id="last_name" name="last_name" class="form-control" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="email" class="required">Email Address</label>
+                    <label for="email" class="required">{% trans "Email Address" %}</label>
                     <input type="email" id="email" name="email" class="form-control" required>
-                    <p class="help-text">This will also be used as the username</p>
+                    <p class="help-text">{% trans "This will also be used as the username" %}</p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="phone_number">Phone Number</label>
-                    <input type="tel" id="phone_number" name="phone_number" class="form-control" placeholder="+249-XXX-XXXX">
+                    <label for="phone_number">{% trans "Phone Number" %}</label>
+                    <input type="tel" id="phone_number" name="phone_number" class="form-control" placeholder="{% trans "+249-XXX-XXXX" %}">
                 </div>
                 
                 <div class="form-group">
-                    <label for="password" class="required">Password</label>
+                    <label for="password" class="required">{% trans "Password" %}</label>
                     <input type="password" id="password" name="password" class="form-control" required minlength="8">
-                    <p class="help-text">Minimum 8 characters</p>
+                    <p class="help-text">{% trans "Minimum 8 characters" %}</p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="user_type" class="required">User Type</label>
+                    <label for="user_type" class="required">{% trans "User Type" %}</label>
                     <select id="user_type" name="user_type" class="form-control" required>
-                        <option value="">Select user type...</option>
-                        <option value="client">Client</option>
-                        <option value="worker">Worker</option>
-                        <option value="admin">Admin</option>
+                        <option value="">{% trans "Select user type..." %}</option>
+                        <option value="client">{% trans "Client" %}</option>
+                        <option value="worker">{% trans "Worker" %}</option>
+                        <option value="admin">{% trans "Admin" %}</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="is_active" name="is_active" checked>
-                        <label for="is_active">Active</label>
+                        <label for="is_active">{% trans "Active" %}</label>
                     </div>
-                    <p class="help-text">Inactive users cannot log in</p>
+                    <p class="help-text">{% trans "Inactive users cannot log in" %}</p>
                 </div>
                 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
-                        <i class="bi bi-check-circle"></i> Create User
+                        <i class="bi bi-check-circle"></i> {% trans "Create User" %}
                     </button>
                     <a href="{% url 'admin_panel:manage_users' %}" class="btn-secondary">
-                        <i class="bi bi-x-circle"></i> Cancel
+                        <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                     </a>
                 </div>
             </form>

@@ -1,4 +1,5 @@
 {% extends "admin_panel/base_admin.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Rate {{ worker.user.get_full_name }} - Admin Panel{% endblock %}
@@ -10,19 +11,19 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_verification_list' %}">Workers</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_verification_list' %}">{% trans "Workers" %}</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_ratings' worker.id %}">{{ worker.user.get_full_name }}</a></li>
-                    <li class="breadcrumb-item active">Rate Worker</li>
+                    <li class="breadcrumb-item active">{% trans "Rate Worker" %}</li>
                 </ol>
             </nav>
-            <h1 class="h3 mb-0">Rate Worker</h1>
+            <h1 class="h3 mb-0">{% trans "Rate Worker" %}</h1>
         </div>
         <div>
             <a href="{% url 'admin_panel:worker_ratings' worker.id %}" class="btn btn-outline-secondary me-2">
-                <i class="bi bi-eye me-1"></i> View All Ratings
+                <i class="bi bi-eye me-1"></i> {% trans "View All Ratings" %}
             </a>
             <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left me-1"></i> Back to Workers
+                <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Workers" %}
             </a>
         </div>
     </div>
@@ -70,7 +71,7 @@
                 <form method="post" action="">
                     {% csrf_token %}
                     <div class="card-body">
-                        <h6 class="mb-3">Provide Your Rating</h6>
+                        <h6 class="mb-3">{% trans "Provide Your Rating" %}</h6>
                         
                         <!-- Error Messages -->
                         {% if messages %}
@@ -86,7 +87,7 @@
 
                         <!-- Rating Selection -->
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">Rating *</label>
+                            <label class="form-label fw-semibold">{% trans "Rating *" %}</label>
                             <div class="rating-input">
                                 {% for i in "12345" %}
                                 <input type="radio" name="rating" value="{{ forloop.counter }}" 
@@ -96,15 +97,15 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <div class="form-text">Click on the stars to rate from 1 (poor) to 5 (excellent)</div>
+                            <div class="form-text">{% trans "Click on the stars to rate from 1 (poor) to 5 (excellent)" %}</div>
                         </div>
                         
                         <!-- Review Text -->
                         <div class="mb-4">
-                            <label for="review" class="form-label fw-semibold">Review (Optional)</label>
+                            <label for="review" class="form-label fw-semibold">{% trans "Review (Optional)" %}</label>
                             <textarea class="form-control" id="review" name="review" rows="4" 
                                       placeholder="Share your experience with this worker. What did they do well? Any areas for improvement?"></textarea>
-                            <div class="form-text">Your review will help other admins and provide feedback to the worker.</div>
+                            <div class="form-text">{% trans "Your review will help other admins and provide feedback to the worker." %}</div>
                         </div>
                     </div>
 
@@ -112,10 +113,10 @@
                     <div class="card-footer bg-light border-0">
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{% url 'admin_panel:worker_ratings' worker.id %}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg me-1"></i> Cancel
+                                <i class="bi bi-x-lg me-1"></i> {% trans "Cancel" %}
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-star-fill me-1"></i> Submit Rating
+                                <i class="bi bi-star-fill me-1"></i> {% trans "Submit Rating" %}
                             </button>
                         </div>
                     </div>
@@ -128,7 +129,7 @@
                 <div class="d-flex align-items-center">
                     <i class="bi bi-info-circle-fill me-2"></i>
                     <div>
-                        <strong>You previously rated this worker:</strong>
+                        <strong>{% trans "You previously rated this worker:" %}</strong>
                         <div class="text-warning mt-1">
                             {% for i in "12345" %}
                                 {% if forloop.counter <= existing_rating.rating %}
@@ -141,7 +142,7 @@
                         </div>
                         {% if existing_rating.review %}
                         <div class="mt-2">
-                            <small><strong>Your review:</strong> "{{ existing_rating.review }}"</small>
+                            <small><strong>{% trans "Your review:" %}</strong> "{{ existing_rating.review }}"</small>
                         </div>
                         {% endif %}
                         <small class="text-muted d-block mt-1">Rated on {{ existing_rating.created_at|date:"M d, Y \a\t g:i A" }}</small>

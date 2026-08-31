@@ -1,5 +1,6 @@
 {% extends 'admin_panel/base_admin.html' %}
 
+{% load i18n %}
 {% block title %}Agent Management{% endblock %}
 {% block page_title %}Agent Management{% endblock %}
 
@@ -10,7 +11,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-circle bg-warning bg-opacity-10 p-3"><i class="bi bi-people-fill fs-4 text-warning"></i></div>
-                <div><div class="fs-3 fw-bold">{{ total_agents }}</div><div class="text-muted small">Total Agents</div></div>
+                <div><div class="fs-3 fw-bold">{{ total_agents }}</div><div class="text-muted small">{% trans "Total Agents" %}</div></div>
             </div>
         </div>
     </div>
@@ -18,7 +19,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-circle bg-danger bg-opacity-10 p-3"><i class="bi bi-hourglass-split fs-4 text-danger"></i></div>
-                <div><div class="fs-3 fw-bold">{{ pending_count }}</div><div class="text-muted small">Pending Approval</div></div>
+                <div><div class="fs-3 fw-bold">{{ pending_count }}</div><div class="text-muted small">{% trans "Pending Approval" %}</div></div>
             </div>
         </div>
     </div>
@@ -26,7 +27,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-circle bg-success bg-opacity-10 p-3"><i class="bi bi-check-circle-fill fs-4 text-success"></i></div>
-                <div><div class="fs-3 fw-bold">{{ verified_count }}</div><div class="text-muted small">Verified Agents</div></div>
+                <div><div class="fs-3 fw-bold">{{ verified_count }}</div><div class="text-muted small">{% trans "Verified Agents" %}</div></div>
             </div>
         </div>
     </div>
@@ -34,9 +35,9 @@
 
 <!-- Filter tabs -->
 <div class="d-flex gap-2 mb-3">
-    <a href="?status=all" class="btn btn-sm {% if filter_status == 'all' %}btn-dark{% else %}btn-outline-secondary{% endif %}">All</a>
-    <a href="?status=pending" class="btn btn-sm {% if filter_status == 'pending' %}btn-danger{% else %}btn-outline-danger{% endif %}">Pending</a>
-    <a href="?status=verified" class="btn btn-sm {% if filter_status == 'verified' %}btn-success{% else %}btn-outline-success{% endif %}">Verified</a>
+    <a href="?status=all" class="btn btn-sm {% if filter_status == 'all' %}btn-dark{% else %}btn-outline-secondary{% endif %}">{% trans "All" %}</a>
+    <a href="?status=pending" class="btn btn-sm {% if filter_status == 'pending' %}btn-danger{% else %}btn-outline-danger{% endif %}">{% trans "Pending" %}</a>
+    <a href="?status=verified" class="btn btn-sm {% if filter_status == 'verified' %}btn-success{% else %}btn-outline-success{% endif %}">{% trans "Verified" %}</a>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -45,14 +46,14 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">Agent</th>
-                        <th>Business Name</th>
-                        <th>Agent Code</th>
-                        <th>Commission</th>
-                        <th>Workers</th>
-                        <th>Registered</th>
-                        <th>Status</th>
-                        <th class="pe-4">Actions</th>
+                        <th class="ps-4">{% trans "Agent" %}</th>
+                        <th>{% trans "Business Name" %}</th>
+                        <th>{% trans "Agent Code" %}</th>
+                        <th>{% trans "Commission" %}</th>
+                        <th>{% trans "Workers" %}</th>
+                        <th>{% trans "Registered" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th class="pe-4">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,7 +68,7 @@
                             {% if agent.agent_code %}
                                 <span class="badge bg-warning text-dark font-monospace fs-6 px-3">{{ agent.agent_code }}</span>
                             {% else %}
-                                <span class="text-muted small">Not assigned</span>
+                                <span class="text-muted small">{% trans "Not assigned" %}</span>
                             {% endif %}
                         </td>
                         <td>{{ agent.commission_rate }}%</td>
@@ -75,20 +76,20 @@
                         <td>{{ agent.created_at|date:"d M Y" }}</td>
                         <td>
                             {% if agent.is_verified %}
-                                <span class="badge bg-success">Verified</span>
+                                <span class="badge bg-success">{% trans "Verified" %}</span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">Pending</span>
+                                <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
                             {% endif %}
                         </td>
                         <td class="pe-4">
                             <a href="{% url 'admin_panel:agent_detail' agent.id %}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> View
+                                <i class="bi bi-eye"></i> {% trans "View" %}
                             </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">No agents found.</td>
+                        <td colspan="8" class="text-center py-5 text-muted">{% trans "No agents found." %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

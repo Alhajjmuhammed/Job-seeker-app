@@ -1,4 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Manage Categories - Admin Panel{% endblock %}
@@ -27,13 +28,13 @@
 <div class="row mb-4">
     <div class="col-md-8">
         <h2 class="h4 mb-1">
-            <i class="bi bi-grid-3x3-gap"></i> Category Management
+            <i class="bi bi-grid-3x3-gap"></i> {% trans "Category Management" %}
         </h2>
-        <p class="text-muted mb-0">Manage job categories and skills</p>
+        <p class="text-muted mb-0">{% trans "Manage job categories and skills" %}</p>
     </div>
     <div class="col-md-4 text-end">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-            <i class="bi bi-plus-lg"></i> Add New Category
+            <i class="bi bi-plus-lg"></i> {% trans "Add New Category" %}
         </button>
     </div>
 </div>
@@ -44,7 +45,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-primary mb-1">{{ categories.count }}</h3>
-                <small class="text-muted">Total Categories</small>
+                <small class="text-muted">{% trans "Total Categories" %}</small>
             </div>
         </div>
     </div>
@@ -52,7 +53,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-success mb-1">{{ active_categories }}</h3>
-                <small class="text-muted">Active Categories</small>
+                <small class="text-muted">{% trans "Active Categories" %}</small>
             </div>
         </div>
     </div>
@@ -60,7 +61,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
                 <h3 class="text-info mb-1">{{ total_workers_using }}</h3>
-                <small class="text-muted">Workers Using</small>
+                <small class="text-muted">{% trans "Workers Using" %}</small>
             </div>
         </div>
     </div>
@@ -94,26 +95,26 @@
                         <!-- Pricing -->
                         <div class="mb-3 bg-light rounded p-2">
                             <small class="text-muted d-block mb-1">
-                                <i class="bi bi-cash-coin"></i> Pricing (per request)
+                                <i class="bi bi-cash-coin"></i> {% trans "Pricing (per request)" %}
                             </small>
                             <div class="d-flex justify-content-between">
-                                <small>Worker is paid</small>
+                                <small>{% trans "Worker is paid" %}</small>
                                 <span class="fw-bold">TSH {{ category.daily_rate|floatformat:0 }}</span>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <small>Your service fee</small>
+                                <small>{% trans "Your service fee" %}</small>
                                 <span class="fw-bold {% if category.service_fee %}text-success{% else %}text-danger{% endif %}">
                                     TSH {{ category.service_fee|floatformat:0 }}
                                 </span>
                             </div>
                             <hr class="my-1">
                             <div class="d-flex justify-content-between">
-                                <small class="fw-bold">Client pays (1 worker)</small>
+                                <small class="fw-bold">{% trans "Client pays (1 worker)" %}</small>
                                 <span class="fw-bold text-success">TSH {{ category.total_for_one_worker|floatformat:0 }}</span>
                             </div>
                             {% if not category.service_fee %}
                             <small class="text-danger d-block mt-1">
-                                <i class="bi bi-exclamation-triangle"></i> No fee set - this category earns you nothing
+                                <i class="bi bi-exclamation-triangle"></i> {% trans "No fee set - this category earns you nothing" %}
                             </small>
                             {% endif %}
                         </div>
@@ -121,7 +122,7 @@
                         <!-- Skills -->
                         {% if category.skills.exists %}
                         <div class="mb-3">
-                            <small class="text-muted d-block mb-1">Related Skills:</small>
+                            <small class="text-muted d-block mb-1">{% trans "Related Skills:" %}</small>
                             <div class="d-flex flex-wrap gap-1">
                                 {% for skill in category.skills.all|slice:":5" %}
                                 <span class="badge bg-light text-dark">{{ skill.name }}</span>
@@ -136,11 +137,11 @@
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-sm btn-outline-primary flex-fill" 
                                     data-bs-toggle="modal" data-bs-target="#editModal{{ category.id }}">
-                                <i class="bi bi-pencil"></i> Edit
+                                <i class="bi bi-pencil"></i> {% trans "Edit" %}
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-danger" 
                                     data-bs-toggle="modal" data-bs-target="#deleteModal{{ category.id }}">
-                                <i class="bi bi-trash"></i> Delete
+                                <i class="bi bi-trash"></i> {% trans "Delete" %}
                             </button>
                         </div>
                     </div>
@@ -156,32 +157,32 @@
                             <input type="hidden" name="category_id" value="{{ category.id }}">
                             <input type="hidden" name="action" value="edit">
                             <div class="modal-header">
-                                <h5 class="modal-title">Edit Category</h5>
+                                <h5 class="modal-title">{% trans "Edit Category" %}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
-                                    <label for="name{{ category.id }}" class="form-label">Category Name</label>
+                                    <label for="name{{ category.id }}" class="form-label">{% trans "Category Name" %}</label>
                                     <input type="text" class="form-control" id="name{{ category.id }}" 
                                            name="name" value="{{ category.name }}" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="description{{ category.id }}" class="form-label">Description</label>
+                                    <label for="description{{ category.id }}" class="form-label">{% trans "Description" %}</label>
                                     <textarea class="form-control" id="description{{ category.id }}" 
                                               name="description" rows="3">{{ category.description }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="daily_rate{{ category.id }}" class="form-label">
-                                        Daily Rate ($) <span class="text-danger">*</span>
+                                        {% trans "Daily Rate ($)" %} <span class="text-danger">*</span>
                                     </label>
                                     <input type="number" class="form-control" id="daily_rate{{ category.id }}" 
                                            name="daily_rate" value="{{ category.daily_rate|default:'25.00' }}" 
                                            step="0.01" min="0" required>
-                                    <small class="text-muted">What one worker is paid for this job</small>
+                                    <small class="text-muted">{% trans "What one worker is paid for this job" %}</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="service_fee{{ category.id }}" class="form-label">
-                                        Your service fee (TSh)
+                                        {% trans "Your service fee (TSh)" %}
                                     </label>
                                     <input type="number" class="form-control" id="service_fee{{ category.id }}"
                                            name="service_fee" value="{{ category.service_fee|floatformat:2 }}"
@@ -192,15 +193,15 @@
                                     </small>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="icon{{ category.id }}" class="form-label">Icon (Bootstrap Icon name)</label>
+                                    <label for="icon{{ category.id }}" class="form-label">{% trans "Icon (Bootstrap Icon name)" %}</label>
                                     <input type="text" class="form-control" id="icon{{ category.id }}" 
                                            name="icon" value="{{ category.icon|default:'' }}" 
-                                           placeholder="e.g., wrench, hammer, paint-bucket">
+                                           placeholder="{% trans "e.g., wrench, hammer, paint-bucket" %}">
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
                             </div>
                         </form>
                     </div>
@@ -216,22 +217,22 @@
                             <input type="hidden" name="category_id" value="{{ category.id }}">
                             <input type="hidden" name="action" value="delete">
                             <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title">Delete Category</h5>
+                                <h5 class="modal-title">{% trans "Delete Category" %}</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <p>Are you sure you want to delete <strong>{{ category.name }}</strong>?</p>
+                                <p>{% trans "Are you sure you want to delete" %} <strong>{{ category.name }}</strong>?</p>
                                 {% if category.worker_count > 0 %}
                                 <div class="alert alert-warning">
                                     <i class="bi bi-exclamation-triangle"></i>
-                                    This category has <strong>{{ category.worker_count }} worker(s)</strong> associated with it.
+                                    {% trans "This category has" %} <strong>{{ category.worker_count }} worker(s)</strong> {% trans "associated with it." %}
                                 </div>
                                 {% endif %}
-                                <p class="text-danger small mb-0">This action cannot be undone.</p>
+                                <p class="text-danger small mb-0">{% trans "This action cannot be undone." %}</p>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-danger">Delete Category</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                <button type="submit" class="btn btn-danger">{% trans "Delete Category" %}</button>
                             </div>
                         </form>
                     </div>
@@ -242,9 +243,9 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-grid-3x3-gap fs-1 text-muted"></i>
-            <p class="text-muted mt-3">No categories found</p>
+            <p class="text-muted mt-3">{% trans "No categories found" %}</p>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                <i class="bi bi-plus-lg"></i> Add Your First Category
+                <i class="bi bi-plus-lg"></i> {% trans "Add Your First Category" %}
             </button>
         </div>
         {% endif %}
@@ -259,31 +260,31 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add New Category</h5>
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> {% trans "Add New Category" %}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="newName" class="form-label">Category Name <span class="text-danger">*</span></label>
+                        <label for="newName" class="form-label">{% trans "Category Name" %} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="newName" name="name" 
-                               placeholder="e.g., Plumber, Electrician" required>
+                               placeholder="{% trans "e.g., Plumber, Electrician" %}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="newDescription" class="form-label">Description</label>
+                        <label for="newDescription" class="form-label">{% trans "Description" %}</label>
                         <textarea class="form-control" id="newDescription" name="description" rows="3"
                                   placeholder="Brief description of this category..."></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="newDailyRate" class="form-label">
-                            Worker rate (TSh) <span class="text-danger">*</span>
+                            {% trans "Worker rate (TSh)" %} <span class="text-danger">*</span>
                         </label>
                         <input type="number" class="form-control" id="newDailyRate" name="daily_rate"
                                value="25000.00" step="0.01" min="0" required>
-                        <small class="text-muted">What one worker is paid for this job</small>
+                        <small class="text-muted">{% trans "What one worker is paid for this job" %}</small>
                     </div>
                     <div class="mb-3">
                         <label for="newServiceFee" class="form-label">
-                            Your service fee (TSh)
+                            {% trans "Your service fee (TSh)" %}
                         </label>
                         <input type="number" class="form-control" id="newServiceFee" name="service_fee"
                                value="0.00" step="0.01" min="0">
@@ -293,16 +294,16 @@
                         </small>
                     </div>
                     <div class="mb-3">
-                        <label for="newIcon" class="form-label">Icon (Bootstrap Icon name)</label>
+                        <label for="newIcon" class="form-label">{% trans "Icon (Bootstrap Icon name)" %}</label>
                         <input type="text" class="form-control" id="newIcon" name="icon" 
-                               placeholder="e.g., wrench, hammer, paint-bucket">
-                        <small class="text-muted">Browse icons at: <a href="https://icons.getbootstrap.com/" target="_blank">icons.getbootstrap.com</a></small>
+                               placeholder="{% trans "e.g., wrench, hammer, paint-bucket" %}">
+                        <small class="text-muted">{% trans "Browse icons at:" %} <a href="https://icons.getbootstrap.com/" target="_blank">{% trans "icons.getbootstrap.com" %}</a></small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-plus-lg"></i> Add Category
+                        <i class="bi bi-plus-lg"></i> {% trans "Add Category" %}
                     </button>
                 </div>
             </form>

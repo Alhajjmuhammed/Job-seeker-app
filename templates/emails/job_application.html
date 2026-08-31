@@ -1,13 +1,14 @@
 {% extends "emails/base.html" %}
 
+{% load i18n %}
 {% block title %}New Job Application{% endblock %}
 
 {% block content %}
-<h2>New Application Received! 📋</h2>
+<h2>{% trans "New Application Received! 📋" %}</h2>
 
 <p>Hi {{ client_name }},</p>
 
-<p>Great news! You've received a new application for your job posting.</p>
+<p>{% trans "Great news! You've received a new application for your job posting." %}</p>
 
 <div class="info-box">
     <h3>{{ job.title }}</h3>
@@ -16,36 +17,36 @@
 
 <div class="details-list">
     <div class="item">
-        <span class="label">Applicant</span>
+        <span class="label">{% trans "Applicant" %}</span>
         <span class="value">{{ worker.name }}</span>
     </div>
     <div class="item">
-        <span class="label">Rating</span>
+        <span class="label">{% trans "Rating" %}</span>
         <span class="value">{{ worker.rating|default:"New Worker" }} ⭐</span>
     </div>
     <div class="item">
-        <span class="label">Completed Jobs</span>
+        <span class="label">{% trans "Completed Jobs" %}</span>
         <span class="value">{{ worker.completed_jobs }}</span>
     </div>
     <div class="item">
-        <span class="label">Proposed Rate</span>
+        <span class="label">{% trans "Proposed Rate" %}</span>
         <span class="value">TSH {{ application.proposed_rate|default:job.budget }}</span>
     </div>
 </div>
 
 {% if application.cover_letter %}
 <div class="info-box">
-    <h3>Cover Letter</h3>
+    <h3>{% trans "Cover Letter" %}</h3>
     <p>{{ application.cover_letter|truncatewords:50 }}</p>
 </div>
 {% endif %}
 
 <p style="text-align: center;">
-    <a href="{{ application_url }}" class="btn">View Application</a>
+    <a href="{{ application_url }}" class="btn">{% trans "View Application" %}</a>
 </p>
 
-<p>Don't keep them waiting - respond to your applicants promptly for the best results!</p>
+<p>{% trans "Don't keep them waiting - respond to your applicants promptly for the best results!" %}</p>
 
-<p>Best regards,<br>
-<strong>The Worker Connect Team</strong></p>
+<p>{% trans "Best regards," %}<br>
+<strong>{% trans "The Worker Connect Team" %}</strong></p>
 {% endblock %}

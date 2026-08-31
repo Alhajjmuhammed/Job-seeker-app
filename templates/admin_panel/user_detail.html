@@ -1,5 +1,6 @@
 {% extends 'admin_panel/base_admin.html' %}
 
+{% load i18n %}
 {% block title %}User Details - Admin Panel{% endblock %}
 {% block page_title %}User Details{% endblock %}
 
@@ -277,18 +278,18 @@
             <p>{{ user.email }}</p>
             <div class="user-badges">
                 {% if user.is_staff %}
-                    <span class="badge badge-danger"><i class="bi bi-shield-check me-1"></i>Admin</span>
+                    <span class="badge badge-danger"><i class="bi bi-shield-check me-1"></i>{% trans "Admin" %}</span>
                 {% endif %}
                 {% if user.is_worker %}
-                    <span class="badge badge-primary"><i class="bi bi-person-workspace me-1"></i>Worker</span>
+                    <span class="badge badge-primary"><i class="bi bi-person-workspace me-1"></i>{% trans "Worker" %}</span>
                 {% endif %}
                 {% if user.is_client %}
-                    <span class="badge badge-warning"><i class="bi bi-briefcase me-1"></i>Client</span>
+                    <span class="badge badge-warning"><i class="bi bi-briefcase me-1"></i>{% trans "Client" %}</span>
                 {% endif %}
                 {% if user.is_active %}
-                    <span class="badge badge-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+                    <span class="badge badge-success"><i class="bi bi-check-circle me-1"></i>{% trans "Active" %}</span>
                 {% else %}
-                    <span class="badge badge-danger"><i class="bi bi-x-circle me-1"></i>Inactive</span>
+                    <span class="badge badge-danger"><i class="bi bi-x-circle me-1"></i>{% trans "Inactive" %}</span>
                 {% endif %}
                 {% if avg_rating %}
                     <span class="badge badge-info"><i class="bi bi-star-fill me-1"></i>{{ avg_rating }} Rating</span>
@@ -302,17 +303,17 @@
                     {% csrf_token %}
                     {% if user.is_active %}
                         <button type="submit" class="btn-action btn-deactivate" onclick="return confirm('Are you sure you want to deactivate this user?')">
-                            <i class="bi bi-x-circle"></i> Deactivate
+                            <i class="bi bi-x-circle"></i> {% trans "Deactivate" %}
                         </button>
                     {% else %}
                         <button type="submit" class="btn-action btn-activate">
-                            <i class="bi bi-check-circle"></i> Activate
+                            <i class="bi bi-check-circle"></i> {% trans "Activate" %}
                         </button>
                     {% endif %}
                 </form>
                 {% endif %}
                 <a href="{% url 'admin_panel:manage_users' %}" class="btn-action btn-back">
-                    <i class="bi bi-arrow-left"></i> Back
+                    <i class="bi bi-arrow-left"></i> {% trans "Back" %}
                 </a>
             </div>
         </div>
@@ -322,24 +323,24 @@
 <!-- Stats Grid -->
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Jobs Posted</h3>
+        <h3>{% trans "Jobs Posted" %}</h3>
         <p class="stat-value">{{ jobs_posted|length|default:0 }}</p>
     </div>
     <div class="stat-card">
-        <h3>Assignments</h3>
+        <h3>{% trans "Assignments" %}</h3>
         <p class="stat-value">{{ applications|length|default:0 }}</p>
     </div>
     <div class="stat-card">
-        <h3>Messages Sent</h3>
+        <h3>{% trans "Messages Sent" %}</h3>
         <p class="stat-value">{{ messages_sent|default:0 }}</p>
     </div>
     <div class="stat-card">
-        <h3>Messages Received</h3>
+        <h3>{% trans "Messages Received" %}</h3>
         <p class="stat-value">{{ messages_received|default:0 }}</p>
     </div>
     {% if avg_rating %}
     <div class="stat-card">
-        <h3>Average Rating</h3>
+        <h3>{% trans "Average Rating" %}</h3>
         <p class="stat-value" style="color: #f59e0b;">{{ avg_rating }}</p>
     </div>
     {% endif %}
@@ -349,51 +350,51 @@
     <div class="col-md-6">
         <!-- Personal Information -->
         <div class="info-card">
-            <h5><i class="bi bi-person-fill"></i>Personal Information</h5>
+            <h5><i class="bi bi-person-fill"></i>{% trans "Personal Information" %}</h5>
             <div class="info-row">
-                <div class="info-label">Full Name</div>
+                <div class="info-label">{% trans "Full Name" %}</div>
                 <div class="info-value">{{ user.get_full_name|default:"Not provided" }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Email</div>
+                <div class="info-label">{% trans "Email" %}</div>
                 <div class="info-value">{{ user.email }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Phone</div>
+                <div class="info-label">{% trans "Phone" %}</div>
                 <div class="info-value">{{ user.phone_number|default:"Not provided" }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Username</div>
+                <div class="info-label">{% trans "Username" %}</div>
                 <div class="info-value">{{ user.username }}</div>
             </div>
             {% if user.is_worker and worker_profile %}
             <div class="info-row">
-                <div class="info-label">Religion</div>
+                <div class="info-label">{% trans "Religion" %}</div>
                 <div class="info-value">
                     {% if worker_profile.religion %}
                         {{ worker_profile.get_religion_display }}
                     {% else %}
-                        <span class="text-muted">Not provided</span>
+                        <span class="text-muted">{% trans "Not provided" %}</span>
                     {% endif %}
                 </div>
             </div>
             <div class="info-row">
-                <div class="info-label">Work Flexibility</div>
+                <div class="info-label">{% trans "Work Flexibility" %}</div>
                 <div class="info-value">
                     {% if worker_profile.can_work_everywhere %}
-                        <span class="badge badge-success"><i class="bi bi-globe2 me-1"></i>Can work everywhere</span>
+                        <span class="badge badge-success"><i class="bi bi-globe2 me-1"></i>{% trans "Can work everywhere" %}</span>
                     {% else %}
-                        <span class="badge badge-info"><i class="bi bi-geo-alt me-1"></i>Location specific</span>
+                        <span class="badge badge-info"><i class="bi bi-geo-alt me-1"></i>{% trans "Location specific" %}</span>
                     {% endif %}
                 </div>
             </div>
             {% endif %}
             <div class="info-row">
-                <div class="info-label">Date Joined</div>
+                <div class="info-label">{% trans "Date Joined" %}</div>
                 <div class="info-value">{{ user.date_joined|date:"F d, Y" }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Last Login</div>
+                <div class="info-label">{% trans "Last Login" %}</div>
                 <div class="info-value">{{ user.last_login|date:"F d, Y, g:i A"|default:"Never" }}</div>
             </div>
         </div>
@@ -401,38 +402,38 @@
         {% if user.is_worker and worker_profile %}
         <!-- Worker Information -->
         <div class="info-card">
-            <h5><i class="bi bi-person-workspace"></i>Worker Information</h5>
+            <h5><i class="bi bi-person-workspace"></i>{% trans "Worker Information" %}</h5>
             <div class="info-row">
-                <div class="info-label">Bio</div>
+                <div class="info-label">{% trans "Bio" %}</div>
                 <div class="info-value">{{ worker_profile.bio|default:"Not provided" }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Experience</div>
+                <div class="info-label">{% trans "Experience" %}</div>
                 <div class="info-value">{{ worker_profile.experience_years|default:0 }} years</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Verification</div>
+                <div class="info-label">{% trans "Verification" %}</div>
                 <div class="info-value">
                     {% if worker_profile.verification_status == 'verified' %}
-                        <span class="badge badge-success">Verified</span>
+                        <span class="badge badge-success">{% trans "Verified" %}</span>
                     {% else %}
-                        <span class="badge badge-danger">Not Verified</span>
+                        <span class="badge badge-danger">{% trans "Not Verified" %}</span>
                     {% endif %}
                 </div>
             </div>
             <div class="info-row">
-                <div class="info-label">Availability</div>
+                <div class="info-label">{% trans "Availability" %}</div>
                 <div class="info-value">
                     {% if worker_profile.availability == 'available' %}
-                        <span class="badge badge-success">Available</span>
+                        <span class="badge badge-success">{% trans "Available" %}</span>
                     {% else %}
-                        <span class="badge badge-danger">Not Available</span>
+                        <span class="badge badge-danger">{% trans "Not Available" %}</span>
                     {% endif %}
                 </div>
             </div>
             {% if skills %}
             <div class="info-row">
-                <div class="info-label">Skills</div>
+                <div class="info-label">{% trans "Skills" %}</div>
                 <div class="info-value">
                     {% for skill in skills %}
                         <span class="badge badge-info me-1">{{ skill.name }}</span>
@@ -447,7 +448,7 @@
     <div class="col-md-6">
         <!-- Recent Activity -->
         <div class="info-card">
-            <h5><i class="bi bi-activity"></i>Recent Activity</h5>
+            <h5><i class="bi bi-activity"></i>{% trans "Recent Activity" %}</h5>
             {% if activities %}
                 {% for activity in activities %}
                 <div class="activity-item">
@@ -461,7 +462,7 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p class="text-muted text-center py-3">No recent activity</p>
+                <p class="text-muted text-center py-3">{% trans "No recent activity" %}</p>
             {% endif %}
         </div>
     </div>
@@ -470,7 +471,7 @@
 <!-- Jobs Posted (for clients) -->
 {% if jobs_posted %}
 <div class="info-card">
-    <h5><i class="bi bi-briefcase-fill"></i>Jobs Posted</h5>
+    <h5><i class="bi bi-briefcase-fill"></i>{% trans "Jobs Posted" %}</h5>
     {% for job in jobs_posted|slice:":5" %}
     <div class="job-item">
         <h6>{{ job.title }}</h6>
@@ -487,7 +488,7 @@
 <!-- Applications (for workers) -->
 {% if applications %}
 <div class="info-card">
-    <h5><i class="bi bi-file-earmark-text-fill"></i>Service Assignments</h5>
+    <h5><i class="bi bi-file-earmark-text-fill"></i>{% trans "Service Assignments" %}</h5>
     {% for app in applications|slice:":5" %}
     <div class="application-item">
         <h6>{{ app.title }}</h6>
@@ -504,7 +505,7 @@
 <!-- Ratings -->
 {% if ratings_received %}
 <div class="info-card">
-    <h5><i class="bi bi-star-fill"></i>Ratings Received</h5>
+    <h5><i class="bi bi-star-fill"></i>{% trans "Ratings Received" %}</h5>
     {% for rating in ratings_received|slice:":5" %}
     <div class="rating-item">
         <h6>From: {{ rating.client.get_full_name }}</h6>

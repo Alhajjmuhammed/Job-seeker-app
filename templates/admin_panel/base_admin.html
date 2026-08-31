@@ -641,70 +641,70 @@
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <a href="{% url 'admin_panel:dashboard' %}" class="sidebar-brand">
-            <img src="{% static 'images/logo.png' %}" alt="Worker Connect">
-            <span class="sidebar-brand-text">Admin Panel</span>
+            <img src="{% static 'images/logo.png' %}" alt="{% trans "Worker Connect" %}">
+            <span class="sidebar-brand-text">{% trans "Admin Panel" %}</span>
         </a>
         
         <nav class="sidebar-nav">
             <a href="{% url 'admin_panel:dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="bi bi-house-door"></i> 
-                <span class="nav-text">Dashboard</span>
+                <span class="nav-text">{% trans "Dashboard" %}</span>
             </a>
             
-            <div class="sidebar-section-title section-title">VERIFICATION</div>
+            <div class="sidebar-section-title section-title">{% trans "VERIFICATION" %}</div>
             <a href="{% url 'admin_panel:worker_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'worker_verification_list' %}active{% endif %}">
                 <i class="bi bi-person-check"></i> 
-                <span class="nav-text">Worker Verifications</span>
+                <span class="nav-text">{% trans "Worker Verifications" %}</span>
                 {% if pending_workers_count > 0 %}
                 <span class="stat-badge">{{ pending_workers_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'admin_panel:document_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'document_verification_list' %}active{% endif %}">
                 <i class="bi bi-file-earmark-check"></i> 
-                <span class="nav-text">Document Reviews</span>
+                <span class="nav-text">{% trans "Document Reviews" %}</span>
                 {% if pending_documents_count > 0 %}
                 <span class="stat-badge">{{ pending_documents_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'admin_panel:agent_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'agent_list' or request.resolver_match.url_name == 'agent_detail' %}active{% endif %}">
                 <i class="bi bi-person-workspace"></i>
-                <span class="nav-text">Agent Approvals</span>
+                <span class="nav-text">{% trans "Agent Approvals" %}</span>
             </a>
             
-            <div class="sidebar-section-title section-title">MANAGEMENT</div>
+            <div class="sidebar-section-title section-title">{% trans "MANAGEMENT" %}</div>
             <a href="{% url 'admin_panel:manage_users' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'manage_users' or request.resolver_match.url_name == 'user_detail' %}active{% endif %}">
                 <i class="bi bi-people"></i> 
-                <span class="nav-text">Manage Users</span>
+                <span class="nav-text">{% trans "Manage Users" %}</span>
             </a>
             <a href="{% url 'admin_panel:job_management' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'job_management' or request.resolver_match.url_name == 'assign_worker' %}active{% endif %}">
                 <i class="bi bi-briefcase"></i> 
-                <span class="nav-text">Manage Jobs</span>
+                <span class="nav-text">{% trans "Manage Jobs" %}</span>
             </a>
             <a href="{% url 'admin_panel:service_request_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'service_request_list' or request.resolver_match.url_name == 'service_request_detail' %}active{% endif %}">
                 <i class="bi bi-clipboard-check"></i> 
-                <span class="nav-text">Service Requests</span>
+                <span class="nav-text">{% trans "Service Requests" %}</span>
                 {% if pending_service_requests_count > 0 %}
                 <span class="stat-badge">{{ pending_service_requests_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' or request.resolver_match.url_name == 'conversation' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> 
-                <span class="nav-text">Messages</span>
+                <span class="nav-text">{% trans "Messages" %}</span>
                 {% if unread_messages_count > 0 %}
                 <span class="stat-badge">{{ unread_messages_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'admin_panel:system_overview' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'system_overview' %}active{% endif %}">
                 <i class="bi bi-bar-chart-line"></i> 
-                <span class="nav-text">System Overview</span>
+                <span class="nav-text">{% trans "System Overview" %}</span>
             </a>
             <a href="{% url 'admin_panel:category_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'category_list' %}active{% endif %}">
                 <i class="bi bi-grid-3x3"></i> 
-                <span class="nav-text">Categories</span>
+                <span class="nav-text">{% trans "Categories" %}</span>
             </a>
             <a href="{% url 'admin_panel:reports' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
                 <i class="bi bi-graph-up"></i> 
-                <span class="nav-text">Reports & Analytics</span>
+                <span class="nav-text">{% trans "Reports & Analytics" %}</span>
             </a>
         </nav>
     </aside>
@@ -729,7 +729,7 @@
                     <!-- Search -->
                     <div class="header-search d-none d-md-block">
                         <i class="bi bi-search"></i>
-                        <input type="text" class="form-control" placeholder="Search...">
+                        <input type="text" class="form-control" placeholder="{% trans "Search..." %}">
                     </div>
                     
                     <!-- Notifications -->
@@ -739,7 +739,7 @@
                     </button>
                     
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle" class="header-notifications" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+                    <button id="theme-toggle" class="header-notifications" title="{% trans "Toggle Dark Mode" %}" aria-label="{% trans "Toggle Dark Mode" %}">
                         <i class="bi bi-moon-fill" id="theme-icon"></i>
                     </button>
                     
@@ -751,15 +751,15 @@
                             </div>
                             <div class="user-info d-none d-lg-block">
                                 <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-                                <span class="user-role">Administrator</span>
+                                <span class="user-role">{% trans "Administrator" %}</span>
                             </div>
                             <i class="bi bi-chevron-down d-none d-lg-inline"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Profile</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> {% trans "Profile" %}</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> {% trans "Settings" %}</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i> {% trans "Logout" %}</a></li>
                         </ul>
                     </div>
                 </div>
@@ -774,7 +774,7 @@
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans "Close" %}"></button>
             </div>
             {% endfor %}
         </div>
@@ -942,16 +942,16 @@
         <div class="dropdown">
             <button type="button" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
                 style="background:#1e293b;color:rgba(255,255,255,.75);border:1px solid #334155;border-radius:6px;padding:4px 10px;font-size:.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;">
-                {% if CURRENT_LANGUAGE == 'sw' %}<img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" alt="Tanzania" style="border-radius:2px;"> Kiswahili
-                {% elif CURRENT_LANGUAGE == 'fr' %}<img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" alt="France" style="border-radius:2px;"> Français
-                {% elif CURRENT_LANGUAGE == 'it' %}<img src="https://flagcdn.com/20x15/it.png" width="20" height="15" alt="Italy" style="border-radius:2px;"> Italiano
-                {% else %}<img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" alt="English" style="border-radius:2px;"> English{% endif %}
+                {% if CURRENT_LANGUAGE == 'sw' %}<img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" alt="{% trans "Tanzania" %}" style="border-radius:2px;"> Kiswahili
+                {% elif CURRENT_LANGUAGE == 'fr' %}<img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" alt="{% trans "France" %}" style="border-radius:2px;"> Français
+                {% elif CURRENT_LANGUAGE == 'it' %}<img src="https://flagcdn.com/20x15/it.png" width="20" height="15" alt="{% trans "Italy" %}" style="border-radius:2px;"> Italiano
+                {% else %}<img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" alt="{% trans "English" %}" style="border-radius:2px;"> English{% endif %}
             </button>
             <ul class="dropdown-menu dropup" style="min-width:155px;border-radius:10px;background:#1e293b;border-color:#334155;">
-                <li><button class="dropdown-item" type="submit" name="language" value="en" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> English</button></li>
-                <li><button class="dropdown-item" type="submit" name="language" value="sw" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> Kiswahili</button></li>
-                <li><button class="dropdown-item" type="submit" name="language" value="fr" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> Français</button></li>
-                <li><button class="dropdown-item" type="submit" name="language" value="it" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/it.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> Italiano</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="en" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/gb.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> {% trans "English" %}</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="sw" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/tz.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> {% trans "Kiswahili" %}</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="fr" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/fr.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> {% trans "Français" %}</button></li>
+                <li><button class="dropdown-item" type="submit" name="language" value="it" style="color:rgba(255,255,255,.8);"><img src="https://flagcdn.com/20x15/it.png" width="20" height="15" style="border-radius:2px;margin-right:6px;vertical-align:middle;"> {% trans "Italiano" %}</button></li>
             </ul>
         </div>
     </form>

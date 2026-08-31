@@ -1,12 +1,13 @@
 {% extends 'admin_panel/base_admin.html' %}
 
+{% load i18n %}
 {% block title %}Agent: {{ agent.display_name }}{% endblock %}
 {% block page_title %}Agent Detail{% endblock %}
 
 {% block content %}
 <div class="mb-3">
     <a href="{% url 'admin_panel:agent_list' %}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Back to Agents
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Agents" %}
     </a>
 </div>
 
@@ -21,23 +22,23 @@
                 <h5 class="fw-bold mb-1">{{ agent.display_name }}</h5>
                 <div class="text-muted small mb-2">{{ agent.user.email }}</div>
                 {% if agent.is_verified %}
-                    <span class="badge bg-success mb-3">Verified</span>
+                    <span class="badge bg-success mb-3">{% trans "Verified" %}</span>
                     <div class="mt-2 mb-3">
-                        <p class="text-muted small mb-1">Agent Code</p>
+                        <p class="text-muted small mb-1">{% trans "Agent Code" %}</p>
                         <span class="badge bg-warning text-dark fs-5 px-4 py-2 font-monospace">{{ agent.agent_code }}</span>
                     </div>
                 {% else %}
-                    <span class="badge bg-warning text-dark mb-3">Pending Approval</span>
+                    <span class="badge bg-warning text-dark mb-3">{% trans "Pending Approval" %}</span>
                 {% endif %}
                 <hr>
                 <dl class="row text-start mb-0 small">
-                    <dt class="col-5 text-muted">Phone</dt>
+                    <dt class="col-5 text-muted">{% trans "Phone" %}</dt>
                     <dd class="col-7">{{ agent.user.phone_number|default:"—" }}</dd>
-                    <dt class="col-5 text-muted">Commission</dt>
+                    <dt class="col-5 text-muted">{% trans "Commission" %}</dt>
                     <dd class="col-7">{{ agent.commission_rate }}%</dd>
-                    <dt class="col-5 text-muted">Workers</dt>
+                    <dt class="col-5 text-muted">{% trans "Workers" %}</dt>
                     <dd class="col-7">{{ agent.total_workers }}</dd>
-                    <dt class="col-5 text-muted">Registered</dt>
+                    <dt class="col-5 text-muted">{% trans "Registered" %}</dt>
                     <dd class="col-7">{{ agent.created_at|date:"d M Y" }}</dd>
                 </dl>
             </div>
@@ -47,7 +48,7 @@
         {% if agent.bio %}
         <div class="card border-0 shadow-sm mt-3">
             <div class="card-body">
-                <h6 class="fw-semibold">Bio</h6>
+                <h6 class="fw-semibold">{% trans "Bio" %}</h6>
                 <p class="text-muted small mb-0">{{ agent.bio }}</p>
             </div>
         </div>
@@ -56,20 +57,20 @@
         <!-- Actions -->
         <div class="card border-0 shadow-sm mt-3">
             <div class="card-body">
-                <h6 class="fw-semibold mb-3">Actions</h6>
+                <h6 class="fw-semibold mb-3">{% trans "Actions" %}</h6>
 
                 {% if not agent.is_verified %}
                 <!-- Approve form -->
                 <form method="post" action="{% url 'admin_panel:approve_agent' agent.id %}" class="mb-3">
                     {% csrf_token %}
-                    <label class="form-label small fw-semibold">Commission Rate (%)</label>
+                    <label class="form-label small fw-semibold">{% trans "Commission Rate (%)" %}</label>
                     <div class="input-group mb-2">
                         <input type="number" name="commission_rate" class="form-control form-control-sm"
                                value="{{ agent.commission_rate }}" min="0" max="100" step="0.5">
                         <span class="input-group-text">%</span>
                     </div>
                     <button type="submit" class="btn btn-success btn-sm w-100">
-                        <i class="bi bi-check-circle me-1"></i> Approve Agent
+                        <i class="bi bi-check-circle me-1"></i> {% trans "Approve Agent" %}
                     </button>
                 </form>
 
@@ -77,7 +78,7 @@
                       onsubmit="return confirm('Remove this agent application? This cannot be undone.')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-sm w-100">
-                        <i class="bi bi-x-circle me-1"></i> Reject Application
+                        <i class="bi bi-x-circle me-1"></i> {% trans "Reject Application" %}
                     </button>
                 </form>
 
@@ -85,14 +86,14 @@
                 <!-- Update commission -->
                 <form method="post" action="{% url 'admin_panel:update_agent_commission' agent.id %}">
                     {% csrf_token %}
-                    <label class="form-label small fw-semibold">Update Commission Rate (%)</label>
+                    <label class="form-label small fw-semibold">{% trans "Update Commission Rate (%)" %}</label>
                     <div class="input-group mb-2">
                         <input type="number" name="commission_rate" class="form-control form-control-sm"
                                value="{{ agent.commission_rate }}" min="0" max="100" step="0.5">
                         <span class="input-group-text">%</span>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm w-100">
-                        <i class="bi bi-save me-1"></i> Update Commission
+                        <i class="bi bi-save me-1"></i> {% trans "Update Commission" %}
                     </button>
                 </form>
                 {% endif %}
@@ -112,11 +113,11 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4">Worker</th>
-                                <th>City</th>
-                                <th>Status</th>
-                                <th>Jobs Done</th>
-                                <th class="pe-4">Reassign</th>
+                                <th class="ps-4">{% trans "Worker" %}</th>
+                                <th>{% trans "City" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Jobs Done" %}</th>
+                                <th class="pe-4">{% trans "Reassign" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,9 +130,9 @@
                                 <td>{{ worker.city|default:"—" }}</td>
                                 <td>
                                     {% if worker.verification_status == 'verified' %}
-                                        <span class="badge bg-success">Verified</span>
+                                        <span class="badge bg-success">{% trans "Verified" %}</span>
                                     {% elif worker.verification_status == 'pending' %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
                                     {% else %}
                                         <span class="badge bg-danger">{{ worker.verification_status|capfirst }}</span>
                                     {% endif %}
@@ -145,7 +146,7 @@
                                         <input type="hidden" name="next" value="{% url 'admin_panel:agent_detail' agent.id %}">
                                         <button type="submit" class="btn btn-sm btn-outline-danger"
                                                 onclick="return confirm('Remove this worker from agent?')">
-                                            <i class="bi bi-person-dash"></i> Remove
+                                            <i class="bi bi-person-dash"></i> {% trans "Remove" %}
                                         </button>
                                     </form>
                                 </td>
@@ -157,7 +158,7 @@
                 {% else %}
                 <div class="text-center py-5 text-muted">
                     <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
-                    No workers assigned yet.
+                    {% trans "No workers assigned yet." %}
                 </div>
                 {% endif %}
             </div>

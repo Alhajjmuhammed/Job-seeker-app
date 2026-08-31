@@ -1,4 +1,5 @@
 {% extends "admin_panel/base_admin.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Available Workers - Service Request #{{ service_request.id }} - Admin Panel{% endblock %}
@@ -10,16 +11,16 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:service_request_list' %}">Service Requests</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:service_request_list' %}">{% trans "Service Requests" %}</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'admin_panel:service_request_detail' service_request.id %}">Request #{{ service_request.id }}</a></li>
-                    <li class="breadcrumb-item active">Available Workers</li>
+                    <li class="breadcrumb-item active">{% trans "Available Workers" %}</li>
                 </ol>
             </nav>
-            <h1 class="h3 mb-0">Available Workers</h1>
+            <h1 class="h3 mb-0">{% trans "Available Workers" %}</h1>
             <p class="text-muted mb-0">For: {{ service_request.title }}</p>
         </div>
         <a href="{% url 'admin_panel:service_request_detail' service_request.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Request
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Request" %}
         </a>
     </div>
 
@@ -28,19 +29,19 @@
         <div class="card-body">
             <div class="row align-items-center">
                 <div class="col-md-3">
-                    <small class="text-muted d-block">Request</small>
+                    <small class="text-muted d-block">{% trans "Request" %}</small>
                     <strong>{{ service_request.title }}</strong>
                 </div>
                 <div class="col-md-3">
-                    <small class="text-muted d-block">Category</small>
+                    <small class="text-muted d-block">{% trans "Category" %}</small>
                     <span class="badge bg-primary">{{ service_request.category.name|default:"No category" }}</span>
                 </div>
                 <div class="col-md-3">
-                    <small class="text-muted d-block">Client</small>
+                    <small class="text-muted d-block">{% trans "Client" %}</small>
                     {{ service_request.client.get_full_name }}
                 </div>
                 <div class="col-md-3">
-                    <small class="text-muted d-block">Current Workers</small>
+                    <small class="text-muted d-block">{% trans "Current Workers" %}</small>
                     {% if current_assignments %}
                     <span class="text-success">
                         <i class="bi bi-person-check me-1"></i>
@@ -69,11 +70,11 @@
                         <i class="bi bi-person-check me-1"></i>
                         {{ assignment.worker.user.get_full_name }}
                         {% if assignment.status == 'accepted' %}
-                        <i class="bi bi-check-circle ms-1" title="Accepted"></i>
+                        <i class="bi bi-check-circle ms-1" title="{% trans "Accepted" %}"></i>
                         {% elif assignment.status == 'pending' %}
-                        <i class="bi bi-clock ms-1" title="Pending response"></i>
+                        <i class="bi bi-clock ms-1" title="{% trans "Pending response" %}"></i>
                         {% elif assignment.status == 'rejected' %}
-                        <i class="bi bi-x-circle ms-1" title="Rejected"></i>
+                        <i class="bi bi-x-circle ms-1" title="{% trans "Rejected" %}"></i>
                         {% endif %}
                     </span>
                     {% endfor %}
@@ -92,7 +93,7 @@
         <div class="d-flex align-items-start">
             <i class="bi bi-exclamation-circle-fill fs-4 me-3 text-warning"></i>
             <div>
-                <h6 class="alert-heading mb-1"><strong>No Workers Assigned Yet</strong></h6>
+                <h6 class="alert-heading mb-1"><strong>{% trans "No Workers Assigned Yet" %}</strong></h6>
                 <p class="mb-0">This request needs {{ workers_needed }} worker{{ workers_needed|pluralize }}. Select from available workers below.</p>
             </div>
         </div>
@@ -105,7 +106,7 @@
             <i class="bi bi-people-fill me-2"></i>
             {{ workers_count }} Worker{{ workers_count|pluralize }} Available
             {% if has_location %}
-            <span class="badge bg-info text-dark ms-2"><i class="bi bi-geo-alt-fill"></i> Sorted by distance</span>
+            <span class="badge bg-info text-dark ms-2"><i class="bi bi-geo-alt-fill"></i> {% trans "Sorted by distance" %}</span>
             {% endif %}
         </h5>
         <div class="d-flex align-items-center gap-2">
@@ -116,7 +117,7 @@
             <form method="post" action="{% url 'admin_panel:auto_assign_nearest_worker' service_request.id %}" class="d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Auto-assign the {{ workers_remaining }} nearest available worker(s)?');">
-                    <i class="bi bi-lightning-fill me-1"></i> Auto-Assign Nearest Available
+                    <i class="bi bi-lightning-fill me-1"></i> {% trans "Auto-Assign Nearest Available" %}
                 </button>
             </form>
             {% endif %}
@@ -153,7 +154,7 @@
                             <h5 class="card-title mb-1">
                                 {{ worker.user.get_full_name }}
                                 {% if worker.id in assigned_worker_ids %}
-                                <span class="badge bg-success ms-1 small">Assigned</span>
+                                <span class="badge bg-success ms-1 small">{% trans "Assigned" %}</span>
                                 {% endif %}
                             </h5>
                             <div class="text-muted small mb-1">
@@ -166,7 +167,7 @@
                                 </span>
                                 {% else %}
                                 <span class="text-muted me-2">
-                                    <i class="bi bi-star"></i> No ratings
+                                    <i class="bi bi-star"></i> {% trans "No ratings" %}
                                 </span>
                                 {% endif %}
                             </div>
@@ -177,7 +178,7 @@
                     <div class="mb-3">
                         <div class="row g-2 mb-2">
                             <div class="col-6">
-                                <small class="text-muted d-block">Location</small>
+                                <small class="text-muted d-block">{% trans "Location" %}</small>
                                 <span class="small">
                                     <i class="bi bi-geo-alt me-1"></i>{{ worker.city|default:"Not specified" }}
                                     {% if worker.distance_km is not None %}
@@ -186,7 +187,7 @@
                                 </span>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted d-block">Experience</small>
+                                <small class="text-muted d-block">{% trans "Experience" %}</small>
                                 <span class="small">{{ worker.experience_years|default:"0" }} years</span>
                             </div>
                         </div>
@@ -194,7 +195,7 @@
                         <!-- Categories -->
                         {% if worker.categories.all %}
                         <div class="mb-2">
-                            <small class="text-muted d-block">Categories</small>
+                            <small class="text-muted d-block">{% trans "Categories" %}</small>
                             <div class="d-flex flex-wrap gap-1">
                                 {% for category in worker.categories.all %}
                                 <span class="badge bg-secondary small">{{ category.name }}</span>
@@ -206,7 +207,7 @@
                         <!-- Bio -->
                         {% if worker.bio %}
                         <div class="mb-2">
-                            <small class="text-muted d-block">About</small>
+                            <small class="text-muted d-block">{% trans "About" %}</small>
                             <p class="small mb-0 text-muted">{{ worker.bio|truncatewords:15 }}</p>
                         </div>
                         {% endif %}
@@ -219,7 +220,7 @@
                         
                         <div class="mb-3">
                             <label for="admin_notes_{{ worker.id }}" class="form-label small">
-                                <strong>Admin Notes (Optional)</strong>
+                                <strong>{% trans "Admin Notes (Optional)" %}</strong>
                             </label>
                             <textarea class="form-control form-control-sm" id="admin_notes_{{ worker.id }}" 
                                       name="admin_notes" rows="2" placeholder="Special instructions..."></textarea>
@@ -244,8 +245,8 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body text-center py-5">
             <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
-            <h5 class="text-muted">No Workers Available</h5>
-            <p class="text-muted mb-0">There are no verified workers for this category.</p>
+            <h5 class="text-muted">{% trans "No Workers Available" %}</h5>
+            <p class="text-muted mb-0">{% trans "There are no verified workers for this category." %}</p>
         </div>
     </div>
     {% endif %}

@@ -1,4 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Reports & Analytics - Admin Panel{% endblock %}
@@ -54,18 +55,18 @@
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
                 <h2 class="h4 mb-1">
-                    <i class="bi bi-graph-up"></i> Platform Analytics & Reports
+                    <i class="bi bi-graph-up"></i> {% trans "Platform Analytics & Reports" %}
                 </h2>
-                <p class="text-muted mb-0">Overview of platform performance and statistics</p>
+                <p class="text-muted mb-0">{% trans "Overview of platform performance and statistics" %}</p>
             </div>
             <div class="d-flex gap-2 align-items-center flex-wrap">
                 <select class="form-select" id="periodSelect" onchange="changePeriod()" style="width: auto;">
-                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
-                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
-                    <option value="60" {% if days == 60 %}selected{% endif %}>Last 60 days</option>
-                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
-                    <option value="180" {% if days == 180 %}selected{% endif %}>Last 6 months</option>
-                    <option value="365" {% if days == 365 %}selected{% endif %}>Last year</option>
+                    <option value="7" {% if days == 7 %}selected{% endif %}>{% trans "Last 7 days" %}</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>{% trans "Last 30 days" %}</option>
+                    <option value="60" {% if days == 60 %}selected{% endif %}>{% trans "Last 60 days" %}</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>{% trans "Last 90 days" %}</option>
+                    <option value="180" {% if days == 180 %}selected{% endif %}>{% trans "Last 6 months" %}</option>
+                    <option value="365" {% if days == 365 %}selected{% endif %}>{% trans "Last year" %}</option>
                 </select>
             </div>
         </div>
@@ -84,7 +85,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1 small">Total Users</h6>
+                        <h6 class="text-muted mb-1 small">{% trans "Total Users" %}</h6>
                         <h3 class="mb-0">{{ stats.total_users }}</h3>
                         <small class="text-success"><i class="bi bi-arrow-up"></i> +{{ stats.users_growth }}%</small>
                     </div>
@@ -103,7 +104,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1 small">Active Workers</h6>
+                        <h6 class="text-muted mb-1 small">{% trans "Active Workers" %}</h6>
                         <h3 class="mb-0">{{ stats.active_workers }}</h3>
                         <small class="text-success"><i class="bi bi-arrow-up"></i> +{{ stats.workers_growth }}%</small>
                     </div>
@@ -122,7 +123,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1 small">Jobs Posted</h6>
+                        <h6 class="text-muted mb-1 small">{% trans "Jobs Posted" %}</h6>
                         <h3 class="mb-0">{{ stats.total_jobs }}</h3>
                         <small class="text-success"><i class="bi bi-arrow-up"></i> +{{ stats.jobs_growth }}%</small>
                     </div>
@@ -141,7 +142,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1 small">Completed Jobs</h6>
+                        <h6 class="text-muted mb-1 small">{% trans "Completed Jobs" %}</h6>
                         <h3 class="mb-0">{{ stats.completed_jobs }}</h3>
                         <small class="text-success"><i class="bi bi-arrow-up"></i> +{{ stats.completed_growth }}%</small>
                     </div>
@@ -159,20 +160,20 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-graph-up-arrow"></i> User Registration Trends
+                        <i class="bi bi-graph-up-arrow"></i> {% trans "User Registration Trends" %}
                     </h5>
                     <div class="filter-group">
                         <button class="view-filter-btn {% if view_type == 'daily' %}active{% endif %}" onclick="changeView('daily')">
-                            <i class="bi bi-calendar-day"></i> Day
+                            <i class="bi bi-calendar-day"></i> {% trans "Day" %}
                         </button>
                         <button class="view-filter-btn {% if view_type == 'weekly' %}active{% endif %}" onclick="changeView('weekly')">
-                            <i class="bi bi-calendar-week"></i> Week
+                            <i class="bi bi-calendar-week"></i> {% trans "Week" %}
                         </button>
                         <button class="view-filter-btn {% if view_type == 'monthly' %}active{% endif %}" onclick="changeView('monthly')">
-                            <i class="bi bi-calendar-month"></i> Month
+                            <i class="bi bi-calendar-month"></i> {% trans "Month" %}
                         </button>
                         <button class="view-filter-btn {% if view_type == 'yearly' %}active{% endif %}" onclick="changeView('yearly')">
-                            <i class="bi bi-calendar"></i> Year
+                            <i class="bi bi-calendar"></i> {% trans "Year" %}
                         </button>
                     </div>
                 </div>
@@ -188,7 +189,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <h5 class="card-title mb-4">
-                    <i class="bi bi-trophy"></i> Top Categories
+                    <i class="bi bi-trophy"></i> {% trans "Top Categories" %}
                 </h5>
                 {% if top_categories %}
                 <div class="list-group list-group-flush">
@@ -205,7 +206,7 @@
                 {% else %}
                 <div class="text-center py-4">
                     <i class="bi bi-inbox fs-3 text-muted"></i>
-                    <p class="text-muted small mt-2">No data available</p>
+                    <p class="text-muted small mt-2">{% trans "No data available" %}</p>
                 </div>
                 {% endif %}
             </div>
@@ -220,31 +221,31 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-4">
-                    <i class="bi bi-people"></i> Worker Statistics
+                    <i class="bi bi-people"></i> {% trans "Worker Statistics" %}
                 </h5>
                 <div class="row g-3">
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-success mb-1">{{ stats.verified_workers }}</h4>
-                            <small class="text-muted">Verified Workers</small>
+                            <small class="text-muted">{% trans "Verified Workers" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-warning mb-1">{{ stats.pending_workers }}</h4>
-                            <small class="text-muted">Pending Verification</small>
+                            <small class="text-muted">{% trans "Pending Verification" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-info mb-1">{{ stats.available_workers }}</h4>
-                            <small class="text-muted">Available Now</small>
+                            <small class="text-muted">{% trans "Available Now" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-primary mb-1">{{ stats.avg_rating|floatformat:1 }}</h4>
-                            <small class="text-muted">Avg Rating</small>
+                            <small class="text-muted">{% trans "Avg Rating" %}</small>
                         </div>
                     </div>
                 </div>
@@ -257,31 +258,31 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-4">
-                    <i class="bi bi-briefcase"></i> Job Statistics
+                    <i class="bi bi-briefcase"></i> {% trans "Job Statistics" %}
                 </h5>
                 <div class="row g-3">
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-success mb-1">{{ stats.open_jobs }}</h4>
-                            <small class="text-muted">Open Jobs</small>
+                            <small class="text-muted">{% trans "Open Jobs" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-primary mb-1">{{ stats.in_progress_jobs }}</h4>
-                            <small class="text-muted">In Progress</small>
+                            <small class="text-muted">{% trans "In Progress" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-info mb-1">{{ stats.completed_jobs }}</h4>
-                            <small class="text-muted">Completed</small>
+                            <small class="text-muted">{% trans "Completed" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="text-warning mb-1">{{ stats.total_applications }}</h4>
-                            <small class="text-muted">Applications</small>
+                            <small class="text-muted">{% trans "Applications" %}</small>
                         </div>
                     </div>
                 </div>
@@ -296,7 +297,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-4">
-                    <i class="bi bi-clock-history"></i> Recent Registrations
+                    <i class="bi bi-clock-history"></i> {% trans "Recent Registrations" %}
                 </h5>
                 {% if recent_users %}
                 <div class="list-group list-group-flush">
@@ -324,7 +325,7 @@
                 {% else %}
                 <div class="text-center py-4">
                     <i class="bi bi-inbox fs-3 text-muted"></i>
-                    <p class="text-muted small mt-2">No recent activity</p>
+                    <p class="text-muted small mt-2">{% trans "No recent activity" %}</p>
                 </div>
                 {% endif %}
             </div>
@@ -335,36 +336,36 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-4">
-                    <i class="bi bi-file-earmark-text"></i> System Health
+                    <i class="bi bi-file-earmark-text"></i> {% trans "System Health" %}
                 </h5>
                 <div class="list-group list-group-flush">
                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
                             <i class="bi bi-database text-success me-2"></i>
-                            Database Status
+                            {% trans "Database Status" %}
                         </div>
-                        <span class="badge bg-success">Healthy</span>
+                        <span class="badge bg-success">{% trans "Healthy" %}</span>
                     </div>
                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
                             <i class="bi bi-hdd text-info me-2"></i>
-                            Storage Usage
+                            {% trans "Storage Usage" %}
                         </div>
                         <span class="badge bg-info">45%</span>
                     </div>
                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
                             <i class="bi bi-server text-primary me-2"></i>
-                            Server Load
+                            {% trans "Server Load" %}
                         </div>
-                        <span class="badge bg-primary">Normal</span>
+                        <span class="badge bg-primary">{% trans "Normal" %}</span>
                     </div>
                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
                             <i class="bi bi-envelope text-warning me-2"></i>
-                            Email Service
+                            {% trans "Email Service" %}
                         </div>
-                        <span class="badge bg-warning">Active</span>
+                        <span class="badge bg-warning">{% trans "Active" %}</span>
                     </div>
                 </div>
             </div>
@@ -378,21 +379,21 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-3">
-                    <i class="bi bi-download"></i> Export Reports
+                    <i class="bi bi-download"></i> {% trans "Export Reports" %}
                 </h5>
-                <p class="text-muted small mb-3">Download comprehensive platform statistics and analytics</p>
+                <p class="text-muted small mb-3">{% trans "Download comprehensive platform statistics and analytics" %}</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="{% url 'admin_panel:export_reports_excel' %}?days={{ days }}" class="btn btn-outline-primary">
-                        <i class="bi bi-file-earmark-excel"></i> Export to Excel
+                        <i class="bi bi-file-earmark-excel"></i> {% trans "Export to Excel" %}
                     </a>
                     <a href="{% url 'admin_panel:export_reports_csv' %}?days={{ days }}" class="btn btn-outline-success">
-                        <i class="bi bi-file-earmark-text"></i> Export to CSV
+                        <i class="bi bi-file-earmark-text"></i> {% trans "Export to CSV" %}
                     </a>
                     <a href="{% url 'admin_panel:export_reports_pdf' %}?days={{ days }}" class="btn btn-outline-danger">
-                        <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+                        <i class="bi bi-file-earmark-pdf"></i> {% trans "Export to PDF" %}
                     </a>
                     <button class="btn btn-outline-secondary" onclick="window.print()">
-                        <i class="bi bi-printer"></i> Print Report
+                        <i class="bi bi-printer"></i> {% trans "Print Report" %}
                     </button>
                 </div>
             </div>

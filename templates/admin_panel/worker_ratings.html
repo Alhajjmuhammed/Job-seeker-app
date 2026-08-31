@@ -1,4 +1,5 @@
 {% extends "admin_panel/base_admin.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}{{ worker.user.get_full_name }} - Ratings - Admin Panel{% endblock %}
@@ -10,14 +11,14 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_verification_list' %}">Workers</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:worker_verification_list' %}">{% trans "Workers" %}</a></li>
                     <li class="breadcrumb-item active">{{ worker.user.get_full_name }} - Ratings</li>
                 </ol>
             </nav>
-            <h1 class="h3 mb-0">Worker Ratings & Reviews</h1>
+            <h1 class="h3 mb-0">{% trans "Worker Ratings & Reviews" %}</h1>
         </div>
         <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Workers
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Workers" %}
         </a>
     </div>
 
@@ -57,20 +58,20 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <small class="text-muted">Average Rating</small>
+                        <small class="text-muted">{% trans "Average Rating" %}</small>
                     </div>
                     {% else %}
                     <div class="mb-3">
                         <div class="text-muted">
                             <i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
                         </div>
-                        <small class="text-muted">No ratings yet</small>
+                        <small class="text-muted">{% trans "No ratings yet" %}</small>
                     </div>
                     {% endif %}
                     
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#rateWorkerModal">
-                            <i class="bi bi-star-fill me-1"></i> Rate This Worker
+                            <i class="bi bi-star-fill me-1"></i> {% trans "Rate This Worker" %}
                         </button>
                     </div>
                 </div>
@@ -80,7 +81,7 @@
             {% if rating_stats.total > 0 %}
             <div class="card border-0 shadow-sm mt-4">
                 <div class="card-body">
-                    <h5 class="card-title">Rating Breakdown</h5>
+                    <h5 class="card-title">{% trans "Rating Breakdown" %}</h5>
                     
                     <div class="mb-2">
                         <div class="d-flex align-items-center mb-1">
@@ -133,7 +134,7 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">All Ratings & Reviews</h5>
+                    <h5 class="mb-0">{% trans "All Ratings & Reviews" %}</h5>
                 </div>
                 <div class="card-body">
                     {% if ratings %}
@@ -156,7 +157,7 @@
                                     <div class="d-flex align-items-center mb-1">
                                         <strong class="me-2">{{ rating.client.get_full_name }}</strong>
                                         {% if rating.client.is_staff %}
-                                        <span class="badge bg-primary small">Admin</span>
+                                        <span class="badge bg-primary small">{% trans "Admin" %}</span>
                                         {% else %}
                                         <span class="badge bg-secondary small">{{ rating.client.user_type|title }}</span>
                                         {% endif %}
@@ -178,7 +179,7 @@
                                     {% if rating.review %}
                                     <p class="mb-0 text-muted">{{ rating.review }}</p>
                                     {% else %}
-                                    <p class="mb-0 text-muted fst-italic">No review provided</p>
+                                    <p class="mb-0 text-muted fst-italic">{% trans "No review provided" %}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -187,8 +188,8 @@
                     {% else %}
                         <div class="text-center py-5">
                             <i class="bi bi-star display-1 text-muted mb-3"></i>
-                            <h5 class="text-muted">No ratings yet</h5>
-                            <p class="text-muted">This worker hasn't received any ratings.</p>
+                            <h5 class="text-muted">{% trans "No ratings yet" %}</h5>
+                            <p class="text-muted">{% trans "This worker hasn't received any ratings." %}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -209,7 +210,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Rating</label>
+                        <label class="form-label">{% trans "Rating" %}</label>
                         <div class="rating-input">
                             {% for i in "12345" %}
                             <input type="radio" name="rating" value="{{ forloop.counter }}" id="star{{ forloop.counter }}" class="d-none">
@@ -221,14 +222,14 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="review" class="form-label">Review (Optional)</label>
+                        <label for="review" class="form-label">{% trans "Review (Optional)" %}</label>
                         <textarea class="form-control" id="review" name="review" rows="3" 
                                   placeholder="Share your experience working with this professional..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Submit Rating</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Submit Rating" %}</button>
                 </div>
             </form>
         </div>

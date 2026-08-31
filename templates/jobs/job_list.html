@@ -1,4 +1,5 @@
 {% extends base_template %}
+{% load i18n %}
 {% load static %}
 
 <!-- LEGACY TEMPLATE: This template uses the old JobRequest system with M2M assigned_workers. -->
@@ -503,7 +504,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ total_jobs }}</h3>
-                <p>Total Jobs</p>
+                <p>{% trans "Total Jobs" %}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -512,7 +513,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ open_jobs }}</h3>
-                <p>Open Jobs</p>
+                <p>{% trans "Open Jobs" %}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -521,7 +522,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ in_progress_jobs }}</h3>
-                <p>In Progress</p>
+                <p>{% trans "In Progress" %}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -530,7 +531,7 @@
             </div>
             <div class="stat-content">
                 <h3>{{ completed_jobs }}</h3>
-                <p>Completed</p>
+                <p>{% trans "Completed" %}</p>
             </div>
         </div>
     </div>
@@ -541,9 +542,9 @@
         <form method="get" id="filterForm">
             <div class="filter-row">
                 <div class="filter-group">
-                    <label for="category">Category</label>
+                    <label for="category">{% trans "Category" %}</label>
                     <select name="category" id="category" class="form-select">
-                        <option value="">All Categories</option>
+                        <option value="">{% trans "All Categories" %}</option>
                         {% for cat in categories %}
                         <option value="{{ cat.id }}">{{ cat.name }}</option>
                         {% endfor %}
@@ -552,57 +553,57 @@
                 
                 {% if user.is_worker %}
                 <div class="filter-group">
-                    <label for="budget_min">Min Budget ($)</label>
+                    <label for="budget_min">{% trans "Min Budget ($)" %}</label>
                     <input type="number" name="budget_min" id="budget_min" placeholder="0">
                 </div>
                 <div class="filter-group">
-                    <label for="budget_max">Max Budget ($)</label>
-                    <input type="number" name="budget_max" id="budget_max" placeholder="Any">
+                    <label for="budget_max">{% trans "Max Budget ($)" %}</label>
+                    <input type="number" name="budget_max" id="budget_max" placeholder="{% trans "Any" %}">
                 </div>
                 {% endif %}
                 
                 <div class="filter-group">
-                    <label for="duration">Duration</label>
+                    <label for="duration">{% trans "Duration" %}</label>
                     <select name="duration" id="duration" class="form-select">
-                        <option value="">Any Duration</option>
-                        <option value="hourly">Hourly</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="project">Project-based</option>
+                        <option value="">{% trans "Any Duration" %}</option>
+                        <option value="hourly">{% trans "Hourly" %}</option>
+                        <option value="daily">{% trans "Daily" %}</option>
+                        <option value="weekly">{% trans "Weekly" %}</option>
+                        <option value="monthly">{% trans "Monthly" %}</option>
+                        <option value="project">{% trans "Project-based" %}</option>
                     </select>
                 </div>
                 
                 {% if user.is_client %}
                 <div class="filter-group">
-                    <label for="status">Status</label>
+                    <label for="status">{% trans "Status" %}</label>
                     <select name="status" id="status" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="open">Open</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="">{% trans "All Status" %}</option>
+                        <option value="open">{% trans "Open" %}</option>
+                        <option value="in_progress">{% trans "In Progress" %}</option>
+                        <option value="completed">{% trans "Completed" %}</option>
+                        <option value="cancelled">{% trans "Cancelled" %}</option>
                     </select>
                 </div>
                 {% endif %}
                 
                 <div class="filter-group">
-                    <label for="sort">Sort By</label>
+                    <label for="sort">{% trans "Sort By" %}</label>
                     <select name="sort" id="sort" class="form-select">
-                        <option value="-created_at">Newest First</option>
-                        <option value="created_at">Oldest First</option>
-                        <option value="-budget">Highest Budget</option>
-                        <option value="budget">Lowest Budget</option>
+                        <option value="-created_at">{% trans "Newest First" %}</option>
+                        <option value="created_at">{% trans "Oldest First" %}</option>
+                        <option value="-budget">{% trans "Highest Budget" %}</option>
+                        <option value="budget">{% trans "Lowest Budget" %}</option>
                     </select>
                 </div>
             </div>
             
             <div class="filter-actions">
                 <button type="button" class="btn-clear" onclick="clearFilters()">
-                    <i class="bi bi-x-circle"></i> Clear Filters
+                    <i class="bi bi-x-circle"></i> {% trans "Clear Filters" %}
                 </button>
                 <button type="submit" class="btn-filter">
-                    <i class="bi bi-funnel"></i> Apply Filters
+                    <i class="bi bi-funnel"></i> {% trans "Apply Filters" %}
                 </button>
             </div>
         </form>
@@ -647,7 +648,7 @@
                 </span>
                 {% if job.urgency == 'urgent' %}
                 <span class="job-tag" style="background: #fee2e2; color: #991b1b;">
-                    <i class="bi bi-exclamation-triangle"></i> Urgent
+                    <i class="bi bi-exclamation-triangle"></i> {% trans "Urgent" %}
                 </span>
                 {% endif %}
             </div>
@@ -655,15 +656,15 @@
             <div class="job-footer">
                 <div class="job-budget">
                     <span class="amount">TSH {{ job.budget }}</span>
-                    <span class="label">Budget</span>
+                    <span class="label">{% trans "Budget" %}</span>
                 </div>
                 <div class="job-actions">
                     <a href="{% url 'jobs:job_detail' job.pk %}" class="btn-view">
-                        <i class="bi bi-eye"></i> View Details
+                        <i class="bi bi-eye"></i> {% trans "View Details" %}
                     </a>
                     {% if user.is_client %}
                         <a href="{% url 'jobs:job_edit' job.pk %}" class="btn-edit">
-                            <i class="bi bi-pencil"></i> Edit
+                            <i class="bi bi-pencil"></i> {% trans "Edit" %}
                         </a>
                     {% endif %}
                 </div>
@@ -690,7 +691,7 @@
         </p>
         {% if user.is_client %}
         <a href="{% url 'jobs:job_create' %}" class="btn-apply">
-            <i class="bi bi-plus-circle"></i> Post Your First Job
+            <i class="bi bi-plus-circle"></i> {% trans "Post Your First Job" %}
         </a>
         {% endif %}
     </div>

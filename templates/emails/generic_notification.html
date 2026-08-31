@@ -1,5 +1,6 @@
 {% extends "emails/base.html" %}
 
+{% load i18n %}
 {% block title %}{{ title }} - Worker Connect{% endblock %}
 
 {% block content %}
@@ -7,6 +8,6 @@
 <p>{{ message }}</p>
 
 {% if action_url %}
-<a href="{{ action_url }}" class="btn">View Details</a>
+<a href="{{ action_url }}" class="btn">{% trans "View Details" %}</a>
 {% endif %}
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends base_template %}
+{% load i18n %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -224,7 +225,7 @@
     <!-- Chat Header -->
     <div class="chat-header">
         <a href="{% url 'jobs:inbox' %}" class="back-button">
-            <i class="bi bi-arrow-left me-1"></i> Back
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
         </a>
         
         <div class="chat-avatar">
@@ -255,7 +256,7 @@
         {% else %}
         <div class="empty-chat">
             <i class="bi bi-chat-text"></i>
-            <p>No messages yet. Start the conversation!</p>
+            <p>{% trans "No messages yet. Start the conversation!" %}</p>
         </div>
         {% endif %}
     </div>
@@ -273,7 +274,7 @@
                           id="messageInput"></textarea>
                 
                 <button type="submit" class="btn-send">
-                    <i class="bi bi-send me-1"></i> Send
+                    <i class="bi bi-send me-1"></i> {% trans "Send" %}
                 </button>
             </div>
         </form>

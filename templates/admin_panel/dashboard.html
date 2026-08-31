@@ -1,4 +1,5 @@
 ﻿{% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Dashboard - Worker Connect{% endblock %}
@@ -414,24 +415,24 @@
 <div class="balance-card">
     <div class="d-flex justify-content-between align-items-start">
         <div>
-            <div class="balance-label">Platform Overview</div>
+            <div class="balance-label">{% trans "Platform Overview" %}</div>
             <div class="balance-amount">
                 {{ stats.total_users|default:0 }}
                 <span class="balance-change">
                     <i class="bi bi-arrow-up"></i> +5.8%
                 </span>
             </div>
-            <div class="balance-label" style="opacity: 0.8;">Total Registered Users</div>
+            <div class="balance-label" style="opacity: 0.8;">{% trans "Total Registered Users" %}</div>
         </div>
         <div class="balance-actions">
             <button class="btn btn-light">
-                <i class="bi bi-plus-lg"></i> Add
+                <i class="bi bi-plus-lg"></i> {% trans "Add" %}
             </button>
             <button class="btn btn-outline-light">
-                <i class="bi bi-send"></i> Send
+                <i class="bi bi-send"></i> {% trans "Send" %}
             </button>
             <button class="btn btn-outline-light">
-                <i class="bi bi-arrow-repeat"></i> Request
+                <i class="bi bi-arrow-repeat"></i> {% trans "Request" %}
             </button>
         </div>
     </div>
@@ -444,13 +445,13 @@
             <div class="chart-header">
                 <h3 class="chart-title">
                     <i class="bi bi-graph-up text-primary"></i>
-                    User Activity
+                    {% trans "User Activity" %}
                 </h3>
                 <div class="chart-filters">
-                    <button class="btn active">Weekly</button>
-                    <button class="btn">Daily</button>
+                    <button class="btn active">{% trans "Weekly" %}</button>
+                    <button class="btn">{% trans "Daily" %}</button>
                     <button class="btn">
-                        <i class="bi bi-three-dots"></i> Menu
+                        <i class="bi bi-three-dots"></i> {% trans "Menu" %}
                     </button>
                 </div>
             </div>
@@ -462,70 +463,70 @@
                         <div class="chart-bar positive" style="height: 60%;"></div>
                         <div class="chart-bar negative" style="height: 45%;"></div>
                     </div>
-                    <div class="chart-label">15 Oct</div>
+                    <div class="chart-label">{% trans "15 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 75%;"></div>
                         <div class="chart-bar negative" style="height: 55%;"></div>
                     </div>
-                    <div class="chart-label">16 Oct</div>
+                    <div class="chart-label">{% trans "16 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 50%;"></div>
                         <div class="chart-bar negative" style="height: 70%;"></div>
                     </div>
-                    <div class="chart-label">17 Oct</div>
+                    <div class="chart-label">{% trans "17 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 55%;"></div>
                         <div class="chart-bar negative" style="height: 48%;"></div>
                     </div>
-                    <div class="chart-label">18 Oct</div>
+                    <div class="chart-label">{% trans "18 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 85%;"></div>
                         <div class="chart-bar negative" style="height: 60%;"></div>
                     </div>
-                    <div class="chart-label">19 Oct</div>
+                    <div class="chart-label">{% trans "19 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 95%;"></div>
                         <div class="chart-bar negative" style="height: 40%;"></div>
                     </div>
-                    <div class="chart-label">20 Oct</div>
+                    <div class="chart-label">{% trans "20 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 65%;"></div>
                         <div class="chart-bar negative" style="height: 75%;"></div>
                     </div>
-                    <div class="chart-label">21 Oct</div>
+                    <div class="chart-label">{% trans "21 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 70%;"></div>
                         <div class="chart-bar negative" style="height: 55%;"></div>
                     </div>
-                    <div class="chart-label">22 Oct</div>
+                    <div class="chart-label">{% trans "22 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 78%;"></div>
                         <div class="chart-bar negative" style="height: 65%;"></div>
                     </div>
-                    <div class="chart-label">23 Oct</div>
+                    <div class="chart-label">{% trans "23 Oct" %}</div>
                 </div>
                 <div class="chart-bar-group">
                     <div class="chart-bars">
                         <div class="chart-bar positive" style="height: 82%;"></div>
                         <div class="chart-bar negative" style="height: 70%;"></div>
                     </div>
-                    <div class="chart-label">24 Oct</div>
+                    <div class="chart-label">{% trans "24 Oct" %}</div>
                 </div>
             </div>
         </div>
@@ -539,7 +540,7 @@
                     <div class="stat-box-icon" style="background: #ccfbf1; color: #0f766e;">
                         <i class="bi bi-people-fill"></i>
                     </div>
-                    <div class="stat-box-label">Workers</div>
+                    <div class="stat-box-label">{% trans "Workers" %}</div>
                 </div>
                 <div class="stat-box-value">{{ stats.total_workers|default:0 }}</div>
                 <div class="stat-box-change positive">
@@ -552,7 +553,7 @@
                     <div class="stat-box-icon" style="background: #dcfce7; color: #16a34a;">
                         <i class="bi bi-cash-stack"></i>
                     </div>
-                    <div class="stat-box-label">Jobs</div>
+                    <div class="stat-box-label">{% trans "Jobs" %}</div>
                 </div>
                 <div class="stat-box-value">{{ stats.total_jobs|default:0 }}</div>
                 <div class="stat-box-change negative">
@@ -571,9 +572,9 @@
                 <div class="metric-icon teal">
                     <i class="bi bi-briefcase-fill"></i>
                 </div>
-                <div class="metric-period">Last 30 days</div>
+                <div class="metric-period">{% trans "Last 30 days" %}</div>
             </div>
-            <div class="metric-label">Active Workers</div>
+            <div class="metric-label">{% trans "Active Workers" %}</div>
             <div class="metric-value">{{ stats.verified_workers|default:0 }}</div>
             <div class="metric-change positive">
                 <i class="bi bi-arrow-up"></i> +10.0%
@@ -588,9 +589,9 @@
                 <div class="metric-icon blue">
                     <i class="bi bi-piggy-bank-fill"></i>
                 </div>
-                <div class="metric-period">Last 30 days</div>
+                <div class="metric-period">{% trans "Last 30 days" %}</div>
             </div>
-            <div class="metric-label">Open Jobs</div>
+            <div class="metric-label">{% trans "Open Jobs" %}</div>
             <div class="metric-value">{{ stats.active_jobs|default:0 }}</div>
             <div class="metric-change negative">
                 <i class="bi bi-arrow-down"></i> -6.2%
@@ -605,9 +606,9 @@
                 <div class="metric-icon purple">
                     <i class="bi bi-receipt-cutoff"></i>
                 </div>
-                <div class="metric-period">Last 30 days</div>
+                <div class="metric-period">{% trans "Last 30 days" %}</div>
             </div>
-            <div class="metric-label">Completed</div>
+            <div class="metric-label">{% trans "Completed" %}</div>
             <div class="metric-value">{{ stats.completed_jobs|default:0 }}</div>
             <div class="metric-change positive">
                 <i class="bi bi-arrow-up"></i> +36.2%
@@ -622,14 +623,14 @@
     <div class="activity-header">
         <h3 class="activity-title">
             <i class="bi bi-activity text-primary"></i>
-            Recent Activity
+            {% trans "Recent Activity" %}
         </h3>
         <div class="activity-actions">
             <button class="btn">
-                <i class="bi bi-funnel"></i> Filter
+                <i class="bi bi-funnel"></i> {% trans "Filter" %}
             </button>
             <button class="btn">
-                <i class="bi bi-arrow-down-up"></i> Sort
+                <i class="bi bi-arrow-down-up"></i> {% trans "Sort" %}
             </button>
             <button class="btn">
                 <i class="bi bi-three-dots"></i>
@@ -640,11 +641,11 @@
     <table class="table activity-table">
         <thead>
             <tr>
-                <th>TYPE</th>
-                <th>USER</th>
-                <th>AMOUNT</th>
-                <th>STATUS</th>
-                <th>DATE</th>
+                <th>{% trans "TYPE" %}</th>
+                <th>{% trans "USER" %}</th>
+                <th>{% trans "AMOUNT" %}</th>
+                <th>{% trans "STATUS" %}</th>
+                <th>{% trans "DATE" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -652,17 +653,17 @@
                 {% for worker in recent_workers %}
                 <tr>
                     <td>
-                        <span class="fw-medium">Worker Registration</span>
+                        <span class="fw-medium">{% trans "Worker Registration" %}</span>
                     </td>
                     <td>{{ worker.user.get_full_name }}</td>
                     <td>-</td>
                     <td>
                         {% if worker.verification_status == 'verified' %}
-                        <span class="status-badge success">Verified</span>
+                        <span class="status-badge success">{% trans "Verified" %}</span>
                         {% elif worker.verification_status == 'pending' %}
-                        <span class="status-badge warning">Pending</span>
+                        <span class="status-badge warning">{% trans "Pending" %}</span>
                         {% else %}
-                        <span class="status-badge pending">New</span>
+                        <span class="status-badge pending">{% trans "New" %}</span>
                         {% endif %}
                     </td>
                     <td class="text-muted">{{ worker.user.created_at|date:"M d, Y" }}</td>
@@ -672,7 +673,7 @@
                 <tr>
                     <td colspan="5" class="text-center py-5">
                         <i class="bi bi-inbox fs-2 text-muted d-block mb-2"></i>
-                        <span class="text-muted">No recent activity</span>
+                        <span class="text-muted">{% trans "No recent activity" %}</span>
                     </td>
                 </tr>
             {% endif %}

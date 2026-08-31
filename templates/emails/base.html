@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -205,8 +206,8 @@
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <h1>Worker Connect</h1>
-            <div class="tagline">Connecting skilled workers with opportunities</div>
+            <h1>{% trans "Worker Connect" %}</h1>
+            <div class="tagline">{% trans "Connecting skilled workers with opportunities" %}</div>
         </div>
         
         <!-- Body -->
@@ -217,15 +218,15 @@
         <!-- Footer -->
         <div class="email-footer">
             <div class="social-links">
-                <a href="#">Facebook</a>
-                <a href="#">Twitter</a>
-                <a href="#">LinkedIn</a>
+                <a href="#">{% trans "Facebook" %}</a>
+                <a href="#">{% trans "Twitter" %}</a>
+                <a href="#">{% trans "LinkedIn" %}</a>
             </div>
-            <p>Worker Connect, Inc.</p>
-            <p>123 Business Street, City, State 12345</p>
+            <p>{% trans "Worker Connect, Inc." %}</p>
+            <p>{% trans "123 Business Street, City, State 12345" %}</p>
             <div class="unsubscribe">
-                <a href="{{ unsubscribe_url|default:'#' }}">Unsubscribe</a> | 
-                <a href="{{ preferences_url|default:'#' }}">Email Preferences</a>
+                <a href="{{ unsubscribe_url|default:'#' }}">{% trans "Unsubscribe" %}</a> | 
+                <a href="{{ preferences_url|default:'#' }}">{% trans "Email Preferences" %}</a>
             </div>
         </div>
     </div>

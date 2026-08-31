@@ -1,4 +1,5 @@
 {% extends base_template|default:'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -89,7 +90,7 @@
 {% block content %}
 <div class="form-header">
     <h1><i class="bi bi-plus-circle"></i> {{ action }} Job Request</h1>
-    <p>Fill in the details for your job posting</p>
+    <p>{% trans "Fill in the details for your job posting" %}</p>
 </div>
 
 {% if form.non_field_errors %}
@@ -110,7 +111,7 @@
                 
                 <div class="form-group">
                     <label for="{{ form.title.id_for_label }}" class="form-label">
-                        Job Title <span class="required">*</span>
+                        {% trans "Job Title" %} <span class="required">*</span>
                     </label>
                     {{ form.title|add_class:"form-control" }}
                     {% if form.title.errors %}
@@ -121,20 +122,20 @@
                 
                 <div class="form-group">
                     <label for="{{ form.description.id_for_label }}" class="form-label">
-                        Job Description <span class="required">*</span>
+                        {% trans "Job Description" %} <span class="required">*</span>
                     </label>
                     {{ form.description|add_class:"form-control" }}
                     {% if form.description.errors %}
                         <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
                     {% endif %}
-                    <div class="help-text">Provide details about what needs to be done</div>
+                    <div class="help-text">{% trans "Provide details about what needs to be done" %}</div>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.category.id_for_label }}" class="form-label">
-                                Category <span class="required">*</span>
+                                {% trans "Category" %} <span class="required">*</span>
                             </label>
                             {{ form.category|add_class:"form-select" }}
                             {% if form.category.errors %}
@@ -146,7 +147,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.budget.id_for_label }}" class="form-label">
-                                Budget (USD)
+                                {% trans "Budget (USD)" %}
                             </label>
                             {{ form.budget|add_class:"form-control" }}
                             {% if form.budget.errors %}
@@ -160,33 +161,33 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="{{ form.duration_days.id_for_label }}" class="form-label">
-                                Duration (Days) <span class="text-danger">*</span>
+                                {% trans "Duration (Days)" %} <span class="text-danger">*</span>
                             </label>
                             {{ form.duration_days|add_class:"form-control" }}
                             {% if form.duration_days.errors %}
                                 <div class="text-danger small mt-1">{{ form.duration_days.errors.0 }}</div>
                             {% endif %}
-                            <div class="help-text">Estimated duration in days</div>
+                            <div class="help-text">{% trans "Estimated duration in days" %}</div>
                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="{{ form.workers_needed.id_for_label }}" class="form-label">
-                                Workers Needed <span class="text-danger">*</span>
+                                {% trans "Workers Needed" %} <span class="text-danger">*</span>
                             </label>
                             {{ form.workers_needed|add_class:"form-control" }}
                             {% if form.workers_needed.errors %}
                                 <div class="text-danger small mt-1">{{ form.workers_needed.errors.0 }}</div>
                             {% endif %}
-                            <div class="help-text">How many workers do you need?</div>
+                            <div class="help-text">{% trans "How many workers do you need?" %}</div>
                         </div>
                     </div>
                     
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="{{ form.urgency.id_for_label }}" class="form-label">
-                                Urgency <span class="required">*</span>
+                                {% trans "Urgency" %} <span class="required">*</span>
                             </label>
                             {{ form.urgency|add_class:"form-select" }}
                             {% if form.urgency.errors %}
@@ -198,29 +199,29 @@
                 
                 <div class="form-group">
                     <label for="{{ form.location.id_for_label }}" class="form-label">
-                        Location <span class="required">*</span>
+                        {% trans "Location" %} <span class="required">*</span>
                     </label>
                     {{ form.location|add_class:"form-control" }}
                     {% if form.location.errors %}
                         <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
                     {% endif %}
-                    <div class="help-text">Where the work will be performed</div>
+                    <div class="help-text">{% trans "Where the work will be performed" %}</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="{{ form.requirements.id_for_label }}" class="form-label">
-                        Special Requirements
+                        {% trans "Special Requirements" %}
                     </label>
                     {{ form.requirements|add_class:"form-control" }}
                     {% if form.requirements.errors %}
                         <div class="text-danger small mt-1">{{ form.requirements.errors.0 }}</div>
                     {% endif %}
-                    <div class="help-text">Any specific skills, tools, or qualifications needed</div>
+                    <div class="help-text">{% trans "Any specific skills, tools, or qualifications needed" %}</div>
                 </div>
                 
                 <div class="d-flex gap-3 justify-content-end mt-4">
                     <a href="{% url 'jobs:job_list' %}" class="btn btn-cancel">
-                        <i class="bi bi-x-circle me-2"></i>Cancel
+                        <i class="bi bi-x-circle me-2"></i>{% trans "Cancel" %}
                     </a>
                     <button type="submit" class="btn btn-submit">
                         <i class="bi bi-check-circle me-2"></i>{{ action }} Job

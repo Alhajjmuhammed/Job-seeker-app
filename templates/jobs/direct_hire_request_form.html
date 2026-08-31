@@ -1,4 +1,5 @@
 {% extends 'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -56,9 +57,9 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-lightning-charge me-2"></i> Quick Hire Request
+                        <i class="bi bi-lightning-charge me-2"></i> {% trans "Quick Hire Request" %}
                     </h5>
-                    <small class="text-white opacity-90">Book this worker for immediate or short-term work</small>
+                    <small class="text-white opacity-90">{% trans "Book this worker for immediate or short-term work" %}</small>
                 </div>
                 <div class="card-body">
                     <form method="post" id="directHireForm">
@@ -147,18 +148,18 @@
 
                         <!-- Estimated Total -->
                         <div class="alert alert-info">
-                            <h6><i class="bi bi-calculator"></i> Estimated Total</h6>
+                            <h6><i class="bi bi-calculator"></i> {% trans "Estimated Total" %}</h6>
                             <p class="mb-0" id="estimated-total">
-                                Calculate based on duration and rate
+                                {% trans "Calculate based on duration and rate" %}
                             </p>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{% url 'workers:public_profile' worker.pk %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Cancel
+                                <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send"></i> Send Request
+                                <i class="bi bi-send"></i> {% trans "Send Request" %}
                             </button>
                         </div>
                     </form>
@@ -168,13 +169,13 @@
             <!-- Info Box -->
             <div class="card shadow-sm mt-4 border-info">
                 <div class="card-body">
-                    <h6 class="text-info"><i class="bi bi-info-circle"></i> How it works</h6>
+                    <h6 class="text-info"><i class="bi bi-info-circle"></i> {% trans "How it works" %}</h6>
                     <ol class="small mb-0">
-                        <li>You send a direct hire request to this worker</li>
-                        <li>Worker receives notification and reviews your request</li>
-                        <li>Worker can accept or decline</li>
-                        <li>If accepted, work begins at scheduled time</li>
-                        <li>After completion, you can rate and pay</li>
+                        <li>{% trans "You send a direct hire request to this worker" %}</li>
+                        <li>{% trans "Worker receives notification and reviews your request" %}</li>
+                        <li>{% trans "Worker can accept or decline" %}</li>
+                        <li>{% trans "If accepted, work begins at scheduled time" %}</li>
+                        <li>{% trans "After completion, you can rate and pay" %}</li>
                     </ol>
                 </div>
             </div>

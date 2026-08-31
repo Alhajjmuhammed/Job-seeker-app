@@ -1,4 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}Manage Jobs{% endblock %}
@@ -306,8 +307,8 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="page-title mb-2">Job Management</h1>
-            <p class="text-muted">Manage jobs and assign workers</p>
+            <h1 class="page-title mb-2">{% trans "Job Management" %}</h1>
+            <p class="text-muted">{% trans "Manage jobs and assign workers" %}</p>
         </div>
     </div>
     
@@ -315,19 +316,19 @@
     <div class="stats-cards">
         <div class="stat-card">
             <h3>{{ total_jobs }}</h3>
-            <p><i class="bi bi-briefcase"></i> Total Jobs</p>
+            <p><i class="bi bi-briefcase"></i> {% trans "Total Jobs" %}</p>
         </div>
         <div class="stat-card warning">
             <h3>{{ open_jobs }}</h3>
-            <p><i class="bi bi-hourglass-split"></i> Open Jobs</p>
+            <p><i class="bi bi-hourglass-split"></i> {% trans "Open Jobs" %}</p>
         </div>
         <div class="stat-card info">
             <h3>{{ assigned_jobs }}</h3>
-            <p><i class="bi bi-person-check"></i> Assigned Jobs</p>
+            <p><i class="bi bi-person-check"></i> {% trans "Assigned Jobs" %}</p>
         </div>
         <div class="stat-card success">
             <h3>{{ completed_jobs }}</h3>
-            <p><i class="bi bi-check-circle"></i> Completed Jobs</p>
+            <p><i class="bi bi-check-circle"></i> {% trans "Completed Jobs" %}</p>
         </div>
     </div>
     
@@ -336,21 +337,21 @@
         <form method="get" action="{% url 'admin_panel:job_management' %}">
             <div class="filter-row">
                 <div class="form-group">
-                    <label for="status">Status</label>
+                    <label for="status">{% trans "Status" %}</label>
                     <select name="status" id="status" class="form-control">
-                        <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
-                        <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
-                        <option value="assigned" {% if current_status == 'assigned' %}selected{% endif %}>Assigned</option>
-                        <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                        <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
-                        <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="all" {% if current_status == 'all' %}selected{% endif %}>{% trans "All Statuses" %}</option>
+                        <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                        <option value="assigned" {% if current_status == 'assigned' %}selected{% endif %}>{% trans "Assigned" %}</option>
+                        <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>{% trans "In Progress" %}</option>
+                        <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                        <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="category">Category</label>
+                    <label for="category">{% trans "Category" %}</label>
                     <select name="category" id="category" class="form-control">
-                        <option value="">All Categories</option>
+                        <option value="">{% trans "All Categories" %}</option>
                         {% for cat in categories %}
                         <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
                         {% endfor %}
@@ -358,14 +359,14 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="search">Search</label>
+                    <label for="search">{% trans "Search" %}</label>
                     <input type="text" name="search" id="search" class="form-control" 
-                           placeholder="Search by title, client..." value="{{ search }}">
+                           placeholder="{% trans "Search by title, client..." %}" value="{{ search }}">
                 </div>
                 
                 <div class="form-group">
                     <button type="submit" class="btn-primary" style="width: 100%;">
-                        <i class="bi bi-search"></i> Filter
+                        <i class="bi bi-search"></i> {% trans "Filter" %}
                     </button>
                 </div>
             </div>
@@ -399,7 +400,7 @@
                         <span class="job-meta-item worker-need-info">
                             <i class="bi bi-person-check"></i>
                             {% if job.assigned_worker_display %}
-                                <span class="completed-staff">Worker assigned</span>
+                                <span class="completed-staff">{% trans "Worker assigned" %}</span>
                             {% else %}
                                 Needs assignment
                             {% endif %}
@@ -412,15 +413,15 @@
                 </div>
                 <div>
                     {% if job.status == 'pending' %}
-                    <span class="badge badge-open">Pending</span>
+                    <span class="badge badge-open">{% trans "Pending" %}</span>
                 {% elif job.status == 'assigned' %}
-                    <span class="badge badge-in-progress">Assigned</span>
+                    <span class="badge badge-in-progress">{% trans "Assigned" %}</span>
                     {% elif job.status == 'in_progress' %}
-                    <span class="badge badge-in-progress">In Progress</span>
+                    <span class="badge badge-in-progress">{% trans "In Progress" %}</span>
                     {% elif job.status == 'completed' %}
-                    <span class="badge badge-completed">Completed</span>
+                    <span class="badge badge-completed">{% trans "Completed" %}</span>
                     {% else %}
-                    <span class="badge badge-cancelled">Cancelled</span>
+                    <span class="badge badge-cancelled">{% trans "Cancelled" %}</span>
                     {% endif %}
                 </div>
             </div>
@@ -446,16 +447,16 @@
             
             <div class="job-actions">
                 <a href="{% url 'admin_panel:service_request_detail' job.id %}" class="btn-secondary">
-                    <i class="bi bi-eye"></i> View Details
+                    <i class="bi bi-eye"></i> {% trans "View Details" %}
                 </a>
                 
                 {% if not job.assigned_worker_display %}
                 <a href="{% url 'admin_panel:assign_worker_to_request' job.id %}" class="btn-primary">
-                    <i class="bi bi-person-plus"></i> Assign Worker
+                    <i class="bi bi-person-plus"></i> {% trans "Assign Worker" %}
                 </a>
                 {% else %}
                 <span class="btn-secondary disabled">
-                    <i class="bi bi-check-circle"></i> Worker Assigned
+                    <i class="bi bi-check-circle"></i> {% trans "Worker Assigned" %}
                 </span>
                 {% endif %}
             </div>
@@ -463,7 +464,7 @@
         {% empty %}
         <div class="job-card text-center py-5">
             <i class="bi bi-inbox" style="font-size: 3rem; color: #d1d5db;"></i>
-            <p class="mt-3 text-muted">No jobs found matching your filters.</p>
+            <p class="mt-3 text-muted">{% trans "No jobs found matching your filters." %}</p>
         </div>
         {% endfor %}
     </div>
@@ -472,15 +473,15 @@
     {% if jobs_page.has_other_pages %}
     <div class="pagination">
         {% if jobs_page.has_previous %}
-        <a href="?page=1{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">First</a>
-        <a href="?page={{ jobs_page.previous_page_number }}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Previous</a>
+        <a href="?page=1{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">{% trans "First" %}</a>
+        <a href="?page={{ jobs_page.previous_page_number }}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">{% trans "Previous" %}</a>
         {% endif %}
         
         <span class="current">Page {{ jobs_page.number }} of {{ jobs_page.paginator.num_pages }}</span>
         
         {% if jobs_page.has_next %}
-        <a href="?page={{ jobs_page.next_page_number }}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Next</a>
-        <a href="?page={{ jobs_page.paginator.num_pages }}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Last</a>
+        <a href="?page={{ jobs_page.next_page_number }}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">{% trans "Next" %}</a>
+        <a href="?page={{ jobs_page.paginator.num_pages }}{% if current_status != 'all' %}&status={{ current_status }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">{% trans "Last" %}</a>
         {% endif %}
     </div>
     {% endif %}

@@ -1,5 +1,6 @@
 {% extends 'admin_panel/base_admin.html' %}
 
+{% load i18n %}
 {% block title %}Manage Users - Admin Panel{% endblock %}
 {% block page_title %}Manage Users{% endblock %}
 
@@ -413,65 +414,65 @@
 
 <!-- Page Header -->
 <div class="page-header">
-    <h4><i class="bi bi-people-fill"></i> User Management</h4>
+    <h4><i class="bi bi-people-fill"></i> {% trans "User Management" %}</h4>
     <button type="button" class="btn-create" data-bs-toggle="modal" data-bs-target="#createUserModal">
-        <i class="bi bi-plus-circle"></i> Create New User
+        <i class="bi bi-plus-circle"></i> {% trans "Create New User" %}
     </button>
 </div>
 
 <!-- Statistics Overview -->
 <div class="stats-grid">
     <div class="stat-card">
-        <h3>Total Users</h3>
+        <h3>{% trans "Total Users" %}</h3>
         <p class="stat-value">{{ total_users }}</p>
     </div>
     <div class="stat-card">
-        <h3>Workers</h3>
+        <h3>{% trans "Workers" %}</h3>
         <p class="stat-value">{{ total_workers }}</p>
     </div>
     <div class="stat-card">
-        <h3>Clients</h3>
+        <h3>{% trans "Clients" %}</h3>
         <p class="stat-value">{{ total_clients }}</p>
     </div>
     <div class="stat-card">
-        <h3>Active</h3>
+        <h3>{% trans "Active" %}</h3>
         <p class="stat-value" style="color: #059669;">{{ active_users }}</p>
     </div>
     <div class="stat-card">
-        <h3>Inactive</h3>
+        <h3>{% trans "Inactive" %}</h3>
         <p class="stat-value" style="color: #dc2626;">{{ inactive_users }}</p>
     </div>
 </div>
 
 <!-- Filters -->
 <div class="filters-card">
-    <h5><i class="bi bi-funnel me-2"></i>Filters</h5>
+    <h5><i class="bi bi-funnel me-2"></i>{% trans "Filters" %}</h5>
     <form method="get" action="">
         <div class="row g-3">
             <div class="col-md-3">
-                <label class="form-label small">User Type</label>
+                <label class="form-label small">{% trans "User Type" %}</label>
                 <select name="type" class="form-select">
-                    <option value="all" {% if current_type == 'all' %}selected{% endif %}>All Users</option>
-                    <option value="worker" {% if current_type == 'worker' %}selected{% endif %}>Workers</option>
-                    <option value="client" {% if current_type == 'client' %}selected{% endif %}>Clients</option>
-                    <option value="admin" {% if current_type == 'admin' %}selected{% endif %}>Admins</option>
+                    <option value="all" {% if current_type == 'all' %}selected{% endif %}>{% trans "All Users" %}</option>
+                    <option value="worker" {% if current_type == 'worker' %}selected{% endif %}>{% trans "Workers" %}</option>
+                    <option value="client" {% if current_type == 'client' %}selected{% endif %}>{% trans "Clients" %}</option>
+                    <option value="admin" {% if current_type == 'admin' %}selected{% endif %}>{% trans "Admins" %}</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label small">Status</label>
+                <label class="form-label small">{% trans "Status" %}</label>
                 <select name="status" class="form-select">
-                    <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Status</option>
-                    <option value="active" {% if current_status == 'active' %}selected{% endif %}>Active</option>
-                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="all" {% if current_status == 'all' %}selected{% endif %}>{% trans "All Status" %}</option>
+                    <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label small">Search</label>
-                <input type="text" name="search" class="form-control" placeholder="Name, email, phone..." value="{{ search }}">
+                <label class="form-label small">{% trans "Search" %}</label>
+                <input type="text" name="search" class="form-control" placeholder="{% trans "Name, email, phone..." %}" value="{{ search }}">
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-view w-100">
-                    <i class="bi bi-search"></i> Filter
+                    <i class="bi bi-search"></i> {% trans "Filter" %}
                 </button>
             </div>
         </div>
@@ -480,19 +481,19 @@
 
 <!-- Users Table -->
 <div class="users-table-card">
-    <h5><i class="bi bi-people-fill me-2"></i>All Users</h5>
+    <h5><i class="bi bi-people-fill me-2"></i>{% trans "All Users" %}</h5>
     
     <div class="table-responsive">
         <table class="table">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Joined</th>
-                    <th>Activity</th>
-                    <th>Rating</th>
-                    <th>Action</th>
+                    <th>{% trans "User" %}</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Joined" %}</th>
+                    <th>{% trans "Activity" %}</th>
+                    <th>{% trans "Rating" %}</th>
+                    <th>{% trans "Action" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -511,22 +512,22 @@
                     </td>
                     <td>
                         {% if item.user.is_staff %}
-                            <span class="badge badge-danger">Admin</span>
+                            <span class="badge badge-danger">{% trans "Admin" %}</span>
                         {% elif item.user.is_worker %}
-                            <span class="badge badge-primary">Worker</span>
+                            <span class="badge badge-primary">{% trans "Worker" %}</span>
                         {% elif item.user.is_client %}
-                            <span class="badge badge-warning">Client</span>
+                            <span class="badge badge-warning">{% trans "Client" %}</span>
                         {% elif item.user.is_agent %}
-                            <span class="badge badge-agent">Agent</span>
+                            <span class="badge badge-agent">{% trans "Agent" %}</span>
                         {% else %}
-                            <span class="badge badge-secondary">User</span>
+                            <span class="badge badge-secondary">{% trans "User" %}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if item.user.is_active %}
-                            <span class="badge badge-success">Active</span>
+                            <span class="badge badge-success">{% trans "Active" %}</span>
                         {% else %}
-                            <span class="badge badge-danger">Inactive</span>
+                            <span class="badge badge-danger">{% trans "Inactive" %}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -554,7 +555,7 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{% url 'admin_panel:user_detail' item.user.id %}" class="btn-view" title="View Details">
+                            <a href="{% url 'admin_panel:user_detail' item.user.id %}" class="btn-view" title="{% trans "View Details" %}">
                                 <i class="bi bi-eye"></i>
                             </a>
                             <button type="button" class="btn-edit edit-user-btn" 
@@ -565,7 +566,7 @@
                                     data-phone="{{ item.user.phone_number|default:'' }}"
                                     data-user-type="{{ item.user.user_type }}"
                                     data-is-active="{{ item.user.is_active|yesno:'true,false' }}"
-                                    title="Edit User">
+                                    title="{% trans "Edit User" %}">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form method="post" action="{% url 'admin_panel:toggle_user_status' item.user.id %}" style="display: inline;">
@@ -578,7 +579,7 @@
                             <button type="button" class="btn-delete delete-user-btn" 
                                     data-user-id="{{ item.user.id }}"
                                     data-user-name="{{ item.user.get_full_name|default:item.user.username }}"
-                                    title="Delete User">
+                                    title="{% trans "Delete User" %}">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -588,7 +589,7 @@
                 <tr>
                     <td colspan="7" class="text-center py-4 text-muted">
                         <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                        <p class="mt-2 mb-0">No users found</p>
+                        <p class="mt-2 mb-0">{% trans "No users found" %}</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -636,31 +637,31 @@
         <div class="modal-content" style="border-radius: 12px; border: none;">
             <div class="modal-header" style="border-bottom: 2px solid #e5e7eb;">
                 <h5 class="modal-title" id="deleteModalLabel" style="color: #dc2626; font-weight: 700;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{% trans "Confirm Delete" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <div class="modal-body" style="padding: 1.5rem;">
                 <p style="font-size: 1.0625rem; margin-bottom: 1rem;">
-                    Are you sure you want to delete user <strong id="deleteUserName"></strong>?
+                    {% trans "Are you sure you want to delete user" %} <strong id="deleteUserName"></strong>?
                 </p>
                 <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 1rem; border-radius: 8px;">
                     <p style="margin: 0; font-size: 0.9375rem; color: #991b1b;">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>Warning:</strong> This action is permanent and cannot be undone. All user data, including profile information and history, will be deleted.
+                        <strong>{% trans "Warning:" %}</strong> {% trans "This action is permanent and cannot be undone. All user data, including profile information and history, will be deleted." %}
                     </p>
                 </div>
             </div>
             <div class="modal-footer" style="border-top: 2px solid #e5e7eb;">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" 
                         style="border-radius: 8px; padding: 0.625rem 1.25rem;">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
+                    <i class="bi bi-x-circle me-1"></i>{% trans "Cancel" %}
                 </button>
                 <form id="deleteForm" method="post" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger" 
                             style="border-radius: 8px; padding: 0.625rem 1.25rem; font-weight: 600;">
-                        <i class="bi bi-trash me-1"></i>Yes, Delete User
+                        <i class="bi bi-trash me-1"></i>{% trans "Yes, Delete User" %}
                     </button>
                 </form>
             </div>
@@ -674,65 +675,65 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createUserModalLabel">
-                    <i class="bi bi-person-plus-fill me-2"></i>Create New User
+                    <i class="bi bi-person-plus-fill me-2"></i>{% trans "Create New User" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <form method="post" action="{% url 'admin_panel:create_user' %}" id="createUserForm">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="create_first_name" class="required">First Name</label>
+                            <label for="create_first_name" class="required">{% trans "First Name" %}</label>
                             <input type="text" id="create_first_name" name="first_name" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="create_last_name" class="required">Last Name</label>
+                            <label for="create_last_name" class="required">{% trans "Last Name" %}</label>
                             <input type="text" id="create_last_name" name="last_name" class="form-control" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="create_email" class="required">Email Address</label>
+                        <label for="create_email" class="required">{% trans "Email Address" %}</label>
                         <input type="email" id="create_email" name="email" class="form-control" required>
-                        <p class="help-text">This will also be used as the username</p>
+                        <p class="help-text">{% trans "This will also be used as the username" %}</p>
                     </div>
                     
                     <div class="form-group">
-                        <label for="create_phone_number">Phone Number</label>
-                        <input type="tel" id="create_phone_number" name="phone_number" class="form-control" placeholder="+249-XXX-XXXX">
+                        <label for="create_phone_number">{% trans "Phone Number" %}</label>
+                        <input type="tel" id="create_phone_number" name="phone_number" class="form-control" placeholder="{% trans "+249-XXX-XXXX" %}">
                     </div>
                     
                     <div class="form-group">
-                        <label for="create_password" class="required">Password</label>
+                        <label for="create_password" class="required">{% trans "Password" %}</label>
                         <input type="password" id="create_password" name="password" class="form-control" minlength="8" required>
-                        <p class="help-text">Minimum 8 characters</p>
+                        <p class="help-text">{% trans "Minimum 8 characters" %}</p>
                     </div>
                     
                     <div class="form-group">
-                        <label for="create_user_type" class="required">User Type</label>
+                        <label for="create_user_type" class="required">{% trans "User Type" %}</label>
                         <select id="create_user_type" name="user_type" class="form-select" required>
-                            <option value="">Select user type...</option>
-                            <option value="client">Client</option>
-                            <option value="worker">Worker</option>
-                            <option value="admin">Admin</option>
+                            <option value="">{% trans "Select user type..." %}</option>
+                            <option value="client">{% trans "Client" %}</option>
+                            <option value="worker">{% trans "Worker" %}</option>
+                            <option value="admin">{% trans "Admin" %}</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <div class="checkbox-wrapper">
                             <input type="checkbox" id="create_is_active" name="is_active" checked>
-                            <label for="create_is_active">Active</label>
+                            <label for="create_is_active">{% trans "Active" %}</label>
                         </div>
-                        <p class="help-text">Inactive users cannot log in</p>
+                        <p class="help-text">{% trans "Inactive users cannot log in" %}</p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>Cancel
+                        <i class="bi bi-x-circle me-1"></i>{% trans "Cancel" %}
                     </button>
                     <button type="submit" class="btn btn-primary" style="background: #0eb8a6; border-color: #0eb8a6;">
-                        <i class="bi bi-check-circle me-1"></i>Create User
+                        <i class="bi bi-check-circle me-1"></i>{% trans "Create User" %}
                     </button>
                 </div>
             </form>
@@ -746,61 +747,61 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editUserModalLabel">
-                    <i class="bi bi-pencil-square me-2"></i>Edit User
+                    <i class="bi bi-pencil-square me-2"></i>{% trans "Edit User" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <form method="post" id="editUserForm">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="edit_first_name" class="required">First Name</label>
+                            <label for="edit_first_name" class="required">{% trans "First Name" %}</label>
                             <input type="text" id="edit_first_name" name="first_name" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_last_name" class="required">Last Name</label>
+                            <label for="edit_last_name" class="required">{% trans "Last Name" %}</label>
                             <input type="text" id="edit_last_name" name="last_name" class="form-control" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="edit_email" class="required">Email Address</label>
+                        <label for="edit_email" class="required">{% trans "Email Address" %}</label>
                         <input type="email" id="edit_email" name="email" class="form-control" required>
-                        <p class="help-text">This will also be used as the username</p>
+                        <p class="help-text">{% trans "This will also be used as the username" %}</p>
                     </div>
                     
                     <div class="form-group">
-                        <label for="edit_phone_number">Phone Number</label>
-                        <input type="tel" id="edit_phone_number" name="phone_number" class="form-control" placeholder="+249-XXX-XXXX">
+                        <label for="edit_phone_number">{% trans "Phone Number" %}</label>
+                        <input type="tel" id="edit_phone_number" name="phone_number" class="form-control" placeholder="{% trans "+249-XXX-XXXX" %}">
                     </div>
                     
                     <div class="form-group">
-                        <label for="edit_user_type">User Type</label>
+                        <label for="edit_user_type">{% trans "User Type" %}</label>
                         <input type="text" id="edit_user_type_display" class="form-control" disabled>
-                        <p class="help-text">User type cannot be changed</p>
+                        <p class="help-text">{% trans "User type cannot be changed" %}</p>
                     </div>
                     
                     <div class="form-group">
-                        <label for="edit_password">New Password (optional)</label>
+                        <label for="edit_password">{% trans "New Password (optional)" %}</label>
                         <input type="password" id="edit_password" name="password" class="form-control" minlength="8">
-                        <p class="help-text">Leave blank to keep current password</p>
+                        <p class="help-text">{% trans "Leave blank to keep current password" %}</p>
                     </div>
                     
                     <div class="form-group">
                         <div class="checkbox-wrapper">
                             <input type="checkbox" id="edit_is_active" name="is_active">
-                            <label for="edit_is_active">Active</label>
+                            <label for="edit_is_active">{% trans "Active" %}</label>
                         </div>
-                        <p class="help-text">Inactive users cannot log in</p>
+                        <p class="help-text">{% trans "Inactive users cannot log in" %}</p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>Cancel
+                        <i class="bi bi-x-circle me-1"></i>{% trans "Cancel" %}
                     </button>
                     <button type="submit" class="btn btn-primary" style="background: #0eb8a6; border-color: #0eb8a6;">
-                        <i class="bi bi-check-circle me-1"></i>Save Changes
+                        <i class="bi bi-check-circle me-1"></i>{% trans "Save Changes" %}
                     </button>
                 </div>
             </form>
