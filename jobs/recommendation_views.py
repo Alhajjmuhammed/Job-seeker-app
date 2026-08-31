@@ -123,7 +123,6 @@ def get_worker_recommendations(request, job_id):
             'primary_skill': getattr(worker, 'primary_skill', ''),
             'skills': worker.skills if hasattr(worker, 'skills') else '',
             'location': getattr(worker, 'location', ''),
-            'hourly_rate': str(worker.hourly_rate) if hasattr(worker, 'hourly_rate') and worker.hourly_rate else None,
             'average_rating': getattr(worker, 'average_rating', None),
             'completed_jobs': getattr(worker, 'completed_jobs_count', 0),
             'match_score': rec['score'],

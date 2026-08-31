@@ -35,7 +35,7 @@ class ServiceRequestAdmin(admin.ModelAdmin):
             'fields': ('work_started_at', 'work_completed_at', 'completed_by_worker_at', 'completion_notes')
         }),
         ('Billing', {
-            'fields': ('hourly_rate', 'total_hours_worked', 'total_amount')
+            'fields': ('total_hours_worked', 'total_amount')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

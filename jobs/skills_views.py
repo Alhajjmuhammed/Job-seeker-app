@@ -108,7 +108,6 @@ def find_matching_workers(request, job_id):
                 'id': worker.id,
                 'name': worker.user.get_full_name() or worker.user.username,
                 'skills': list(worker.skills.values_list('name', flat=True)),
-                'hourly_rate': str(worker.hourly_rate) if hasattr(worker, 'hourly_rate') and worker.hourly_rate else None,
             },
             'match_score': match['match']['score'],
             'exact_matches': match['match']['exact_matches'],

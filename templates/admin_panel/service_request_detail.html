@@ -573,7 +573,7 @@
                                         <input type="checkbox" class="form-check-input worker-checkbox" 
                                                value="{{ worker.id }}" 
                                                data-worker-name="{{ worker.user.get_full_name }}"
-                                               data-daily-rate="{{ worker.hourly_rate|default:'0' }}"
+                                               data-daily-rate="{{ service_request.daily_rate|default:'0' }}"
                                                onclick="event.stopPropagation();"
                                                style="width: 20px; height: 20px; cursor: pointer;">
                                     </div>
@@ -612,7 +612,7 @@
                                                 <i class="bi bi-star text-muted"></i> No ratings
                                                 {% endif %}
                                             </span>
-                                            <span class="text-success fw-bold">TSH {{ worker.hourly_rate|default:"0.00" }}/day</span>
+                                            <span class="text-success fw-bold">{{ worker.completed_jobs|default:0 }} jobs done</span>
                                         </div>
                                         {% if worker.categories.all %}
                                         <div class="mt-1">

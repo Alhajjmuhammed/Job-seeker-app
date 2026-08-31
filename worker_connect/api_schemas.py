@@ -226,7 +226,6 @@ WORKER_PROFILE_SCHEMA = openapi.Schema(
             type=openapi.TYPE_STRING,
             example='Experienced plumber with 10+ years in residential and commercial work.',
         ),
-        'hourly_rate': openapi.Schema(type=openapi.TYPE_NUMBER, example=45.00),
         'rating': openapi.Schema(type=openapi.TYPE_NUMBER, example=4.8),
         'total_reviews': openapi.Schema(type=openapi.TYPE_INTEGER, example=127),
         'total_jobs_completed': openapi.Schema(type=openapi.TYPE_INTEGER, example=89),

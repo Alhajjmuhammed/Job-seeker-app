@@ -111,13 +111,18 @@ class DirectHireRequestForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        worker_hourly_rate = kwargs.pop('worker_hourly_rate', None)
+        # Workers are paid for the job, not by the hour, so there is no hourly
+        # rate to seed this from. The suggestion comes from what the platform
+        # charges for the worker's own category instead.
+        suggested_rate = kwargs.pop('suggested_rate', None)
         super().__init__(*args, **kwargs)
-        
-        # Pre-fill rate with worker's hourly rate if available
-        if worker_hourly_rate and not self.instance.pk:
-            self.fields['offered_rate'].initial = worker_hourly_rate
-            self.fields['offered_rate'].help_text = f"Worker's rate: {worker_hourly_rate} TSH/hour"
+
+        if suggested_rate and not self.instance.pk:
+            self.fields['offered_rate'].initial = suggested_rate
+            self.fields['offered_rate'].help_text = (
+                f"Typical rate for this kind of work: TSh {suggested_rate:,.0f}. "
+                f"This is the total for the job, not a rate per hour."
+            )
 
 
 class MessageForm(forms.ModelForm):

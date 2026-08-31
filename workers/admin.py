@@ -96,7 +96,7 @@ class WorkerProfileAdmin(admin.ModelAdmin):
             'fields': ('user',)
         }),
         ('Profile', {
-            'fields': ('bio', 'categories', 'skills', 'experience_years', 'hourly_rate')
+            'fields': ('bio', 'categories', 'skills', 'experience_years')
         }),
         ('Location', {
             'fields': ('address', 'city', 'state', 'country', 'postal_code')

@@ -309,7 +309,7 @@ export default function ApplicationsScreen() {
                     <View style={styles.infoRow}>
                       <Ionicons name="cash-outline" size={16} color={theme.textSecondary} />
                       <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-                        Rate: ${application.offered_rate}/hr
+                        Offered: TSh {application.offered_rate}
                       </Text>
                     </View>
                   )}

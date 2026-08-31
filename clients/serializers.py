@@ -61,7 +61,7 @@ class WorkerSearchSerializer(serializers.ModelSerializer):
         model = WorkerProfile
         fields = [
             'id', 'user_id', 'name', 'email', 'phone_number',
-            'bio', 'hourly_rate', 'city', 'state', 'postal_code', 'profile_image',
+            'bio', 'city', 'state', 'postal_code', 'profile_image',
             'availability', 'verification_status', 'average_rating',
             'total_reviews', 'completed_jobs', 'total_jobs', 'categories', 'is_favorite',
             'experience_years', 'worker_type', 'created_at'

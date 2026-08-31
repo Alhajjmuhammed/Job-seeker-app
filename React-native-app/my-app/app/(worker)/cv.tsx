@@ -43,7 +43,6 @@ interface CVData {
   bio: string;
   worker_type: string;
   experience_years: number;
-  hourly_rate: string | null;
   average_rating: string;
   completed_jobs: number;
   verification_status: string;

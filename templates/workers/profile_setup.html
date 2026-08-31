@@ -147,14 +147,6 @@
                 {% if form.experience_years.errors %}<div class="text-danger small mt-1">{{ form.experience_years.errors }}</div>{% endif %}
             </div>
             <div class="col-md-4">
-                <label class="form-label">Daily Rate (TSH)</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white" style="border-color:#d1d5db;font-size:.85rem">TSH</span>
-                    {% render_field form.hourly_rate class="form-control" %}
-                </div>
-                {% if form.hourly_rate.errors %}<div class="text-danger small mt-1">{{ form.hourly_rate.errors }}</div>{% endif %}
-            </div>
-            <div class="col-md-4">
                 <label class="form-label">Availability</label>
                 {% render_field form.availability class="form-select" %}
                 {% if form.availability.errors %}<div class="text-danger small mt-1">{{ form.availability.errors }}</div>{% endif %}

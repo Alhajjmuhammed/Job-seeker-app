@@ -514,7 +514,6 @@ def client_browse_workers(request):
         'average_rating': str(w.average_rating),
         'completed_jobs': w.completed_jobs,
         'experience_years': w.experience_years,
-        'hourly_rate': str(w.hourly_rate) if w.hourly_rate else None,
         'city': w.city,
         'distance_km': round(w.distance_km, 1) if hasattr(w, 'distance_km') else None,
         'categories': [{'id': c.id, 'name': c.name} for c in w.categories.all()],

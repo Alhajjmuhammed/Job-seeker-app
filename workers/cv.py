@@ -37,7 +37,6 @@ class CVService:
             'bio': worker.bio,
             'worker_type': worker.get_worker_type_display(),
             'experience_years': worker.experience_years,
-            'hourly_rate': worker.hourly_rate,
             'average_rating': worker.average_rating,
             'completed_jobs': worker.completed_jobs,
             'verification_status': worker.verification_status,

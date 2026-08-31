@@ -87,7 +87,7 @@ class QueryOptimizer:
         ).prefetch_related(
             'categories',
         ).only(
-            'id', 'hourly_rate', 'rating', 'total_reviews',
+            'id', 'rating', 'total_reviews',
             'total_jobs_completed', 'availability_status', 'is_verified',
             'user__id', 'user__first_name', 'user__last_name', 'user__email',
         )

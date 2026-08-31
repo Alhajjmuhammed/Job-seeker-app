@@ -101,7 +101,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
             'assigned_worker', 'worker_name', 'assigned_by', 'assigned_by_name', 'assigned_at',
             'worker_accepted', 'worker_response_at', 'worker_rejection_reason',
             'work_started_at', 'work_completed_at', 'completed_by_worker_at',
-            'hourly_rate', 'total_hours_worked', 'total_amount',
+            'total_hours_worked', 'total_amount',
             'admin_notes', 'client_notes', 'completion_notes',
             'client_rating', 'client_review',
             'created_at', 'updated_at'

@@ -219,13 +219,6 @@ class ServiceRequest(models.Model):
     cancellation_reason = models.TextField(blank=True, help_text="Reason for cancellation")
     
     # Billing
-    hourly_rate = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        null=True, 
-        blank=True,
-        help_text="Hourly rate for this service"
-    )
     total_hours_worked = models.DecimalField(
         max_digits=5, 
         decimal_places=2, 
@@ -333,8 +326,11 @@ class ServiceRequest(models.Model):
     
     def calculate_total_amount(self):
         """Calculate total based on hours worked and hourly rate (legacy)"""
-        if self.hourly_rate and self.total_hours_worked:
-            self.total_amount = self.hourly_rate * self.total_hours_worked
+        # Legacy hourly billing. Work is priced per request now, so the
+        # billed amount is what the client agreed at booking; hours worked
+        # are still recorded as proof of work, they just do not set the price.
+        if self.total_price:
+            self.total_amount = self.total_price
             return self.total_amount
         return Decimal('0.00')
     

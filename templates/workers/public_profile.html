@@ -58,9 +58,6 @@
             <dt class="col-5 fw-normal text-muted">{% trans "Location" %}</dt>
             <dd class="col-7">{{ profile.city|default:"&mdash;" }}{% if profile.country %}, {{ profile.country }}{% endif %}</dd>
 
-            <dt class="col-5 fw-normal text-muted">{% trans "Hourly rate" %}</dt>
-            <dd class="col-7">{% if profile.hourly_rate %}TSH {{ profile.hourly_rate }}{% else %}&mdash;{% endif %}</dd>
-
             {% if profile.can_work_everywhere %}
               <dt class="col-5 fw-normal text-muted">{% trans "Travel" %}</dt>
               <dd class="col-7">{% trans "Available anywhere" %}</dd>

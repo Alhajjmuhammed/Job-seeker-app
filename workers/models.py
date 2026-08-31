@@ -126,11 +126,7 @@ class WorkerProfile(models.Model):
     categories = models.ManyToManyField(Category, related_name='workers')
     skills = models.ManyToManyField(Skill, related_name='workers', blank=True)
     experience_years = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(70)])
-    hourly_rate = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True,
-        validators=[MinValueValidator(0)]
-    )
-    
+
     # Status
     availability = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='available')
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS, default='pending')
@@ -236,11 +232,6 @@ class WorkerProfile(models.Model):
         # Check experience years
         total_fields += 1
         if self.experience_years > 0:
-            completed_fields += 1
-        
-        # Check hourly rate
-        total_fields += 1
-        if self.hourly_rate:
             completed_fields += 1
         
         # Check if has at least one document

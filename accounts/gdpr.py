@@ -57,7 +57,6 @@ class GDPRService:
                 'id': profile.id,
                 'bio': profile.bio if hasattr(profile, 'bio') else '',
                 'skills': list(profile.skills.values_list('name', flat=True)),
-                'hourly_rate': str(profile.hourly_rate) if hasattr(profile, 'hourly_rate') and profile.hourly_rate else None,
                 'location': getattr(profile, 'location', ''),
                 'verification_status': profile.verification_status,
                 'created_at': profile.created_at.isoformat() if hasattr(profile, 'created_at') else None,

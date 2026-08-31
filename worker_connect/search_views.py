@@ -207,7 +207,8 @@ def search_workers(request):
         query = request.GET.get('q', '').strip()
         category = request.GET.get('category', '')
         min_rating = request.GET.get('min_rating', '')
-        max_hourly_rate = request.GET.get('max_hourly_rate', '')
+        # accepts max_rate, and still honours the old max_hourly_rate name
+        max_rate = request.GET.get('max_rate', '') or request.GET.get('max_hourly_rate', '')
         city = request.GET.get('city', '')
         latitude = request.GET.get('latitude', '')
         longitude = request.GET.get('longitude', '')
@@ -239,12 +240,16 @@ def search_workers(request):
         if min_rating:
             workers = workers.filter(average_rating__gte=float(min_rating))
         
-        # Hourly rate filter
-        if max_hourly_rate:
-            workers = workers.filter(
-                hourly_rate__lte=float(max_hourly_rate),
-                hourly_rate__isnull=False
-            )
+        # Price filter. Workers are paid for the job, not by the hour, and
+        # the amount is set on the category rather than the worker - so a
+        # price ceiling means "only categories that cost at most this".
+        if max_rate:
+            try:
+                workers = workers.filter(
+                    categories__daily_rate__lte=float(max_rate)
+                ).distinct()
+            except (TypeError, ValueError):
+                pass
         
         # Location filter (city)
         if city:
@@ -289,7 +294,7 @@ def search_workers(request):
         sort_options = {
             'rating': '-average_rating',
             'experience': '-experience_years',
-            'rate': 'hourly_rate',
+            'rate': 'categories__daily_rate',
             'name': 'user__first_name',
             'jobs_completed': '-completed_jobs',
         }
@@ -312,7 +317,7 @@ def search_workers(request):
                     'query': query,
                     'category': category,
                     'min_rating': min_rating,
-                    'max_hourly_rate': max_hourly_rate,
+                    'max_rate': max_rate,
                     'city': city,
                     'availability': availability,
                     'location_radius': radius if latitude and longitude else None,
@@ -363,14 +368,13 @@ def search_filters(request):
             avg_rating=Avg('average_rating')
         )
         
-        # Get hourly rate ranges
-        rate_stats = WorkerProfile.objects.filter(
-            verification_status='verified',
-            hourly_rate__isnull=False
-        ).aggregate(
-            min_rate=Min('hourly_rate'),
-            max_rate=Max('hourly_rate'),
-            avg_rate=Avg('hourly_rate')
+        # Price ranges come from the categories, which is where the amount
+        # a client pays is actually set.
+        from workers.models import Category
+        rate_stats = Category.objects.filter(is_active=True).aggregate(
+            min_rate=Min('daily_rate'),
+            max_rate=Max('daily_rate'),
+            avg_rate=Avg('daily_rate')
         )
         
         # Get popular cities

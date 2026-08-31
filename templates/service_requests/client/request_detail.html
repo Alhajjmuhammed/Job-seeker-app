@@ -140,10 +140,6 @@
                         <dt class="col-sm-4">Est. Duration:</dt>
                         <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
                         
-                        {% if service_request.hourly_rate %}
-                        <dt class="col-sm-4">Hourly Rate:</dt>
-                        <dd class="col-sm-8"><strong>TSH {{ service_request.hourly_rate|floatformat:2 }}</strong></dd>
-                        {% endif %}
                         {% endif %}
                         
                         {% if service_request.service_start_date %}

@@ -138,7 +138,6 @@ def admin_service_request_detail(request, pk):
             'id': w.id,
             'name': w.user.get_full_name(),
             'availability': w.availability,
-            'hourly_rate': str(w.hourly_rate) if w.hourly_rate else None,
             'completed_jobs': w.completed_jobs,
             'city': w.city,
             'distance_km': round(w.distance_km, 1) if hasattr(w, 'distance_km') else None
@@ -649,7 +648,7 @@ def admin_dashboard_stats(request):
     ).count()
     
     # Revenue stats (this week). total_amount is the legacy hourly-billing
-    # field (hours worked x hourly_rate) which the live admin-mediated
+    # field (a legacy hourly calculation) which the live admin-mediated
     # completion flow (ServiceRequestAssignment.mark_completed) never
     # populates, so it always summed to 0. total_price (daily_rate x
     # duration_days x workers_needed) is what's actually set at request
@@ -740,7 +739,6 @@ def admin_available_workers(request):
         'email': w.user.email,
         'phone': w.user.phone_number,
         'availability': w.availability,
-        'hourly_rate': str(w.hourly_rate) if w.hourly_rate else None,
         'completed_jobs': w.completed_jobs,
         'city': w.city,
         'current_assignments': w.current_assignments,

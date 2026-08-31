@@ -24,7 +24,6 @@ interface BrowseWorker {
   average_rating: string;
   completed_jobs: number;
   experience_years: number;
-  hourly_rate: string | null;
   city: string;
   distance_km: number | null;
   categories: { id: number; name: string }[];

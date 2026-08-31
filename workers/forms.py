@@ -31,7 +31,7 @@ class WorkerProfileForm(forms.ModelForm):
             'bio', 'address', 'city', 'state', 'country', 'postal_code',
             'latitude', 'longitude',
             'religion', 'can_work_everywhere',
-            'categories', 'experience_years', 'hourly_rate', 'availability'
+            'categories', 'experience_years', 'availability'
         ]
         widgets = {
             'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -45,7 +45,6 @@ class WorkerProfileForm(forms.ModelForm):
             'can_work_everywhere': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'categories': forms.CheckboxSelectMultiple(),
             'experience_years': forms.NumberInput(attrs={'class': 'form-control'}),
-            'hourly_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'availability': forms.Select(attrs={'class': 'form-select'}),
         }
 

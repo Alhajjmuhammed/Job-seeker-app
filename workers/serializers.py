@@ -66,7 +66,7 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
         model = WorkerProfile
         fields = [
             'id', 'user_id', 'email', 'first_name', 'last_name', 'phone_number',
-            'worker_type', 'bio', 'profile_image', 'hourly_rate', 'city', 'state', 'country', 'postal_code',
+            'worker_type', 'bio', 'profile_image', 'city', 'state', 'country', 'postal_code',
             'latitude', 'longitude',
             'availability', 'verification_status', 'average_rating', 'address', 'religion',
             'can_work_everywhere', 'total_jobs', 'completed_jobs', 'total_earnings',

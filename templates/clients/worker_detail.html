@@ -1052,8 +1052,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="bi bi-clock"></i>
                     </div>
                     <div class="info-content">
-                        <label>Hourly Rate</label>
-                        <span>TSH {{ worker.hourly_rate|default:"N/A" }}</span>
+                        <label>Jobs completed</label>
+                        <span>{{ worker.completed_jobs|default:0 }}</span>
                     </div>
                 </div>
                 <div class="info-item">

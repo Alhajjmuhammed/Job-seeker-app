@@ -59,7 +59,6 @@ export default function ProfileEditScreen() {
   const [religion, setReligion] = useState('');
   const [canWorkEverywhere, setCanWorkEverywhere] = useState(false);
   const [experienceYears, setExperienceYears] = useState('0');
-  const [hourlyRate, setHourlyRate] = useState('');
   const [availability, setAvailability] = useState('available');
   const [workerType, setWorkerType] = useState<'professional' | 'non_academic'>('non_academic');
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
@@ -418,7 +417,6 @@ export default function ProfileEditScreen() {
       setReligion(profileData.religion || '');
       setCanWorkEverywhere(profileData.can_work_everywhere || false);
       setExperienceYears(String(profileData.experience_years || 0));
-      setHourlyRate(profileData.hourly_rate ? String(profileData.hourly_rate) : '');
       setAvailability(profileData.availability || 'available');
       setWorkerType(profileData.worker_type || 'non_academic');
       setSelectedCategories(profileData.categories?.map((c: any) => c.id) || []);
@@ -591,7 +589,6 @@ export default function ProfileEditScreen() {
         religion,
         can_work_everywhere: canWorkEverywhere,
         experience_years: parseInt(experienceYears) || 0,
-        hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
         availability,
         worker_type: workerType,
         category_ids: selectedCategories,
@@ -884,22 +881,6 @@ export default function ProfileEditScreen() {
               placeholderTextColor={theme.textSecondary}
               keyboardType="numeric"
             />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>{t('profile.hourlyRateUSD')}</Text>
-            <View style={styles.inputWithPrefix}>
-              <Text style={[styles.inputPrefix, { color: theme.textSecondary }]}>$</Text>
-              <TextInput
-                style={[styles.input, styles.inputWithPrefixField, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
-                value={hourlyRate}
-                onChangeText={setHourlyRate}
-                placeholder="0.00"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="decimal-pad"
-              />
-            </View>
-            <Text style={[styles.helpText, { color: theme.textSecondary }]}>{t('profile.hourlyRatePlaceholder')}</Text>
           </View>
 
           <View style={styles.formGroup}>

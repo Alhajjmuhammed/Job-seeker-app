@@ -909,7 +909,6 @@ def favorites_list(request):
                 'rating': worker.average_rating,
                 'total_reviews': worker.total_reviews,
                 'completed_jobs': worker.completed_jobs,
-                'hourly_rate': worker.hourly_rate,
                 'availability': worker.availability,
                 'bio': worker.bio,
                 'city': worker.city,

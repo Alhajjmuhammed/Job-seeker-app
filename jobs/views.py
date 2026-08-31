@@ -527,6 +527,16 @@ def message_detail(request, pk):
 # ===============================================
 
 @login_required
+def _suggested_rate(worker):
+    """A sensible opening offer for hiring this worker directly.
+
+    Work is priced per request, so the suggestion is what the platform charges
+    for one worker in this worker's own category - never an hourly figure.
+    """
+    category = worker.categories.first()
+    return category.daily_rate if category else None
+
+
 def request_worker_directly(request, worker_id):
     """Client requests/books a worker directly for quick work"""
     if not request.user.is_client:
@@ -541,7 +551,7 @@ def request_worker_directly(request, worker_id):
         return redirect('workers:public_profile', pk=worker_id)
     
     if request.method == 'POST':
-        form = DirectHireRequestForm(request.POST, worker_hourly_rate=worker.hourly_rate)
+        form = DirectHireRequestForm(request.POST, suggested_rate=_suggested_rate(worker))
         if form.is_valid():
             direct_hire = form.save(commit=False)
             direct_hire.client = request.user
@@ -551,7 +561,7 @@ def request_worker_directly(request, worker_id):
             messages.success(request, f'Request sent to {worker.user.get_full_name()}! They will be notified.')
             return redirect('jobs:direct_hire_detail', pk=direct_hire.pk)
     else:
-        form = DirectHireRequestForm(worker_hourly_rate=worker.hourly_rate)
+        form = DirectHireRequestForm(suggested_rate=_suggested_rate(worker))
     
     context = {
         'form': form,
