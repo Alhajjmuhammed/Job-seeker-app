@@ -775,9 +775,9 @@ def update_service_request(request, request_id):
             if field in request.data:
                 setattr(service_request, field, request.data[field])
 
-        # workers_needed feeds directly into total_price (daily_rate *
-        # duration_days * workers_needed) - recalculate so an edited worker
-        # count doesn't leave the client with a stale, now-wrong price.
+        # workers_needed feeds directly into total_price
+        # ((daily_rate x workers_needed) + service_fee) - recalculate so an
+        # edited worker count doesn't leave the client with a stale price.
         if 'workers_needed' in request.data:
             service_request.calculate_total_price()
 

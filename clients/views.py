@@ -7,7 +7,14 @@ from datetime import datetime, timedelta
 from workers.models import WorkerProfile, Category
 from .models import ClientProfile
 from .forms import ClientProfileForm
+import logging
+from decimal import Decimal
+
 from jobs.service_request_models import ServiceRequest
+from .booking_validation import (
+    clean_workers_needed, check_text_lengths, check_dates)
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -113,13 +120,19 @@ def request_service(request, category_id):
     
     if request.method == 'POST':
         try:
-            # Get workers_needed from POST or default to 1
-            workers_needed = request.POST.get('workers_needed', '1')
-            try:
-                workers_needed = int(workers_needed)
-                workers_needed = max(1, min(100, workers_needed))  # Clamp between 1 and 100
-            except (ValueError, TypeError):
-                workers_needed = 1
+            # Same rules the other two booking paths apply, from one shared
+            # validator. Nonsense counts used to be clamped silently: 0 and -5
+            # became 1, and 100000 became a crew of a hundred.
+            workers_needed, workers_error = clean_workers_needed(
+                request.POST.get('workers_needed', '1'))
+            if workers_error:
+                messages.error(request, workers_error)
+                return redirect('clients:request_service', category_id=category.id)
+
+            text_error = check_text_lengths(request.POST)
+            if text_error:
+                messages.error(request, text_error)
+                return redirect('clients:request_service', category_id=category.id)
             
             # Get form data
             title = request.POST.get('title', '').strip()
@@ -136,8 +149,9 @@ def request_service(request, category_id):
             service_start_date = request.POST.get('service_start_date')
             service_end_date = request.POST.get('service_end_date')
             
-            # Calculate duration and pricing
-            daily_rate = float(category.daily_rate)  # Use category-specific daily rate
+            # Calculate duration and pricing. Keep this a Decimal - mixing
+            # float and Decimal raises TypeError once the fee is added in.
+            daily_rate = category.daily_rate or Decimal('0.00')
             duration_days = 1
             
             if duration_type == 'daily':
@@ -154,9 +168,19 @@ def request_service(request, category_id):
                 start_date = datetime.strptime(service_start_date, '%Y-%m-%d').date()
                 end_date = datetime.strptime(service_end_date, '%Y-%m-%d').date()
                 duration_days = (end_date - start_date).days + 1
-            
-            # Calculate total: daily_rate × duration_days × workers_needed
-            total_price = duration_days * daily_rate * workers_needed
+
+            date_error = check_dates(service_start_date, service_end_date, preferred_date)
+            if date_error:
+                messages.error(request, date_error)
+                return redirect('clients:request_service', category_id=category.id)
+
+            # Price per request: (category amount x workers) + one service
+            # fee. duration_days above is scheduling information only. This is
+            # the third booking entry point in the codebase - all three now
+            # price through the same model method so they cannot disagree.
+            quote = ServiceRequest.quote(category, workers_needed)
+            service_fee = quote['service_fee']
+            total_price = quote['total_price']
             
             # Get payment data
             payment_method = request.POST.get('payment_method', 'pending')
@@ -201,12 +225,17 @@ def request_service(request, category_id):
                 duration_type=duration_type,
                 duration_days=duration_days,
                 daily_rate=daily_rate,
+                # snapshot the fee so a later category change cannot rewrite history
+                service_fee=service_fee,
                 total_price=total_price,
                 preferred_date=preferred_date if preferred_date else None,
                 preferred_time=preferred_time if preferred_time else None,
                 service_start_date=service_start_date if service_start_date else None,
                 service_end_date=service_end_date if service_end_date else None,
-                client_notes=client_notes if client_notes else None,
+                # client_notes is NOT NULL - passing None when the client left
+                # the box empty raised a constraint error and failed the whole
+                # booking, which is the common case.
+                client_notes=client_notes or '',
                 workers_needed=workers_needed,
                 status='pending',
                 payment_status='pending',
@@ -237,7 +266,8 @@ def request_service(request, category_id):
             return redirect('service_requests_web:client_request_detail', pk=service_request.id)
             
         except Exception as e:
-            messages.error(request, f'Error creating service request: {str(e)}')
+            logger.exception('Service request creation failed')
+            messages.error(request, 'Could not create the service request. Please check the details and try again.')
     
     # Get service statistics
     available_workers = WorkerProfile.objects.filter(
