@@ -30,7 +30,18 @@ django.setup()
 from django.apps import apps  # noqa: E402
 from django.core.exceptions import FieldDoesNotExist  # noqa: E402
 
-SKIP_PARTS = ('.venv', 'migrations', 'node_modules', 'devscripts', '__pycache__')
+# site-packages is the reliable marker for third-party code: virtualenvs get
+# named .venv here and venv on the deploy host, and scanning one turns the
+# report into thousands of findings about libraries nobody is going to fix.
+SKIP_PARTS = (
+    'site-packages', 'dist-packages', '.venv', '/venv/', '/env/',
+    'migrations', 'node_modules', 'devscripts', '__pycache__',
+)
+
+
+def _skip(path):
+    sp = str(path)
+    return any(part in sp for part in SKIP_PARTS)
 
 MODELS = {m.__name__: m for m in apps.get_models()}
 
@@ -62,10 +73,7 @@ QUERY_METHODS = {
 
 def source_files():
     for path in ROOT.rglob('*.py'):
-        sp = str(path)
-        if any(part in sp for part in SKIP_PARTS):
-            continue
-        if sp.endswith('devtools/audit.py'):
+        if _skip(path) or str(path).endswith('devtools/audit.py'):
             continue
         yield path
 
@@ -187,10 +195,9 @@ def check_serializers():
 
     findings, seen = [], set()
     for path in ROOT.rglob('*serializer*.py'):
-        sp = str(path)
-        if any(part in sp for part in SKIP_PARTS):
+        if _skip(path):
             continue
-        module = sp[len(str(ROOT)) + 1:-3].replace('/', '.')
+        module = str(path)[len(str(ROOT)) + 1:-3].replace('/', '.')
         try:
             mod = importlib.import_module(module)
         except Exception:
