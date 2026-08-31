@@ -9,6 +9,8 @@ from django.db import models, transaction
 from django.db.models import Q, Count, Avg
 from django.utils import timezone
 from .models import ClientProfile, Favorite, Rating, PaymentTransaction
+from .booking_validation import (
+    clean_workers_needed, check_text_lengths, check_dates)
 from workers.models import WorkerProfile, Category
 from workers.file_validators import validate_image_file
 from jobs.service_request_models import ServiceRequest
@@ -293,11 +295,20 @@ def request_service(request, category_id):
             duration_days = duration_map.get(duration_type, 1)
 
         # NEW: Get number of workers needed
-        workers_needed = int(request.data.get('workers_needed', 1))
-        if workers_needed < 1:
-            workers_needed = 1
-        elif workers_needed > 100:
-            workers_needed = 100
+        # Nonsense worker counts used to be silently coerced: 0 and -5 became
+        # 1, and 100000 was clamped to 100 and priced as a crew of a hundred.
+        workers_needed, workers_error = clean_workers_needed(
+            request.data.get('workers_needed', 1))
+        if workers_error:
+            return Response({'error': workers_error},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # SQLite ignores max_length but PostgreSQL raises, so an over-long
+        # title is a 500 in production unless it is caught here.
+        text_error = check_text_lengths(request.data)
+        if text_error:
+            return Response({'error': text_error},
+                            status=status.HTTP_400_BAD_REQUEST)
         
         # Check worker availability in this category
         from workers.models import WorkerProfile
@@ -337,6 +348,13 @@ def request_service(request, category_id):
         # Handle date/time fields - convert empty strings to None
         preferred_date = request.data.get('preferred_date') or None
         preferred_time = request.data.get('preferred_time') or None
+
+        # A booking must not start in the past, and the range must run
+        # forwards. Both were accepted before.
+        date_error = check_dates(service_start_date, service_end_date, preferred_date)
+        if date_error:
+            return Response({'error': date_error},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Optional GPS coordinates for the service location (form data
         # always arrives as strings - must cast, or later distance math

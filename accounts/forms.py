@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User
+from clients.models import ClientProfile
 
 
 class WorkerRegistrationForm(UserCreationForm):
@@ -63,6 +64,9 @@ class ClientRegistrationForm(UserCreationForm):
         user.user_type = 'client'
         if commit:
             user.save()
+            # Every client needs a ClientProfile: booking, invoices and the
+            # profile pages all reach for it directly.
+            ClientProfile.objects.get_or_create(user=user)
         return user
 
 

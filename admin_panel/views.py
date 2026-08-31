@@ -682,16 +682,33 @@ def create_user(request):
     
     if request.method == 'POST':
         # Get form data
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        phone_number = request.POST.get('phone_number')
-        user_type = request.POST.get('user_type')
+        email = (request.POST.get('email') or '').strip()
+        password = request.POST.get('password') or ''
+        first_name = (request.POST.get('first_name') or '').strip()
+        last_name = (request.POST.get('last_name') or '').strip()
+        phone_number = (request.POST.get('phone_number') or '').strip()
+        user_type = (request.POST.get('user_type') or '').strip()
         is_active = request.POST.get('is_active') == 'on'
-        
-        # Validation
-        if User.objects.filter(email=email).exists():
+
+        # Check every required field before touching the database. Leaving
+        # any of these blank previously surfaced the raw constraint error
+        # ("NOT NULL constraint failed: accounts_user.phone_number") to the
+        # admin instead of a readable message.
+        missing = [label for value, label in (
+            (email, 'email'), (password, 'password'), (first_name, 'first name'),
+            (last_name, 'last name'), (phone_number, 'phone number'),
+            (user_type, 'user type'),
+        ) if not value]
+        if missing:
+            messages.error(request, 'Please fill in the required fields: %s.' % ', '.join(missing))
+            return redirect('admin_panel:manage_users')
+
+        if user_type not in dict(User.USER_TYPE_CHOICES):
+            messages.error(request, 'Please choose a valid user type.')
+            return redirect('admin_panel:manage_users')
+
+        # username mirrors email here, so guard that unique column too
+        if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
             messages.error(request, 'A user with this email already exists.')
             return redirect('admin_panel:manage_users')
         

@@ -15,7 +15,7 @@ class JobRequestForm(forms.ModelForm):
     class Meta:
         model = JobRequest
         fields = [
-            'title', 'description', 'category', 'location',
+            'title', 'description', 'category', 'location', 'city',
             'budget', 'duration_days', 'workers_needed', 'urgency'
         ]
         widgets = {
@@ -23,6 +23,7 @@ class JobRequestForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Dar es Salaam'}),
             'budget': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'duration_days': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'placeholder': 'Number of days'}),
             'workers_needed': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '10', 'placeholder': 'How many workers do you need?'}),

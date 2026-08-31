@@ -5,6 +5,9 @@ Clients can use web browser to request services and view history
 
 from decimal import Decimal
 
+from clients.booking_validation import (
+    clean_workers_needed, check_text_lengths, check_dates)
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -81,12 +84,15 @@ def client_web_request_service(request):
             category = Category.objects.get(id=category_id, is_active=True)
             
             # Get workers_needed from POST or default to 1
-            workers_needed = request.POST.get('workers_needed', '1')
-            try:
-                workers_needed = int(workers_needed)
-                workers_needed = max(1, min(100, workers_needed))  # Clamp between 1 and 100
-            except (ValueError, TypeError):
-                workers_needed = 1
+            # Same rules the mobile API applies, so the two implementations
+            # cannot drift. Nonsense counts used to be clamped silently: 0 and
+            # -5 became 1, and 100000 became a crew of a hundred.
+            workers_needed, workers_error = clean_workers_needed(
+                request.POST.get('workers_needed', '1'))
+            if workers_error:
+                messages.error(request, workers_error)
+                return render(request, 'service_requests/client/request_service.html',
+                              {'categories': categories})
             
             # Check worker availability in this category
             from workers.models import WorkerProfile
@@ -138,7 +144,20 @@ def client_web_request_service(request):
             preferred_time = request.POST.get('preferred_time')
             service_start_date = request.POST.get('service_start_date')
             service_end_date = request.POST.get('service_end_date')
-            
+
+            # Same length and date rules the mobile API applies
+            text_error = check_text_lengths(request.POST)
+            if text_error:
+                messages.error(request, text_error)
+                return render(request, 'service_requests/client/request_service.html',
+                              {'categories': categories})
+
+            date_error = check_dates(service_start_date, service_end_date, preferred_date)
+            if date_error:
+                messages.error(request, date_error)
+                return render(request, 'service_requests/client/request_service.html',
+                              {'categories': categories})
+
             # Calculate duration and pricing. Keep this a Decimal - mixing
             # float and Decimal raises TypeError once the fee is added in.
             daily_rate = category.daily_rate or Decimal('0.00')

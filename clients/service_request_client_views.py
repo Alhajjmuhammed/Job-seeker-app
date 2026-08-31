@@ -219,12 +219,13 @@ def client_service_request_detail(request, pk):
     
     serializer = ServiceRequestSerializer(service_request)
     
-    # Get time logs if worker was assigned
-    time_logs_data = []
-    if service_request.assigned_worker:
-        from jobs.service_request_serializers import TimeTrackingSerializer
-        time_logs = service_request.time_logs.all()
-        time_logs_data = TimeTrackingSerializer(time_logs, many=True).data
+    # Time logs belong to this request, so show whatever has been recorded.
+    # This was gated on the legacy assigned_worker field, which the real
+    # multi-worker assignment flow never populates - so the client never saw
+    # any clock in/out history at all.
+    from jobs.service_request_serializers import TimeTrackingSerializer
+    time_logs = service_request.time_logs.all()
+    time_logs_data = TimeTrackingSerializer(time_logs, many=True).data
     
     return Response({
         'service_request': serializer.data,
