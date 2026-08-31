@@ -1,4 +1,5 @@
 {% extends 'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}My Service Requests - Worker Connect{% endblock %}
@@ -32,12 +33,12 @@
                 <div class="col-md-6">
                     <h5 class="mb-0">
                         <i class="fas fa-list"></i>
-                        My Service Requests
+                        {% trans "My Service Requests" %}
                     </h5>
                 </div>
                 <div class="col-md-6 text-end">
                     <a href="{% url 'clients:browse_services' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New Request
+                        <i class="fas fa-plus"></i> {% trans "New Request" %}
                     </a>
                 </div>
             </div>
@@ -99,7 +100,7 @@
                         <div class="col-md-4 text-end">
                             {% if request.assigned_worker %}
                             <div class="mb-2">
-                                <small class="text-muted">Assigned Worker:</small><br>
+                                <small class="text-muted">{% trans "Assigned Worker:" %}</small><br>
                                 <strong>{{ request.assigned_worker.user.get_full_name }}</strong>
                             </div>
                             {% endif %}
@@ -107,13 +108,13 @@
                             <div class="btn-group-vertical d-grid gap-2">
                                 <a href="{% url 'clients:service_request_detail' request.id %}" 
                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye"></i> View Details
+                                    <i class="fas fa-eye"></i> {% trans "View Details" %}
                                 </a>
                                 {% if request.status == 'pending' %}
                                 <button class="btn btn-outline-danger btn-sm" 
                                         onclick="cancelRequest(this)" 
                                         data-request-id="{{ request.id }}">
-                                    <i class="fas fa-times"></i> Cancel
+                                    <i class="fas fa-times"></i> {% trans "Cancel" %}
                                 </button>
                                 {% endif %}
                             </div>
@@ -126,10 +127,10 @@
         <div class="col-12 text-center py-5">
             <div class="text-muted">
                 <i class="fas fa-clipboard-list fa-3x mb-3"></i>
-                <h4>No Service Requests Found</h4>
-                <p>You haven't made any service requests yet.</p>
+                <h4>{% trans "No Service Requests Found" %}</h4>
+                <p>{% trans "You haven't made any service requests yet." %}</p>
                 <a href="{% url 'clients:browse_services' %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Request Your First Service
+                    <i class="fas fa-plus"></i> {% trans "Request Your First Service" %}
                 </a>
             </div>
         </div>

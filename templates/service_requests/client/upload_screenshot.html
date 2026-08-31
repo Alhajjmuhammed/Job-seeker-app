@@ -1,5 +1,6 @@
 {% extends "clients/base_client.html" %}
 
+{% load i18n %}
 {% block title %}Upload Payment Screenshot{% endblock %}
 
 {% block extra_css %}
@@ -93,19 +94,19 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">📸 Upload Payment Screenshot</h2>
+    <h2 class="mb-4">{% trans "📸 Upload Payment Screenshot" %}</h2>
     
     <div class="row">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
                     <div class="alert alert-info mb-4">
-                        <h6 class="mb-2"><i class="bi bi-info-circle"></i> Upload Guidelines</h6>
+                        <h6 class="mb-2"><i class="bi bi-info-circle"></i> {% trans "Upload Guidelines" %}</h6>
                         <ul class="mb-0 small">
-                            <li>Accepted formats: JPEG, PNG, GIF, WebP</li>
-                            <li>Maximum file size: 5MB</li>
-                            <li>Screenshot should clearly show payment details</li>
-                            <li>Admin will verify the screenshot before processing</li>
+                            <li>{% trans "Accepted formats: JPEG, PNG, GIF, WebP" %}</li>
+                            <li>{% trans "Maximum file size: 5MB" %}</li>
+                            <li>{% trans "Screenshot should clearly show payment details" %}</li>
+                            <li>{% trans "Admin will verify the screenshot before processing" %}</li>
                         </ul>
                     </div>
                     
@@ -114,12 +115,12 @@
                         
                         <div class="upload-area" id="uploadArea">
                             <i class="bi bi-cloud-upload upload-icon"></i>
-                            <h5>Drag & Drop Screenshot Here</h5>
+                            <h5>{% trans "Drag & Drop Screenshot Here" %}</h5>
                             <p class="text-muted mb-3">or</p>
                             
                             <div class="file-input-wrapper">
                                 <label for="fileInput" class="file-input-label">
-                                    <i class="bi bi-folder2-open"></i> Browse Files
+                                    <i class="bi bi-folder2-open"></i> {% trans "Browse Files" %}
                                 </label>
                                 <input type="file" 
                                        id="fileInput" 
@@ -130,17 +131,17 @@
                         </div>
                         
                         <div class="preview-container" id="previewContainer">
-                            <h6 class="mb-3">Selected Screenshot:</h6>
-                            <img id="previewImage" class="preview-image" alt="Screenshot preview">
+                            <h6 class="mb-3">{% trans "Selected Screenshot:" %}</h6>
+                            <img id="previewImage" class="preview-image" alt="{% trans "Screenshot preview" %}">
                             
                             <div class="file-info" id="fileInfo">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong>File:</strong> <span id="fileName"></span><br>
-                                        <strong>Size:</strong> <span id="fileSize"></span>
+                                        <strong>{% trans "File:" %}</strong> <span id="fileName"></span><br>
+                                        <strong>{% trans "Size:" %}</strong> <span id="fileSize"></span>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
-                                        <i class="bi bi-x-circle"></i> Remove
+                                        <i class="bi bi-x-circle"></i> {% trans "Remove" %}
                                     </button>
                                 </div>
                             </div>
@@ -148,10 +149,10 @@
                         
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
-                                <i class="bi bi-upload"></i> Upload Screenshot
+                                <i class="bi bi-upload"></i> {% trans "Upload Screenshot" %}
                             </button>
                             <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary">
-                                Cancel
+                                {% trans "Cancel" %}
                             </a>
                         </div>
                     </form>
@@ -162,13 +163,13 @@
         <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-body">
-                    <h6 class="card-title">📋 Request Info</h6>
+                    <h6 class="card-title">{% trans "📋 Request Info" %}</h6>
                     <hr>
-                    <p class="mb-1"><strong>Request ID:</strong> #{{ service_request.id }}</p>
-                    <p class="mb-1"><strong>Title:</strong> {{ service_request.title }}</p>
-                    <p class="mb-1"><strong>Status:</strong> {{ service_request.get_status_display }}</p>
+                    <p class="mb-1"><strong>{% trans "Request ID:" %}</strong> #{{ service_request.id }}</p>
+                    <p class="mb-1"><strong>{% trans "Title:" %}</strong> {{ service_request.title }}</p>
+                    <p class="mb-1"><strong>{% trans "Status:" %}</strong> {{ service_request.get_status_display }}</p>
                     {% if service_request.total_price %}
-                    <p class="mb-1"><strong>Amount:</strong> TSH {{ service_request.total_price|floatformat:0 }}</p>
+                    <p class="mb-1"><strong>{% trans "Amount:" %}</strong> TSH {{ service_request.total_price|floatformat:0 }}</p>
                     {% endif %}
                     
                     {% if service_request.payment_screenshot %}
@@ -187,12 +188,12 @@
             
             <div class="card bg-info text-white mt-3">
                 <div class="card-body">
-                    <h6 class="card-title">💡 Tips</h6>
+                    <h6 class="card-title">{% trans "💡 Tips" %}</h6>
                     <ul class="small mb-0">
-                        <li>Take a clear screenshot</li>
-                        <li>Include transaction ID</li>
-                        <li>Show amount and date</li>
-                        <li>Avoid blurry images</li>
+                        <li>{% trans "Take a clear screenshot" %}</li>
+                        <li>{% trans "Include transaction ID" %}</li>
+                        <li>{% trans "Show amount and date" %}</li>
+                        <li>{% trans "Avoid blurry images" %}</li>
                     </ul>
                 </div>
             </div>

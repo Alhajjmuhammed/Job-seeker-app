@@ -1,4 +1,5 @@
 {% extends "clients/base_client.html" %}
+{% load i18n %}
 {% load humanize %}
 
 {% block title %}Cancel Request #{{ service_request.id }}{% endblock %}
@@ -21,33 +22,33 @@
             <div class="card shadow">
                 <div class="card-header bg-danger text-white">
                     <h4 class="mb-0">
-                        <i class="bi bi-exclamation-triangle"></i> Cancel Service Request
+                        <i class="bi bi-exclamation-triangle"></i> {% trans "Cancel Service Request" %}
                     </h4>
                 </div>
                 <div class="card-body">
                     <!-- Warning Message -->
                     <div class="alert alert-warning" role="alert">
                         <h5 class="alert-heading">
-                            <i class="bi bi-info-circle"></i> Are you sure you want to cancel this request?
+                            <i class="bi bi-info-circle"></i> {% trans "Are you sure you want to cancel this request?" %}
                         </h5>
-                        <p class="mb-0">This action cannot be undone. Please review the details below before confirming.</p>
+                        <p class="mb-0">{% trans "This action cannot be undone. Please review the details below before confirming." %}</p>
                     </div>
                     
                     <!-- Request Summary -->
                     <div class="card mb-4">
                         <div class="card-body">
-                            <h5 class="card-title">Request Details</h5>
+                            <h5 class="card-title">{% trans "Request Details" %}</h5>
                             <dl class="row mb-0">
-                                <dt class="col-sm-4">Request ID:</dt>
+                                <dt class="col-sm-4">{% trans "Request ID:" %}</dt>
                                 <dd class="col-sm-8">#{{ service_request.id }}</dd>
                                 
-                                <dt class="col-sm-4">Title:</dt>
+                                <dt class="col-sm-4">{% trans "Title:" %}</dt>
                                 <dd class="col-sm-8">{{ service_request.title }}</dd>
                                 
-                                <dt class="col-sm-4">Category:</dt>
+                                <dt class="col-sm-4">{% trans "Category:" %}</dt>
                                 <dd class="col-sm-8">{{ service_request.category.name }}</dd>
                                 
-                                <dt class="col-sm-4">Status:</dt>
+                                <dt class="col-sm-4">{% trans "Status:" %}</dt>
                                 <dd class="col-sm-8">
                                     <span class="badge {% if service_request.status == 'pending' %}bg-warning text-dark{% elif service_request.status == 'assigned' %}bg-info{% else %}bg-primary{% endif %}">
                                         {{ service_request.get_status_display }}
@@ -61,7 +62,7 @@
                                     {% for assignment in accepted_assignments %}{{ assignment.worker.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
                                 </dd>
                                 {% elif service_request.assigned_worker %}
-                                <dt class="col-sm-4">Assigned Worker:</dt>
+                                <dt class="col-sm-4">{% trans "Assigned Worker:" %}</dt>
                                 <dd class="col-sm-8">
                                     {{ service_request.assigned_worker.user.get_full_name }}
                                 </dd>
@@ -69,13 +70,13 @@
                                 {% endwith %}
                                 
                                 {% if service_request.total_price %}
-                                <dt class="col-sm-4">Total Price:</dt>
+                                <dt class="col-sm-4">{% trans "Total Price:" %}</dt>
                                 <dd class="col-sm-8">
                                     <strong class="text-success">TSH {{ service_request.total_price|floatformat:2 }}</strong>
                                 </dd>
                                 {% endif %}
                                 
-                                <dt class="col-sm-4">Created:</dt>
+                                <dt class="col-sm-4">{% trans "Created:" %}</dt>
                                 <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }}</dd>
                             </dl>
                         </div>
@@ -85,26 +86,26 @@
                     <div class="card mb-4 border-info">
                         <div class="card-header bg-info text-white">
                             <h6 class="mb-0">
-                                <i class="bi bi-file-text"></i> Cancellation Policy
+                                <i class="bi bi-file-text"></i> {% trans "Cancellation Policy" %}
                             </h6>
                         </div>
                         <div class="card-body">
                             <ul class="mb-0">
                                 {% if service_request.status == 'pending' %}
-                                <li>Your request is still <strong>pending</strong> assignment. You can cancel without penalty.</li>
-                                <li>No charges will be applied.</li>
+                                <li>{% trans "Your request is still" %} <strong>pending</strong> {% trans "assignment. You can cancel without penalty." %}</li>
+                                <li>{% trans "No charges will be applied." %}</li>
                                 {% elif service_request.status == 'assigned' and not service_request.work_started_at %}
-                                <li>A worker has been <strong>assigned</strong> but work hasn't started yet.</li>
-                                <li>The worker will be notified of the cancellation.</li>
-                                <li>No cancellation fees apply at this stage.</li>
+                                <li>{% trans "A worker has been" %} <strong>assigned</strong> {% trans "but work hasn't started yet." %}</li>
+                                <li>{% trans "The worker will be notified of the cancellation." %}</li>
+                                <li>{% trans "No cancellation fees apply at this stage." %}</li>
                                 {% elif service_request.status == 'assigned' or service_request.status == 'in_progress' %}
-                                <li class="text-warning"><strong>Work has already started</strong> on this request.</li>
-                                <li>Cancelling now may incur charges for work already completed.</li>
-                                <li>The worker will be compensated for time already worked.</li>
+                                <li class="text-warning"><strong>{% trans "Work has already started" %}</strong> {% trans "on this request." %}</li>
+                                <li>{% trans "Cancelling now may incur charges for work already completed." %}</li>
+                                <li>{% trans "The worker will be compensated for time already worked." %}</li>
                                 <li>You may be charged for {{ service_request.total_hours_worked|default:"0" }} hours of work.</li>
                                 {% endif %}
-                                <li>Once cancelled, you will need to create a new request if you change your mind.</li>
-                                <li>Our team may contact you to understand the reason for cancellation.</li>
+                                <li>{% trans "Once cancelled, you will need to create a new request if you change your mind." %}</li>
+                                <li>{% trans "Our team may contact you to understand the reason for cancellation." %}</li>
                             </ul>
                         </div>
                     </div>
@@ -115,19 +116,19 @@
                         
                         <div class="mb-4">
                             <label for="cancellation_reason" class="form-label">
-                                <strong>Reason for Cancellation</strong> <span class="text-danger">*</span>
+                                <strong>{% trans "Reason for Cancellation" %}</strong> <span class="text-danger">*</span>
                             </label>
                             <select name="cancellation_reason_type" id="cancellation_reason_type" class="form-select mb-2" required>
-                                <option value="">-- Select a reason --</option>
-                                <option value="no_longer_needed">No longer needed</option>
-                                <option value="found_alternative">Found alternative solution</option>
-                                <option value="timing_issues">Timing/scheduling issues</option>
-                                <option value="budget_constraints">Budget constraints</option>
-                                <option value="worker_concerns">Concerns about assigned worker</option>
-                                <option value="service_quality">Service quality concerns</option>
-                                <option value="personal_reasons">Personal reasons</option>
-                                <option value="emergency">Emergency situation</option>
-                                <option value="other">Other</option>
+                                <option value="">{% trans "-- Select a reason --" %}</option>
+                                <option value="no_longer_needed">{% trans "No longer needed" %}</option>
+                                <option value="found_alternative">{% trans "Found alternative solution" %}</option>
+                                <option value="timing_issues">{% trans "Timing/scheduling issues" %}</option>
+                                <option value="budget_constraints">{% trans "Budget constraints" %}</option>
+                                <option value="worker_concerns">{% trans "Concerns about assigned worker" %}</option>
+                                <option value="service_quality">{% trans "Service quality concerns" %}</option>
+                                <option value="personal_reasons">{% trans "Personal reasons" %}</option>
+                                <option value="emergency">{% trans "Emergency situation" %}</option>
+                                <option value="other">{% trans "Other" %}</option>
                             </select>
                             
                             <textarea 
@@ -135,11 +136,11 @@
                                 id="cancellation_reason" 
                                 class="form-control" 
                                 rows="4" 
-                                placeholder="Please provide more details about why you're cancelling this request. This helps us improve our service."
+                                placeholder="{% trans "Please provide more details about why you're cancelling this request. This helps us improve our service." %}"
                                 required
                             ></textarea>
                             <small class="form-text text-muted">
-                                Please be specific. This information helps us improve our services and may be shared with the assigned worker.
+                                {% trans "Please be specific. This information helps us improve our services and may be shared with the assigned worker." %}
                             </small>
                         </div>
                         
@@ -148,7 +149,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="acknowledge_charges" name="acknowledge_charges" required>
                                 <label class="form-check-label" for="acknowledge_charges">
-                                    <strong>I understand that I may be charged for work already completed</strong>
+                                    <strong>{% trans "I understand that I may be charged for work already completed" %}</strong>
                                 </label>
                             </div>
                         </div>
@@ -157,17 +158,17 @@
                         <div class="form-check mb-4">
                             <input class="form-check-input" type="checkbox" id="confirm_cancellation" name="confirm_cancellation" required>
                             <label class="form-check-label" for="confirm_cancellation">
-                                I confirm that I want to cancel this service request and understand that this action cannot be undone.
+                                {% trans "I confirm that I want to cancel this service request and understand that this action cannot be undone." %}
                             </label>
                         </div>
                         
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-danger flex-grow-1" aria-label="Confirm cancellation of service request">
-                                <i class="bi bi-x-circle"></i> Yes, Cancel Request
+                            <button type="submit" class="btn btn-danger flex-grow-1" aria-label="{% trans "Confirm cancellation of service request" %}">
+                                <i class="bi bi-x-circle"></i> {% trans "Yes, Cancel Request" %}
                             </button>
-                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary flex-grow-1" aria-label="Go back to request details without cancelling">
-                                <i class="bi bi-arrow-left"></i> No, Go Back
+                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary flex-grow-1" aria-label="{% trans "Go back to request details without cancelling" %}">
+                                <i class="bi bi-arrow-left"></i> {% trans "No, Go Back" %}
                             </a>
                         </div>
                     </form>
@@ -178,16 +179,16 @@
             <div class="card mt-4 border-primary">
                 <div class="card-body">
                     <h6 class="text-primary">
-                        <i class="bi bi-lightbulb"></i> Need to make changes instead?
+                        <i class="bi bi-lightbulb"></i> {% trans "Need to make changes instead?" %}
                     </h6>
-                    <p class="mb-2">If you need to modify your request rather than cancel it, consider these options:</p>
+                    <p class="mb-2">{% trans "If you need to modify your request rather than cancel it, consider these options:" %}</p>
                     <ul class="mb-3">
-                        <li>Contact the assigned worker to discuss adjustments</li>
-                        <li>Reach out to our support team for assistance</li>
-                        <li>Check if rescheduling is possible</li>
+                        <li>{% trans "Contact the assigned worker to discuss adjustments" %}</li>
+                        <li>{% trans "Reach out to our support team for assistance" %}</li>
+                        <li>{% trans "Check if rescheduling is possible" %}</li>
                     </ul>
                     <a href="mailto:sales@easyfix.co.tz" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-headset"></i> Contact Support
+                        <i class="bi bi-headset"></i> {% trans "Contact Support" %}
                     </a>
                 </div>
             </div>

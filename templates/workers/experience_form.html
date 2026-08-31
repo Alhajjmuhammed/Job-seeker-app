@@ -1,4 +1,5 @@
 {% extends 'workers/base_worker.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}{{ action }} Experience{% endblock %}
@@ -229,17 +230,17 @@
 {% block content %}
 <div class="experience-form-container">
     <a href="{% url 'workers:experience_list' %}" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to Experience
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Experience" %}
     </a>
 
     <div class="page-header">
         <h1><i class="bi bi-plus-circle"></i> {{ action }} Experience</h1>
-        <p>Share your work history and accomplishments</p>
+        <p>{% trans "Share your work history and accomplishments" %}</p>
     </div>
 
     {% if form.errors %}
     <div class="error-message">
-        <strong>Please correct the following errors:</strong>
+        <strong>{% trans "Please correct the following errors:" %}</strong>
         <ul style="margin: 0.5rem 0 0 1.5rem;">
             {% for field, errors in form.errors.items %}
                 {% for error in errors %}
@@ -257,40 +258,40 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label class="form-label" for="id_job_title">
-                        <i class="bi bi-briefcase"></i> Job Title<span class="required">*</span>
+                        <i class="bi bi-briefcase"></i> {% trans "Job Title" %}<span class="required">*</span>
                     </label>
                     {{ form.job_title }}
-                    <span class="form-help">E.g., Senior Plumber, Electrician</span>
+                    <span class="form-help">{% trans "E.g., Senior Plumber, Electrician" %}</span>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="id_company">
-                        <i class="bi bi-building"></i> Company Name<span class="required">*</span>
+                        <i class="bi bi-building"></i> {% trans "Company Name" %}<span class="required">*</span>
                     </label>
                     {{ form.company }}
-                    <span class="form-help">Where did you work?</span>
+                    <span class="form-help">{% trans "Where did you work?" %}</span>
                 </div>
             </div>
 
             <div class="form-group full-width">
                 <label class="form-label" for="id_location">
-                    <i class="bi bi-geo-alt"></i> Location
+                    <i class="bi bi-geo-alt"></i> {% trans "Location" %}
                 </label>
                 {{ form.location }}
-                <span class="form-help">City, State or Country</span>
+                <span class="form-help">{% trans "City, State or Country" %}</span>
             </div>
 
             <div class="form-grid">
                 <div class="form-group">
                     <label class="form-label" for="id_start_date">
-                        <i class="bi bi-calendar-check"></i> Start Date<span class="required">*</span>
+                        <i class="bi bi-calendar-check"></i> {% trans "Start Date" %}<span class="required">*</span>
                     </label>
                     {{ form.start_date }}
                 </div>
 
                 <div class="form-group" id="endDateGroup">
                     <label class="form-label" for="id_end_date">
-                        <i class="bi bi-calendar-x"></i> End Date
+                        <i class="bi bi-calendar-x"></i> {% trans "End Date" %}
                     </label>
                     {{ form.end_date }}
                 </div>
@@ -299,24 +300,24 @@
             <div class="form-group">
                 <div class="checkbox-wrapper">
                     {{ form.is_current }}
-                    <label for="id_is_current">I currently work here</label>
+                    <label for="id_is_current">{% trans "I currently work here" %}</label>
                 </div>
             </div>
 
             <div class="form-group full-width">
                 <label class="form-label" for="id_description">
-                    <i class="bi bi-text-paragraph"></i> Description
+                    <i class="bi bi-text-paragraph"></i> {% trans "Description" %}
                 </label>
                 {{ form.description }}
-                <span class="form-help">Describe your responsibilities and achievements</span>
+                <span class="form-help">{% trans "Describe your responsibilities and achievements" %}</span>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn-submit">
-                    <i class="bi bi-check-circle"></i> Save Experience
+                    <i class="bi bi-check-circle"></i> {% trans "Save Experience" %}
                 </button>
                 <a href="{% url 'workers:experience_list' %}" class="btn-cancel">
-                    <i class="bi bi-x-circle"></i> Cancel
+                    <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                 </a>
             </div>
         </form>

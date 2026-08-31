@@ -1,5 +1,6 @@
 {% extends "workers/base_worker.html" %}
 
+{% load i18n %}
 {% block title %}Assignment Details{% endblock %}
 
 {% block extra_css %}
@@ -35,9 +36,9 @@
 {% block content %}
 <div class="container mt-4" data-service-request-id="{{ service_request.id }}">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📋 Assignment Details</h2>
+        <h2>{% trans "📋 Assignment Details" %}</h2>
         <a href="{% url 'service_requests_web:worker_assignments' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Assignments
+            <i class="fas fa-arrow-left"></i> {% trans "Back to Assignments" %}
         </a>
     </div>
     
@@ -53,16 +54,16 @@
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Category:</dt>
+                        <dt class="col-sm-4">{% trans "Category:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.category.name }}</dd>
                         
-                        <dt class="col-sm-4">Client:</dt>
+                        <dt class="col-sm-4">{% trans "Client:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.client.get_full_name }}</dd>
                         
-                        <dt class="col-sm-4">Location:</dt>
+                        <dt class="col-sm-4">{% trans "Location:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.location }}, {{ service_request.city }}</dd>
                         
-                        <dt class="col-sm-4">Urgency:</dt>
+                        <dt class="col-sm-4">{% trans "Urgency:" %}</dt>
                         <dd class="col-sm-8">
                             <span class="badge {% if service_request.urgency == 'emergency' %}bg-danger{% elif service_request.urgency == 'urgent' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
                                 {{ service_request.get_urgency_display }}
@@ -70,50 +71,50 @@
                         </dd>
                         
                         {% if service_request.duration_type %}
-                        <dt class="col-sm-4">Duration:</dt>
+                        <dt class="col-sm-4">{% trans "Duration:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.duration_type_display }} ({{ service_request.duration_days }} days)</dd>
 
-                        <dt class="col-sm-4">Daily Rate:</dt>
+                        <dt class="col-sm-4">{% trans "Daily Rate:" %}</dt>
                         <dd class="col-sm-8"><strong>TSH {{ service_request.daily_rate|floatformat:2 }}</strong></dd>
 
-                        <dt class="col-sm-4">Total Price:</dt>
+                        <dt class="col-sm-4">{% trans "Total Price:" %}</dt>
                         <dd class="col-sm-8"><strong class="text-success">TSH {{ service_request.total_price|floatformat:2 }}</strong></dd>
                         {% else %}
-                        <dt class="col-sm-4">Est. Duration:</dt>
+                        <dt class="col-sm-4">{% trans "Est. Duration:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
 
                         {% endif %}
                         
                         {% if service_request.preferred_date %}
-                        <dt class="col-sm-4">Preferred Time:</dt>
+                        <dt class="col-sm-4">{% trans "Preferred Time:" %}</dt>
                         <dd class="col-sm-8">
                             {{ service_request.preferred_date|date:"M d, Y" }}
                             {% if service_request.preferred_time %}at {{ service_request.preferred_time|time:"h:i A" }}{% endif %}
                         </dd>
                         {% endif %}
                         
-                        <dt class="col-sm-4">Assigned:</dt>
+                        <dt class="col-sm-4">{% trans "Assigned:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</dd>
                         
                         {% if service_request.work_started_at %}
-                        <dt class="col-sm-4">Work Started:</dt>
+                        <dt class="col-sm-4">{% trans "Work Started:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.work_started_at|date:"M d, Y g:i A" }}</dd>
                         {% endif %}
                         
                         {% if service_request.work_completed_at %}
-                        <dt class="col-sm-4">Work Completed:</dt>
+                        <dt class="col-sm-4">{% trans "Work Completed:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.work_completed_at|date:"M d, Y g:i A" }}</dd>
                         {% endif %}
                     </dl>
                     
                     <hr>
                     
-                    <h6>Description:</h6>
+                    <h6>{% trans "Description:" %}</h6>
                     <p>{{ service_request.description|linebreaks }}</p>
                     
                     {% if service_request.admin_notes %}
                     <hr>
-                    <h6>Admin Notes:</h6>
+                    <h6>{% trans "Admin Notes:" %}</h6>
                     <p class="text-muted"><em>{{ service_request.admin_notes }}</em></p>
                     {% endif %}
                 </div>
@@ -123,17 +124,17 @@
             {% if time_logs %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-clock"></i> Time Logs</h5>
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> {% trans "Time Logs" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Clock In</th>
-                                    <th>Clock Out</th>
-                                    <th>Duration</th>
-                                    <th>Notes</th>
+                                    <th>{% trans "Clock In" %}</th>
+                                    <th>{% trans "Clock Out" %}</th>
+                                    <th>{% trans "Duration" %}</th>
+                                    <th>{% trans "Notes" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -144,7 +145,7 @@
                                         {% if log.clock_out %}
                                         {{ log.clock_out|date:"M d, Y g:i A" }}
                                         {% else %}
-                                        <span class="badge bg-info">Currently Clocked In</span>
+                                        <span class="badge bg-info">{% trans "Currently Clocked In" %}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -160,11 +161,11 @@
                             </tbody>
                             <tfoot>
                                 <tr class="table-light">
-                                    <td colspan="2"><strong>Total Hours Worked:</strong></td>
+                                    <td colspan="2"><strong>{% trans "Total Hours Worked:" %}</strong></td>
                                     <td colspan="2"><strong>{{ service_request.total_hours_worked|default:"0" }} hours</strong></td>
                                 </tr>
                                 <tr class="table-light">
-                                    <td colspan="2"><strong>Total Amount:</strong></td>
+                                    <td colspan="2"><strong>{% trans "Total Amount:" %}</strong></td>
                                     <td colspan="2"><strong class="text-success">TSH {{ service_request.total_price|default:service_request.total_amount|default:"0" }}</strong></td>
                                 </tr>
                             </tfoot>
@@ -179,18 +180,18 @@
             <!-- Action Buttons -->
             <div class="card bg-light mb-4">
                 <div class="card-body">
-                    <h6 class="card-title">Actions</h6>
+                    <h6 class="card-title">{% trans "Actions" %}</h6>
                     
                     {% if assignment.status == 'pending' %}
                     <div class="alert alert-warning mb-3">
-                        <i class="fas fa-exclamation-triangle"></i> You need to respond to this assignment.
+                        <i class="fas fa-exclamation-triangle"></i> {% trans "You need to respond to this assignment." %}
                     </div>
                     
                     <!-- Accept Button -->
                     <form method="post" action="{% url 'service_requests_web:worker_respond' assignment.id %}" class="mb-2">
                         {% csrf_token %}
                         <button type="submit" name="action" value="accept" class="btn btn-success btn-lg w-100">
-                            <i class="fas fa-check"></i> Accept Assignment
+                            <i class="fas fa-check"></i> {% trans "Accept Assignment" %}
                         </button>
                     </form>
                     
@@ -199,26 +200,26 @@
                         {% csrf_token %}
                         <div class="mb-2">
                             <textarea name="reason" class="form-control" rows="2" 
-                                      placeholder="Reason for rejection (optional)"></textarea>
+                                      placeholder="{% trans "Reason for rejection (optional)" %}"></textarea>
                         </div>
                         <button type="submit" name="action" value="reject" class="btn btn-outline-danger btn-lg w-100">
-                            <i class="fas fa-times"></i> Reject
+                            <i class="fas fa-times"></i> {% trans "Reject" %}
                         </button>
                     </form>
                     
                     {% elif assignment.status == 'accepted' or assignment.status == 'in_progress' %}
                             {% if is_clocked_in %}
                             <div class="alert alert-info">
-                                <i class="fas fa-clock"></i> You are currently clocked in.
+                                <i class="fas fa-clock"></i> {% trans "You are currently clocked in." %}
                             </div>
                             <a href="{% url 'service_requests_web:worker_clock_out' assignment.id %}" 
                                class="btn btn-danger btn-lg w-100 mb-2">
-                                <i class="fas fa-clock"></i> Clock Out
+                                <i class="fas fa-clock"></i> {% trans "Clock Out" %}
                             </a>
                             {% else %}
                             <a href="{% url 'service_requests_web:worker_clock_in' assignment.id %}" 
                                class="btn btn-success btn-lg w-100 mb-2">
-                                <i class="fas fa-clock"></i> Clock In
+                                <i class="fas fa-clock"></i> {% trans "Clock In" %}
                             </a>
                             {% endif %}
                             
@@ -226,20 +227,20 @@
                             <hr>
                             <a href="{% url 'service_requests_web:worker_complete' assignment.id %}" 
                                class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-check-circle"></i> Mark Complete
+                                <i class="fas fa-check-circle"></i> {% trans "Mark Complete" %}
                             </a>
                             {% endif %}
                         
                     {% elif assignment.status == 'completed' %}
                     <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> Service completed!
+                        <i class="fas fa-check-circle"></i> {% trans "Service completed!" %}
                         <hr>
                         <strong>Earned: TSH {{ assignment.worker_payment|default:"0" }}</strong>
                     </div>
                     
                     {% elif assignment.status == 'rejected' %}
                     <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> You rejected this assignment.
+                        <i class="fas fa-times-circle"></i> {% trans "You rejected this assignment." %}
                     </div>
                     {% endif %}
                 </div>
@@ -248,11 +249,11 @@
             <!-- Info Box -->
             <div class="card bg-light">
                 <div class="card-body">
-                    <h6 class="card-title"><i class="fas fa-info-circle"></i> Status Guide</h6>
+                    <h6 class="card-title"><i class="fas fa-info-circle"></i> {% trans "Status Guide" %}</h6>
                     <ul class="small mb-0">
-                        <li><strong>Assigned:</strong> Waiting for your response</li>
-                        <li><strong>In Progress:</strong> Work has started</li>
-                        <li><strong>Completed:</strong> Service finished</li>
+                        <li><strong>{% trans "Assigned:" %}</strong> {% trans "Waiting for your response" %}</li>
+                        <li><strong>{% trans "In Progress:" %}</strong> {% trans "Work has started" %}</li>
+                        <li><strong>{% trans "Completed:" %}</strong> {% trans "Service finished" %}</li>
                     </ul>
                 </div>
             </div>

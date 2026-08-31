@@ -1,4 +1,5 @@
 {% extends "clients/base_client.html" %}
+{% load i18n %}
 {% load humanize %}
 
 {% block title %}Request #{{ service_request.id }} - {{ service_request.title }}{% endblock %}
@@ -85,9 +86,9 @@
 {% block content %}
 <div class="container mt-4" data-service-request-id="{{ service_request.id }}">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📄 Request Details</h2>
+        <h2>{% trans "📄 Request Details" %}</h2>
         <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to My Requests
+            <i class="bi bi-arrow-left"></i> {% trans "Back to My Requests" %}
         </a>
     </div>
     
@@ -100,110 +101,110 @@
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Status:</dt>
+                        <dt class="col-sm-4">{% trans "Status:" %}</dt>
                         <dd class="col-sm-8">
                             <span class="badge {% if service_request.status == 'pending' %}bg-warning text-dark{% elif service_request.status == 'assigned' %}bg-info{% elif service_request.status == 'in_progress' %}bg-primary{% elif service_request.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %} fs-6">
                                 {{ service_request.get_status_display }}
                             </span>
                         </dd>
                         
-                        <dt class="col-sm-4">Category:</dt>
+                        <dt class="col-sm-4">{% trans "Category:" %}</dt>
                         <dd class="col-sm-8">
                             <span class="badge bg-info fs-6">{{ service_request.category.name }}</span>
                         </dd>
                         
-                        <dt class="col-sm-4">Urgency:</dt>
+                        <dt class="col-sm-4">{% trans "Urgency:" %}</dt>
                         <dd class="col-sm-8">
                             <span class="badge {% if service_request.urgency == 'emergency' %}bg-danger{% elif service_request.urgency == 'urgent' %}bg-warning text-dark{% else %}bg-secondary{% endif %} fs-6">
                                 {{ service_request.get_urgency_display }}
                             </span>
                         </dd>
                         
-                        <dt class="col-sm-4">Location:</dt>
+                        <dt class="col-sm-4">{% trans "Location:" %}</dt>
                         <dd class="col-sm-8">
                             <i class="bi bi-geo-alt"></i> {{ service_request.location }}, {{ service_request.city }}
                         </dd>
                         
                         {% if service_request.duration_type %}
-                        <dt class="col-sm-4">Duration Type:</dt>
+                        <dt class="col-sm-4">{% trans "Duration Type:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.duration_type_display }}</dd>
                         
-                        <dt class="col-sm-4">Duration:</dt>
+                        <dt class="col-sm-4">{% trans "Duration:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.duration_days }} days</dd>
                         
-                        <dt class="col-sm-4">Daily Rate:</dt>
+                        <dt class="col-sm-4">{% trans "Daily Rate:" %}</dt>
                         <dd class="col-sm-8"><strong>TSH {{ service_request.daily_rate|floatformat:2 }}</strong></dd>
                         
-                        <dt class="col-sm-4">Total Price:</dt>
+                        <dt class="col-sm-4">{% trans "Total Price:" %}</dt>
                         <dd class="col-sm-8"><strong class="text-success fs-5">TSH {{ service_request.total_price|floatformat:2 }}</strong></dd>
                         {% elif service_request.estimated_duration_hours %}
-                        <dt class="col-sm-4">Est. Duration:</dt>
+                        <dt class="col-sm-4">{% trans "Est. Duration:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.estimated_duration_hours }} hours</dd>
                         
                         {% endif %}
                         
                         {% if service_request.service_start_date %}
-                        <dt class="col-sm-4">Start Date:</dt>
+                        <dt class="col-sm-4">{% trans "Start Date:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.service_start_date|date:"M d, Y" }}</dd>
                         {% endif %}
                         
                         {% if service_request.service_end_date %}
-                        <dt class="col-sm-4">End Date:</dt>
+                        <dt class="col-sm-4">{% trans "End Date:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.service_end_date|date:"M d, Y" }}</dd>
                         {% endif %}
                         
                         {% if service_request.preferred_date %}
-                        <dt class="col-sm-4">Preferred Time:</dt>
+                        <dt class="col-sm-4">{% trans "Preferred Time:" %}</dt>
                         <dd class="col-sm-8">
                             {{ service_request.preferred_date|date:"M d, Y" }}
                             {% if service_request.preferred_time %}at {{ service_request.preferred_time|time:"h:i A" }}{% endif %}
                         </dd>
                         {% endif %}
                         
-                        <dt class="col-sm-4">Created:</dt>
+                        <dt class="col-sm-4">{% trans "Created:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }} ({{ service_request.created_at|naturaltime }})</dd>                        
                         {% if service_request.workers_needed and service_request.workers_needed > 1 %}
-                        <dt class=\"col-sm-4\">Workers Needed:</dt>
+                        <dt class=\"col-sm-4\">{% trans "Workers Needed:" %}</dt>
                         <dd class=\"col-sm-8\">
                             <span class=\"badge bg-info fs-6\">{{ service_request.workers_needed }} workers</span>
                         </dd>
                         {% endif %}                        
                         {% if service_request.assigned_at %}
-                        <dt class="col-sm-4">Assigned:</dt>
+                        <dt class="col-sm-4">{% trans "Assigned:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</dd>
                         {% endif %}
                         
                         {% if service_request.work_started_at %}
-                        <dt class="col-sm-4">Work Started:</dt>
+                        <dt class="col-sm-4">{% trans "Work Started:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.work_started_at|date:"M d, Y g:i A" }}</dd>
                         {% endif %}
                         
                         {% if service_request.work_completed_at %}
-                        <dt class="col-sm-4">Work Completed:</dt>
+                        <dt class="col-sm-4">{% trans "Work Completed:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.work_completed_at|date:"M d, Y g:i A" }}</dd>
                         {% endif %}
                         
                         {% if service_request.cancelled_at %}
-                        <dt class="col-sm-4">Cancelled:</dt>
+                        <dt class="col-sm-4">{% trans "Cancelled:" %}</dt>
                         <dd class="col-sm-8 text-danger">{{ service_request.cancelled_at|date:"M d, Y g:i A" }}</dd>
                         {% endif %}
                     </dl>
                     
                     <hr>
                     
-                    <h6><i class="bi bi-file-text"></i> Description:</h6>
+                    <h6><i class="bi bi-file-text"></i> {% trans "Description:" %}</h6>
                     <p class="ms-3">{{ service_request.description|linebreaks }}</p>
                     
                     {% if service_request.client_notes %}
                     <hr>
-                    <h6><i class="bi bi-sticky"></i> Additional Notes:</h6>
+                    <h6><i class="bi bi-sticky"></i> {% trans "Additional Notes:" %}</h6>
                     <p class="ms-3 text-muted">{{ service_request.client_notes|linebreaks }}</p>
                     {% endif %}
                     
                     {% if service_request.admin_notes %}
                     <hr>
                     <div class="alert alert-info">
-                        <h6><i class="bi bi-info-circle"></i> Admin Notes:</h6>
+                        <h6><i class="bi bi-info-circle"></i> {% trans "Admin Notes:" %}</h6>
                         <p class="mb-0">{{ service_request.admin_notes|linebreaks }}</p>
                     </div>
                     {% endif %}
@@ -211,7 +212,7 @@
                     {% if service_request.cancellation_reason %}
                     <hr>
                     <div class="alert alert-danger">
-                        <h6><i class="bi bi-exclamation-triangle"></i> Cancellation Reason:</h6>
+                        <h6><i class="bi bi-exclamation-triangle"></i> {% trans "Cancellation Reason:" %}</h6>
                         <p class="mb-0">{{ service_request.cancellation_reason|linebreaks }}</p>
                     </div>
                     {% endif %}
@@ -219,7 +220,7 @@
                     {% if service_request.client_rating %}
                     <hr>
                     <div class="alert alert-success">
-                        <h6><i class="bi bi-star-fill"></i> Your Rating:</h6>
+                        <h6><i class="bi bi-star-fill"></i> {% trans "Your Rating:" %}</h6>
                         <div class="d-flex align-items-center mb-2">
                             <div style="color: #fbbf24; font-size: 1.5rem;">
                                 {% for i in "12345" %}
@@ -247,11 +248,11 @@
                 <div class="card-header bg-primary text-white">
                     {% if service_request.workers_needed and service_request.workers_needed > 1 %}
                     <h5 class="mb-0">
-                        <i class="bi bi-people-fill"></i> Assigned Workers 
+                        <i class="bi bi-people-fill"></i> {% trans "Assigned Workers" %} 
                         <span class="badge bg-light text-dark">{{ assignments|length }}/{{ service_request.workers_needed }}</span>
                     </h5>
                     {% else %}
-                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Assigned Worker</h5>
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> {% trans "Assigned Worker" %}</h5>
                     {% endif %}
                 </div>
                 <div class="card-body">
@@ -302,15 +303,15 @@
                             
                             {% if assignment.status == 'accepted' %}
                             <span class="badge bg-success">
-                                <i class="bi bi-check-circle"></i> Accepted
+                                <i class="bi bi-check-circle"></i> {% trans "Accepted" %}
                             </span>
                             {% elif assignment.status == 'in_progress' %}
                             <span class="badge bg-info">
-                                <i class="bi bi-play-circle"></i> In Progress
+                                <i class="bi bi-play-circle"></i> {% trans "In Progress" %}
                             </span>
                             {% elif assignment.status == 'completed' %}
                             <span class="badge bg-success">
-                                <i class="bi bi-check-circle-fill"></i> Completed
+                                <i class="bi bi-check-circle-fill"></i> {% trans "Completed" %}
                             </span>
                             {% endif %}
                             
@@ -326,13 +327,13 @@
                                 <div style="font-size: 2rem; color: #ffc107;">
                                     ★ {{ assignment.worker.average_rating|floatformat:1 }}
                                 </div>
-                                <small class="text-muted">Average Rating</small>
+                                <small class="text-muted">{% trans "Average Rating" %}</small>
                             </div>
                             {% endif %}
                             {% if assignment.status == 'accepted' or assignment.status == 'in_progress' %}
                             <a href="{% url 'jobs:conversation' assignment.worker.user.id %}" 
                                class="btn btn-outline-info btn-sm">
-                                <i class="bi bi-chat-dots"></i> Message
+                                <i class="bi bi-chat-dots"></i> {% trans "Message" %}
                             </a>
                             {% endif %}
                         </div>
@@ -344,7 +345,7 @@
             <!-- Single Worker View (Legacy) - Only show if worker accepted -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Assigned Worker</h5>
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> {% trans "Assigned Worker" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -389,7 +390,7 @@
                             {% endif %}
                             
                             <span class="badge bg-success">
-                                <i class="bi bi-check-circle"></i> Accepted Assignment
+                                <i class="bi bi-check-circle"></i> {% trans "Accepted Assignment" %}
                             </span>
                         </div>
                         <div class="col-md-4 text-center">
@@ -398,7 +399,7 @@
                                 <div style="font-size: 2rem; color: #ffc107;">
                                     ★ {{ service_request.assigned_worker.average_rating|floatformat:1 }}
                                 </div>
-                                <small class="text-muted">Average Rating</small>
+                                <small class="text-muted">{% trans "Average Rating" %}</small>
                             </div>
                             {% endif %}
                         </div>
@@ -411,17 +412,17 @@
             {% if time_logs %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Time Tracking</h5>
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> {% trans "Time Tracking" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Clock In</th>
-                                    <th>Clock Out</th>
-                                    <th>Duration</th>
-                                    <th>Notes</th>
+                                    <th>{% trans "Clock In" %}</th>
+                                    <th>{% trans "Clock Out" %}</th>
+                                    <th>{% trans "Duration" %}</th>
+                                    <th>{% trans "Notes" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -432,7 +433,7 @@
                                         {% if log.clock_out %}
                                         {{ log.clock_out|date:"M d, Y g:i A" }}
                                         {% else %}
-                                        <span class="badge bg-info">Currently Working</span>
+                                        <span class="badge bg-info">{% trans "Currently Working" %}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -448,12 +449,12 @@
                             </tbody>
                             <tfoot class="table-light">
                                 <tr>
-                                    <td colspan="2"><strong><i class="bi bi-clock"></i> Total Hours Worked:</strong></td>
+                                    <td colspan="2"><strong><i class="bi bi-clock"></i> {% trans "Total Hours Worked:" %}</strong></td>
                                     <td colspan="2"><strong class="text-primary">{{ service_request.total_hours_worked|default:"0"|floatformat:2 }} hours</strong></td>
                                 </tr>
                                 {% if service_request.total_amount %}
                                 <tr>
-                                    <td colspan="2"><strong><i class="bi bi-currency-dollar"></i> Total Amount:</strong></td>
+                                    <td colspan="2"><strong><i class="bi bi-currency-dollar"></i> {% trans "Total Amount:" %}</strong></td>
                                     <td colspan="2"><strong class="text-success fs-5">TSH {{ service_request.total_amount|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
@@ -472,22 +473,22 @@
             {% if service_request.payment_method or service_request.payment_transaction_id or service_request.payment_screenshot %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-credit-card"></i> Payment Information</h5>
+                    <h5 class="mb-0"><i class="bi bi-credit-card"></i> {% trans "Payment Information" %}</h5>
                 </div>
                 <div class="card-body">
                     <dl class="row mb-0">
                         {% if service_request.payment_method %}
-                        <dt class="col-sm-4">Payment Method:</dt>
+                        <dt class="col-sm-4">{% trans "Payment Method:" %}</dt>
                         <dd class="col-sm-8">{{ service_request.payment_method }}</dd>
                         {% endif %}
                         
                         {% if service_request.payment_transaction_id %}
-                        <dt class="col-sm-4">Transaction ID:</dt>
+                        <dt class="col-sm-4">{% trans "Transaction ID:" %}</dt>
                         <dd class="col-sm-8"><code>{{ service_request.payment_transaction_id }}</code></dd>
                         {% endif %}
                         
                         {% if service_request.payment_status %}
-                        <dt class="col-sm-4">Payment Status:</dt>
+                        <dt class="col-sm-4">{% trans "Payment Status:" %}</dt>
                         <dd class="col-sm-8">
                             <span class="badge {% if service_request.payment_status == 'completed' %}bg-success{% elif service_request.payment_status == 'pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
                                 {{ service_request.payment_status|title }}
@@ -496,21 +497,21 @@
                         {% endif %}
                         
                         {% if service_request.payment_screenshot %}
-                        <dt class="col-sm-4">Payment Screenshot:</dt>
+                        <dt class="col-sm-4">{% trans "Payment Screenshot:" %}</dt>
                         <dd class="col-sm-8">
                             <div class="mb-2">
                                 {% if service_request.payment_verified %}
                                 <span class="badge bg-success">
-                                    <i class="bi bi-shield-check"></i> Verified
+                                    <i class="bi bi-shield-check"></i> {% trans "Verified" %}
                                 </span>
                                 {% else %}
                                 <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-clock"></i> Pending Verification
+                                    <i class="bi bi-clock"></i> {% trans "Pending Verification" %}
                                 </span>
                                 {% endif %}
                             </div>
                             <a href="{{ service_request.payment_screenshot.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> View Screenshot
+                                <i class="bi bi-eye"></i> {% trans "View Screenshot" %}
                             </a>
                             {% if service_request.payment_verified %}
                             <div class="mt-2 small text-muted">
@@ -530,7 +531,7 @@
             <!-- Quick Actions -->
             <div class="card bg-light mb-4">
                 <div class="card-body">
-                    <h6 class="card-title">Quick Actions</h6>
+                    <h6 class="card-title">{% trans "Quick Actions" %}</h6>
                     
                     {% if service_request.status != 'cancelled' %}
                     <a href="{% url 'service_requests_web:client_upload_screenshot' service_request.id %}" 
@@ -546,20 +547,20 @@
                     
                     <a href="{% url 'service_requests_web:client_request_activity' service_request.id %}" 
                        class="btn btn-outline-info w-100 mb-2">
-                        <i class="bi bi-clock-history"></i> View Activity Log
+                        <i class="bi bi-clock-history"></i> {% trans "View Activity Log" %}
                     </a>
                     
                     {% if service_request.status == 'pending' %}
                     <a href="{% url 'service_requests_web:client_edit_request' service_request.id %}" 
                        class="btn btn-warning w-100 mb-2">
-                        <i class="bi bi-pencil-square"></i> Edit Request
+                        <i class="bi bi-pencil-square"></i> {% trans "Edit Request" %}
                     </a>
                     {% endif %}
                     
                     {% if service_request.status == 'pending' or service_request.status == 'assigned' %}
                     <a href="{% url 'service_requests_web:client_cancel_request' service_request.id %}" 
                        class="btn btn-danger w-100 mb-2">
-                        <i class="bi bi-x-circle"></i> Cancel Request
+                        <i class="bi bi-x-circle"></i> {% trans "Cancel Request" %}
                     </a>
                     {% endif %}
                     
@@ -567,7 +568,7 @@
                     <form method="post" action="{% url 'service_requests_web:client_complete_request' service_request.id %}" onsubmit="return confirm('Are you satisfied with the work completed? This will mark the service as finished.');">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-success w-100 mb-2">
-                            <i class="bi bi-check-circle-fill"></i> Mark as Finished
+                            <i class="bi bi-check-circle-fill"></i> {% trans "Mark as Finished" %}
                         </button>
                     </form>
                     {% endif %}
@@ -576,7 +577,7 @@
                         {% if assignments or service_request.assigned_worker %}
                         <a href="{% url 'service_requests_web:client_rate_worker' service_request.id %}"
                            class="btn btn-warning w-100 mb-2">
-                            <i class="bi bi-star"></i> Rate Worker
+                            <i class="bi bi-star"></i> {% trans "Rate Worker" %}
                         </a>
                         {% endif %}
                     {% endif %}
@@ -585,19 +586,19 @@
                     {% if first_assignment %}
                     <a href="{% url 'jobs:conversation' first_assignment.worker.user.id %}"
                        class="btn btn-primary w-100 mb-2">
-                        <i class="bi bi-chat-dots"></i> Message Worker
+                        <i class="bi bi-chat-dots"></i> {% trans "Message Worker" %}
                     </a>
                     {% elif service_request.assigned_worker %}
                     <a href="{% url 'jobs:conversation' service_request.assigned_worker.user.id %}"
                        class="btn btn-primary w-100 mb-2">
-                        <i class="bi bi-chat-dots"></i> Message Worker
+                        <i class="bi bi-chat-dots"></i> {% trans "Message Worker" %}
                     </a>
                     {% endif %}
                     {% endwith %}
                     
                     <a href="{% url 'service_requests_web:client_my_requests' %}" 
                        class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-arrow-left"></i> Back to List
+                        <i class="bi bi-arrow-left"></i> {% trans "Back to List" %}
                     </a>
                 </div>
             </div>
@@ -605,20 +606,20 @@
             <!-- Status Timeline -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> Status Timeline</h6>
+                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> {% trans "Status Timeline" %}</h6>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled mb-0">
                         <li class="mb-3">
                             <i class="bi bi-check-circle-fill text-success"></i>
-                            <strong>Created</strong>
+                            <strong>{% trans "Created" %}</strong>
                             <br>
                             <small class="text-muted ms-4">{{ service_request.created_at|date:"M d, Y g:i A" }}</small>
                         </li>
                         {% if service_request.assigned_at %}
                         <li class="mb-3">
                             <i class="bi bi-check-circle-fill text-success"></i>
-                            <strong>Assigned to Worker</strong>
+                            <strong>{% trans "Assigned to Worker" %}</strong>
                             <br>
                             <small class="text-muted ms-4">{{ service_request.assigned_at|date:"M d, Y g:i A" }}</small>
                         </li>
@@ -626,7 +627,7 @@
                         {% if service_request.work_started_at %}
                         <li class="mb-3">
                             <i class="bi bi-check-circle-fill text-success"></i>
-                            <strong>Work Started</strong>
+                            <strong>{% trans "Work Started" %}</strong>
                             <br>
                             <small class="text-muted ms-4">{{ service_request.work_started_at|date:"M d, Y g:i A" }}</small>
                         </li>
@@ -634,7 +635,7 @@
                         {% if service_request.work_completed_at %}
                         <li class="mb-3">
                             <i class="bi bi-check-circle-fill text-success"></i>
-                            <strong>Work Completed</strong>
+                            <strong>{% trans "Work Completed" %}</strong>
                             <br>
                             <small class="text-muted ms-4">{{ service_request.work_completed_at|date:"M d, Y g:i A" }}</small>
                         </li>
@@ -642,7 +643,7 @@
                         {% if service_request.cancelled_at %}
                         <li class="mb-3">
                             <i class="bi bi-x-circle-fill text-danger"></i>
-                            <strong>Cancelled</strong>
+                            <strong>{% trans "Cancelled" %}</strong>
                             <br>
                             <small class="text-muted ms-4">{{ service_request.cancelled_at|date:"M d, Y g:i A" }}</small>
                         </li>
@@ -655,9 +656,9 @@
             <div class="card border-info">
                 <div class="card-body">
                     <h6 class="card-title text-info">
-                        <i class="bi bi-question-circle"></i> Need Help?
+                        <i class="bi bi-question-circle"></i> {% trans "Need Help?" %}
                     </h6>
-                    <p class="card-text small">If you have questions or concerns about this service request, please contact our support team.</p>
+                    <p class="card-text small">{% trans "If you have questions or concerns about this service request, please contact our support team." %}</p>
                     <!-- Contact support link removed - no contact URL available -->
                 </div>
             </div>
@@ -734,11 +735,11 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="imageModalLabel">Worker Profile</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="imageModalLabel">{% trans "Worker Profile" %}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <div class="modal-body text-center p-0">
-                <img id="modalImage" src="" alt="Worker Profile" class="img-fluid" style="max-height: 80vh; width: auto;">
+                <img id="modalImage" src="" alt="{% trans "Worker Profile" %}" class="img-fluid" style="max-height: 80vh; width: auto;">
             </div>
         </div>
     </div>

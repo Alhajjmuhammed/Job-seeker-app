@@ -1,4 +1,5 @@
 {% extends 'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -187,7 +188,7 @@
 
         {% if existing_rating %}
         <div class="current-rating">
-            <div class="current-rating-value">Your Current Rating</div>
+            <div class="current-rating-value">{% trans "Your Current Rating" %}</div>
             <div class="current-rating-stars">
                 {% for i in "12345" %}
                     {% if forloop.counter <= existing_rating.rating %}
@@ -197,7 +198,7 @@
                     {% endif %}
                 {% endfor %}
             </div>
-            <small class="text-muted">Click below to update your rating</small>
+            <small class="text-muted">{% trans "Click below to update your rating" %}</small>
         </div>
         {% else %}
         <div class="alert alert-info">
@@ -212,19 +213,19 @@
             
             <!-- Star Rating -->
             <div class="mb-4">
-                <label class="form-label text-center d-block">Your Rating</label>
+                <label class="form-label text-center d-block">{% trans "Your Rating" %}</label>
                 <div class="rating-stars-input" id="starRating">
                     {% for i in "12345" %}
                     <i class="bi bi-star-fill star-input" data-rating="{{ forloop.counter }}"></i>
                     {% endfor %}
                 </div>
-                <div class="rating-hint">Click on a star to rate</div>
+                <div class="rating-hint">{% trans "Click on a star to rate" %}</div>
                 <input type="hidden" name="rating" id="ratingValue" value="{{ existing_rating.rating|default:'5' }}">
             </div>
 
             <!-- Review Text -->
             <div class="mb-4">
-                <label for="{{ form.review.id_for_label }}" class="form-label">Your Review (Optional)</label>
+                <label for="{{ form.review.id_for_label }}" class="form-label">{% trans "Your Review (Optional)" %}</label>
                 {% render_field form.review class="form-control" rows="4" placeholder="Share your experience with this worker..." %}
             </div>
 
@@ -232,7 +233,7 @@
             <div class="row g-3">
                 <div class="col-6">
                     <a href="{% url 'workers:public_profile' worker.pk %}" class="btn-cancel">
-                        <i class="bi bi-x-circle me-2"></i>Cancel
+                        <i class="bi bi-x-circle me-2"></i>{% trans "Cancel" %}
                     </a>
                 </div>
                 <div class="col-6">

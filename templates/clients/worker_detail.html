@@ -1,4 +1,5 @@
 {% extends 'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}{{ worker.user.get_full_name }} - Worker Profile{% endblock %}
@@ -808,11 +809,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="meta-item">
                 {% if worker.availability == 'available' %}
                 <span class="availability-badge available">
-                    <i class="bi bi-circle-fill"></i> Available
+                    <i class="bi bi-circle-fill"></i> {% trans "Available" %}
                 </span>
                 {% else %}
                 <span class="availability-badge busy">
-                    <i class="bi bi-circle-fill"></i> Busy
+                    <i class="bi bi-circle-fill"></i> {% trans "Busy" %}
                 </span>
                 {% endif %}
             </div>
@@ -823,11 +824,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Direct Hire Button -->
         {% if worker.can_accept_direct_hires %}
         <a href="{% url 'jobs:request_worker_directly' worker.pk %}" class="btn btn-primary btn-lg me-2">
-            <i class="bi bi-lightning-charge-fill"></i> Request Worker Now
+            <i class="bi bi-lightning-charge-fill"></i> {% trans "Request Worker Now" %}
         </a>
         {% else %}
-        <button class="btn btn-secondary btn-lg me-2" disabled title="Worker needs to upload ID and be verified">
-            <i class="bi bi-lock"></i> Not Available for Quick Hire
+        <button class="btn btn-secondary btn-lg me-2" disabled title="{% trans "Worker needs to upload ID and be verified" %}">
+            <i class="bi bi-lock"></i> {% trans "Not Available for Quick Hire" %}
         </button>
         {% endif %}
         
@@ -848,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- About -->
         <div class="content-section">
             <h2 class="section-title">
-                <i class="bi bi-person"></i> About
+                <i class="bi bi-person"></i> {% trans "About" %}
             </h2>
             <p>{{ worker.bio|default:"No bio provided yet." }}</p>
             
@@ -856,20 +857,20 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if worker.religion or worker.can_work_everywhere %}
             <div style="margin-top: 1.25rem; padding: 1rem; background: #f9fafb; border-radius: 12px; border-left: 4px solid #0f766e;">
                 <h4 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <i class="bi bi-info-circle"></i> Additional Information
+                    <i class="bi bi-info-circle"></i> {% trans "Additional Information" %}
                 </h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
                     {% if worker.religion %}
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-star text-primary"></i>
-                        <span style="font-size: 0.875rem; color: #6b7280;">Religion:</span>
+                        <span style="font-size: 0.875rem; color: #6b7280;">{% trans "Religion:" %}</span>
                         <span style="font-size: 0.875rem; font-weight: 500; color: #374151;">{{ worker.get_religion_display }}</span>
                     </div>
                     {% endif %}
                     {% if worker.can_work_everywhere %}
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-globe2 text-success"></i>
-                        <span style="font-size: 0.875rem; font-weight: 500; color: #059669;">Can work everywhere</span>
+                        <span style="font-size: 0.875rem; font-weight: 500; color: #059669;">{% trans "Can work everywhere" %}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -881,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% if experiences %}
         <div class="content-section">
             <h2 class="section-title">
-                <i class="bi bi-briefcase"></i> Work Experience
+                <i class="bi bi-briefcase"></i> {% trans "Work Experience" %}
             </h2>
             <div class="experience-timeline">
                 {% for exp in experiences %}
@@ -910,11 +911,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="content-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                 <h2 class="section-title" style="margin-bottom: 0;">
-                    <i class="bi bi-star"></i> Reviews & Ratings
+                    <i class="bi bi-star"></i> {% trans "Reviews & Ratings" %}
                 </h2>
                 {% if request.user.is_authenticated and request.user.is_client %}
                 <button type="button" class="btn-rate" data-bs-toggle="modal" data-bs-target="#ratingModal">
-                    <i class="bi bi-star-fill"></i> Rate Worker
+                    <i class="bi bi-star-fill"></i> {% trans "Rate Worker" %}
                 </button>
                 {% endif %}
             </div>
@@ -934,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <div class="score-text">Overall Rating</div>
+                        <div class="score-text">{% trans "Overall Rating" %}</div>
                     </div>
                     <div class="rating-stats">
                         <div class="stat-item">
@@ -951,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <!-- Individual Reviews -->
             <div class="reviews-list-header">
-                <h5 class="mb-0">Client Reviews</h5>
+                <h5 class="mb-0">{% trans "Client Reviews" %}</h5>
                 <span class="text-muted">{{ total_ratings }} review{{ total_ratings|pluralize }}</span>
             </div>
 
@@ -994,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% else %}
             <div class="empty-message">
                 <i class="bi bi-star display-4 mb-3"></i>
-                <p>No reviews yet</p>
+                <p>{% trans "No reviews yet" %}</p>
             </div>
             {% endif %}
         </div>
@@ -1006,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% if categories %}
         <div class="content-section">
             <h2 class="section-title">
-                <i class="bi bi-tag"></i> Categories
+                <i class="bi bi-tag"></i> {% trans "Categories" %}
             </h2>
             <div class="categories-list">
                 {% for category in categories %}
@@ -1020,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% if skills %}
         <div class="content-section">
             <h2 class="section-title">
-                <i class="bi bi-tools"></i> Skills
+                <i class="bi bi-tools"></i> {% trans "Skills" %}
             </h2>
             <div class="skills-list">
                 {% for skill in skills %}
@@ -1044,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Rates -->
         <div class="content-section">
             <h2 class="section-title">
-                <i class="bi bi-cash"></i> Rates
+                <i class="bi bi-cash"></i> {% trans "Rates" %}
             </h2>
             <div class="info-grid">
                 <div class="info-item">
@@ -1052,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="bi bi-clock"></i>
                     </div>
                     <div class="info-content">
-                        <label>Jobs completed</label>
+                        <label>{% trans "Jobs completed" %}</label>
                         <span>{{ worker.completed_jobs|default:0 }}</span>
                     </div>
                 </div>
@@ -1061,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="bi bi-calendar-day"></i>
                     </div>
                     <div class="info-content">
-                        <label>Daily Rate</label>
+                        <label>{% trans "Daily Rate" %}</label>
                         <span>TSH {{ worker.daily_rate|default:"N/A" }}</span>
                     </div>
                 </div>
@@ -1080,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h5 class="modal-title" id="ratingModalLabel" style="font-weight: 700; color: #111827;">
                     <i class="bi bi-star-fill" style="color: #fbbf24;"></i> Rate {{ worker.user.get_full_name }}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <form method="post" action="{% url 'clients:rate_worker' worker.pk %}" id="ratingForm">
                 {% csrf_token %}
@@ -1094,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <!-- Star Rating -->
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">
-                            Your Rating <span style="color: #ef4444;">*</span>
+                            {% trans "Your Rating" %} <span style="color: #ef4444;">*</span>
                         </label>
                         <div class="star-rating" style="display: flex; gap: 0.5rem; justify-content: center; font-size: 2.5rem;">
                             <input type="radio" name="rating" value="1" id="star1" required style="display: none;">
@@ -1122,32 +1123,32 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="bi bi-star"></i>
                             </label>
                         </div>
-                        <div style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;" id="ratingText">Click on a star to rate</div>
+                        <div style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;" id="ratingText">{% trans "Click on a star to rate" %}</div>
                     </div>
 
                     <!-- Review Text -->
                     <div>
                         <label for="review" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
-                            Your Review (Optional)
+                            {% trans "Your Review (Optional)" %}
                         </label>
                         <textarea 
                             name="review" 
                             id="review" 
                             rows="4" 
                             class="form-control" 
-                            placeholder="Share your experience with this worker..."
+                            placeholder="{% trans "Share your experience with this worker..." %}"
                             style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem; resize: none;"></textarea>
                         <div style="font-size: 0.8125rem; color: #9ca3af; margin-top: 0.375rem;">
-                            <i class="bi bi-info-circle"></i> Be honest and constructive
+                            <i class="bi bi-info-circle"></i> {% trans "Be honest and constructive" %}
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer" style="border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem;">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 0.625rem 1.25rem; border-radius: 8px;">
-                        Cancel
+                        {% trans "Cancel" %}
                     </button>
                     <button type="submit" class="btn btn-primary" style="padding: 0.625rem 1.5rem; background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); border: none; border-radius: 8px; font-weight: 600;">
-                        <i class="bi bi-star-fill"></i> Submit Rating
+                        <i class="bi bi-star-fill"></i> {% trans "Submit Rating" %}
                     </button>
                 </div>
             </form>

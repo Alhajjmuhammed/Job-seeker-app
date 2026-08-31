@@ -1,5 +1,6 @@
 {% extends "workers/base_worker.html" %}
 
+{% load i18n %}
 {% block title %}My Assignments{% endblock %}
 
 {% block extra_css %}
@@ -367,11 +368,11 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-2"><i class="bi bi-list-check"></i> My Assignments</h2>
-                <p class="mb-0 opacity-90">Manage and track all your service assignments</p>
+                <h2 class="mb-2"><i class="bi bi-list-check"></i> {% trans "My Assignments" %}</h2>
+                <p class="mb-0 opacity-90">{% trans "Manage and track all your service assignments" %}</p>
             </div>
             <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-light">
-                <i class="bi bi-arrow-left"></i> Dashboard
+                <i class="bi bi-arrow-left"></i> {% trans "Dashboard" %}
             </a>
         </div>
     </div>
@@ -380,40 +381,40 @@
     <div class="card filter-card mb-4">
         <div class="card-body">
             <div class="filter-container">
-                <div class="filter-btn-group" role="group" aria-label="Status filter">
+                <div class="filter-btn-group" role="group" aria-label="{% trans "Status filter" %}">
                     <a href="{% url 'service_requests_web:worker_assignments' %}" 
                        class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        <i class="bi bi-grid"></i> All
+                        <i class="bi bi-grid"></i> {% trans "All" %}
                     </a>
                     <a href="?status=pending" 
                        class="btn {% if status_filter == 'pending' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
-                        <i class="bi bi-clock"></i> Pending
+                        <i class="bi bi-clock"></i> {% trans "Pending" %}
                     </a>
                     <a href="?status=accepted" 
                        class="btn {% if status_filter == 'accepted' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        <i class="bi bi-check-circle"></i> Accepted
+                        <i class="bi bi-check-circle"></i> {% trans "Accepted" %}
                     </a>
                     <a href="?status=in_progress" 
                        class="btn {% if status_filter == 'in_progress' %}btn-info{% else %}btn-outline-info{% endif %}">
-                        <i class="bi bi-arrow-repeat"></i> In Progress
+                        <i class="bi bi-arrow-repeat"></i> {% trans "In Progress" %}
                     </a>
                     <a href="?status=completed" 
                        class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
-                        <i class="bi bi-check-all"></i> Completed
+                        <i class="bi bi-check-all"></i> {% trans "Completed" %}
                     </a>
                     <a href="?status=cancelled" 
                        class="btn {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                        <i class="bi bi-x-circle"></i> Cancelled
+                        <i class="bi bi-x-circle"></i> {% trans "Cancelled" %}
                     </a>
                 </div>
                 
                 <!-- View Toggle -->
                 <div class="view-toggle">
                     <button class="btn active" id="cardViewBtn" onclick="switchView('card')">
-                        <i class="bi bi-grid-3x2-gap"></i> Cards
+                        <i class="bi bi-grid-3x2-gap"></i> {% trans "Cards" %}
                     </button>
                     <button class="btn" id="tableViewBtn" onclick="switchView('table')">
-                        <i class="bi bi-table"></i> Table
+                        <i class="bi bi-table"></i> {% trans "Table" %}
                     </button>
                 </div>
             </div>
@@ -441,7 +442,7 @@
                         <div class="info-item">
                             <i class="bi bi-tag"></i>
                             <div>
-                                <strong>Category</strong>
+                                <strong>{% trans "Category" %}</strong>
                                 <div class="info-item-value">{{ assignment.service_request.category.name }}</div>
                             </div>
                         </div>
@@ -449,7 +450,7 @@
                         <div class="info-item">
                             <i class="bi bi-person"></i>
                             <div>
-                                <strong>Client</strong>
+                                <strong>{% trans "Client" %}</strong>
                                 <div class="info-item-value">{{ assignment.service_request.client.get_full_name }}</div>
                             </div>
                         </div>
@@ -457,7 +458,7 @@
                         <div class="info-item">
                             <i class="bi bi-geo-alt"></i>
                             <div>
-                                <strong>Location</strong>
+                                <strong>{% trans "Location" %}</strong>
                                 <div class="info-item-value">{{ assignment.service_request.location }}</div>
                             </div>
                         </div>
@@ -465,7 +466,7 @@
                         {% if assignment.status == 'pending' %}
                         <div class="status-alert alert-warning">
                             <i class="bi bi-exclamation-triangle"></i>
-                            <span>Awaiting response</span>
+                            <span>{% trans "Awaiting response" %}</span>
                         </div>
                         {% endif %}
                         
@@ -484,7 +485,7 @@
                     <div class="card-footer">
                         <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
                            class="btn btn-view-details w-100">
-                            <i class="bi bi-eye"></i> View Details
+                            <i class="bi bi-eye"></i> {% trans "View Details" %}
                         </a>
                     </div>
                 </div>
@@ -499,14 +500,14 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Service</th>
-                        <th>Category</th>
-                        <th>Client</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                        <th>Earned</th>
-                        <th>Assigned</th>
-                        <th>Action</th>
+                        <th>{% trans "Service" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th>{% trans "Client" %}</th>
+                        <th>{% trans "Location" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Earned" %}</th>
+                        <th>{% trans "Assigned" %}</th>
+                        <th>{% trans "Action" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -532,7 +533,7 @@
                         <td>
                             <a href="{% url 'service_requests_web:worker_assignment_detail' assignment.id %}" 
                                class="btn btn-primary table-btn">
-                                <i class="bi bi-eye"></i> View
+                                <i class="bi bi-eye"></i> {% trans "View" %}
                             </a>
                         </td>
                     </tr>
@@ -544,17 +545,17 @@
     
     <!-- Pagination - Works for both Card and Table views -->
     {% if assignments.has_other_pages %}
-    <nav aria-label="Assignments pagination" class="mt-4">
+    <nav aria-label="{% trans "Assignments pagination" %}" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if assignments.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ assignments.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" title="Previous page">
-                    <i class="bi bi-chevron-left"></i> Previous
+                <a class="page-link" href="?page={{ assignments.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" title="{% trans "Previous page" %}">
+                    <i class="bi bi-chevron-left"></i> {% trans "Previous" %}
                 </a>
             </li>
             {% else %}
             <li class="page-item disabled">
-                <span class="page-link"><i class="bi bi-chevron-left"></i> Previous</span>
+                <span class="page-link"><i class="bi bi-chevron-left"></i> {% trans "Previous" %}</span>
             </li>
             {% endif %}
             
@@ -566,13 +567,13 @@
             
             {% if assignments.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ assignments.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" title="Next page">
-                    Next <i class="bi bi-chevron-right"></i>
+                <a class="page-link" href="?page={{ assignments.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" title="{% trans "Next page" %}">
+                    {% trans "Next" %} <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
             {% else %}
             <li class="page-item disabled">
-                <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
+                <span class="page-link">{% trans "Next" %} <i class="bi bi-chevron-right"></i></span>
             </li>
             {% endif %}
         </ul>
@@ -582,7 +583,7 @@
     {% else %}
     <div class="empty-state">
         <i class="bi bi-inbox"></i>
-        <h4 class="mt-3">No Assignments Found</h4>
+        <h4 class="mt-3">{% trans "No Assignments Found" %}</h4>
         <p class="text-muted mb-4">
             {% if status_filter %}
                 No assignments with status "{{ status_filter }}".
@@ -591,7 +592,7 @@
             {% endif %}
         </p>
         <a href="{% url 'service_requests_web:worker_dashboard' %}" class="btn btn-primary">
-            <i class="bi bi-speedometer2"></i> Go to Dashboard
+            <i class="bi bi-speedometer2"></i> {% trans "Go to Dashboard" %}
         </a>
     </div>
     {% endif %}

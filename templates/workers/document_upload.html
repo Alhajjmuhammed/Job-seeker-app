@@ -1,4 +1,5 @@
 {% extends 'workers/base_worker.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}Upload Document{% endblock %}
@@ -379,40 +380,40 @@
 {% block content %}
 <div class="upload-container">
     <a href="{% url 'workers:document_list' %}" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to Documents
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Documents" %}
     </a>
 
     <div class="page-header">
-        <h1><i class="bi bi-cloud-upload"></i> Upload Document</h1>
-        <p>Upload your professional documents for verification</p>
+        <h1><i class="bi bi-cloud-upload"></i> {% trans "Upload Document" %}</h1>
+        <p>{% trans "Upload your professional documents for verification" %}</p>
     </div>
 
     <!-- Info Box -->
     <div class="info-box">
-        <h4><i class="bi bi-info-circle-fill"></i> Document Requirements</h4>
+        <h4><i class="bi bi-info-circle-fill"></i> {% trans "Document Requirements" %}</h4>
         <div class="info-box-grid">
             <div class="info-item">
                 <i class="bi bi-file-earmark-check"></i>
-                <span class="info-item-text">Accepted formats: PDF, JPG, JPEG, PNG</span>
+                <span class="info-item-text">{% trans "Accepted formats: PDF, JPG, JPEG, PNG" %}</span>
             </div>
             <div class="info-item">
                 <i class="bi bi-hdd"></i>
-                <span class="info-item-text">Maximum file size: 10 MB</span>
+                <span class="info-item-text">{% trans "Maximum file size: 10 MB" %}</span>
             </div>
             <div class="info-item">
                 <i class="bi bi-clock-history"></i>
-                <span class="info-item-text">Documents will be reviewed within 24-48 hours</span>
+                <span class="info-item-text">{% trans "Documents will be reviewed within 24-48 hours" %}</span>
             </div>
             <div class="info-item">
                 <i class="bi bi-eye"></i>
-                <span class="info-item-text">Make sure documents are clear and readable</span>
+                <span class="info-item-text">{% trans "Make sure documents are clear and readable" %}</span>
             </div>
         </div>
     </div>
 
     {% if form.errors %}
     <div class="error-message">
-        <strong>Please correct the following errors:</strong>
+        <strong>{% trans "Please correct the following errors:" %}</strong>
         <ul style="margin: 0.5rem 0 0 1.5rem;">
             {% for field, errors in form.errors.items %}
                 {% for error in errors %}
@@ -431,24 +432,24 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="id_document_type">
-                        <i class="bi bi-tag"></i> Document Type<span class="required">*</span>
+                        <i class="bi bi-tag"></i> {% trans "Document Type" %}<span class="required">*</span>
                     </label>
                     {{ form.document_type }}
-                    <span class="form-help">Select the type of document you're uploading</span>
+                    <span class="form-help">{% trans "Select the type of document you're uploading" %}</span>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="id_title">
-                        <i class="bi bi-pencil"></i> Document Title<span class="required">*</span>
+                        <i class="bi bi-pencil"></i> {% trans "Document Title" %}<span class="required">*</span>
                     </label>
                     {{ form.title }}
-                    <span class="form-help">Give your document a descriptive name</span>
+                    <span class="form-help">{% trans "Give your document a descriptive name" %}</span>
                 </div>
             </div>
 
             <div class="form-group full-width">
                 <label class="form-label">
-                    <i class="bi bi-file-earmark-arrow-up"></i> Document File<span class="required">*</span>
+                    <i class="bi bi-file-earmark-arrow-up"></i> {% trans "Document File" %}<span class="required">*</span>
                 </label>
                 
                 <div class="file-upload-area" id="uploadArea">
@@ -456,8 +457,8 @@
                         <i class="bi bi-cloud-upload"></i>
                     </div>
                     <div class="upload-text">
-                        <h3>Drop your file here or click to browse</h3>
-                        <p>PDF, JPG, JPEG, PNG up to 10MB</p>
+                        <h3>{% trans "Drop your file here or click to browse" %}</h3>
+                        <p>{% trans "PDF, JPG, JPEG, PNG up to 10MB" %}</p>
                     </div>
                     {{ form.file }}
                 </div>
@@ -472,7 +473,7 @@
                             <div class="file-size" id="fileSize"></div>
                         </div>
                         <button type="button" class="file-remove" id="removeFile">
-                            <i class="bi bi-x-circle"></i> Remove
+                            <i class="bi bi-x-circle"></i> {% trans "Remove" %}
                         </button>
                     </div>
                 </div>
@@ -480,10 +481,10 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn-submit" id="submitBtn" disabled>
-                    <i class="bi bi-upload"></i> Upload Document
+                    <i class="bi bi-upload"></i> {% trans "Upload Document" %}
                 </button>
                 <a href="{% url 'workers:document_list' %}" class="btn-cancel">
-                    <i class="bi bi-x-circle"></i> Cancel
+                    <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                 </a>
             </div>
         </form>

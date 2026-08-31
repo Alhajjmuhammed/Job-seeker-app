@@ -1,4 +1,5 @@
 {% extends 'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}My Profile{% endblock %}
@@ -467,7 +468,7 @@
     </div>
     
     <a href="{% url 'clients:profile_edit' %}" class="btn-edit-profile">
-        <i class="bi bi-pencil"></i> Edit Profile
+        <i class="bi bi-pencil"></i> {% trans "Edit Profile" %}
     </a>
 </div>
 
@@ -477,7 +478,7 @@
         <div class="stat-header">
             <div>
                 <div class="stat-number">{{ total_jobs }}</div>
-                <div class="stat-label">Total Jobs Posted</div>
+                <div class="stat-label">{% trans "Total Jobs Posted" %}</div>
             </div>
             <div class="stat-icon blue">
                 <i class="bi bi-briefcase"></i>
@@ -489,7 +490,7 @@
         <div class="stat-header">
             <div>
                 <div class="stat-number">{{ open_jobs }}</div>
-                <div class="stat-label">Open Jobs</div>
+                <div class="stat-label">{% trans "Open Jobs" %}</div>
             </div>
             <div class="stat-icon green">
                 <i class="bi bi-door-open"></i>
@@ -501,7 +502,7 @@
         <div class="stat-header">
             <div>
                 <div class="stat-number">{{ in_progress_jobs }}</div>
-                <div class="stat-label">In Progress</div>
+                <div class="stat-label">{% trans "In Progress" %}</div>
             </div>
             <div class="stat-icon yellow">
                 <i class="bi bi-hourglass-split"></i>
@@ -513,7 +514,7 @@
         <div class="stat-header">
             <div>
                 <div class="stat-number">{{ completed_jobs }}</div>
-                <div class="stat-label">Completed Jobs</div>
+                <div class="stat-label">{% trans "Completed Jobs" %}</div>
             </div>
             <div class="stat-icon purple">
                 <i class="bi bi-check-circle"></i>
@@ -525,7 +526,7 @@
         <div class="stat-header">
             <div>
                 <div class="stat-number">{{ favorites_count }}</div>
-                <div class="stat-label">Favorite Workers</div>
+                <div class="stat-label">{% trans "Favorite Workers" %}</div>
             </div>
             <div class="stat-icon red">
                 <i class="bi bi-heart"></i>
@@ -538,7 +539,7 @@
 <div class="info-card">
     <div class="section-header">
         <h2 class="section-title">
-            <i class="bi bi-info-circle"></i> Personal Information
+            <i class="bi bi-info-circle"></i> {% trans "Personal Information" %}
         </h2>
     </div>
     
@@ -548,7 +549,7 @@
                 <i class="bi bi-person"></i>
             </div>
             <div class="info-content">
-                <label>FULL NAME</label>
+                <label>{% trans "FULL NAME" %}</label>
                 <span>{{ user.get_full_name }}</span>
             </div>
         </div>
@@ -558,7 +559,7 @@
                 <i class="bi bi-envelope"></i>
             </div>
             <div class="info-content">
-                <label>EMAIL ADDRESS</label>
+                <label>{% trans "EMAIL ADDRESS" %}</label>
                 <span>{{ user.email }}</span>
             </div>
         </div>
@@ -569,7 +570,7 @@
                 <i class="bi bi-telephone"></i>
             </div>
             <div class="info-content">
-                <label>PHONE NUMBER</label>
+                <label>{% trans "PHONE NUMBER" %}</label>
                 <span>{{ user.phone_number }}</span>
             </div>
         </div>
@@ -580,7 +581,7 @@
                 <i class="bi bi-calendar-check"></i>
             </div>
             <div class="info-content">
-                <label>MEMBER SINCE</label>
+                <label>{% trans "MEMBER SINCE" %}</label>
                 <span>{{ user.date_joined|date:"F d, Y" }}</span>
             </div>
         </div>
@@ -591,10 +592,10 @@
 <div class="info-card">
     <div class="section-header">
         <h2 class="section-title">
-            <i class="bi bi-briefcase"></i> Recent Requests
+            <i class="bi bi-briefcase"></i> {% trans "Recent Requests" %}
         </h2>
         <a href="{% url 'service_requests_web:client_my_requests' %}" class="view-all-link">
-            View All <i class="bi bi-arrow-right"></i>
+            {% trans "View All" %} <i class="bi bi-arrow-right"></i>
         </a>
     </div>
 
@@ -628,7 +629,7 @@
     {% else %}
         <div class="empty-state">
             <i class="bi bi-briefcase"></i>
-            <p>No service requests yet</p>
+            <p>{% trans "No service requests yet" %}</p>
         </div>
     {% endif %}
 </div>
@@ -638,7 +639,7 @@
 <div class="info-card">
     <div class="section-header">
         <h2 class="section-title">
-            <i class="bi bi-star"></i> Recent Ratings Given
+            <i class="bi bi-star"></i> {% trans "Recent Ratings Given" %}
         </h2>
     </div>
 

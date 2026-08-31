@@ -1,4 +1,5 @@
 {% extends "clients/base_client.html" %}
+{% load i18n %}
 {% load humanize %}
 
 {% block title %}Rate Worker - Service Request #{{ service_request.id }}{% endblock %}
@@ -51,7 +52,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h4 class="mb-0">
-                        <i class="bi bi-star"></i> Rate Your Service Experience
+                        <i class="bi bi-star"></i> {% trans "Rate Your Service Experience" %}
                     </h4>
                 </div>
                 <div class="card-body">
@@ -69,9 +70,9 @@
                             {% endif %}
                             {% endwith %}
                         </p>
-                        <p class="mb-1"><strong>Category:</strong> {{ service_request.category.name }}</p>
-                        <p class="mb-1"><strong>Completed:</strong> {{ service_request.work_completed_at|date:"M d, Y g:i A" }}</p>
-                        <p class="mb-0"><strong>Total Cost:</strong> <span class="text-success">TSH {{ service_request.total_price|default:"0"|floatformat:2 }}</span></p>
+                        <p class="mb-1"><strong>{% trans "Category:" %}</strong> {{ service_request.category.name }}</p>
+                        <p class="mb-1"><strong>{% trans "Completed:" %}</strong> {{ service_request.work_completed_at|date:"M d, Y g:i A" }}</p>
+                        <p class="mb-0"><strong>{% trans "Total Cost:" %}</strong> <span class="text-success">TSH {{ service_request.total_price|default:"0"|floatformat:2 }}</span></p>
                     </div>
                     
                     <!-- Rating Form -->
@@ -79,39 +80,39 @@
                         {% csrf_token %}
                         
                         <div class="text-center">
-                            <label class="form-label"><strong>How would you rate this service?</strong></label>
-                            <div class="star-rating justify-content-center" id="starRating" role="radiogroup" aria-label="Service rating from 1 to 5 stars">
-                                <span class="star" data-rating="1" role="radio" aria-label="1 star">★</span>
-                                <span class="star" data-rating="2" role="radio" aria-label="2 stars">★</span>
-                                <span class="star" data-rating="3" role="radio" aria-label="3 stars">★</span>
-                                <span class="star" data-rating="4" role="radio" aria-label="4 stars">★</span>
-                                <span class="star" data-rating="5" role="radio" aria-label="5 stars">★</span>
+                            <label class="form-label"><strong>{% trans "How would you rate this service?" %}</strong></label>
+                            <div class="star-rating justify-content-center" id="starRating" role="radiogroup" aria-label="{% trans "Service rating from 1 to 5 stars" %}">
+                                <span class="star" data-rating="1" role="radio" aria-label="{% trans "1 star" %}">★</span>
+                                <span class="star" data-rating="2" role="radio" aria-label="{% trans "2 stars" %}">★</span>
+                                <span class="star" data-rating="3" role="radio" aria-label="{% trans "3 stars" %}">★</span>
+                                <span class="star" data-rating="4" role="radio" aria-label="{% trans "4 stars" %}">★</span>
+                                <span class="star" data-rating="5" role="radio" aria-label="{% trans "5 stars" %}">★</span>
                             </div>
-                            <div class="rating-label" id="ratingLabel">Select a rating</div>
+                            <div class="rating-label" id="ratingLabel">{% trans "Select a rating" %}</div>
                             <input type="hidden" name="rating" id="ratingInput" required>
                         </div>
                         
                         <div class="mb-3 mt-4">
                             <label for="review" class="form-label">
-                                <strong>Write a Review</strong> <span class="text-muted">(Optional)</span>
+                                <strong>{% trans "Write a Review" %}</strong> <span class="text-muted">{% trans "(Optional)" %}</span>
                             </label>
                             <textarea name="review" 
                                       id="review" 
                                       class="form-control" 
                                       rows="5"
-                                      placeholder="Tell us about your experience with this worker..."></textarea>
+                                      placeholder="{% trans "Tell us about your experience with this worker..." %}"></textarea>
                             <small class="form-text text-muted">
-                                Your review will help other clients choose qualified workers and help workers improve their services.
+                                {% trans "Your review will help other clients choose qualified workers and help workers improve their services." %}
                             </small>
                         </div>
                         
                         <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled aria-label="Submit rating and review">
-                                <i class="bi bi-check-circle"></i> Submit Rating
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled aria-label="{% trans "Submit rating and review" %}">
+                                <i class="bi bi-check-circle"></i> {% trans "Submit Rating" %}
                             </button>
                             <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" 
-                               class="btn btn-outline-secondary" aria-label="Cancel and go back to request details">
-                                <i class="bi bi-arrow-left"></i> Back to Request
+                               class="btn btn-outline-secondary" aria-label="{% trans "Cancel and go back to request details" %}">
+                                <i class="bi bi-arrow-left"></i> {% trans "Back to Request" %}
                             </a>
                         </div>
                     </form>
@@ -121,13 +122,13 @@
             <!-- Rating Guidelines -->
             <div class="card mt-4">
                 <div class="card-body">
-                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Rating Guidelines</h6>
+                    <h6 class="card-title"><i class="bi bi-info-circle"></i> {% trans "Rating Guidelines" %}</h6>
                     <ul class="mb-0">
-                        <li><strong>5 Stars:</strong> Exceptional service, exceeded expectations</li>
-                        <li><strong>4 Stars:</strong> Good service, met expectations</li>
-                        <li><strong>3 Stars:</strong> Average service, acceptable</li>
-                        <li><strong>2 Stars:</strong> Below expectations, needs improvement</li>
-                        <li><strong>1 Star:</strong> Poor service, not satisfied</li>
+                        <li><strong>{% trans "5 Stars:" %}</strong> {% trans "Exceptional service, exceeded expectations" %}</li>
+                        <li><strong>{% trans "4 Stars:" %}</strong> {% trans "Good service, met expectations" %}</li>
+                        <li><strong>{% trans "3 Stars:" %}</strong> {% trans "Average service, acceptable" %}</li>
+                        <li><strong>{% trans "2 Stars:" %}</strong> {% trans "Below expectations, needs improvement" %}</li>
+                        <li><strong>{% trans "1 Star:" %}</strong> {% trans "Poor service, not satisfied" %}</li>
                     </ul>
                 </div>
             </div>

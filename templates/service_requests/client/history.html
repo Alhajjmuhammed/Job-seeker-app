@@ -1,4 +1,5 @@
 {% extends "clients/base_client.html" %}
+{% load i18n %}
 {% load humanize %}
 
 {% block title %}Service Request History{% endblock %}
@@ -19,9 +20,9 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📜 Request History</h2>
+        <h2>{% trans "📜 Request History" %}</h2>
         <a href="{% url 'service_requests_web:client_dashboard' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
         </a>
     </div>
     
@@ -31,7 +32,7 @@
             <div class="card text-center bg-success text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ completed_count }}</h3>
-                    <p class="card-text mb-0">Completed</p>
+                    <p class="card-text mb-0">{% trans "Completed" %}</p>
                 </div>
             </div>
         </div>
@@ -39,7 +40,7 @@
             <div class="card text-center bg-danger text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ cancelled_count }}</h3>
-                    <p class="card-text mb-0">Cancelled</p>
+                    <p class="card-text mb-0">{% trans "Cancelled" %}</p>
                 </div>
             </div>
         </div>
@@ -47,7 +48,7 @@
             <div class="card text-center bg-info text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ total_spent|floatformat:2 }}</h3>
-                    <p class="card-text mb-0">Total Spent ($)</p>
+                    <p class="card-text mb-0">{% trans "Total Spent ($)" %}</p>
                 </div>
             </div>
         </div>
@@ -55,7 +56,7 @@
             <div class="card text-center bg-warning">
                 <div class="card-body">
                     <h3 class="card-title">{{ total_hours|floatformat:0 }}</h3>
-                    <p class="card-text mb-0">Total Hours</p>
+                    <p class="card-text mb-0">{% trans "Total Hours" %}</p>
                 </div>
             </div>
         </div>
@@ -66,23 +67,23 @@
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Title, description, location..." value="{{ search_query }}" aria-label="Search request history by title, description or location">
+                    <label class="form-label">{% trans "Search" %}</label>
+                    <input type="text" name="search" class="form-control" placeholder="{% trans "Title, description, location..." %}" value="{{ search_query }}" aria-label="{% trans "Search request history by title, description or location" %}">
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label">Status</label>
+                    <label class="form-label">{% trans "Status" %}</label>
                     <select name="status" class="form-select">
-                        <option value="">All</option>
-                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
-                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="">{% trans "All" %}</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
                     </select>
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label">Category</label>
+                    <label class="form-label">{% trans "Category" %}</label>
                     <select name="category" class="form-select">
-                        <option value="">All Categories</option>
+                        <option value="">{% trans "All Categories" %}</option>
                         {% for category in categories %}
                         <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
                             {{ category.name }}
@@ -92,26 +93,26 @@
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label">From Date</label>
+                    <label class="form-label">{% trans "From Date" %}</label>
                     <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label">To Date</label>
+                    <label class="form-label">{% trans "To Date" %}</label>
                     <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
                 </div>
                 
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100" aria-label="Apply filters">
-                        <i class="bi bi-filter"></i> Filter
+                        <i class="bi bi-filter"></i> {% trans "Filter" %}
                     </button>
                 </div>
             </form>
             
             {% if status_filter or category_filter or from_date or to_date or search_query %}
             <div class="mt-3">
-                <a href="{% url 'service_requests_web:client_history' %}" class="btn btn-sm btn-outline-secondary" aria-label="Clear all active filters">
-                    <i class="bi bi-x-circle"></i> Clear Filters
+                <a href="{% url 'service_requests_web:client_history' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans "Clear all active filters" %}">
+                    <i class="bi bi-x-circle"></i> {% trans "Clear Filters" %}
                 </a>
             </div>
             {% endif %}
@@ -121,13 +122,13 @@
     <!-- Quick Tabs -->
     <div class="d-flex flex-wrap gap-1 mb-4">
         <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            All History
+            {% trans "All History" %}
         </a>
         <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
-            <i class="bi bi-check-circle"></i> Completed
+            <i class="bi bi-check-circle"></i> {% trans "Completed" %}
         </a>
         <a href="?status=cancelled" class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-            <i class="bi bi-x-circle"></i> Cancelled
+            <i class="bi bi-x-circle"></i> {% trans "Cancelled" %}
         </a>
     </div>
     
@@ -136,7 +137,7 @@
     <div class="mb-3">
         <a href="?export=csv{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}" 
            class="btn btn-outline-success btn-sm">
-            <i class="bi bi-download"></i> Export to CSV
+            <i class="bi bi-download"></i> {% trans "Export to CSV" %}
         </a>
     </div>
     {% endif %}
@@ -148,15 +149,15 @@
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Category</th>
-                        <th>Worker</th>
-                        <th>Status</th>
-                        <th>Completed/Cancelled</th>
-                        <th>Amount</th>
-                        <th>Rating</th>
-                        <th>Actions</th>
+                        <th>{% trans "ID" %}</th>
+                        <th>{% trans "Title" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th>{% trans "Worker" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Completed/Cancelled" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Rating" %}</th>
+                        <th>{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -191,18 +192,18 @@
                             </small>
                             {% endif %}
                             {% else %}
-                            <em class="text-muted">Not assigned</em>
+                            <em class="text-muted">{% trans "Not assigned" %}</em>
                             {% endif %}
                             {% endwith %}
                         </td>
                         <td>
                             {% if request.status == 'completed' %}
                             <span class="badge bg-success">
-                                <i class="bi bi-check-circle"></i> Completed
+                                <i class="bi bi-check-circle"></i> {% trans "Completed" %}
                             </span>
                             {% else %}
                             <span class="badge bg-danger">
-                                <i class="bi bi-x-circle"></i> Cancelled
+                                <i class="bi bi-x-circle"></i> {% trans "Cancelled" %}
                             </span>
                             {% endif %}
                         </td>
@@ -233,7 +234,7 @@
                             </div>
                             {% elif request.status == 'completed' %}
                             <a href="{% url 'service_requests_web:client_rate_worker' request.id %}" class="btn btn-sm btn-outline-warning">
-                                <i class="bi bi-star"></i> Rate
+                                <i class="bi bi-star"></i> {% trans "Rate" %}
                             </a>
                             {% else %}
                             <span class="text-muted">-</span>
@@ -243,13 +244,13 @@
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'service_requests_web:client_request_detail' request.id %}" 
                                    class="btn btn-outline-primary"
-                                   title="View Details">
+                                   title="{% trans "View Details" %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 {% if request.status == 'completed' %}
                                 <a href="{% url 'service_requests_web:client_request_service' %}?repeat={{ request.id }}" 
                                    class="btn btn-outline-success"
-                                   title="Request Again">
+                                   title="{% trans "Request Again" %}">
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </a>
                                 {% endif %}
@@ -260,7 +261,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="6" class="text-end"><strong>Total on this page:</strong></td>
+                        <td colspan="6" class="text-end"><strong>{% trans "Total on this page:" %}</strong></td>
                         <td colspan="3">
                             <strong class="text-success">TSH {{ page_total|floatformat:2 }}</strong>
                         </td>
@@ -277,7 +278,7 @@
             {% if requests.has_previous %}
             <li class="page-item">
                 <a class="page-link" href="?page={{ requests.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}">
-                    Previous
+                    {% trans "Previous" %}
                 </a>
             </li>
             {% endif %}
@@ -297,7 +298,7 @@
             {% if requests.has_next %}
             <li class="page-item">
                 <a class="page-link" href="?page={{ requests.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}">
-                    Next
+                    {% trans "Next" %}
                 </a>
             </li>
             {% endif %}
@@ -310,16 +311,16 @@
     <div class="card text-center py-5">
         <div class="card-body">
             <i class="bi bi-archive" style="font-size: 4rem; color: #ccc;"></i>
-            <h4 class="mt-3">No History Found</h4>
+            <h4 class="mt-3">{% trans "No History Found" %}</h4>
             {% if status_filter or category_filter or from_date or to_date %}
-            <p class="text-muted">No requests match your current filters.</p>
+            <p class="text-muted">{% trans "No requests match your current filters." %}</p>
             <a href="?" class="btn btn-secondary">
-                <i class="bi bi-x-circle"></i> Clear Filters
+                <i class="bi bi-x-circle"></i> {% trans "Clear Filters" %}
             </a>
             {% else %}
-            <p class="text-muted">You don't have any completed or cancelled requests yet.</p>
+            <p class="text-muted">{% trans "You don't have any completed or cancelled requests yet." %}</p>
             <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Create New Request
+                <i class="bi bi-plus-circle"></i> {% trans "Create New Request" %}
             </a>
             {% endif %}
         </div>
@@ -330,15 +331,15 @@
     <div class="card mt-4 border-info">
         <div class="card-body">
             <h6 class="text-info">
-                <i class="bi bi-info-circle"></i> About Request History
+                <i class="bi bi-info-circle"></i> {% trans "About Request History" %}
             </h6>
             <ul class="mb-0 small">
-                <li><strong>Completed:</strong> Requests that were successfully finished by the worker</li>
-                <li><strong>Cancelled:</strong> Requests that were cancelled by either you or the worker</li>
-                <li>You can view detailed information about each historical request</li>
-                <li>Rate completed requests to help other clients make informed decisions</li>
+                <li><strong>{% trans "Completed:" %}</strong> {% trans "Requests that were successfully finished by the worker" %}</li>
+                <li><strong>{% trans "Cancelled:" %}</strong> {% trans "Requests that were cancelled by either you or the worker" %}</li>
+                <li>{% trans "You can view detailed information about each historical request" %}</li>
+                <li>{% trans "Rate completed requests to help other clients make informed decisions" %}</li>
                 <li>Use the "Request Again" button to quickly create a similar request</li>
-                <li>Export your history to CSV for record keeping</li>
+                <li>{% trans "Export your history to CSV for record keeping" %}</li>
             </ul>
         </div>
     </div>

@@ -1,4 +1,5 @@
 {% extends 'workers/base_worker.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block page_title %}Edit Profile{% endblock %}
@@ -404,18 +405,18 @@
 {% block content %}
 <div class="profile-edit-container">
     <a href="{% url 'workers:dashboard' %}" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to Dashboard
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
     </a>
 
     <div class="page-header">
-        <h1><i class="bi bi-person-circle"></i> Edit Profile</h1>
-        <p>Complete your profile to increase your visibility and get more job opportunities</p>
+        <h1><i class="bi bi-person-circle"></i> {% trans "Edit Profile" %}</h1>
+        <p>{% trans "Complete your profile to increase your visibility and get more job opportunities" %}</p>
     </div>
 
     <!-- Profile Completion -->
     <div class="profile-completion">
         <div class="completion-header">
-            <span class="completion-title">Profile Completion</span>
+            <span class="completion-title">{% trans "Profile Completion" %}</span>
             <span class="completion-percent">{{ profile.profile_completion }}%</span>
         </div>
         <div class="progress-bar">
@@ -441,8 +442,8 @@
                     <i class="bi bi-camera"></i>
                 </div>
                 <div class="section-title">
-                    <h2>Profile Photo</h2>
-                    <p>Upload a professional photo to help employers recognize you</p>
+                    <h2>{% trans "Profile Photo" %}</h2>
+                    <p>{% trans "Upload a professional photo to help employers recognize you" %}</p>
                 </div>
             </div>
 
@@ -451,18 +452,18 @@
                 <div class="form-group">
                     <div class="profile-image-upload">
                         {% if profile.profile_image %}
-                            <img src="{{ profile.profile_image.url }}" alt="Profile" class="current-profile-image" id="profileImagePreview">
+                            <img src="{{ profile.profile_image.url }}" alt="{% trans "Profile" %}" class="current-profile-image" id="profileImagePreview">
                         {% else %}
                             <div class="profile-image-placeholder" id="profileImagePlaceholder">
                                 {{ user.first_name.0 }}{{ user.last_name.0 }}
                             </div>
                         {% endif %}
                         <div class="profile-image-info">
-                            <h4>Choose your profile photo</h4>
-                            <p>JPG, PNG or GIF. Max size 5MB. Recommended: 400x400px</p>
+                            <h4>{% trans "Choose your profile photo" %}</h4>
+                            <p>{% trans "JPG, PNG or GIF. Max size 5MB. Recommended: 400x400px" %}</p>
                             {{ profile_image_form.profile_image }}
                             <button type="submit" class="btn btn-sm btn-primary mt-2" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); border: none; padding: 0.5rem 1rem; border-radius: 8px; color: white; font-weight: 600;">
-                                <i class="bi bi-upload"></i> Upload Photo
+                                <i class="bi bi-upload"></i> {% trans "Upload Photo" %}
                             </button>
                         </div>
                     </div>
@@ -472,7 +473,7 @@
             <form method="post" action="{% url 'workers:profile_image_remove' %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-danger mt-2" style="border-radius:8px; font-weight:600;">
-                    <i class="bi bi-trash"></i> Remove Photo
+                    <i class="bi bi-trash"></i> {% trans "Remove Photo" %}
                 </button>
             </form>
             {% endif %}
@@ -491,25 +492,25 @@
                         <i class="bi bi-person"></i>
                     </div>
                     <div class="section-title">
-                        <h2>Personal Information</h2>
-                        <p>Tell us about yourself and your professional background</p>
+                        <h2>{% trans "Personal Information" %}</h2>
+                        <p>{% trans "Tell us about yourself and your professional background" %}</p>
                     </div>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label class="form-label" for="id_bio">
-                            <i class="bi bi-chat-left-text"></i> Bio
+                            <i class="bi bi-chat-left-text"></i> {% trans "Bio" %}
                         </label>
                         {{ form.bio }}
-                        <span class="form-help">Write a brief introduction about your skills and experience</span>
+                        <span class="form-help">{% trans "Write a brief introduction about your skills and experience" %}</span>
                     </div>
                 </div>
 
                 <div class="form-grid" style="margin-top: 1rem;">
                     <div class="form-group">
                         <label class="form-label" for="id_phone_number">
-                            <i class="bi bi-telephone-fill"></i> Phone Number
+                            <i class="bi bi-telephone-fill"></i> {% trans "Phone Number" %}
                         </label>
                         <div style="position: relative;">
                             <input type="text" 
@@ -522,12 +523,12 @@
                                    style="padding-left: 2.75rem;">
                             <i class="bi bi-phone" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #14b8a6; font-size: 1.125rem;"></i>
                         </div>
-                        <span class="form-help"><i class="bi bi-info-circle me-1"></i>Include country code (e.g., +255 for Tanzania)</span>
+                        <span class="form-help"><i class="bi bi-info-circle me-1"></i>{% trans "Include country code (e.g., +255 for Tanzania)" %}</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">
-                            <i class="bi bi-envelope-fill"></i> Email Address
+                            <i class="bi bi-envelope-fill"></i> {% trans "Email Address" %}
                         </label>
                         <div style="position: relative;">
                             <input type="email" 
@@ -537,7 +538,7 @@
                                    style="padding-left: 2.75rem; background-color: #f9fafb; cursor: not-allowed;">
                             <i class="bi bi-envelope" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 1.125rem;"></i>
                         </div>
-                        <span class="form-help"><i class="bi bi-lock-fill me-1"></i>Email cannot be changed</span>
+                        <span class="form-help"><i class="bi bi-lock-fill me-1"></i>{% trans "Email cannot be changed" %}</span>
                     </div>
                 </div>
             </div>
@@ -549,39 +550,39 @@
                         <i class="bi bi-geo-alt"></i>
                     </div>
                     <div class="section-title">
-                        <h2>Location</h2>
-                        <p>Where are you based?</p>
+                        <h2>{% trans "Location" %}</h2>
+                        <p>{% trans "Where are you based?" %}</p>
                     </div>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label" for="id_address">
-                            <i class="bi bi-house"></i> Address
+                            <i class="bi bi-house"></i> {% trans "Address" %}
                         </label>
                         {{ form.address }}
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="id_city">
-                            <i class="bi bi-building"></i> City
+                            <i class="bi bi-building"></i> {% trans "City" %}
                         </label>
                         {{ form.city }}
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="id_state">
-                            <i class="bi bi-map"></i> State/Province
+                            <i class="bi bi-map"></i> {% trans "State/Province" %}
                         </label>
                         {{ form.state }}
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="id_country">
-                            <i class="bi bi-globe"></i> Country
+                            <i class="bi bi-globe"></i> {% trans "Country" %}
                         </label>
                         {{ form.country }}
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="id_postal_code">
-                            <i class="bi bi-mailbox"></i> Postal Code
+                            <i class="bi bi-mailbox"></i> {% trans "Postal Code" %}
                         </label>
                         {{ form.postal_code }}
                     </div>
@@ -591,38 +592,38 @@
                 {{ form.longitude }}
                 <div class="form-group" style="margin-top: 1rem;">
                     <label class="form-label">
-                        <i class="bi bi-geo-alt-fill"></i> GPS Coordinates
+                        <i class="bi bi-geo-alt-fill"></i> {% trans "GPS Coordinates" %}
                     </label>
                     <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="useMyLocation()">
-                            <i class="bi bi-crosshair"></i> Use my current location
+                            <i class="bi bi-crosshair"></i> {% trans "Use my current location" %}
                         </button>
                         <span id="locateStatus" class="form-help">
                             {% if profile.latitude and profile.longitude %}Location captured ✓{% else %}Not set - clients using "auto-assign nearest" won't be able to match you until this is set{% endif %}
                         </span>
                     </div>
-                    <span class="form-help">Used to match you with nearby clients when they choose automatic worker assignment.</span>
+                    <span class="form-help">{% trans "Used to match you with nearby clients when they choose automatic worker assignment." %}</span>
                 </div>
 
                 <div class="form-grid" style="margin-top: 1rem;">
                     <div class="form-group">
                         <label class="form-label" for="id_religion">
-                            <i class="bi bi-star"></i> Religion
+                            <i class="bi bi-star"></i> {% trans "Religion" %}
                         </label>
                         {{ form.religion }}
-                        <span class="form-help">Optional: Select your religion or prefer not to say</span>
+                        <span class="form-help">{% trans "Optional: Select your religion or prefer not to say" %}</span>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="id_can_work_everywhere">
-                            <i class="bi bi-globe2"></i> Work Flexibility
+                            <i class="bi bi-globe2"></i> {% trans "Work Flexibility" %}
                         </label>
                         <div class="checkbox-item" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                             {{ form.can_work_everywhere }}
                             <label for="id_can_work_everywhere" style="margin: 0; cursor: pointer; font-size: 0.9375rem; color: #4b5563;">
-                                Can work everywhere (any location)
+                                {% trans "Can work everywhere (any location)" %}
                             </label>
                         </div>
-                        <span class="form-help">Check if you're willing to work at any location</span>
+                        <span class="form-help">{% trans "Check if you're willing to work at any location" %}</span>
                     </div>
                 </div>
             </div>
@@ -634,21 +635,21 @@
                         <i class="bi bi-briefcase"></i>
                     </div>
                     <div class="section-title">
-                        <h2>Professional Details</h2>
-                        <p>Your skills, experience, and rates</p>
+                        <h2>{% trans "Professional Details" %}</h2>
+                        <p>{% trans "Your skills, experience, and rates" %}</p>
                     </div>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label" for="id_experience_years">
-                            <i class="bi bi-clock-history"></i> Years of Experience
+                            <i class="bi bi-clock-history"></i> {% trans "Years of Experience" %}
                         </label>
                         {{ form.experience_years }}
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="id_availability">
-                            <i class="bi bi-calendar-check"></i> Availability
+                            <i class="bi bi-calendar-check"></i> {% trans "Availability" %}
                         </label>
                         {{ form.availability }}
                     </div>
@@ -662,8 +663,8 @@
                         <i class="bi bi-tags"></i>
                     </div>
                     <div class="section-title">
-                        <h2>Categories</h2>
-                        <p>Select the categories you work in</p>
+                        <h2>{% trans "Categories" %}</h2>
+                        <p>{% trans "Select the categories you work in" %}</p>
                     </div>
                 </div>
 
@@ -680,7 +681,7 @@
                 {% if custom_categories %}
                 <div style="margin-top: 1.25rem;">
                     <h3 style="font-size: 0.9375rem; color: #6b7280; margin-bottom: 0.75rem;">
-                        <i class="bi bi-star-fill" style="color: #0f766e;"></i> Your Custom Categories
+                        <i class="bi bi-star-fill" style="color: #0f766e;"></i> {% trans "Your Custom Categories" %}
                     </h3>
                     <div style="display: grid; gap: 0.75rem;">
                         {% for category in custom_categories %}
@@ -688,9 +689,9 @@
                             <div>
                                 <strong style="color: #065f46;">{{ category.name }}</strong>
                                 {% if category.is_verified %}
-                                    <span style="color: #10b981; font-size: 0.75rem; margin-left: 0.5rem;"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                                    <span style="color: #10b981; font-size: 0.75rem; margin-left: 0.5rem;"><i class="bi bi-check-circle-fill"></i> {% trans "Verified" %}</span>
                                 {% else %}
-                                    <span style="color: #f59e0b; font-size: 0.75rem; margin-left: 0.5rem;"><i class="bi bi-clock-fill"></i> Pending</span>
+                                    <span style="color: #f59e0b; font-size: 0.75rem; margin-left: 0.5rem;"><i class="bi bi-clock-fill"></i> {% trans "Pending" %}</span>
                                 {% endif %}
                                 <p style="margin: 0.25rem 0 0; font-size: 0.8125rem; color: #374151;">{{ category.description }}</p>
                             </div>
@@ -706,7 +707,7 @@
                 <!-- Note about Custom Categories -->
                 <div style="margin-top: 1.25rem; padding: 0.75rem; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; text-align: center;">
                     <p style="margin: 0; color: #92400e; font-size: 0.875rem;">
-                        <i class="bi bi-info-circle"></i> Don't see your category? <a href="#customCategoryForm" style="color: #0f766e; font-weight: 600; text-decoration: none;">Add it below</a> after saving your profile.
+                        <i class="bi bi-info-circle"></i> {% trans "Don't see your category?" %} <a href="#customCategoryForm" style="color: #0f766e; font-weight: 600; text-decoration: none;">{% trans "Add it below" %}</a> {% trans "after saving your profile." %}
                     </p>
                 </div>
             </div>
@@ -718,8 +719,8 @@
                         <i class="bi bi-stars"></i>
                     </div>
                     <div class="section-title">
-                        <h2>Skills</h2>
-                        <p>Add your professional skills with optional certificates</p>
+                        <h2>{% trans "Skills" %}</h2>
+                        <p>{% trans "Add your professional skills with optional certificates" %}</p>
                     </div>
                 </div>
 
@@ -727,7 +728,7 @@
                 {% if custom_skills %}
                 <div style="margin-bottom: 1.25rem;">
                     <h3 style="font-size: 0.9375rem; color: #6b7280; margin-bottom: 0.75rem;">
-                        <i class="bi bi-award-fill" style="color: #0f766e;"></i> Your Skills
+                        <i class="bi bi-award-fill" style="color: #0f766e;"></i> {% trans "Your Skills" %}
                     </h3>
                     <div style="display: grid; gap: 0.75rem;">
                         {% for skill in custom_skills %}
@@ -736,16 +737,16 @@
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <strong style="color: #1e40af;">{{ skill.name }}</strong>
                                     {% if skill.is_verified %}
-                                        <span style="color: #10b981; font-size: 0.75rem;"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                                        <span style="color: #10b981; font-size: 0.75rem;"><i class="bi bi-check-circle-fill"></i> {% trans "Verified" %}</span>
                                     {% else %}
-                                        <span style="color: #f59e0b; font-size: 0.75rem;"><i class="bi bi-clock-fill"></i> Pending</span>
+                                        <span style="color: #f59e0b; font-size: 0.75rem;"><i class="bi bi-clock-fill"></i> {% trans "Pending" %}</span>
                                     {% endif %}
                                     <span style="color: #6b7280; font-size: 0.75rem;">• {{ skill.years_of_experience }} years</span>
                                 </div>
                                 <p style="margin: 0.25rem 0; font-size: 0.8125rem; color: #374151;">{{ skill.description }}</p>
                                 {% if skill.certificate %}
                                     <a href="{{ skill.certificate.url }}" target="_blank" style="font-size: 0.8125rem; color: #0f766e; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-                                        <i class="bi bi-file-earmark-check"></i> View Certificate
+                                        <i class="bi bi-file-earmark-check"></i> {% trans "View Certificate" %}
                                     </a>
                                 {% endif %}
                             </div>
@@ -761,7 +762,7 @@
                 <!-- Note about Custom Skills -->
                 <div style="padding: 0.75rem; background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; text-align: center;">
                     <p style="margin: 0; color: #1e3a8a; font-size: 0.875rem;">
-                        <i class="bi bi-info-circle"></i> Want to add a skill? <a href="#customSkillFormSection" style="color: #0f766e; font-weight: 600; text-decoration: none;">Add it below</a> after saving your profile.
+                        <i class="bi bi-info-circle"></i> {% trans "Want to add a skill?" %} <a href="#customSkillFormSection" style="color: #0f766e; font-weight: 600; text-decoration: none;">{% trans "Add it below" %}</a> {% trans "after saving your profile." %}
                     </p>
                 </div>
             </div>
@@ -769,10 +770,10 @@
             <!-- Form Actions -->
             <div class="form-actions">
                 <button type="submit" class="btn-submit">
-                    <i class="bi bi-check-circle"></i> Save Changes
+                    <i class="bi bi-check-circle"></i> {% trans "Save Changes" %}
                 </button>
                 <a href="{% url 'workers:dashboard' %}" class="btn-cancel">
-                    <i class="bi bi-x-circle"></i> Cancel
+                    <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                 </a>
             </div>
         </form>
@@ -785,24 +786,24 @@
             <div class="col-md-6 mb-3" id="customCategoryForm" style="display: flex;">
                 <div style="padding: 1.25rem; background: #fef3c7; border: 2px dashed #fbbf24; border-radius: 10px; width: 100%; display: flex; flex-direction: column;">
                     <h3 style="font-size: 1rem; color: #92400e; margin-bottom: 0.75rem;">
-                        <i class="bi bi-plus-circle"></i> Add Custom Category
+                        <i class="bi bi-plus-circle"></i> {% trans "Add Custom Category" %}
                     </h3>
                     <form method="post" action="{% url 'workers:custom_category_add' %}" style="flex: 1; display: flex; flex-direction: column;">
                         {% csrf_token %}
                         <div style="margin-bottom: 0.75rem;">
                             <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block;">
-                                Category Name *
+                                {% trans "Category Name *" %}
                             </label>
                             {{ custom_category_form.name }}
                         </div>
                         <div style="margin-bottom: 0.75rem; flex: 1;">
                             <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block;">
-                                Description
+                                {% trans "Description" %}
                             </label>
                             {{ custom_category_form.description }}
                         </div>
                         <button type="submit" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white; padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; border: none; width: 100%;">
-                            <i class="bi bi-plus-circle"></i> Add Custom Category
+                            <i class="bi bi-plus-circle"></i> {% trans "Add Custom Category" %}
                         </button>
                     </form>
                 </div>
@@ -812,38 +813,38 @@
             <div class="col-md-6 mb-3" id="customSkillFormSection" style="display: flex;">
                 <div style="padding: 1.25rem; background: #dbeafe; border: 2px dashed #3b82f6; border-radius: 10px; width: 100%; display: flex; flex-direction: column;">
                     <h3 style="font-size: 1rem; color: #1e3a8a; margin-bottom: 0.75rem;">
-                        <i class="bi bi-plus-circle"></i> Add Custom Skill
+                        <i class="bi bi-plus-circle"></i> {% trans "Add Custom Skill" %}
                     </h3>
                     <form method="post" action="{% url 'workers:custom_skill_add' %}" enctype="multipart/form-data" style="flex: 1; display: flex; flex-direction: column;">
                         {% csrf_token %}
                         <div style="margin-bottom: 0.75rem;">
                             <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block;">
-                                Skill Name *
+                                {% trans "Skill Name *" %}
                             </label>
                             {{ custom_skill_form.name }}
                         </div>
                         <div style="margin-bottom: 0.75rem; flex: 1;">
                             <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block;">
-                                Description
+                                {% trans "Description" %}
                             </label>
                             {{ custom_skill_form.description }}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <div>
                                 <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block;">
-                                    Years of Experience *
+                                    {% trans "Years of Experience *" %}
                                 </label>
                                 {{ custom_skill_form.years_of_experience }}
                             </div>
                             <div>
                                 <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; display: block;">
-                                    Certificate (Optional)
+                                    {% trans "Certificate (Optional)" %}
                                 </label>
                                 {{ custom_skill_form.certificate }}
                             </div>
                         </div>
                         <button type="submit" class="btn" style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); color: white; padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; border: none; width: 100%;">
-                            <i class="bi bi-plus-circle"></i> Add Custom Skill
+                            <i class="bi bi-plus-circle"></i> {% trans "Add Custom Skill" %}
                         </button>
                     </form>
                 </div>

@@ -1,4 +1,5 @@
 {% extends 'workers/base_worker.html' %}
+{% load i18n %}
 {% load widget_tweaks %}
 
 {% block title %}Complete Profile - Worker Connect{% endblock %}
@@ -63,8 +64,8 @@
         <i class="bi bi-person-check fs-5" style="color:#14b8a6"></i>
     </div>
     <div>
-        <h4 class="fw-bold mb-0">Complete Your Profile</h4>
-        <p class="text-muted small mb-0">Fill in your professional details to get started</p>
+        <h4 class="fw-bold mb-0">{% trans "Complete Your Profile" %}</h4>
+        <p class="text-muted small mb-0">{% trans "Fill in your professional details to get started" %}</p>
     </div>
 </div>
 
@@ -77,10 +78,10 @@
     <!-- Personal Information -->
     <div class="setup-section">
         <div class="setup-section-title">
-            <i class="bi bi-person"></i> Personal Information
+            <i class="bi bi-person"></i> {% trans "Personal Information" %}
         </div>
         <div class="mb-0">
-            <label class="form-label">Bio</label>
+            <label class="form-label">{% trans "Bio" %}</label>
             {% render_field form.bio class="form-control" rows="4" placeholder="Tell us about your experience and skills..." %}
             {% if form.bio.errors %}<div class="text-danger small mt-1">{{ form.bio.errors }}</div>{% endif %}
         </div>
@@ -89,36 +90,36 @@
     <!-- Location -->
     <div class="setup-section">
         <div class="setup-section-title">
-            <i class="bi bi-geo-alt"></i> Location
+            <i class="bi bi-geo-alt"></i> {% trans "Location" %}
         </div>
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label">Address</label>
+                <label class="form-label">{% trans "Address" %}</label>
                 {% render_field form.address class="form-control" %}
                 {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-                <label class="form-label">City</label>
+                <label class="form-label">{% trans "City" %}</label>
                 {% render_field form.city class="form-control" %}
                 {% if form.city.errors %}<div class="text-danger small mt-1">{{ form.city.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-                <label class="form-label">State / Province</label>
+                <label class="form-label">{% trans "State / Province" %}</label>
                 {% render_field form.state class="form-control" %}
                 {% if form.state.errors %}<div class="text-danger small mt-1">{{ form.state.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-                <label class="form-label">Country</label>
+                <label class="form-label">{% trans "Country" %}</label>
                 {% render_field form.country class="form-control" %}
                 {% if form.country.errors %}<div class="text-danger small mt-1">{{ form.country.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-                <label class="form-label">Postal Code</label>
+                <label class="form-label">{% trans "Postal Code" %}</label>
                 {% render_field form.postal_code class="form-control" %}
                 {% if form.postal_code.errors %}<div class="text-danger small mt-1">{{ form.postal_code.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-                <label class="form-label">Religion <span class="text-muted fw-normal">(optional)</span></label>
+                <label class="form-label">{% trans "Religion" %} <span class="text-muted fw-normal">{% trans "(optional)" %}</span></label>
                 {% render_field form.religion class="form-select" %}
                 {% if form.religion.errors %}<div class="text-danger small mt-1">{{ form.religion.errors }}</div>{% endif %}
             </div>
@@ -126,8 +127,8 @@
                 <div class="category-check w-100 mt-3">
                     {% render_field form.can_work_everywhere class="form-check-input flex-shrink-0" %}
                     <div>
-                        <label class="form-check-label fw-semibold small" for="{{ form.can_work_everywhere.id_for_label }}">Can work everywhere</label>
-                        <div class="text-muted" style="font-size:.75rem">Willing to work at any location</div>
+                        <label class="form-check-label fw-semibold small" for="{{ form.can_work_everywhere.id_for_label }}">{% trans "Can work everywhere" %}</label>
+                        <div class="text-muted" style="font-size:.75rem">{% trans "Willing to work at any location" %}</div>
                     </div>
                 </div>
                 {% if form.can_work_everywhere.errors %}<div class="text-danger small mt-1">{{ form.can_work_everywhere.errors }}</div>{% endif %}
@@ -138,16 +139,16 @@
     <!-- Professional Details -->
     <div class="setup-section">
         <div class="setup-section-title">
-            <i class="bi bi-briefcase"></i> Professional Details
+            <i class="bi bi-briefcase"></i> {% trans "Professional Details" %}
         </div>
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label">Years of Experience</label>
+                <label class="form-label">{% trans "Years of Experience" %}</label>
                 {% render_field form.experience_years class="form-control" %}
                 {% if form.experience_years.errors %}<div class="text-danger small mt-1">{{ form.experience_years.errors }}</div>{% endif %}
             </div>
             <div class="col-md-4">
-                <label class="form-label">Availability</label>
+                <label class="form-label">{% trans "Availability" %}</label>
                 {% render_field form.availability class="form-select" %}
                 {% if form.availability.errors %}<div class="text-danger small mt-1">{{ form.availability.errors }}</div>{% endif %}
             </div>
@@ -157,9 +158,9 @@
     <!-- Categories -->
     <div class="setup-section">
         <div class="setup-section-title">
-            <i class="bi bi-tags"></i> Work Categories
+            <i class="bi bi-tags"></i> {% trans "Work Categories" %}
         </div>
-        <p class="text-muted small mb-3">Select the categories that match your skills</p>
+        <p class="text-muted small mb-3">{% trans "Select the categories that match your skills" %}</p>
         <div class="row g-2">
             {% for checkbox in form.categories %}
             <div class="col-md-4 col-sm-6">
@@ -175,9 +176,9 @@
 
     <!-- Submit -->
     <div class="d-flex align-items-center justify-content-between">
-        <p class="text-muted small mb-0">You can update your profile anytime from the dashboard.</p>
+        <p class="text-muted small mb-0">{% trans "You can update your profile anytime from the dashboard." %}</p>
         <button type="submit" class="btn fw-semibold text-white px-4" style="background:#14b8a6;border-color:#14b8a6;border-radius:8px">
-            <i class="bi bi-check-circle me-1"></i> Complete Profile
+            <i class="bi bi-check-circle me-1"></i> {% trans "Complete Profile" %}
         </button>
     </div>
 </form>

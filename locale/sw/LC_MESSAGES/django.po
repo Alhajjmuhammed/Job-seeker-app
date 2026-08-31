@@ -1,320 +1,2385 @@
 # Swahili translations for Worker Connect
 msgid ""
 msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-31 17:37+0000\n"
 "Language: sw\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-# Navigation
-msgid "Home"
-msgstr "Nyumbani"
+#: templates/accounts/agent_register.html:6
+msgid "Agent Registration"
+msgstr "Usajili wa Wakala"
 
-msgid "Dashboard"
-msgstr "Dashibodi"
-
-msgid "Login"
-msgstr "Ingia"
-
-msgid "Register"
-msgstr "Jisajili"
-
-msgid "Logout"
-msgstr "Toka"
-
-msgid "Profile"
-msgstr "Wasifu"
-
-msgid "Settings"
-msgstr "Mipangilio"
-
-msgid "Search"
-msgstr "Tafuta"
-
-msgid "Notifications"
-msgstr "Arifa"
-
-msgid "Messages"
-msgstr "Ujumbe"
-
-# User Types
-msgid "Worker"
-msgstr "Mfanyakazi"
-
-msgid "Client"
-msgstr "Mteja"
-
+#: templates/accounts/agent_register.html:68
+#: templates/agents/base_agents.html:299
 msgid "Agent"
 msgstr "Wakala"
 
-msgid "Admin"
-msgstr "Msimamizi"
+#: templates/accounts/agent_register.html:68
+#: templates/accounts/client_register.html:68
+#: templates/accounts/worker_register.html:68
+msgid "Account"
+msgstr "Akaunti"
 
-# Auth
-msgid "Sign In"
-msgstr "Ingia"
+#: templates/accounts/agent_register.html:69
+msgid ""
+"Recruit workers, manage your team, and earn commission on every completed "
+"job."
+msgstr ""
+"Ajiri wafanyakazi, simamia timu yako, na upate kamisheni kwa kila kazi "
+"iliyokamilika."
 
-msgid "Sign Up"
-msgstr "Jisajili"
+#: templates/accounts/agent_register.html:71
+#: templates/accounts/register_choice.html:198
+msgid "Get a unique agent code"
+msgstr "Pata nambari ya kipekee ya wakala"
 
-msgid "Email"
-msgstr "Barua pepe"
+#: templates/accounts/agent_register.html:72
+#: templates/accounts/register_choice.html:202
+msgid "Recruit & manage workers"
+msgstr "Ajiri na simamia wafanyakazi"
 
-msgid "Password"
-msgstr "Nenosiri"
+#: templates/accounts/agent_register.html:73
+#: templates/accounts/register_choice.html:210
+msgid "Track worker performance"
+msgstr "Fuatilia utendaji wa wafanyakazi"
 
-msgid "Forgot Password?"
-msgstr "Umesahau nenosiri?"
+#: templates/accounts/agent_register.html:79
+#: templates/accounts/client_register.html:79
+#: templates/accounts/worker_register.html:79
+msgid "Create Account"
+msgstr "Fungua Akaunti"
 
-msgid "Welcome Back!"
-msgstr "Karibu Tena!"
+#: templates/accounts/agent_register.html:80
+msgid "Fill in your details to apply as an Agent"
+msgstr "Jaza maelezo yako ili kuomba kuwa Wakala"
 
-msgid "Sign in to continue"
-msgstr "Ingia ili kuendelea"
+#: templates/accounts/agent_register.html:84
+msgid ""
+"After registration your account will be reviewed. Once approved you'll "
+"receive a unique Agent Code to share with workers."
+msgstr ""
+"Baada ya usajili akaunti yako itakaguliwa. Ukipitishwa utapata Nambari ya "
+"Wakala ya kipekee kushiriki na wafanyakazi."
 
-msgid "Don't have an account?"
-msgstr "Huna akaunti?"
+#: templates/accounts/agent_register.html:95
+#: templates/accounts/client_register.html:98 templates/accounts/login.html:197
+#: templates/accounts/worker_register.html:98 templates/agents/workers.html:171
+msgid "Username"
+msgstr "Jina la Mtumiaji"
 
-msgid "Already have an account?"
-msgstr "Una akaunti tayari?"
-
+#: templates/accounts/agent_register.html:102
+#: templates/accounts/client_register.html:107
+#: templates/accounts/worker_register.html:107
+#: templates/agents/workers.html:161
 msgid "First Name"
 msgstr "Jina la Kwanza"
 
+#: templates/accounts/agent_register.html:107
+#: templates/accounts/client_register.html:114
+#: templates/accounts/worker_register.html:114
+#: templates/agents/workers.html:166
 msgid "Last Name"
 msgstr "Jina la Mwisho"
 
+#: templates/accounts/agent_register.html:114
+#: templates/accounts/client_register.html:123
+#: templates/accounts/worker_register.html:123 templates/agents/profile.html:96
+#: templates/agents/workers.html:176
+msgid "Email"
+msgstr "Barua pepe"
+
+#: templates/accounts/agent_register.html:120
+#: templates/accounts/client_register.html:131
+#: templates/accounts/worker_register.html:131
+#: templates/agents/workers.html:181 templates/clients/profile_edit.html:200
+#: templates/workers/profile_edit.html:513
 msgid "Phone Number"
 msgstr "Nambari ya Simu"
 
-# Jobs & Assignments
-msgid "Jobs"
-msgstr "Kazi"
+#: templates/accounts/agent_register.html:126 templates/agents/profile.html:65
+msgid "Business Name"
+msgstr "Jina la Biashara"
 
-msgid "Assignments"
-msgstr "Mgawo"
+#: templates/accounts/agent_register.html:126
+#: templates/accounts/worker_register.html:158
+#: templates/jobs/direct_hire_accept.html:35
+#: templates/jobs/direct_hire_complete.html:50
+msgid "optional"
+msgstr "hiari"
 
-msgid "My Assignments"
-msgstr "Mgawo Wangu"
+#: templates/accounts/agent_register.html:133
+#: templates/accounts/client_register.html:140
+#: templates/accounts/login.html:206
+#: templates/accounts/worker_register.html:140
+#: templates/agents/workers.html:186
+msgid "Password"
+msgstr "Nenosiri"
 
-msgid "Pending Assignments"
-msgstr "Mgawo Unaongoja"
+#: templates/accounts/agent_register.html:138
+#: templates/accounts/client_register.html:147
+#: templates/accounts/worker_register.html:147
+#: templates/agents/workers.html:191
+msgid "Confirm Password"
+msgstr "Thibitisha Nywila"
 
-msgid "Active Jobs"
-msgstr "Kazi Zinazoendelea"
+#: templates/accounts/agent_register.html:145
+msgid "Submit Application"
+msgstr "Wasilisha Maombi"
 
-msgid "Completed Jobs"
-msgstr "Kazi Zilizokamilika"
+#: templates/accounts/change_password.html:14
+#: templates/accounts/change_password.html:65 templates/agents/profile.html:116
+#: templates/agents/profile.html:135 templates/clients/base_client.html:755
+#: templates/workers/base_worker.html:745
+#, fuzzy
+#| msgid "Confirm Password"
+msgid "Change Password"
+msgstr "Thibitisha Nywila"
 
-msgid "Pending"
-msgstr "Inasubiri"
+#: templates/accounts/change_password.html:15
+msgid "Update your account password"
+msgstr "Sasisha nenosiri la akaunti yako"
 
-msgid "Active"
-msgstr "Inafanya Kazi"
+#: templates/accounts/change_password.html:29 templates/agents/profile.html:146
+#, fuzzy
+#| msgid "Forgot Password?"
+msgid "Current Password"
+msgstr "Umesahau nenosiri?"
 
-msgid "Completed"
-msgstr "Imekamilika"
+#: templates/accounts/change_password.html:41
+#: templates/accounts/reset_password.html:29 templates/agents/profile.html:151
+#, fuzzy
+#| msgid "Password"
+msgid "New Password"
+msgstr "Nenosiri"
 
-msgid "In Progress"
-msgstr "Inaendelea"
+#: templates/accounts/change_password.html:49
+msgid "Minimum 8 characters. Must be different from current password."
+msgstr ""
 
-msgid "Cancelled"
-msgstr "Imefutwa"
+#: templates/accounts/change_password.html:55
+#: templates/accounts/reset_password.html:38 templates/agents/profile.html:156
+#, fuzzy
+#| msgid "Confirm Password"
+msgid "Confirm New Password"
+msgstr "Thibitisha Nywila"
 
-msgid "Rejected"
-msgstr "Imekataliwa"
-
-msgid "Accepted"
-msgstr "Imekubaliwa"
-
-# Earnings
-msgid "Earnings"
-msgstr "Mapato"
-
-msgid "Total Earnings"
-msgstr "Jumla ya Mapato"
-
-msgid "Available"
-msgstr "Inapatikana"
-
-msgid "Withdrawn"
-msgstr "Imetolewa"
-
-msgid "Withdraw Funds"
-msgstr "Toa Fedha"
-
-msgid "Recent Payments"
-msgstr "Malipo ya Hivi Karibuni"
-
-msgid "No payments yet"
-msgstr "Hakuna malipo bado"
-
-msgid "Complete jobs to start earning"
-msgstr "Kamilisha kazi kuanza kupata mapato"
-
-# Actions
-msgid "Save"
-msgstr "Hifadhi"
-
+#: templates/accounts/change_password.html:69
+#: templates/accounts/profile_edit.html:39 templates/agents/profile.html:164
+#: templates/agents/workers.html:118 templates/agents/workers.html:201
+#: templates/clients/my_service_requests.html:117
+#: templates/clients/profile_edit.html:262
+#: templates/clients/rate_worker.html:236
+#: templates/clients/request_service.html:499
+#: templates/clients/worker_detail.html:1148
+#: templates/jobs/accept_application.html:40
+#: templates/jobs/direct_hire_accept.html:43
+#: templates/jobs/direct_hire_complete.html:59
+#: templates/jobs/direct_hire_reject.html:41 templates/jobs/job_close.html:35
+#: templates/jobs/job_delete.html:35
+#: templates/service_requests/client/edit_request.html:122
+#: templates/service_requests/client/request_service.html:414
+#: templates/service_requests/client/request_service.html:529
+#: templates/service_requests/client/upload_screenshot.html:155
+#: templates/service_requests/worker/clock_in.html:81
+#: templates/service_requests/worker/clock_out.html:84
+#: templates/service_requests/worker/complete.html:122
+#: templates/service_requests/worker/respond.html:114
+#: templates/workers/document_delete.html:36
+#: templates/workers/document_upload.html:487
+#: templates/workers/experience_delete.html:36
+#: templates/workers/experience_form.html:320
+#: templates/workers/profile_edit.html:776
 msgid "Cancel"
 msgstr "Ghairi"
 
-msgid "Submit"
-msgstr "Wasilisha"
+#: templates/accounts/change_password.html:76
+#, fuzzy
+#| msgid "Security"
+msgid "Security Tip:"
+msgstr "Usalama"
 
-msgid "Edit"
-msgstr "Hariri"
+#: templates/accounts/client_register.html:6
+msgid "Client Registration"
+msgstr "Usajili wa Mteja"
 
-msgid "Delete"
-msgstr "Futa"
+#: templates/accounts/client_register.html:68
+#: templates/clients/base_client.html:748
+#: templates/jobs/direct_hire_detail.html:31
+#: templates/service_requests/worker/assignments.html:453
+#: templates/service_requests/worker/assignments.html:505
+#: templates/workers/analytics.html:415
+msgid "Client"
+msgstr "Mteja"
 
-msgid "View"
-msgstr "Angalia"
+#: templates/accounts/client_register.html:69
+msgid "Post jobs and hire verified skilled workers for any task or project."
+msgstr ""
+"Chapisha kazi na uajiri wafanyakazi walioidhinishwa kwa kazi yoyote au mradi."
 
-msgid "Apply"
-msgstr "Omba"
+#: templates/accounts/client_register.html:71
+#: templates/accounts/register_choice.html:160
+msgid "Browse verified workers"
+msgstr "Tazama wafanyakazi walioidhinishwa"
 
-msgid "Accept"
-msgstr "Kubali"
+#: templates/accounts/client_register.html:72
+msgid "Post service requests"
+msgstr "Chapisha maombi ya huduma"
 
-msgid "Reject"
-msgstr "Kataa"
+#: templates/accounts/client_register.html:73
+#: templates/accounts/register_choice.html:172
+msgid "Secure payment & invoicing"
+msgstr "Malipo salama na ankara"
 
-msgid "Clock In"
-msgstr "Ingia Kazini"
+#: templates/accounts/client_register.html:80
+msgid "Fill in your details to get started as a Client"
+msgstr "Jaza maelezo yako ili kuanza kama Mteja"
 
-msgid "Clock Out"
-msgstr "Toka Kazini"
+#: templates/accounts/client_register.html:156
+msgid "Create Client Account"
+msgstr "Fungua Akaunti ya Mteja"
 
-msgid "Mark as Complete"
+#: templates/accounts/forgot_password.html:14 templates/accounts/login.html:222
+msgid "Forgot Password?"
+msgstr "Umesahau nenosiri?"
+
+#: templates/accounts/forgot_password.html:15
+msgid "Enter your email to receive a password reset link"
+msgstr "Weka barua pepe yako ili upokee kiungo cha kubadilisha nenosiri"
+
+#: templates/accounts/forgot_password.html:28
+#: templates/workers/profile_edit.html:531
+msgid "Email Address"
+msgstr "Anwani ya Barua Pepe"
+
+#: templates/accounts/forgot_password.html:33
+msgid "We'll send a password reset link to this email address."
+msgstr ""
+
+#: templates/accounts/forgot_password.html:37
+msgid "Send Reset Link"
+msgstr "Tuma Kiungo cha Kubadilisha"
+
+#: templates/accounts/forgot_password.html:43
+msgid "Remember your password?"
+msgstr "Unakumbuka nenosiri lako?"
+
+#: templates/accounts/forgot_password.html:44
+#: templates/accounts/reset_password.html:65
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to Login"
+msgstr "Rudi Nyumbani"
+
+#: templates/accounts/login.html:173
+msgid "Welcome"
+msgstr "Karibu"
+
+#: templates/accounts/login.html:173
+#: templates/accounts/notification_center.html:106
+#: templates/clients/request_service.html:421
+#: templates/clients/request_service.html:456
+#: templates/service_requests/client/request_service.html:451
+#: templates/service_requests/client/request_service.html:486
+msgid "Back"
+msgstr "Tena"
+
+#: templates/accounts/login.html:174
+msgid ""
+"Sign in to access your dashboard, manage requests, and connect with workers "
+"or clients."
+msgstr ""
+"Ingia kufikia dashibodi yako, simamia maombi, na kuwasiliana na wafanyakazi "
+"au wateja."
+
+# Auth
+#: templates/accounts/login.html:179 templates/accounts/login.html:225
+msgid "Sign In"
+msgstr "Ingia"
+
+#: templates/accounts/login.html:180
+msgid "Enter your credentials to continue"
+msgstr "Weka nambari zako ili uendelee"
+
+#: templates/accounts/login.html:220
+msgid "Remember me"
+msgstr "Nikumbuke"
+
+#: templates/accounts/login.html:229
+msgid "Don't have an account?"
+msgstr "Huna akaunti?"
+
+#: templates/accounts/login.html:230 templates/base.html:517
+msgid "Sign Up"
+msgstr "Jisajili"
+
+#: templates/accounts/notification_center.html:92
+#, fuzzy
+#| msgid "Notifications"
+msgid "Notification Center"
+msgstr "Arifa"
+
+#: templates/accounts/notification_center.html:94
+msgid "Stay updated with your latest activities"
+msgstr "Fuatilia shughuli zako za hivi karibuni"
+
+#: templates/accounts/notification_center.html:101
+msgid "Mark All as Read"
+msgstr "Weka Zote Kama Zimesomwa"
+
+#: templates/accounts/notification_center.html:119
+msgid "Filter:"
+msgstr "Chuja:"
+
+#: templates/accounts/notification_center.html:179
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark as Read"
 msgstr "Weka Alama ya Kukamilika"
 
-# Status & Info
-msgid "Available for Work"
-msgstr "Yuko Tayari Kufanya Kazi"
+#: templates/accounts/notification_center.html:181
+msgid "New"
+msgstr "Mpya"
 
-msgid "Verified"
-msgstr "Imethibitishwa"
+#: templates/accounts/notification_center.html:183
+msgid "Read"
+msgstr "Imesomwa"
 
-msgid "Not Verified"
-msgstr "Haijathibitishwa"
+#: templates/accounts/notification_center.html:194
+#, fuzzy
+#| msgid "Notifications"
+msgid "Notification pagination"
+msgstr "Arifa"
 
-msgid "No activity"
-msgstr "Hakuna shughuli"
+#: templates/accounts/notification_center.html:199
+#: templates/service_requests/client/activity.html:255
+#: templates/service_requests/client/history.html:281
+#: templates/service_requests/client/my_requests.html:341
+#: templates/service_requests/client/my_requests.html:346
+#: templates/service_requests/worker/activity.html:171
+#: templates/service_requests/worker/assignments.html:553
+#: templates/service_requests/worker/assignments.html:558
+msgid "Previous"
+msgstr "Iliyotangulia"
 
-msgid "Loading..."
-msgstr "Inapakia..."
+#: templates/accounts/notification_center.html:213
+#: templates/service_requests/client/activity.html:267
+#: templates/service_requests/client/history.html:301
+#: templates/service_requests/client/my_requests.html:365
+#: templates/service_requests/client/my_requests.html:370
+#: templates/service_requests/worker/activity.html:191
+#: templates/service_requests/worker/assignments.html:571
+#: templates/service_requests/worker/assignments.html:576
+msgid "Next"
+msgstr "Ifuatayo"
 
-msgid "Error"
-msgstr "Hitilafu"
+#: templates/accounts/notification_center.html:224
+#, fuzzy
+#| msgid "Notifications"
+msgid "No notifications"
+msgstr "Arifa"
 
-msgid "Success"
-msgstr "Imefanikishwa"
+#: templates/accounts/notification_center.html:226
+msgid "You've read all your notifications! 🎉"
+msgstr ""
 
-msgid "No results found"
-msgstr "Hakuna matokeo yaliyopatikana"
+#: templates/accounts/notification_center.html:227
+#, fuzzy
+#| msgid "Notifications"
+msgid "View All Notifications"
+msgstr "Arifa"
 
-# Dashboard
-msgid "Welcome back"
-msgstr "Karibu tena"
+#: templates/accounts/notification_center.html:229
+msgid "You don't have any notifications yet."
+msgstr "Bado huna arifa yoyote."
 
-msgid "Worker Dashboard"
-msgstr "Dashibodi ya Mfanyakazi"
-
-msgid "Client Dashboard"
-msgstr "Dashibodi ya Mteja"
-
-msgid "Admin Panel"
-msgstr "Paneli ya Msimamizi"
-
-msgid "Quick Actions"
-msgstr "Vitendo vya Haraka"
-
-msgid "Total Services"
-msgstr "Jumla ya Huduma"
-
-msgid "Pending Requests"
-msgstr "Maombi Yanayosubiri"
-
-msgid "My Profile"
-msgstr "Wasifu Wangu"
-
-msgid "Documents"
-msgstr "Nyaraka"
-
-msgid "Analytics"
-msgstr "Uchambuzi"
-
-# Landing page
-msgid "Find Work. Hire Workers. Instantly."
-msgstr "Tafuta Kazi. Ajiri Wafanyakazi. Haraka."
-
-msgid "For Workers"
-msgstr "Kwa Wafanyakazi"
-
-msgid "For Clients"
-msgstr "Kwa Wateja"
-
-msgid "For Agents"
-msgstr "Kwa Mawakala"
-
-msgid "Get Started"
-msgstr "Anza"
-
-msgid "Post a Job"
-msgstr "Tuma Kazi"
-
-msgid "Worker Connect"
-msgstr "Worker Connect"
-
-# Footer
-msgid "All rights reserved"
-msgstr "Haki zote zimehifadhiwa"
-
-msgid "Privacy Policy"
-msgstr "Sera ya Faragha"
-
-msgid "Terms of Service"
-msgstr "Masharti ya Huduma"
-
-msgid "Contact Us"
-msgstr "Wasiliana Nasi"
-
-msgid "Language"
-msgstr "Lugha"
-
-msgid "My Applications"
-msgstr "Maombi Yangu"
-
-msgid "My Requests"
-msgstr "Maombi Yangu"
-
-msgid "New Request"
-msgstr "Ombi Jipya"
-
-msgid "Browse Services"
-msgstr "Vinjari Huduma"
-
-msgid "Admin Dashboard"
-msgstr "Dashibodi ya Msimamizi"
-
+#: templates/accounts/profile_edit.html:4 templates/agents/profile.html:58
+#: templates/base.html:502 templates/clients/dashboard.html:104
+#: templates/clients/profile.html:471 templates/clients/profile_edit.html:165
+#: templates/workers/base_worker.html:671 templates/workers/dashboard.html:142
+#: templates/workers/profile_edit.html:412
 msgid "Edit Profile"
 msgstr "Hariri Wasifu"
 
-msgid "My Applications"
+#: templates/accounts/profile_edit.html:12
+#, fuzzy
+#| msgid "Edit Profile"
+msgid "Edit your profile"
+msgstr "Hariri Wasifu"
+
+#: templates/accounts/profile_edit.html:13
+msgid "Update your name, contact details and photo."
+msgstr "Sasisha jina lako, mawasiliano na picha."
+
+#: templates/accounts/profile_edit.html:37
+msgid "Save changes"
+msgstr "Hifadhi mabadiliko"
+
+#: templates/accounts/register_choice.html:4
+msgid "Create Your Account"
+msgstr "Fungua Akaunti Yako"
+
+#: templates/accounts/register_choice.html:98
+msgid "Back to Home"
+msgstr "Rudi Nyumbani"
+
+#: templates/accounts/register_choice.html:103
+msgid "Choose Your Account Type"
+msgstr "Chagua Aina ya Akaunti Yako"
+
+#: templates/accounts/register_choice.html:104
+msgid "Select the role that best describes you"
+msgstr "Chagua jukumu linalokufaa zaidi"
+
+#: templates/accounts/register_choice.html:116
+msgid "I'm a Worker"
+msgstr "Mimi ni Mfanyakazi"
+
+#: templates/accounts/register_choice.html:117
+msgid "Showcase your skills and get hired by verified clients"
+msgstr "Onyesha ujuzi wako na kuajiriwa na wateja walioidhinishwa"
+
+#: templates/accounts/register_choice.html:122
+msgid "Build a professional profile"
+msgstr "Jenga wasifu wa kitaaluma"
+
+#: templates/accounts/register_choice.html:126
+msgid "Upload credentials & certificates"
+msgstr "Pakia vyeti na leseni"
+
+#: templates/accounts/register_choice.html:130
+#: templates/accounts/worker_register.html:72
+msgid "Receive job assignments"
+msgstr "Pokea kazi zilizopewa"
+
+#: templates/accounts/register_choice.html:134
+#: templates/accounts/worker_register.html:73
+msgid "Track earnings & time"
+msgstr "Fuatilia mapato na muda"
+
+#: templates/accounts/register_choice.html:140
+msgid "Register as Worker"
+msgstr "Jisajili kama Mfanyakazi"
+
+#: templates/accounts/register_choice.html:154
+msgid "I'm a Client"
+msgstr "Mimi ni Mteja"
+
+#: templates/accounts/register_choice.html:155
+msgid "Find and hire skilled workers for any task or project"
+msgstr "Tafuta na uajiri wafanyakazi wenye ujuzi kwa kazi yoyote"
+
+#: templates/accounts/register_choice.html:164
+msgid "Post service requests easily"
+msgstr "Tuma maombi ya huduma kwa urahisi"
+
+#: templates/accounts/register_choice.html:168
+msgid "Rate and review workers"
+msgstr "Tathmini na kagua wafanyakazi"
+
+#: templates/accounts/register_choice.html:178
+msgid "Register as Client"
+msgstr "Jisajili kama Mteja"
+
+#: templates/accounts/register_choice.html:192
+msgid "I'm an Agent"
+msgstr "Mimi ni Wakala"
+
+#: templates/accounts/register_choice.html:193
+msgid "Recruit workers, manage teams, and earn commission"
+msgstr "Ajiri wafanyakazi, simamia timu na upate kamisheni"
+
+#: templates/accounts/register_choice.html:206
+msgid "Earn commission per job"
+msgstr "Pata kamisheni kwa kila kazi"
+
+#: templates/accounts/register_choice.html:216
+msgid "Register as Agent"
+msgstr "Jisajili kama Wakala"
+
+#: templates/accounts/register_choice.html:228
+msgid "Already have an account?"
+msgstr "Una akaunti tayari?"
+
+#: templates/accounts/register_choice.html:230
+msgid "Login here"
+msgstr "Ingia hapa"
+
+#: templates/accounts/register_choice.html:244
+#: templates/agents/dashboard.html:51 templates/http_landing.html:487
+msgid "Verified Workers"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+#: templates/accounts/register_choice.html:245
+msgid "Background-checked professionals"
+msgstr "Wataalamu waliopimwa historia"
+
+#: templates/accounts/register_choice.html:249
+msgid "Secure Platform"
+msgstr "Jukwaa Salama"
+
+#: templates/accounts/register_choice.html:250
+msgid "Your data is safe with us"
+msgstr "Data yako iko salama kwetu"
+
+#: templates/accounts/register_choice.html:254
+msgid "Rated & Reviewed"
+msgstr "Imepewa Alama & Kukaguliwa"
+
+#: templates/accounts/register_choice.html:255
+msgid "Transparent quality ratings"
+msgstr "Tathmini ya ubora inayoonekana"
+
+#: templates/accounts/register_choice.html:259
+msgid "24/7 Support"
+msgstr "Msaada wa Saa 24/7"
+
+#: templates/accounts/register_choice.html:260
+msgid "We're here when you need us"
+msgstr "Tuko hapa unapotuhitaji"
+
+#: templates/accounts/reset_password.html:15
+#, fuzzy
+#| msgid "Forgot Password?"
+msgid "Reset Your Password"
+msgstr "Umesahau nenosiri?"
+
+#: templates/accounts/reset_password.html:16
+msgid "Enter your new password below"
+msgstr "Weka nenosiri lako jipya hapa chini"
+
+#: templates/accounts/reset_password.html:34
+msgid "Minimum 8 characters"
+msgstr "Angalau herufi 8"
+
+#: templates/accounts/reset_password.html:46
+#, fuzzy
+#| msgid "Password"
+msgid "Reset Password"
+msgstr "Nenosiri"
+
+#: templates/accounts/reset_password.html:52
+msgid "Invalid Reset Link"
+msgstr "Kiungo cha Kubadilisha si Sahihi"
+
+#: templates/accounts/reset_password.html:58
+msgid "Request New Reset Link"
+msgstr ""
+
+#: templates/accounts/worker_register.html:6
+msgid "Worker Registration"
+msgstr "Usajili wa Mfanyakazi"
+
+# User Types
+#: templates/accounts/worker_register.html:68
+#: templates/agents/search_workers.html:41 templates/agents/workers.html:33
+#: templates/jobs/direct_hire_detail.html:34
+#: templates/service_requests/client/dashboard.html:209
+#: templates/service_requests/client/history.html:155
+#: templates/service_requests/client/my_requests.html:222
+#: templates/workers/base_worker.html:738
+msgid "Worker"
+msgstr "Mfanyakazi"
+
+#: templates/accounts/worker_register.html:69
+msgid ""
+"Build your professional profile and start getting hired by verified clients."
+msgstr ""
+"Jenga wasifu wako wa kitaaluma na uanze kuajiriwa na wateja walioidhinishwa."
+
+#: templates/accounts/worker_register.html:71
+msgid "Upload credentials"
+msgstr "Pakia vyeti"
+
+#: templates/accounts/worker_register.html:80
+msgid "Fill in your details to get started as a Worker"
+msgstr "Jaza maelezo yako ili kuanza kama Mfanyakazi"
+
+#: templates/accounts/worker_register.html:158
+msgid "Agent Code"
+msgstr "Nambari ya Wakala"
+
+#: templates/accounts/worker_register.html:168
+msgid "Create Worker Account"
+msgstr "Fungua Akaunti ya Mfanyakazi"
+
+#: templates/admin_panel/verify_document.html:4
+#: templates/admin_panel/verify_document.html:5
+#, fuzzy
+#| msgid "Documents"
+msgid "Review Document"
+msgstr "Nyaraka"
+
+#: templates/admin_panel/verify_document.html:16
+msgid "uploaded"
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:24
+#, fuzzy
+#| msgid "Documents"
+msgid "Open document"
+msgstr "Nyaraka"
+
+#: templates/admin_panel/verify_document.html:28
+msgid "No file attached."
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:34
+msgid "Previously rejected:"
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:44
+#, fuzzy
+#| msgid "Submit"
+msgid "Submitted by"
+msgstr "Wasilisha"
+
+#: templates/admin_panel/verify_document.html:48
+#, fuzzy
+#| msgid "Verified Workers"
+msgid "View worker"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+#: templates/admin_panel/verify_document.html:55
+#: templates/admin_panel/verify_worker.html:94
+msgid "Decision"
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:57
+#: templates/admin_panel/verify_worker.html:42
+msgid "Current status"
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:67
+msgid "Approve document"
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:75
+#: templates/admin_panel/verify_worker.html:111
+#, fuzzy
+#| msgid "Join for Free"
+msgid "Reason for rejection"
+msgstr "Jiunge Bila Malipo"
+
+#: templates/admin_panel/verify_document.html:76
+msgid "Tell the worker what to fix"
+msgstr ""
+
+#: templates/admin_panel/verify_document.html:79
+#, fuzzy
+#| msgid "Rejected"
+msgid "Reject document"
+msgstr "Imekataliwa"
+
+#: templates/admin_panel/verify_document.html:84
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to document queue"
+msgstr "Rudi Nyumbani"
+
+#: templates/admin_panel/verify_worker.html:4
+#: templates/admin_panel/verify_worker.html:5
+#, fuzzy
+#| msgid "Verified Workers"
+msgid "Verify Worker"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+#: templates/admin_panel/verify_worker.html:28 templates/agents/profile.html:98
+#: templates/agents/workers.html:34
+msgid "Phone"
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:31
+#: templates/clients/profile_edit.html:210
+#: templates/jobs/direct_hire_detail.html:41
+#: templates/service_requests/client/my_requests.html:219
+#: templates/service_requests/worker/assignments.html:461
+#: templates/service_requests/worker/assignments.html:506
+#: templates/workers/experience_form.html:278
+#: templates/workers/profile_edit.html:553
+#: templates/workers/profile_setup.html:93
+#: templates/workers/public_profile.html:58
+#, fuzzy
+#| msgid "Notifications"
+msgid "Location"
+msgstr "Arifa"
+
+#: templates/admin_panel/verify_worker.html:34
+#: templates/clients/worker_detail.html:1010
+#: templates/workers/profile_edit.html:666
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Categories"
+msgstr "Aina za Huduma"
+
+#: templates/admin_panel/verify_worker.html:39
+#: templates/workers/base_worker.html:679 templates/workers/dashboard.html:259
+msgid "Experience"
+msgstr "Uzoefu"
+
+#: templates/admin_panel/verify_worker.html:40
+msgid "years"
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:52
+msgid "Identity document"
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:57
+msgid "ID document uploaded and approved. This worker can be verified."
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:62
+msgid "ID document uploaded but not yet approved. Approve the document first."
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:67
+msgid "No ID document uploaded. This worker cannot be verified yet."
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:83
+#, fuzzy
+#| msgid "Honest Reviews"
+msgid "Review"
+msgstr "Maoni ya Kweli"
+
+#: templates/admin_panel/verify_worker.html:100
+#, fuzzy
+#| msgid "Verified Workers"
+msgid "Verify worker"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+#: templates/admin_panel/verify_worker.html:103
+msgid "Enabled once the ID document is approved."
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:112
+msgid "Explain what the worker needs to correct"
+msgstr ""
+
+#: templates/admin_panel/verify_worker.html:115
+#, fuzzy
+#| msgid "Rejected"
+msgid "Reject worker"
+msgstr "Imekataliwa"
+
+#: templates/admin_panel/verify_worker.html:120
+msgid "Back to verification queue"
+msgstr ""
+
+#: templates/agents/base_agents.html:243 templates/http_landing.html:711
+msgid "Agent Portal"
+msgstr "Lango la Wakala"
+
+#: templates/agents/base_agents.html:246
+msgid "OVERVIEW"
+msgstr "Muhtasari"
+
+#: templates/agents/base_agents.html:249 templates/agents/dashboard.html:5
+#: templates/base.html:429 templates/base.html:445
+#: templates/clients/base_client.html:663 templates/clients/dashboard.html:5
+#: templates/service_requests/client/activity.html:47
+#: templates/service_requests/worker/assignments.html:375
+#: templates/workers/analytics.html:104 templates/workers/base_worker.html:643
+#: templates/workers/dashboard.html:5
+msgid "Dashboard"
+msgstr "Dashibodi"
+
+#: templates/agents/base_agents.html:252
+msgid "MANAGEMENT"
+msgstr ""
+
+#: templates/agents/base_agents.html:255
+#, fuzzy
+#| msgid "For Workers"
+msgid "My Workers"
+msgstr "Kwa Wafanyakazi"
+
+#: templates/agents/base_agents.html:260
+msgid "ACCOUNT"
+msgstr ""
+
+#: templates/agents/base_agents.html:263 templates/agents/base_agents.html:306
+#: templates/base.html:501 templates/clients/base_client.html:753
+#: templates/workers/base_worker.html:743
+msgid "My Profile"
+msgstr "Wasifu Wangu"
+
+#: templates/agents/base_agents.html:268 templates/agents/base_agents.html:312
+#, fuzzy
+#| msgid "Clock Out"
+msgid "Log Out"
+msgstr "Toka Kazini"
+
+#: templates/agents/base_agents.html:287 templates/agents/profile.html:19
+#, fuzzy
+#| msgid "Verified"
+msgid "Verified Agent"
+msgstr "Imethibitishwa"
+
+#: templates/agents/base_agents.html:289 templates/agents/profile.html:25
+#, fuzzy
+#| msgid "Pending"
+msgid "Pending Approval"
+msgstr "Inasubiri"
+
+#: templates/agents/dashboard.html:4
+#, fuzzy
+#| msgid "Client Dashboard"
+msgid "Agent Dashboard"
+msgstr "Dashibodi ya Mteja"
+
+#: templates/agents/dashboard.html:13
+msgid "Application Under Review"
+msgstr ""
+
+#: templates/agents/dashboard.html:14
+#, fuzzy
+#| msgid ""
+#| "After registration your account will be reviewed. Once approved you'll "
+#| "receive a unique Agent Code to share with workers."
+msgid ""
+"Your agent application is being reviewed by admin. Once approved you will "
+"receive a unique Agent Code to share with workers."
+msgstr ""
+"Baada ya usajili akaunti yako itakaguliwa. Ukipitishwa utapata Nambari ya "
+"Wakala ya kipekee kushiriki na wafanyakazi."
+
+#: templates/agents/dashboard.html:22 templates/agents/profile.html:21
+#, fuzzy
+#| msgid "Agent Code"
+msgid "Your Agent Code"
+msgstr "Nambari ya Wakala"
+
+#: templates/agents/dashboard.html:24
+msgid ""
+"Share this code with workers during their registration so they are linked to "
+"you automatically."
+msgstr ""
+
+#: templates/agents/dashboard.html:38
+#, fuzzy
+#| msgid "For Workers"
+msgid "Total Workers"
+msgstr "Kwa Wafanyakazi"
+
+#: templates/agents/dashboard.html:64
+#: templates/service_requests/client/request_detail.html:509
+#, fuzzy
+#| msgid "Leading Organizations"
+msgid "Pending Verification"
+msgstr "Mashirika Yanayoongoza"
+
+#: templates/agents/dashboard.html:77
+msgid "Commission Earned"
+msgstr ""
+
+#: templates/agents/dashboard.html:90
+#, fuzzy
+#| msgid "Worker Registration"
+msgid "Worker Verification"
+msgstr "Usajili wa Mfanyakazi"
+
+#: templates/agents/dashboard.html:91
+msgid "Breakdown by status"
+msgstr ""
+
+#: templates/agents/dashboard.html:98
+#: templates/clients/request_service.html:312
+#: templates/jobs/direct_hire_accept.html:28
+#: templates/jobs/direct_hire_detail.html:53
+#: templates/service_requests/client/request_service.html:342
+msgid "Total"
+msgstr "Jumla"
+
+#: templates/agents/dashboard.html:114
+#, fuzzy
+#| msgid "Jobs Completed"
+msgid "Top Workers by Jobs Completed"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/agents/dashboard.html:115
+msgid "Performance overview"
+msgstr ""
+
+#: templates/agents/dashboard.html:128
+#, fuzzy
+#| msgid "Worker Connect"
+msgid "Workers Joined"
+msgstr "Worker Connect"
+
+#: templates/agents/dashboard.html:129
+msgid "Last 6 months"
+msgstr ""
+
+#: templates/agents/dashboard.html:131
+#, fuzzy
+#| msgid "Skilled Workers"
+msgid "View All Workers"
+msgstr "Wafanyakazi Wenye Ujuzi"
+
+#: templates/agents/profile.html:26
+msgid "Admin will review and approve your application."
+msgstr ""
+
+# User Types
+#: templates/agents/profile.html:32 templates/clients/request_service.html:299
+#: templates/service_requests/client/request_service.html:329
+#, fuzzy
+#| msgid "Worker"
+msgid "Workers"
+msgstr "Mfanyakazi"
+
+#: templates/agents/profile.html:36
+msgid "Commission"
+msgstr ""
+
+#: templates/agents/profile.html:43 templates/agents/workers.html:17
+#: templates/agents/workers.html:89
+#, fuzzy
+#| msgid "I'm a Worker"
+msgid "Add New Worker"
+msgstr "Mimi ni Mfanyakazi"
+
+#: templates/agents/profile.html:46
+#, fuzzy
+#| msgid "Verified Workers"
+msgid "View My Workers"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+#: templates/agents/profile.html:71 templates/clients/profile_edit.html:259
+#: templates/workers/profile_edit.html:773
+msgid "Save Changes"
+msgstr "Hifadhi Mabadiliko"
+
+#: templates/agents/profile.html:75 templates/workers/profile_edit.html:503
+#: templates/workers/profile_setup.html:84
+msgid "Bio"
+msgstr ""
+
+#: templates/agents/profile.html:90
+msgid "Account Information"
+msgstr ""
+
+#: templates/agents/profile.html:94
+#, fuzzy
+#| msgid "First Name"
+msgid "Full Name"
+msgstr "Jina la Kwanza"
+
+#: templates/agents/profile.html:100
+#, fuzzy
+#| msgid "Register"
+msgid "Registered"
+msgstr "Jisajili"
+
+#: templates/agents/profile.html:111
+msgid "Security"
+msgstr "Usalama"
+
+#: templates/agents/profile.html:114
+msgid "Keep your account secure by updating your password regularly."
+msgstr ""
+
+#: templates/agents/profile.html:136
+#, fuzzy
+#| msgid "Enter your credentials to continue"
+msgid "Enter your current password to set a new one."
+msgstr "Weka nambari zako ili uendelee"
+
+#: templates/agents/profile.html:139 templates/agents/workers.html:110
+#: templates/agents/workers.html:147 templates/clients/worker_detail.html:1084
+#: templates/service_requests/client/request_detail.html:739
+msgid "Close"
+msgstr "Funga"
+
+#: templates/agents/profile.html:166
+#, fuzzy
+#| msgid "Password"
+msgid "Update Password"
+msgstr "Nenosiri"
+
+#: templates/agents/search_workers.html:10
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to My Workers"
+msgstr "Rudi Nyumbani"
+
+#: templates/agents/search_workers.html:16
+#, fuzzy
+#| msgid "For Workers"
+msgid "Search for a Worker"
+msgstr "Kwa Wafanyakazi"
+
+#: templates/agents/search_workers.html:18
+msgid ""
+"Find workers who are not yet linked to any agent. Search by name, username, "
+"or email address."
+msgstr ""
+
+#: templates/agents/search_workers.html:21
+msgid "Name, username or email..."
+msgstr ""
+
+#: templates/agents/search_workers.html:24
+#: templates/service_requests/client/history.html:70
+#: templates/service_requests/client/my_requests.html:133
+msgid "Search"
+msgstr "Tafuta"
+
+#: templates/agents/search_workers.html:42 templates/agents/workers.html:35
+#: templates/clients/profile_edit.html:223
+#: templates/workers/profile_edit.html:567
+#: templates/workers/profile_setup.html:102
+msgid "City"
+msgstr "Jiji"
+
+#: templates/agents/search_workers.html:43
+#: templates/service_requests/client/dashboard.html:207
+#: templates/service_requests/client/history.html:84
+#: templates/service_requests/client/history.html:154
+#: templates/service_requests/client/my_requests.html:150
+#: templates/service_requests/worker/assignments.html:445
+#: templates/service_requests/worker/assignments.html:504
+#: templates/workers/analytics.html:414
+msgid "Category"
+msgstr "Kategoria"
+
+#: templates/agents/search_workers.html:44 templates/agents/workers.html:36
+#, fuzzy
+#| msgid "Notifications"
+msgid "Verification"
+msgstr "Arifa"
+
+#: templates/agents/search_workers.html:45 templates/agents/workers.html:37
+#: templates/clients/profile.html:517 templates/workers/analytics.html:151
+#: templates/workers/analytics.html:172
+msgid "Completed Jobs"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/agents/search_workers.html:46 templates/agents/workers.html:40
+#: templates/clients/dashboard.html:194
+#: templates/service_requests/worker/assignments.html:510
+#, fuzzy
+#| msgid "Active"
+msgid "Action"
+msgstr "Inafanya Kazi"
+
+#: templates/agents/search_workers.html:65 templates/agents/workers.html:55
+#: templates/service_requests/client/request_detail.html:505
+#: templates/workers/profile_edit.html:692
+#: templates/workers/profile_edit.html:740
+#: templates/workers/public_profile.html:28
+msgid "Verified"
+msgstr "Imethibitishwa"
+
+#: templates/agents/search_workers.html:67 templates/agents/workers.html:57
+#: templates/service_requests/client/dashboard.html:144
+#: templates/service_requests/client/dashboard.html:222
+#: templates/service_requests/client/my_requests.html:141
+#: templates/service_requests/worker/assignments.html:391
+#: templates/workers/dashboard.html:208 templates/workers/profile_edit.html:694
+#: templates/workers/profile_edit.html:742
+msgid "Pending"
+msgstr "Inasubiri"
+
+#: templates/agents/search_workers.html:77
+msgid "Add to Team"
+msgstr ""
+
+#: templates/agents/search_workers.html:93
+msgid ""
+"Workers may already be linked to another agent, or no matching worker exists."
+msgstr ""
+
+#: templates/agents/workers.html:10
+msgid "Workers Under My Team"
+msgstr ""
+
+#: templates/agents/workers.html:14
+msgid "Search Existing Worker"
+msgstr ""
+
+#: templates/agents/workers.html:32
+#: templates/service_requests/client/dashboard.html:205
+#: templates/service_requests/client/my_requests.html:215
+msgid "SN"
+msgstr ""
+
+#: templates/agents/workers.html:38 templates/jobs/accept_application.html:31
+#: templates/jobs/direct_hire_complete.html:34
+#: templates/service_requests/client/history.html:159
+#: templates/workers/dashboard.html:76 templates/workers/public_profile.html:40
+msgid "Rating"
+msgstr "Ukadiriaji"
+
+#: templates/agents/workers.html:39
+#, fuzzy
+#| msgid "Join As"
+msgid "Joined"
+msgstr "Jiunge Kama"
+
+#: templates/agents/workers.html:74 templates/clients/request_service.html:533
+#: templates/clients/service_request_detail.html:138
+#: templates/service_requests/client/request_service.html:581
+#: templates/service_requests/client/upload_screenshot.html:144
+#: templates/workers/document_upload.html:476
+msgid "Remove"
+msgstr "Ondoa"
+
+#: templates/agents/workers.html:85
+msgid "No workers in your team yet."
+msgstr ""
+
+#: templates/agents/workers.html:87
+msgid ""
+"Add a new worker directly, or share your agent code so workers can join "
+"during registration."
+msgstr ""
+
+#: templates/agents/workers.html:92
+msgid "Your account is still pending approval."
+msgstr ""
+
+#: templates/agents/workers.html:108
+#, fuzzy
+#| msgid "For Workers"
+msgid "Remove Worker"
+msgstr "Kwa Wafanyakazi"
+
+#: templates/agents/workers.html:113
+msgid "Are you sure you want to remove"
+msgstr ""
+
+#: templates/agents/workers.html:115
+msgid "from your team? This action cannot be undone."
+msgstr ""
+
+#: templates/agents/workers.html:122
+msgid "Yes, Remove"
+msgstr ""
+
+#: templates/agents/workers.html:143
+#, fuzzy
+#| msgid "Create Worker Account"
+msgid "Create New Worker"
+msgstr "Fungua Akaunti ya Mfanyakazi"
+
+#: templates/agents/workers.html:144
+msgid "Fill in the details — worker will be linked to your team immediately."
+msgstr ""
+
+#: templates/agents/workers.html:203
+#, fuzzy
+#| msgid "Create Worker Account"
+msgid "Create Worker & Add to Team"
+msgstr "Fungua Akaunti ya Mfanyakazi"
+
+# Navigation
+#: templates/base.html:421
+msgid "Home"
+msgstr "Nyumbani"
+
+#: templates/base.html:434 templates/service_requests/worker/pending.html:4
+#: templates/service_requests/worker/pending.html:21
+#: templates/workers/base_worker.html:657 templates/workers/dashboard.html:157
+msgid "Pending Assignments"
+msgstr "Mgawo Unaongoja"
+
+#: templates/base.html:439
+#: templates/service_requests/worker/assignments.html:371
+#: templates/workers/base_worker.html:661 templates/workers/dashboard.html:167
+msgid "My Assignments"
+msgstr "Mgawo Wangu"
+
+#: templates/base.html:450 templates/clients/base_client.html:683
+#: templates/clients/dashboard.html:89
+msgid "My Requests"
 msgstr "Maombi Yangu"
 
-msgid "Tanzania's #1 Worker Platform"
-msgstr "Jukwaa la Kwanza la Wafanyakazi Tanzania"
+#: templates/base.html:455 templates/clients/my_service_requests.html:41
+#: templates/service_requests/client/my_requests.html:124
+msgid "New Request"
+msgstr "Ombi Jipya"
 
+#: templates/base.html:460 templates/clients/base_client.html:669
+#: templates/clients/dashboard.html:80
+msgid "Browse Services"
+msgstr "Vinjari Huduma"
+
+#: templates/base.html:466
+msgid "Admin Dashboard"
+msgstr "Dashibodi ya Msimamizi"
+
+#: templates/base.html:504 templates/clients/base_client.html:757
+#: templates/workers/base_worker.html:747
+msgid "Logout"
+msgstr "Toka"
+
+#: templates/base.html:510
+msgid "Login"
+msgstr "Ingia"
+
+#: templates/base.html:513
+#, fuzzy
+#| msgid "Download on the"
+msgid "Download App"
+msgstr "Pakua kwenye"
+
+# Footer
+#: templates/base.html:626
+msgid "All rights reserved"
+msgstr "Haki zote zimehifadhiwa"
+
+#: templates/clients/base_client.html:657
+#, fuzzy
+#| msgid "Admin Panel"
+msgid "Client Panel"
+msgstr "Paneli ya Msimamizi"
+
+#: templates/clients/base_client.html:666
+msgid "WORKERS"
+msgstr "Wafanyakazi"
+
+#: templates/clients/base_client.html:672
+#: templates/workers/base_worker.html:650
+msgid "SERVICE REQUESTS"
+msgstr "Maombi ya Huduma"
+
+#: templates/clients/base_client.html:675
+#: templates/workers/base_worker.html:653
+#, fuzzy
+#| msgid "Dashboard"
+msgid "SR Dashboard"
+msgstr "Dashibodi"
+
+#: templates/clients/base_client.html:679 templates/clients/dashboard.html:77
+#: templates/clients/dashboard.html:151 templates/http_landing.html:457
+msgid "Request Service"
+msgstr "Omba Huduma"
+
+#: templates/clients/base_client.html:687
+#, fuzzy
+#| msgid "My Requests"
+msgid "Request History"
+msgstr "Maombi Yangu"
+
+#: templates/clients/base_client.html:690
+#: templates/workers/base_worker.html:682
+msgid "COMMUNICATION"
+msgstr ""
+
+#: templates/clients/base_client.html:693
+#: templates/workers/base_worker.html:685 templates/workers/dashboard.html:172
+msgid "Messages"
+msgstr "Ujumbe"
+
+#: templates/clients/base_client.html:700
+#: templates/workers/base_worker.html:692
+msgid "Notifications"
+msgstr "Arifa"
+
+#: templates/clients/base_client.html:726
+msgid "Search services..."
+msgstr ""
+
+#: templates/clients/base_client.html:754
+#: templates/workers/base_worker.html:744
+msgid "Settings"
+msgstr "Mipangilio"
+
+#: templates/clients/browse_services.html:63
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request Professional Services"
+msgstr "Omba Huduma"
+
+#: templates/clients/browse_services.html:65
+msgid "Select a service below and our team will assign a qualified worker"
+msgstr ""
+
+#: templates/clients/browse_services.html:76
+#: templates/clients/dashboard.html:136
+#: templates/clients/worker_detail.html:812
+#: templates/workers/public_profile.html:31
+msgid "Available"
+msgstr "Inapatikana"
+
+#: templates/clients/browse_services.html:78
+#: templates/clients/dashboard.html:138
+#, fuzzy
+#| msgid "Available"
+msgid "Unavailable"
+msgstr "Inapatikana"
+
+#: templates/clients/browse_services.html:107
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request This Service"
+msgstr "Omba Huduma"
+
+#: templates/clients/browse_services.html:111
+msgid "Currently Unavailable"
+msgstr ""
+
+#: templates/clients/browse_services.html:121
+#, fuzzy
+#| msgid "Available"
+msgid "No Services Available"
+msgstr "Inapatikana"
+
+#: templates/clients/browse_services.html:122
+msgid "Please check back later for available services."
+msgstr ""
+
+#: templates/clients/dashboard.html:4
+msgid "Client Dashboard"
+msgstr "Dashibodi ya Mteja"
+
+#: templates/clients/dashboard.html:64
+#, fuzzy, python-format
+#| msgid "Welcome Back!"
+msgid "Welcome, %(name)s!"
+msgstr "Karibu Tena!"
+
+#: templates/clients/dashboard.html:65
+msgid ""
+"Request professional services and let our team assign qualified workers to "
+"help you."
+msgstr ""
+
+#: templates/clients/dashboard.html:78
+msgid "Browse available services and submit requests"
+msgstr ""
+
+#: templates/clients/dashboard.html:90
+msgid "Track your service requests and assigned workers"
+msgstr ""
+
+#: templates/clients/dashboard.html:92
+#, fuzzy
+#| msgid "New Request"
+msgid "View Requests"
+msgstr "Ombi Jipya"
+
+#: templates/clients/dashboard.html:101 templates/workers/profile_edit.html:455
+msgid "Profile"
+msgstr "Wasifu"
+
+#: templates/clients/dashboard.html:102
+msgid "Manage your account and preferences"
+msgstr ""
+
+#: templates/clients/dashboard.html:118
+#, fuzzy
+#| msgid "Total Services"
+msgid "Available Services"
+msgstr "Jumla ya Huduma"
+
+#: templates/clients/dashboard.html:121
+#, fuzzy
+#| msgid "Total Services"
+msgid "View All Services"
+msgstr "Jumla ya Huduma"
+
+# User Types
+#: templates/clients/dashboard.html:143
+#, fuzzy
+#| msgid "Worker"
+msgid "workers"
+msgstr "Mfanyakazi"
+
+#: templates/clients/dashboard.html:145
+#, fuzzy
+#| msgid "Completed"
+msgid "completed"
+msgstr "Imekamilika"
+
+#: templates/clients/dashboard.html:161
+msgid "No services available at the moment."
+msgstr ""
+
+#: templates/clients/dashboard.html:178
+#: templates/service_requests/client/dashboard.html:200
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "Recent Service Requests"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/clients/dashboard.html:181
+#: templates/service_requests/client/dashboard.html:187
+#, fuzzy
+#| msgid "New Request"
+msgid "View All Requests"
+msgstr "Ombi Jipya"
+
+#: templates/clients/dashboard.html:190
+#: templates/service_requests/worker/assignments.html:503
+#, fuzzy
+#| msgid "Total Services"
+msgid "Service"
+msgstr "Jumla ya Huduma"
+
+#: templates/clients/dashboard.html:191 templates/jobs/job_close.html:25
+#: templates/service_requests/client/dashboard.html:208
+#: templates/service_requests/client/history.html:75
+#: templates/service_requests/client/history.html:156
+#: templates/service_requests/client/my_requests.html:138
+#: templates/service_requests/client/my_requests.html:217
+#: templates/service_requests/worker/assignments.html:507
+#: templates/workers/dashboard.html:95
+#: templates/workers/document_delete.html:26
+msgid "Status"
+msgstr "Hali"
+
+#: templates/clients/dashboard.html:192
+#: templates/service_requests/client/request_detail.html:255
+#: templates/service_requests/client/request_detail.html:348
+#, fuzzy
+#| msgid "Skilled Workers"
+msgid "Assigned Worker"
+msgstr "Wafanyakazi Wenye Ujuzi"
+
+#: templates/clients/dashboard.html:193
+#: templates/service_requests/client/dashboard.html:210
+#: templates/workers/analytics.html:417
+msgid "Date"
+msgstr "Tarehe"
+
+#: templates/clients/dashboard.html:216
+#: templates/service_requests/client/dashboard.html:242
+#: templates/service_requests/client/history.html:195
+#: templates/service_requests/client/my_requests.html:304
+msgid "Not assigned"
+msgstr "Hajapangiwa"
+
+#: templates/clients/dashboard.html:226
+#: templates/service_requests/client/dashboard.html:249
+#: templates/service_requests/worker/assignments.html:536
+msgid "View"
+msgstr "Angalia"
+
+#: templates/clients/dashboard.html:238
+#: templates/clients/my_service_requests.html:131
+#, fuzzy
+#| msgid "Post service requests"
+msgid "You haven't made any service requests yet."
+msgstr "Chapisha maombi ya huduma"
+
+#: templates/clients/dashboard.html:240
+#: templates/clients/my_service_requests.html:133
+#: templates/service_requests/client/dashboard.html:258
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request Your First Service"
+msgstr "Omba Huduma"
+
+#: templates/clients/my_service_requests.html:36
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "My Service Requests"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/clients/my_service_requests.html:103
+#: templates/service_requests/client/cancel_confirm.html:65
+#, fuzzy
+#| msgid "Skilled Workers"
+msgid "Assigned Worker:"
+msgstr "Wafanyakazi Wenye Ujuzi"
+
+#: templates/clients/my_service_requests.html:111
+#: templates/service_requests/client/history.html:247
+#: templates/service_requests/worker/assignments.html:488
+#: templates/service_requests/worker/dashboard.html:69
+msgid "View Details"
+msgstr "Angalia Maelezo"
+
+#: templates/clients/my_service_requests.html:130
+#: templates/service_requests/client/my_requests.html:382
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "No Service Requests Found"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/clients/profile.html:481
+msgid "Total Jobs Posted"
+msgstr ""
+
+# Jobs & Assignments
+#: templates/clients/profile.html:493
+#, fuzzy
+#| msgid "Jobs"
+msgid "Open Jobs"
+msgstr "Kazi"
+
+#: templates/clients/profile.html:505
+#: templates/clients/service_request_detail.html:203
+#: templates/service_requests/client/dashboard.html:152
+#: templates/service_requests/client/dashboard.html:226
+#: templates/service_requests/client/my_requests.html:143
+#: templates/service_requests/client/request_detail.html:310
+#: templates/service_requests/worker/assignments.html:399
+#: templates/service_requests/worker/dashboard.html:106
+msgid "In Progress"
+msgstr "Inaendelea"
+
+#: templates/clients/profile.html:529
+#, fuzzy
+#| msgid "For Workers"
+msgid "Favorite Workers"
+msgstr "Kwa Wafanyakazi"
+
+#: templates/clients/profile.html:542 templates/clients/profile_edit.html:184
+#: templates/workers/profile_edit.html:495
+#: templates/workers/profile_setup.html:81
+msgid "Personal Information"
+msgstr ""
+
+#: templates/clients/profile.html:552
+msgid "FULL NAME"
+msgstr "Jina Kamili"
+
+#: templates/clients/profile.html:562
+msgid "EMAIL ADDRESS"
+msgstr "Anwani ya Barua Pepe"
+
+#: templates/clients/profile.html:573
+msgid "PHONE NUMBER"
+msgstr "Namba ya Simu"
+
+#: templates/clients/profile.html:584
+msgid "MEMBER SINCE"
+msgstr ""
+
+#: templates/clients/profile.html:595
+#, fuzzy
+#| msgid "Pending Requests"
+msgid "Recent Requests"
+msgstr "Maombi Yanayosubiri"
+
+#: templates/clients/profile.html:598 templates/workers/dashboard.html:187
+#: templates/workers/dashboard.html:261
+#, fuzzy
+#| msgid "View"
+msgid "View All"
+msgstr "Angalia"
+
+#: templates/clients/profile.html:632
+#, fuzzy
+#| msgid "Post service requests"
+msgid "No service requests yet"
+msgstr "Chapisha maombi ya huduma"
+
+#: templates/clients/profile.html:642
+msgid "Recent Ratings Given"
+msgstr ""
+
+#: templates/clients/profile_edit.html:166
+msgid "Update your personal information and preferences"
+msgstr ""
+
+#: templates/clients/profile_edit.html:189
+#: templates/workers/experience_form.html:269
+msgid "Company Name"
+msgstr ""
+
+#: templates/clients/profile_edit.html:202
+msgid "Enter your phone number with country code"
+msgstr ""
+
+#: templates/clients/profile_edit.html:215
+#: templates/workers/profile_edit.html:561
+#: templates/workers/profile_setup.html:97
+msgid "Address"
+msgstr "Anwani"
+
+#: templates/clients/profile_edit.html:231
+msgid "State"
+msgstr ""
+
+#: templates/clients/profile_edit.html:239
+#: templates/workers/profile_edit.html:585
+#: templates/workers/profile_setup.html:117
+#, fuzzy
+#| msgid "Post a Job"
+msgid "Postal Code"
+msgstr "Tuma Kazi"
+
+#: templates/clients/profile_edit.html:247
+#: templates/workers/profile_edit.html:579
+#: templates/workers/profile_setup.html:112
+msgid "Country"
+msgstr ""
+
+#: templates/clients/rate_worker.html:191
+msgid "Your Current Rating"
+msgstr ""
+
+#: templates/clients/rate_worker.html:201
+msgid "Click below to update your rating"
+msgstr ""
+
+#: templates/clients/rate_worker.html:216
+#: templates/clients/worker_detail.html:1098
+msgid "Your Rating"
+msgstr ""
+
+#: templates/clients/rate_worker.html:222
+#: templates/clients/worker_detail.html:1126
+msgid "Click on a star to rate"
+msgstr ""
+
+#: templates/clients/rate_worker.html:228
+#: templates/clients/worker_detail.html:1132
+msgid "Your Review (Optional)"
+msgstr ""
+
+#: templates/clients/request_service.html:124
+msgid "⚠️ No Workers Currently Available"
+msgstr ""
+
+#: templates/clients/request_service.html:126
+msgid "There are currently no available workers for"
+msgstr ""
+
+#: templates/clients/request_service.html:137
+msgid "ℹ️ Limited Worker Availability"
+msgstr ""
+
+#: templates/clients/request_service.html:139
+msgid "Only"
+msgstr ""
+
+#: templates/clients/request_service.html:151
+#: templates/service_requests/client/edit_request.html:57
+#: templates/service_requests/client/request_service.html:133
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service Title *"
+msgstr "Aina za Huduma"
+
+#: templates/clients/request_service.html:157
+#: templates/service_requests/client/request_service.html:139
+msgid "Brief description of what you need"
+msgstr ""
+
+#: templates/clients/request_service.html:161
+#: templates/service_requests/client/request_service.html:143
+msgid "Detailed Description *"
+msgstr ""
+
+#: templates/clients/request_service.html:172
+#: templates/service_requests/client/request_service.html:154
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service Location *"
+msgstr "Aina za Huduma"
+
+#: templates/clients/request_service.html:178
+#: templates/service_requests/client/request_service.html:160
+msgid "Where should the service be performed?"
+msgstr ""
+
+#: templates/clients/request_service.html:181
+#: templates/service_requests/client/edit_request.html:78
+#: templates/service_requests/client/request_service.html:163
+msgid "City *"
+msgstr "Jiji"
+
+#: templates/clients/request_service.html:187
+#: templates/service_requests/client/request_service.html:169
+msgid "City name"
+msgstr ""
+
+#: templates/clients/request_service.html:194
+#: templates/service_requests/client/edit_request.html:87
+#: templates/service_requests/client/request_service.html:224
+msgid "Preferred Date"
+msgstr ""
+
+#: templates/clients/request_service.html:201
+#: templates/service_requests/client/edit_request.html:92
+#: templates/service_requests/client/request_service.html:231
+msgid "Preferred Time"
+msgstr ""
+
+#: templates/clients/request_service.html:211
+#: templates/service_requests/client/request_service.html:241
+msgid "Number of Workers Needed"
+msgstr ""
+
+#: templates/clients/request_service.html:230
+#: templates/service_requests/client/request_service.html:260
+msgid "💡 Each worker multiplies the total cost"
+msgstr ""
+
+#: templates/clients/request_service.html:238
+#: templates/service_requests/client/request_service.html:268
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service Duration *"
+msgstr "Aina za Huduma"
+
+#: templates/clients/request_service.html:242
+#: templates/service_requests/client/request_service.html:272
+msgid "Daily"
+msgstr ""
+
+#: templates/clients/request_service.html:247
+#: templates/service_requests/client/request_service.html:277
+msgid "Monthly"
+msgstr ""
+
+#: templates/clients/request_service.html:252
+#: templates/service_requests/client/request_service.html:282
+msgid "3 Months"
+msgstr ""
+
+#: templates/clients/request_service.html:257
+#: templates/service_requests/client/request_service.html:287
+msgid "6 Months"
+msgstr ""
+
+#: templates/clients/request_service.html:262
+#: templates/service_requests/client/request_service.html:292
+msgid "Yearly"
+msgstr ""
+
+#: templates/clients/request_service.html:267
+#: templates/service_requests/client/request_service.html:297
+msgid "Custom"
+msgstr ""
+
+#: templates/clients/request_service.html:278
+#: templates/service_requests/client/request_service.html:308
+msgid "Start Date *"
+msgstr "Tarehe ya Kuanza"
+
+#: templates/clients/request_service.html:285
+#: templates/service_requests/client/request_service.html:315
+msgid "End Date *"
+msgstr "Tarehe ya Kumaliza"
+
+#: templates/clients/request_service.html:296
+#: templates/service_requests/client/request_service.html:326
+msgid "Price Calculation"
+msgstr ""
+
+#: templates/clients/request_service.html:303
+#: templates/jobs/direct_hire_detail.html:47
+#: templates/service_requests/client/edit_request.html:140
+#: templates/service_requests/client/my_requests.html:220
+#: templates/service_requests/client/request_detail.html:424
+#: templates/service_requests/client/request_service.html:333
+#: templates/service_requests/worker/assignment_detail.html:136
+msgid "Duration"
+msgstr "Muda"
+
+#: templates/clients/request_service.html:308
+#: templates/service_requests/client/request_service.html:338
+msgid "Rate/Day"
+msgstr ""
+
+#: templates/clients/request_service.html:319
+#: templates/service_requests/client/request_service.html:349
+msgid "Workers × Days × Daily Rate"
+msgstr ""
+
+#: templates/clients/request_service.html:326
+#: templates/service_requests/client/request_service.html:356
+msgid "Urgency Level"
+msgstr ""
+
+#: templates/clients/request_service.html:331
+#: templates/service_requests/client/edit_request.html:108
+#: templates/service_requests/client/request_service.html:361
+msgid "Normal"
+msgstr "Kawaida"
+
+#: templates/clients/request_service.html:332
+#: templates/service_requests/client/request_service.html:362
+msgid "1 week"
+msgstr ""
+
+#: templates/clients/request_service.html:338
+#: templates/service_requests/client/edit_request.html:109
+#: templates/service_requests/client/request_service.html:368
+#, fuzzy
+#| msgid "Agent"
+msgid "Urgent"
+msgstr "Wakala"
+
+#: templates/clients/request_service.html:339
+#: templates/service_requests/client/request_service.html:369
+msgid "2-3 days"
+msgstr ""
+
+#: templates/clients/request_service.html:345
+#: templates/service_requests/client/edit_request.html:110
+#: templates/service_requests/client/request_service.html:375
+msgid "Emergency"
+msgstr "Dharura"
+
+#: templates/clients/request_service.html:346
+#: templates/service_requests/client/request_service.html:376
+msgid "Same day"
+msgstr ""
+
+#: templates/clients/request_service.html:355
+#: templates/service_requests/client/edit_request.html:115
+#: templates/service_requests/client/edit_request.html:142
+#: templates/service_requests/client/request_service.html:385
+msgid "Additional Notes"
+msgstr ""
+
+#: templates/clients/request_service.html:371
+#: templates/service_requests/client/request_service.html:401
+#: templates/service_requests/worker/clock_out.html:74
+msgid "Note:"
+msgstr ""
+
+#: templates/clients/request_service.html:380
+#: templates/service_requests/client/request_service.html:410
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "Pay and Submit Request"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/clients/request_service.html:384
+#, fuzzy
+#| msgid "Browse Services"
+msgid "Back to Services"
+msgstr "Vinjari Huduma"
+
+#: templates/clients/request_service.html:401
+#: templates/service_requests/client/request_service.html:431
+#, fuzzy
+#| msgid "Recent Payments"
+msgid "Complete Payment"
+msgstr "Malipo ya Hivi Karibuni"
+
+#: templates/clients/request_service.html:406
+#: templates/service_requests/client/request_detail.html:457
+#: templates/service_requests/client/request_service.html:436
+#: templates/service_requests/worker/assignment_detail.html:168
+msgid "Total Amount:"
+msgstr ""
+
+#: templates/clients/request_service.html:406
+#: templates/service_requests/client/request_service.html:436
+msgid "TSH"
+msgstr ""
+
+#: templates/clients/request_service.html:410
+#: templates/service_requests/client/request_service.html:440
+msgid "Credit Card"
+msgstr ""
+
+#: templates/clients/request_service.html:413 templates/http_landing.html:737
+#: templates/http_landing.html:738 templates/http_landing.html:743
+#: templates/http_landing.html:744 templates/http_landing.html:756
+#: templates/http_landing.html:757 templates/http_landing.html:762
+#: templates/http_landing.html:763
+#: templates/service_requests/client/request_service.html:443
+msgid "Mobile Money"
+msgstr "Pesa ya Simu"
+
+#: templates/clients/request_service.html:425
+#: templates/clients/request_service.html:460
+#: templates/service_requests/client/request_service.html:455
+#: templates/service_requests/client/request_service.html:490
+msgid "Demo Mode:"
+msgstr ""
+
+#: templates/clients/request_service.html:425
+#: templates/service_requests/client/request_service.html:455
+msgid "Use test cards:"
+msgstr ""
+
+#: templates/clients/request_service.html:426
+#: templates/service_requests/client/request_service.html:456
+msgid "Visa: 4242 4242 4242 4242"
+msgstr ""
+
+#: templates/clients/request_service.html:427
+#: templates/service_requests/client/request_service.html:457
+msgid "Mastercard: 5555 5555 5555 5555"
+msgstr ""
+
+#: templates/clients/request_service.html:431
+#: templates/service_requests/client/request_service.html:461
+#, fuzzy
+#| msgid "Phone Number"
+msgid "Card Number"
+msgstr "Nambari ya Simu"
+
+#: templates/clients/request_service.html:435
+#: templates/service_requests/client/request_service.html:465
+msgid "Cardholder Name"
+msgstr ""
+
+#: templates/clients/request_service.html:436
+#: templates/service_requests/client/request_service.html:466
+msgid "John Doe"
+msgstr ""
+
+#: templates/clients/request_service.html:440
+#: templates/service_requests/client/request_service.html:470
+msgid "Expiry (MM/YY)"
+msgstr ""
+
+#: templates/clients/request_service.html:444
+#: templates/service_requests/client/request_service.html:474
+msgid "CVV"
+msgstr ""
+
+#: templates/clients/request_service.html:449
+#: templates/clients/request_service.html:469
+#: templates/service_requests/client/request_service.html:479
+#: templates/service_requests/client/request_service.html:499
+msgid "Pay TSH"
+msgstr ""
+
+#: templates/clients/request_service.html:460
+#: templates/service_requests/client/request_service.html:490
+msgid "Use test number: +255123456789"
+msgstr ""
+
+#: templates/clients/request_service.html:461
+#: templates/service_requests/client/request_service.html:491
+msgid "Supports: M-Pesa, Tigo Pesa, Airtel Money"
+msgstr ""
+
+#: templates/clients/request_service.html:465
+#: templates/service_requests/client/request_service.html:495
+#, fuzzy
+#| msgid "Phone Number"
+msgid "Mobile Money Phone Number"
+msgstr "Nambari ya Simu"
+
+#: templates/clients/request_service.html:483
+#: templates/service_requests/client/request_service.html:513
+msgid "Worker Availability Notice"
+msgstr ""
+
+#: templates/clients/request_service.html:502
+#: templates/service_requests/client/request_service.html:532
+msgid "Proceed Anyway"
+msgstr ""
+
+#: templates/clients/request_service.html:514
+#: templates/service_requests/client/request_service.html:562
+msgid "Payment Proof"
+msgstr ""
+
+#: templates/clients/request_service.html:519
+#: templates/service_requests/client/request_service.html:567
+msgid "Payment Initiated!"
+msgstr ""
+
+#: templates/clients/request_service.html:520
+#: templates/clients/service_request_detail.html:94
+#: templates/service_requests/client/request_detail.html:486
+#: templates/service_requests/client/request_service.html:568
+msgid "Transaction ID:"
+msgstr ""
+
+#: templates/clients/request_service.html:525
+#: templates/service_requests/client/request_service.html:573
+msgid ""
+"Upload a screenshot of your payment confirmation to help admin verify your "
+"payment quickly."
+msgstr ""
+
+#: templates/clients/request_service.html:526
+#: templates/service_requests/client/request_service.html:574
+msgid "⏰ Please upload within 7 minutes for faster processing."
+msgstr ""
+
+#: templates/clients/request_service.html:530
+#: templates/service_requests/client/request_service.html:578
+msgid "Screenshot Preview"
+msgstr ""
+
+#: templates/clients/request_service.html:540
+#: templates/service_requests/client/request_service.html:588
+msgid "Choose Screenshot"
+msgstr ""
+
+#: templates/clients/request_service.html:548
+#, fuzzy
+#| msgid "Submit"
+msgid "Submit Anyway"
+msgstr "Wasilisha"
+
+#: templates/clients/request_service.html:551
+#: templates/service_requests/client/request_service.html:599
+msgid "Skip for Now"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:43
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service Category:"
+msgstr "Aina za Huduma"
+
+#: templates/clients/service_request_detail.html:47
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request Date:"
+msgstr "Omba Huduma"
+
+#: templates/clients/service_request_detail.html:53
+#: templates/service_requests/client/request_detail.html:195
+#: templates/service_requests/worker/assignment_detail.html:112
+#: templates/service_requests/worker/pending.html:53
+#: templates/service_requests/worker/respond.html:71
+msgid "Description:"
+msgstr "Maelezo:"
+
+#: templates/clients/service_request_detail.html:59
+msgid "Budget:"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:63
+#: templates/service_requests/client/request_detail.html:167
+msgid "Workers Needed:"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:67
+#: templates/service_requests/client/request_detail.html:116
+#: templates/service_requests/worker/assignment_detail.html:66
+#: templates/service_requests/worker/pending.html:37
+#: templates/service_requests/worker/respond.html:47
+msgid "Urgency:"
+msgstr "Uharaka:"
+
+#: templates/clients/service_request_detail.html:71
+#: templates/service_requests/client/request_detail.html:123
+#: templates/service_requests/worker/assignment_detail.html:63
+#: templates/service_requests/worker/clock_in.html:36
+#: templates/service_requests/worker/clock_out.html:39
+#: templates/service_requests/worker/complete.html:45
+#: templates/service_requests/worker/dashboard.html:59
+#: templates/service_requests/worker/pending.html:36
+#: templates/service_requests/worker/respond.html:44
+#, fuzzy
+#| msgid "Notifications"
+msgid "Location:"
+msgstr "Arifa"
+
+#: templates/clients/service_request_detail.html:84
+#: templates/service_requests/client/request_detail.html:476
+msgid "Payment Information"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:90
+#: templates/service_requests/client/request_detail.html:481
+#, fuzzy
+#| msgid "No payments yet"
+msgid "Payment Method:"
+msgstr "Hakuna malipo bado"
+
+#: templates/clients/service_request_detail.html:100
+#: templates/service_requests/client/cancel_confirm.html:51
+#: templates/service_requests/client/edit_request.html:158
+#: templates/service_requests/client/request_detail.html:104
+#: templates/service_requests/client/upload_screenshot.html:170
+#: templates/service_requests/worker/dashboard.html:60
+msgid "Status:"
+msgstr "Hali:"
+
+#: templates/clients/service_request_detail.html:103
+#, fuzzy
+#| msgid "Not Verified"
+msgid "Payment Verified"
+msgstr "Haijathibitishwa"
+
+#: templates/clients/service_request_detail.html:107
+msgid "Verification Pending"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:111
+msgid "No Proof Uploaded"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:118
+#: templates/service_requests/client/request_detail.html:500
+msgid "Payment Screenshot:"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:121
+msgid "Screenshot uploaded successfully"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:128
+msgid "Payment Proof Required!"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:129
+msgid "Please upload your payment screenshot for faster verification."
+msgstr ""
+
+#: templates/clients/service_request_detail.html:130
+msgid "⏰ Upload within 7 minutes for faster processing."
+msgstr ""
+
+#: templates/clients/service_request_detail.html:135
+msgid "Preview"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:144
+#, fuzzy
+#| msgid "Upload credentials"
+msgid "Upload Payment Screenshot"
+msgstr "Pakia vyeti"
+
+#: templates/clients/service_request_detail.html:150
+msgid "Submit Screenshot"
+msgstr ""
+
+#: templates/clients/service_request_detail.html:173
+#: templates/service_requests/client/request_detail.html:251
+#, fuzzy
+#| msgid "Skilled Workers"
+msgid "Assigned Workers"
+msgstr "Wafanyakazi Wenye Ujuzi"
+
+#: templates/clients/service_request_detail.html:183
+#, fuzzy
+#| msgid "Worker Connect"
+msgid "Worker Photo"
+msgstr "Worker Connect"
+
+#: templates/clients/service_request_detail.html:201
+#: templates/service_requests/client/activity.html:123
+#: templates/service_requests/client/request_detail.html:306
+#: templates/service_requests/worker/activity.html:51
+#: templates/service_requests/worker/assignments.html:395
+msgid "Accepted"
+msgstr "Imekubaliwa"
+
+#: templates/clients/service_request_detail.html:205
+#: templates/service_requests/client/activity.html:135
+#: templates/service_requests/client/dashboard.html:160
+#: templates/service_requests/client/dashboard.html:228
+#: templates/service_requests/client/history.html:35
+#: templates/service_requests/client/history.html:78
+#: templates/service_requests/client/history.html:128
+#: templates/service_requests/client/history.html:202
+#: templates/service_requests/client/my_requests.html:144
+#: templates/service_requests/client/request_detail.html:314
+#: templates/service_requests/worker/activity.html:67
+#: templates/service_requests/worker/assignments.html:403
+#: templates/service_requests/worker/dashboard.html:98
+#: templates/workers/dashboard.html:60
+msgid "Completed"
+msgstr "Imekamilika"
+
+#: templates/clients/service_request_detail.html:248
+#, fuzzy
+#| msgid "My Requests"
+msgid "Request Status"
+msgstr "Maombi Yangu"
+
+#: templates/clients/service_request_detail.html:255
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request Submitted"
+msgstr "Omba Huduma"
+
+#: templates/clients/service_request_detail.html:263
+#, fuzzy
+#| msgid "Worker Connect"
+msgid "Worker Assigned"
+msgstr "Worker Connect"
+
+#: templates/clients/service_request_detail.html:267
+#, fuzzy
+#| msgid "Pending Assignments"
+msgid "Pending assignment..."
+msgstr "Mgawo Unaongoja"
+
+#: templates/clients/service_request_detail.html:275
+#: templates/service_requests/client/request_detail.html:630
+#, fuzzy
+#| msgid "Get Started"
+msgid "Work Started"
+msgstr "Anza"
+
+#: templates/clients/service_request_detail.html:279
+#, fuzzy
+#| msgid "Get Started"
+msgid "Not started yet"
+msgstr "Anza"
+
+#: templates/clients/service_request_detail.html:287
+#: templates/service_requests/client/request_detail.html:638
+#, fuzzy
+#| msgid "Jobs Completed"
+msgid "Work Completed"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/clients/service_request_detail.html:291
+#, fuzzy
+#| msgid "Jobs Completed"
+msgid "Not completed yet"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/clients/service_request_detail.html:302
+#: templates/service_requests/client/dashboard.html:211
+#: templates/service_requests/client/history.html:160
+#: templates/service_requests/client/my_requests.html:224
+#: templates/service_requests/worker/assignment_detail.html:183
+#, fuzzy
+#| msgid "Quick Actions"
+msgid "Actions"
+msgstr "Vitendo vya Haraka"
+
+#: templates/clients/service_request_detail.html:307
+#, fuzzy
+#| msgid "My Requests"
+msgid "Back to Requests"
+msgstr "Maombi Yangu"
+
+#: templates/clients/service_request_detail.html:311
+#: templates/service_requests/client/request_detail.html:563
+#, fuzzy
+#| msgid "New Request"
+msgid "Cancel Request"
+msgstr "Ombi Jipya"
+
+#: templates/clients/service_request_detail.html:316
+#, fuzzy
+#| msgid "Request Service"
+msgid "Rate Service"
+msgstr "Omba Huduma"
+
+#: templates/clients/worker_detail.html:816
+msgid "Busy"
+msgstr "Ana shughuli"
+
+#: templates/clients/worker_detail.html:827
+#, fuzzy
+#| msgid "Registered Workers"
+msgid "Request Worker Now"
+msgstr "Wafanyakazi Waliojisajili"
+
+#: templates/clients/worker_detail.html:830
+msgid "Worker needs to upload ID and be verified"
+msgstr ""
+
+# Status & Info
+#: templates/clients/worker_detail.html:831
+#, fuzzy
+#| msgid "Available for Work"
+msgid "Not Available for Quick Hire"
+msgstr "Yuko Tayari Kufanya Kazi"
+
+#: templates/clients/worker_detail.html:852
+#: templates/workers/cv_template.html:233 templates/workers/cv_view.html:109
+#: templates/workers/public_profile.html:73
+msgid "About"
+msgstr "Kuhusu"
+
+#: templates/clients/worker_detail.html:860
+msgid "Additional Information"
+msgstr ""
+
+#: templates/clients/worker_detail.html:866
+#, fuzzy
+#| msgid "Regions"
+msgid "Religion:"
+msgstr "Mikoa"
+
+#: templates/clients/worker_detail.html:873
+#: templates/workers/profile_setup.html:130
+msgid "Can work everywhere"
+msgstr ""
+
+#: templates/clients/worker_detail.html:885
+#: templates/workers/cv_template.html:265 templates/workers/cv_view.html:134
+msgid "Work Experience"
+msgstr ""
+
+#: templates/clients/worker_detail.html:914
+msgid "Reviews & Ratings"
+msgstr ""
+
+# User Types
+#: templates/clients/worker_detail.html:918
+#: templates/service_requests/client/request_detail.html:580
+#, fuzzy
+#| msgid "Worker"
+msgid "Rate Worker"
+msgstr "Mfanyakazi"
+
+#: templates/clients/worker_detail.html:938
+msgid "Overall Rating"
+msgstr ""
+
+#: templates/clients/worker_detail.html:955
+#, fuzzy
+#| msgid "Honest Reviews"
+msgid "Client Reviews"
+msgstr "Maoni ya Kweli"
+
+#: templates/clients/worker_detail.html:998
+#, fuzzy
+#| msgid "No payments yet"
+msgid "No reviews yet"
+msgstr "Hakuna malipo bado"
+
+#: templates/clients/worker_detail.html:1024
+#: templates/workers/cv_template.html:253 templates/workers/cv_view.html:125
+#: templates/workers/profile_edit.html:722
+msgid "Skills"
+msgstr "Ujuzi"
+
+#: templates/clients/worker_detail.html:1048
+msgid "Rates"
+msgstr ""
+
+#: templates/clients/worker_detail.html:1056
+#: templates/jobs/application_detail.html:43
+#, fuzzy
+#| msgid "Jobs Completed"
+msgid "Jobs completed"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/clients/worker_detail.html:1065
+msgid "Daily Rate"
+msgstr ""
+
+#: templates/clients/worker_detail.html:1139
+msgid "Share your experience with this worker..."
+msgstr ""
+
+#: templates/clients/worker_detail.html:1142
+msgid "Be honest and constructive"
+msgstr ""
+
+#: templates/clients/worker_detail.html:1151
+#: templates/service_requests/client/rate_worker.html:111
+#, fuzzy
+#| msgid "Submit Application"
+msgid "Submit Rating"
+msgstr "Wasilisha Maombi"
+
+#: templates/http_landing.html:450
 msgid "Connect With"
 msgstr "Unganika Na"
 
+#: templates/http_landing.html:450 templates/http_landing.html:464
 msgid "Skilled Workers"
 msgstr "Wafanyakazi Wenye Ujuzi"
 
+#: templates/http_landing.html:450
 msgid "You Can Trust"
 msgstr "Unaoamini"
 
+#: templates/http_landing.html:451
 msgid ""
 "Post a job, hire a verified professional or find new work opportunities. "
 "Worker Connect brings clients, workers and agents together on one secure "
@@ -324,87 +2389,66 @@ msgstr ""
 "Worker Connect inaunganisha wateja, wafanyakazi na mawakala kwenye jukwaa "
 "moja salama."
 
+#: templates/http_landing.html:454
 msgid "Join for Free"
 msgstr "Jiunge Bila Malipo"
 
-msgid "Request Service"
-msgstr "Omba Huduma"
-
+#: templates/http_landing.html:468 templates/http_landing.html:614
+#: templates/workers/cv_template.html:222 templates/workers/cv_view.html:99
 msgid "Jobs Completed"
 msgstr "Kazi Zilizokamilika"
 
+#: templates/http_landing.html:472 templates/http_landing.html:615
+#: templates/workers/cv_template.html:241 templates/workers/cv_view.html:116
 msgid "Service Categories"
 msgstr "Aina za Huduma"
 
+#: templates/http_landing.html:476
 msgid "Satisfaction Rate"
 msgstr "Kiwango cha Kuridhika"
 
-msgid "Verified Workers"
-msgstr "Wafanyakazi Waliothibitishwa"
-
-msgid "Daily Tracking"
-msgstr "Ufuatiliaji wa Kila Siku"
-
-msgid "Honest Reviews"
-msgstr "Maoni ya Kweli"
-
-msgid "Manage Anywhere"
-msgstr "Simamia Popote"
-
-msgid "How It Works"
-msgstr "Jinsi Inavyofanya Kazi"
-
-msgid "Simple, Transparent and Safe"
-msgstr "Rahisi, Wazi na Salama"
-
-msgid "Choose Your Role"
-msgstr "Chagua Jukumu Lako"
-
-msgid "Agent Portal"
-msgstr "Lango la Wakala"
-
-msgid "Sign in"
-msgstr "Ingia"
-
-msgid "Enter your credentials to continue"
-msgstr "Weka nambari zako ili uendelee"
-
-msgid "Username"
-msgstr "Jina la Mtumiaji"
-
-msgid "Remember me"
-msgstr "Nikumbuke"
-
-msgid "Welcome"
-msgstr "Karibu"
-
-msgid "Back"
-msgstr "Tena"
-
-msgid ""
-"Sign in to access your dashboard, manage requests, and connect with workers "
-"or clients."
-msgstr ""
-"Ingia kufikia dashibodi yako, simamia maombi, na kuwasiliana na wafanyakazi "
-"au wateja."
-
+#: templates/http_landing.html:488
 msgid ""
 "Every worker is ID-verified and approved by our admin team before going live"
 msgstr ""
 "Kila mfanyakazi anathibitishwa na timu yetu ya utawala kabla ya kuanza kazi"
 
+#: templates/http_landing.html:492
+msgid "Daily Tracking"
+msgstr "Ufuatiliaji wa Kila Siku"
+
+#: templates/http_landing.html:493
 msgid "Workers clock in and out — clients see progress in real time"
 msgstr ""
 "Wafanyakazi wanaingia na kutoka — wateja wanaona maendeleo wakati halisi"
 
+#: templates/http_landing.html:497
+msgid "Honest Reviews"
+msgstr "Maoni ya Kweli"
+
+#: templates/http_landing.html:498
 msgid "Clients rate workers after each job, building a trusted, safe network"
 msgstr ""
 "Wateja wanakadiri wafanyakazi baada ya kila kazi, kujenga mtandao wa "
 "kuaminiwa na salama"
 
+#: templates/http_landing.html:502
+msgid "Manage Anywhere"
+msgstr "Simamia Popote"
+
+#: templates/http_landing.html:503
 msgid "Full mobile support — post jobs and manage requests on the go"
 msgstr "Msaada kamili wa simu — chapisha kazi na usimamie maombi ukiwa njiani"
 
+#: templates/http_landing.html:511
+msgid "How It Works"
+msgstr "Jinsi Inavyofanya Kazi"
+
+#: templates/http_landing.html:512
+msgid "Simple, Transparent and Safe"
+msgstr "Rahisi, Wazi na Salama"
+
+#: templates/http_landing.html:513
 msgid ""
 "From registration to review, every step is built to protect workers and "
 "clients alike."
@@ -412,19 +2456,23 @@ msgstr ""
 "Kuanzia usajili hadi ukaguzi, kila hatua imejengwa kulinda wafanyakazi na "
 "wateja."
 
+#: templates/http_landing.html:517
 msgid "Register & Build Your Profile"
 msgstr "Jiandikishe na Jenga Wasifu Wako"
 
+#: templates/http_landing.html:518
 msgid ""
-"Workers upload their national ID and skills. Clients set up company details."
-" Takes just a few minutes to get started."
+"Workers upload their national ID and skills. Clients set up company details. "
+"Takes just a few minutes to get started."
 msgstr ""
 "Wafanyakazi wapakua kitambulisho cha taifa na ujuzi. Wateja wanasanidi "
 "maelezo ya kampuni. Inachukua dakika chache kuanza."
 
+#: templates/http_landing.html:522
 msgid "Admin Verifies Workers"
 msgstr "Wasimamizi Wanathibitisha Wafanyakazi"
 
+#: templates/http_landing.html:523
 msgid ""
 "Every worker goes through our review process before appearing as available "
 "for hire. No unverified talent on the platform."
@@ -432,9 +2480,11 @@ msgstr ""
 "Kila mfanyakazi anapitia mchakato wetu wa ukaguzi kabla ya kuonekana kama "
 "anapatikana kuajiriwa. Hakuna talanta isiyothibitishwa kwenye jukwaa."
 
+#: templates/http_landing.html:527
 msgid "Post a Service Request"
 msgstr "Tuma Ombi la Huduma"
 
+#: templates/http_landing.html:528
 msgid ""
 "Clients describe the job, choose a category, set the location, date and "
 "duration — daily, monthly or custom."
@@ -442,9 +2492,11 @@ msgstr ""
 "Wateja wanaelezea kazi, kuchagua kategoria, kuweka eneo, tarehe na muda — "
 "kila siku, kila mwezi au maalum."
 
+#: templates/http_landing.html:532
 msgid "Admin Assigns the Right Worker"
 msgstr "Msimamizi Anateua Mfanyakazi Sahihi"
 
+#: templates/http_landing.html:533
 msgid ""
 "Our team matches the best verified worker to your request and notifies both "
 "parties instantly."
@@ -452,9 +2504,11 @@ msgstr ""
 "Timu yetu inaunganisha mfanyakazi bora aliyethibitishwa na ombi lako na "
 "inawaarifu pande zote mara moja."
 
+#: templates/http_landing.html:537
 msgid "Work Tracked Daily"
 msgstr "Kazi Inafuatiliwa Kila Siku"
 
+#: templates/http_landing.html:538
 msgid ""
 "Assigned workers clock in and out each day. Progress is fully visible to "
 "clients and admin at all times."
@@ -462,37 +2516,45 @@ msgstr ""
 "Wafanyakazi waliowekwa wanaingia na kutoka kila siku. Maendeleo yanaonekana "
 "kikamilifu kwa wateja na wasimamizi wakati wote."
 
+#: templates/http_landing.html:542
 msgid "Review After Completion"
 msgstr "Ukaguzi Baada ya Kukamilika"
 
+#: templates/http_landing.html:543
 msgid ""
-"Once the job is done, clients rate the worker. Reviews help surface the best"
-" professionals on the platform."
+"Once the job is done, clients rate the worker. Reviews help surface the best "
+"professionals on the platform."
 msgstr ""
 "Kazi ikisha, wateja wanakadiri mfanyakazi. Ukaguzi husaidia kuonyesha "
 "wataalamu bora kwenye jukwaa."
 
+#: templates/http_landing.html:557
 msgid "About Worker Connect"
 msgstr "Kuhusu Worker Connect"
 
+#: templates/http_landing.html:558
 msgid "Built for Tanzania's"
 msgstr "Imejengwa kwa Tanzania"
 
+#: templates/http_landing.html:558
 msgid "Growing Workforce"
 msgstr "Nguvu Kazi Inayokua"
 
+#: templates/http_landing.html:559
 msgid ""
 "Worker Connect is Tanzania's first dedicated platform bridging the gap "
-"between skilled professionals and the clients who need them — built to solve"
-" a real problem with a real digital solution."
+"between skilled professionals and the clients who need them — built to solve "
+"a real problem with a real digital solution."
 msgstr ""
-"Worker Connect ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu"
-" wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na"
-" suluhisho la kidijitali."
+"Worker Connect ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu "
+"wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na "
+"suluhisho la kidijitali."
 
+#: templates/http_landing.html:564
 msgid "Fully Verified Network"
 msgstr "Mtandao Uliothibitishwa Kikamilifu"
 
+#: templates/http_landing.html:565
 msgid ""
 "Every worker is reviewed and approved by admin before going live on the "
 "platform."
@@ -500,18 +2562,22 @@ msgstr ""
 "Kila mfanyakazi anakaguliwa na kuidhinishwa na msimamizi kabla ya kuanza "
 "kwenye jukwaa."
 
+#: templates/http_landing.html:571
 msgid "Fast Job Matching"
 msgstr "Uwianishaji wa Kazi wa Haraka"
 
+#: templates/http_landing.html:572
 msgid ""
 "Clients post a job and receive a qualified, verified worker within hours."
 msgstr ""
 "Wateja wanachapisha kazi na kupata mfanyakazi mwenye sifa na "
 "aliyethibitishwa ndani ya masaa machache."
 
+#: templates/http_landing.html:578
 msgid "Agent-Powered Network"
 msgstr "Mtandao Unaodhibitiwa na Mawakala"
 
+#: templates/http_landing.html:579
 msgid ""
 "Agents recruit and support workers, building stronger local teams across "
 "Tanzania."
@@ -519,32 +2585,40 @@ msgstr ""
 "Mawakala wanakusanya na kusaidia wafanyakazi, kujenga timu imara za ndani "
 "kote Tanzania."
 
+#: templates/http_landing.html:585
 msgid "Mobile Ready"
 msgstr "Tayari kwa Simu"
 
+#: templates/http_landing.html:586
 msgid ""
 "Manage jobs, messages and requests from any device, anywhere in Tanzania."
-msgstr ""
-"Simamia kazi, ujumbe na maombi kutoka kifaa chochote, popote Tanzania."
+msgstr "Simamia kazi, ujumbe na maombi kutoka kifaa chochote, popote Tanzania."
 
+#: templates/http_landing.html:591
 msgid "Join the Platform"
 msgstr "Jiunge na Jukwaa"
 
+#: templates/http_landing.html:613
 msgid "Registered Workers"
 msgstr "Wafanyakazi Waliojisajili"
 
+#: templates/http_landing.html:616
 msgid "Client Satisfaction"
 msgstr "Kuridhika kwa Wateja"
 
+#: templates/http_landing.html:625
 msgid "Mobile App"
 msgstr "Programu ya Simu"
 
+#: templates/http_landing.html:626
 msgid "Take Worker Connect"
 msgstr "Chukua Worker Connect"
 
+#: templates/http_landing.html:626
 msgid "Everywhere You Go"
 msgstr "Popote Uendapo"
 
+#: templates/http_landing.html:627
 msgid ""
 "Manage jobs, track work in real time, receive notifications and communicate "
 "with your team — all from your phone. Available free for both workers and "
@@ -553,21 +2627,33 @@ msgstr ""
 "Simamia kazi, fuatilia kazi wakati halisi, pokea arifa na wasiliana na timu "
 "yako — yote kutoka simu yako. Inapatikana bure kwa wafanyakazi na wateja."
 
-msgid "Download on the"
+#: templates/http_landing.html:629 templates/http_landing.html:697
+msgid "For Workers"
+msgstr "Kwa Wafanyakazi"
+
+#: templates/http_landing.html:630 templates/http_landing.html:703
+msgid "For Clients"
+msgstr "Kwa Wateja"
+
+#: templates/http_landing.html:636
+#, fuzzy
+#| msgid "Download on the"
+msgid "Download for"
 msgstr "Pakua kwenye"
 
-msgid "App Store"
-msgstr "Duka la Programu"
+#: templates/http_landing.html:637
+msgid "Android"
+msgstr ""
 
-msgid "Get it on"
-msgstr "Pata kwenye"
+#: templates/http_landing.html:642
+msgid "iOS app coming soon — Android is available now"
+msgstr ""
 
-msgid "Google Play"
-msgstr "Google Play"
+#: templates/http_landing.html:692
+msgid "Choose Your Role"
+msgstr "Chagua Jukumu Lako"
 
-msgid "App coming soon — join the web platform today"
-msgstr "Programu inakuja hivi karibuni — jiunge na jukwaa la wavuti leo"
-
+#: templates/http_landing.html:693
 msgid ""
 "One platform built for three types of users — each with their own dedicated "
 "experience."
@@ -575,13 +2661,19 @@ msgstr ""
 "Jukwaa moja lililojengwa kwa aina tatu za watumiaji — kila mmoja na uzoefu "
 "wake maalum."
 
+#: templates/http_landing.html:698
 msgid ""
 "Register, upload your documents, get verified by admin and start receiving "
 "job assignments from real clients."
 msgstr ""
-"Jiandikishe, pakia hati zako, thibitishwa na msimamizi na uanze kupokea kazi"
-" kutoka kwa wateja wa kweli."
+"Jiandikishe, pakia hati zako, thibitishwa na msimamizi na uanze kupokea kazi "
+"kutoka kwa wateja wa kweli."
 
+#: templates/http_landing.html:699
+msgid "Get Started"
+msgstr "Anza"
+
+#: templates/http_landing.html:704
 msgid ""
 "Post service requests, get matched with a verified worker, and track daily "
 "progress — all in one dashboard."
@@ -589,6 +2681,15 @@ msgstr ""
 "Tuma maombi ya huduma, pata mfanyakazi aliyethibitishwa, na ufuatilie "
 "maendeleo ya kila siku — yote kwenye dashibodi moja."
 
+#: templates/http_landing.html:705
+msgid "Post a Job"
+msgstr "Tuma Kazi"
+
+#: templates/http_landing.html:709
+msgid "For Agents"
+msgstr "Kwa Mawakala"
+
+#: templates/http_landing.html:710
 msgid ""
 "Recruit workers, manage your team, earn commissions and grow your network "
 "through the dedicated agent portal."
@@ -596,312 +2697,3151 @@ msgstr ""
 "Kusanya wafanyakazi, simamia timu yako, pata kamisheni na ukue mtandao wako "
 "kupitia lango la wakala maalum."
 
-msgid ""
-"Tanzania's trusted platform connecting clients with verified, skilled "
-"professionals for every job — big or small."
-msgstr ""
-"Jukwaa la kuaminika la Tanzania linalowasiliana wateja na wataalamu wenye "
-"ujuzi waliothshibitishwa kwa kila kazi — kubwa au ndogo."
-
-msgid "Platform"
-msgstr "Jukwaa"
-
-msgid "Browse Jobs"
-msgstr "Angalia Kazi"
-
-msgid "Join As"
-msgstr "Jiunge Kama"
-
+#: templates/http_landing.html:720
 msgid "Our Partners"
 msgstr "Washirika Wetu"
 
+#: templates/http_landing.html:721
 msgid "Trusted by"
 msgstr "Wanaomini"
 
+#: templates/http_landing.html:721
 msgid "Leading Organizations"
 msgstr "Mashirika Yanayoongoza"
 
-msgid "We collaborate with top companies, agencies, and institutions across Tanzania to deliver the best workforce solutions."
-msgstr "Tunashirikiana na makampuni ya juu, wakala, na taasisi kote Tanzania ili kutoa suluhisho bora za nguvu kazi."
+#: templates/http_landing.html:722
+msgid ""
+"We collaborate with top companies, agencies, and institutions across "
+"Tanzania to deliver the best workforce solutions."
+msgstr ""
+"Tunashirikiana na makampuni ya juu, wakala, na taasisi kote Tanzania ili "
+"kutoa suluhisho bora za nguvu kazi."
 
+#: templates/http_landing.html:726
 msgid "Partner Companies"
 msgstr "Makampuni Washirika"
 
+#: templates/http_landing.html:727
 msgid "Industries"
 msgstr "Sekta"
 
+#: templates/http_landing.html:728
 msgid "Regions"
 msgstr "Mikoa"
 
+#: templates/http_landing.html:729
 msgid "Partner Satisfaction"
 msgstr "Kuridhika kwa Washirika"
 
-msgid "Construction"
-msgstr "Ujenzi"
-
-msgid "Hospitality"
-msgstr "Ukarimu"
-
-msgid "Cleaning Services"
-msgstr "Huduma za Usafi"
-
-msgid "Security"
-msgstr "Usalama"
-
-msgid "Engineering"
-msgstr "Uhandisi"
-
-msgid "Telecom"
-msgstr "Simu"
-
-msgid "Finance"
-msgstr "Fedha"
-
-msgid "FMCG"
-msgstr "Bidhaa za Kila Siku"
-
-msgid "Energy"
-msgstr "Nishati"
-
-msgid "Partner With Us"
-msgstr "Shirikiana Nasi"
-
-msgid "Grow Your Business"
-msgstr "Kukuza Biashara Yako"
-
-msgid "With Worker Connect"
-msgstr "Na Worker Connect"
-
-msgid "Join our network of trusted partners. Get access to a verified workforce, co-marketing opportunities, and a dedicated partner dashboard."
-msgstr "Jiunge na mtandao wetu wa washirika wanaoaminika. Pata ufikiaji wa nguvu kazi iliyothibitishwa, fursa za masoko ya pamoja, na dashibodi ya washirika iliyojitolea."
-
-msgid "Become a Partner"
-msgstr "Kuwa Mshirika"
-
-msgid "Learn More"
-msgstr "Jifunze Zaidi"
-
-msgid "Create Your Account"
-msgstr "Fungua Akaunti Yako"
-
-msgid "Back to Home"
-msgstr "Rudi Nyumbani"
-
-msgid "Choose Your Account Type"
-msgstr "Chagua Aina ya Akaunti Yako"
-
-msgid "Select the role that best describes you"
-msgstr "Chagua jukumu linalokufaa zaidi"
-
-msgid "I'm a Worker"
-msgstr "Mimi ni Mfanyakazi"
-
-msgid "Showcase your skills and get hired by verified clients"
-msgstr "Onyesha ujuzi wako na kuajiriwa na wateja walioidhinishwa"
-
-msgid "Build a professional profile"
-msgstr "Jenga wasifu wa kitaaluma"
-
-msgid "Upload credentials & certificates"
-msgstr "Pakia vyeti na leseni"
-
-msgid "Receive job assignments"
-msgstr "Pokea kazi zilizopewa"
-
-msgid "Track earnings & time"
-msgstr "Fuatilia mapato na muda"
-
-msgid "Register as Worker"
-msgstr "Jisajili kama Mfanyakazi"
-
-msgid "I'm a Client"
-msgstr "Mimi ni Mteja"
-
-msgid "Find and hire skilled workers for any task or project"
-msgstr "Tafuta na uajiri wafanyakazi wenye ujuzi kwa kazi yoyote"
-
-msgid "Browse verified workers"
-msgstr "Tazama wafanyakazi walioidhinishwa"
-
-msgid "Post service requests easily"
-msgstr "Tuma maombi ya huduma kwa urahisi"
-
-msgid "Rate and review workers"
-msgstr "Tathmini na kagua wafanyakazi"
-
-msgid "Secure payment & invoicing"
-msgstr "Malipo salama na ankara"
-
-msgid "Register as Client"
-msgstr "Jisajili kama Mteja"
-
-msgid "I'm an Agent"
-msgstr "Mimi ni Wakala"
-
-msgid "Recruit workers, manage teams, and earn commission"
-msgstr "Ajiri wafanyakazi, simamia timu na upate kamisheni"
-
-msgid "Get a unique agent code"
-msgstr "Pata nambari ya kipekee ya wakala"
-
-msgid "Recruit & manage workers"
-msgstr "Ajiri na simamia wafanyakazi"
-
-msgid "Earn commission per job"
-msgstr "Pata kamisheni kwa kila kazi"
-
-msgid "Track worker performance"
-msgstr "Fuatilia utendaji wa wafanyakazi"
-
-msgid "Register as Agent"
-msgstr "Jisajili kama Wakala"
-
-msgid "Already have an account?"
-msgstr "Una akaunti tayari?"
-
-msgid "Login here"
-msgstr "Ingia hapa"
-
-msgid "Verified Workers"
-msgstr "Wafanyakazi Walioidhinishwa"
-
-msgid "Background-checked professionals"
-msgstr "Wataalamu waliopimwa historia"
-
-msgid "Secure Platform"
-msgstr "Jukwaa Salama"
-
-msgid "Your data is safe with us"
-msgstr "Data yako iko salama kwetu"
-
-msgid "Rated & Reviewed"
-msgstr "Imepewa Alama & Kukaguliwa"
-
-msgid "Transparent quality ratings"
-msgstr "Tathmini ya ubora inayoonekana"
-
-msgid "24/7 Support"
-msgstr "Msaada wa Saa 24/7"
-
-msgid "We're here when you need us"
-msgstr "Tuko hapa unapotuhitaji"
-
-msgid "Worker Registration"
-msgstr "Usajili wa Mfanyakazi"
-
-msgid "Worker"
-msgstr "Mfanyakazi"
-
-msgid "Account"
-msgstr "Akaunti"
-
-msgid "Build your professional profile and start getting hired by verified clients."
-msgstr "Jenga wasifu wako wa kitaaluma na uanze kuajiriwa na wateja walioidhinishwa."
-
-msgid "Upload credentials"
-msgstr "Pakia vyeti"
-
-msgid "Create Account"
-msgstr "Fungua Akaunti"
-
-msgid "Fill in your details to get started as a Worker"
-msgstr "Jaza maelezo yako ili kuanza kama Mfanyakazi"
-
-msgid "Username"
-msgstr "Jina la Mtumiaji"
-
-msgid "First Name"
-msgstr "Jina la Kwanza"
-
-msgid "Last Name"
-msgstr "Jina la Mwisho"
-
-msgid "Email"
-msgstr "Barua Pepe"
-
-msgid "Phone Number"
-msgstr "Nambari ya Simu"
-
-msgid "Password"
-msgstr "Nywila"
-
-msgid "Confirm Password"
-msgstr "Thibitisha Nywila"
-
-msgid "Agent Code"
-msgstr "Nambari ya Wakala"
-
-msgid "optional"
-msgstr "hiari"
-
-msgid "Create Worker Account"
-msgstr "Fungua Akaunti ya Mfanyakazi"
-
-msgid "Client Registration"
-msgstr "Usajili wa Mteja"
-
-msgid "Client"
-msgstr "Mteja"
-
-msgid "Post jobs and hire verified skilled workers for any task or project."
-msgstr "Chapisha kazi na uajiri wafanyakazi walioidhinishwa kwa kazi yoyote au mradi."
-
-msgid "Browse verified workers"
-msgstr "Tazama wafanyakazi walioidhinishwa"
-
-msgid "Post service requests"
-msgstr "Chapisha maombi ya huduma"
-
-msgid "Secure payment & invoicing"
-msgstr "Malipo salama na ankara"
-
-msgid "Fill in your details to get started as a Client"
-msgstr "Jaza maelezo yako ili kuanza kama Mteja"
-
-msgid "Create Client Account"
-msgstr "Fungua Akaunti ya Mteja"
-
-msgid "Agent Registration"
-msgstr "Usajili wa Wakala"
-
-msgid "Agent"
-msgstr "Wakala"
-
-msgid "Recruit workers, manage your team, and earn commission on every completed job."
-msgstr "Ajiri wafanyakazi, simamia timu yako, na upate kamisheni kwa kila kazi iliyokamilika."
-
-msgid "Get a unique agent code"
-msgstr "Pata nambari yako ya kipekee ya wakala"
-
-msgid "Recruit & manage workers"
-msgstr "Ajiri na simamia wafanyakazi"
-
-msgid "Track worker performance"
-msgstr "Fuatilia utendaji wa wafanyakazi"
-
-msgid "Fill in your details to apply as an Agent"
-msgstr "Jaza maelezo yako ili kuomba kuwa Wakala"
-
-msgid "After registration your account will be reviewed. Once approved you'll receive a unique Agent Code to share with workers."
-msgstr "Baada ya usajili akaunti yako itakaguliwa. Ukipitishwa utapata Nambari ya Wakala ya kipekee kushiriki na wafanyakazi."
-
-msgid "Business Name"
-msgstr "Jina la Biashara"
-
-msgid "Submit Application"
-msgstr "Wasilisha Maombi"
-
+#: templates/http_landing.html:736 templates/http_landing.html:742
+#: templates/http_landing.html:758 templates/http_landing.html:764
+msgid "Technology"
+msgstr ""
+
+#: templates/http_landing.html:739 templates/http_landing.html:745
 msgid "Investors"
 msgstr "Wawekezaji"
 
+#: templates/http_landing.html:740 templates/http_landing.html:746
 msgid "Bank"
 msgstr "Benki"
 
+#: templates/http_landing.html:754 templates/http_landing.html:760
 msgid "Tour Operators"
 msgstr "Waendeshaji wa Utalii"
 
+#: templates/http_landing.html:755 templates/http_landing.html:761
 msgid "Tour & Safari"
 msgstr "Utalii na Safari"
 
-msgid "Mobile Money"
-msgstr "Pesa ya Simu"
+#: templates/http_landing.html:771
+msgid "Partner With Us"
+msgstr "Shirikiana Nasi"
+
+#: templates/http_landing.html:772
+msgid "Grow Your Business"
+msgstr "Kukuza Biashara Yako"
+
+#: templates/http_landing.html:772
+msgid "With Worker Connect"
+msgstr "Na Worker Connect"
+
+#: templates/http_landing.html:773
+msgid ""
+"Join our network of trusted partners. Get access to a verified workforce, co-"
+"marketing opportunities, and a dedicated partner dashboard."
+msgstr ""
+"Jiunge na mtandao wetu wa washirika wanaoaminika. Pata ufikiaji wa nguvu "
+"kazi iliyothibitishwa, fursa za masoko ya pamoja, na dashibodi ya washirika "
+"iliyojitolea."
+
+#: templates/http_landing.html:776
+msgid "Become a Partner"
+msgstr "Kuwa Mshirika"
+
+#: templates/http_landing.html:777
+msgid "Learn More"
+msgstr "Jifunze Zaidi"
+
+#: templates/jobs/accept_application.html:4
+#, fuzzy
+#| msgid "My Applications"
+msgid "Accept Application"
+msgstr "Maombi Yangu"
+
+#: templates/jobs/accept_application.html:17
+msgid "Accept this application?"
+msgstr ""
+
+#: templates/jobs/accept_application.html:19
+msgid ""
+"This assigns the worker to the job and declines every other application."
+msgstr ""
+
+#: templates/jobs/accept_application.html:29
+#: templates/jobs/application_detail.html:37
+msgid "Proposed rate"
+msgstr ""
+
+#: templates/jobs/accept_application.html:38
+msgid "Accept and assign"
+msgstr ""
+
+#: templates/jobs/application_detail.html:4
+#, fuzzy
+#| msgid "My Applications"
+msgid "Application"
+msgstr "Maombi Yangu"
+
+#: templates/jobs/application_detail.html:12
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to job"
+msgstr "Rudi Nyumbani"
+
+#: templates/jobs/application_detail.html:21
+#, fuzzy
+#| msgid "Apply"
+msgid "Applied"
+msgstr "Omba"
+
+#: templates/jobs/application_detail.html:30
+#, fuzzy
+#| msgid "My Applications"
+msgid "Applicant"
+msgstr "Maombi Yangu"
+
+#: templates/jobs/application_detail.html:40
+#, fuzzy
+#| msgid "Worker Registration"
+msgid "Worker rating"
+msgstr "Usajili wa Mfanyakazi"
+
+#: templates/jobs/application_detail.html:51
+msgid "Cover letter"
+msgstr ""
+
+#: templates/jobs/application_detail.html:55
+msgid "No cover letter text provided."
+msgstr ""
+
+#: templates/jobs/application_detail.html:60
+msgid "Open attached file"
+msgstr ""
+
+#: templates/jobs/application_detail.html:68
+msgid "Accept this application"
+msgstr ""
+
+#: templates/jobs/direct_hire_accept.html:4
+#, fuzzy
+#| msgid "New Request"
+msgid "Accept Request"
+msgstr "Ombi Jipya"
+
+#: templates/jobs/direct_hire_accept.html:17
+msgid "Accept this job?"
+msgstr ""
+
+#: templates/jobs/direct_hire_accept.html:18
+msgid "Accepting marks you as busy until the work is complete."
+msgstr ""
+
+#: templates/jobs/direct_hire_accept.html:26
+#: templates/jobs/direct_hire_detail.html:44
+msgid "Starts"
+msgstr ""
+
+#: templates/jobs/direct_hire_accept.html:35
+msgid "Message to the client"
+msgstr ""
+
+#: templates/jobs/direct_hire_accept.html:37
+msgid "Anything the client should know before you start"
+msgstr ""
+
+#: templates/jobs/direct_hire_accept.html:41
+#, fuzzy
+#| msgid "Accept"
+msgid "Accept job"
+msgstr "Kubali"
+
+#: templates/jobs/direct_hire_complete.html:4
+#, fuzzy
+#| msgid "Completed Jobs"
+msgid "Complete Job"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/jobs/direct_hire_complete.html:17
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark this job complete"
+msgstr "Weka Alama ya Kukamilika"
+
+#: templates/jobs/direct_hire_complete.html:18
+msgid "Rate the work so other clients know what to expect."
+msgstr ""
+
+# Dashboard
+#: templates/jobs/direct_hire_complete.html:50
+#, fuzzy
+#| msgid "Welcome back"
+msgid "Feedback"
+msgstr "Karibu tena"
+
+#: templates/jobs/direct_hire_complete.html:52
+msgid "How did the work go?"
+msgstr ""
+
+#: templates/jobs/direct_hire_complete.html:57
+#, fuzzy
+#| msgid "Complete jobs to start earning"
+msgid "Complete and submit rating"
+msgstr "Kamilisha kazi kuanza kupata mapato"
+
+#: templates/jobs/direct_hire_detail.html:4
+msgid "Direct Hire"
+msgstr ""
+
+#: templates/jobs/direct_hire_detail.html:12
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to requests"
+msgstr "Rudi Nyumbani"
+
+#: templates/jobs/direct_hire_detail.html:50
+msgid "Offered rate"
+msgstr ""
+
+#: templates/jobs/direct_hire_detail.html:59
+#, fuzzy
+#| msgid "Worker Connect"
+msgid "Worker's response"
+msgstr "Worker Connect"
+
+#: templates/jobs/direct_hire_detail.html:69
+#, fuzzy
+#| msgid "New Request"
+msgid "Accept request"
+msgstr "Ombi Jipya"
+
+#: templates/jobs/direct_hire_detail.html:72
+msgid "Decline"
+msgstr ""
+
+#: templates/jobs/direct_hire_detail.html:78
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark as complete"
+msgstr "Weka Alama ya Kukamilika"
+
+#: templates/jobs/direct_hire_reject.html:4
+#, fuzzy
+#| msgid "Pending Requests"
+msgid "Decline Request"
+msgstr "Maombi Yanayosubiri"
+
+#: templates/jobs/direct_hire_reject.html:17
+msgid "Decline this job?"
+msgstr ""
+
+#: templates/jobs/direct_hire_reject.html:18
+msgid "The client will see your reason and can request someone else."
+msgstr ""
+
+#: templates/jobs/direct_hire_reject.html:26
+msgid "starts"
+msgstr ""
+
+#: templates/jobs/direct_hire_reject.html:33
+msgid "Reason"
+msgstr ""
+
+#: templates/jobs/direct_hire_reject.html:35
+msgid "For example: already booked that day"
+msgstr ""
+
+#: templates/jobs/direct_hire_reject.html:39
+msgid "Decline job"
+msgstr ""
+
+#: templates/jobs/job_close.html:4
+#, fuzzy
+#| msgid "Browse Jobs"
+msgid "Close Job"
+msgstr "Angalia Kazi"
+
+#: templates/jobs/job_close.html:17
+msgid "Close this job?"
+msgstr ""
+
+#: templates/jobs/job_close.html:18
+msgid ""
+"Closing stops new applications. Workers already assigned keep their work."
+msgstr ""
+
+#: templates/jobs/job_close.html:26 templates/jobs/job_delete.html:26
+#, fuzzy
+#| msgid "My Applications"
+msgid "Applications"
+msgstr "Maombi Yangu"
+
+#: templates/jobs/job_close.html:33
+msgid "Close job"
+msgstr ""
+
+#: templates/jobs/job_delete.html:4
+#, fuzzy
+#| msgid "Delete"
+msgid "Delete Job"
+msgstr "Futa"
+
+#: templates/jobs/job_delete.html:17
+msgid "Delete this job?"
+msgstr ""
+
+#: templates/jobs/job_delete.html:18
+msgid "This removes the job and every application to it. It cannot be undone."
+msgstr ""
+
+#: templates/jobs/job_delete.html:25
+msgid "Budget"
+msgstr ""
+
+#: templates/jobs/job_delete.html:33
+#, fuzzy
+#| msgid "Delete"
+msgid "Delete job"
+msgstr "Futa"
+
+#: templates/jobs/message_detail.html:4
+#: templates/service_requests/client/request_detail.html:336
+#, fuzzy
+#| msgid "Messages"
+msgid "Message"
+msgstr "Ujumbe"
+
+#: templates/jobs/message_detail.html:12
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to inbox"
+msgstr "Rudi Nyumbani"
+
+#: templates/jobs/message_detail.html:17
+msgid "(no subject)"
+msgstr ""
+
+#: templates/jobs/message_detail.html:19
+msgid "From"
+msgstr ""
+
+#: templates/jobs/message_detail.html:20
+msgid "to"
+msgstr ""
+
+#: templates/jobs/message_detail.html:26
+msgid "About job"
+msgstr ""
+
+#: templates/jobs/message_detail.html:36
+msgid "Reply"
+msgstr ""
+
+#: templates/service_requests/client/activity.html:49
+#: templates/service_requests/client/activity.html:101
+#, fuzzy
+#| msgid "No activity"
+msgid "Activity Log"
+msgstr "Hakuna shughuli"
+
+#: templates/service_requests/client/activity.html:56
+msgid "📋 Activity Log"
+msgstr ""
+
+#: templates/service_requests/client/activity.html:60
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to Details"
+msgstr "Rudi Nyumbani"
+
+#: templates/service_requests/client/activity.html:103
+#, fuzzy
+#| msgid "Total Services"
+msgid "Total Activities"
+msgstr "Jumla ya Huduma"
+
+#: templates/service_requests/client/activity.html:112
+msgid "Activity type filter"
+msgstr ""
+
+#: templates/service_requests/client/activity.html:115
+#: templates/service_requests/worker/activity.html:47
+#, fuzzy
+#| msgid "Active"
+msgid "All Activities"
+msgstr "Inafanya Kazi"
+
+#: templates/service_requests/client/activity.html:119
+#: templates/service_requests/client/dashboard.html:224
+#: templates/service_requests/client/my_requests.html:142
+#: templates/service_requests/worker/assignments.html:509
+#, fuzzy
+#| msgid "Assignments"
+msgid "Assigned"
+msgstr "Mgawo"
+
+#: templates/service_requests/client/activity.html:127
+#: templates/service_requests/worker/activity.html:59
+#, fuzzy
+#| msgid "Get Started"
+msgid "Started"
+msgstr "Anza"
+
+#: templates/service_requests/client/activity.html:131
+#: templates/service_requests/worker/activity.html:63
+msgid "Paused"
+msgstr ""
+
+#: templates/service_requests/client/activity.html:145
+msgid "Activity Timeline"
+msgstr ""
+
+#: templates/service_requests/client/activity.html:224
+#: templates/service_requests/client/request_detail.html:132
+#: templates/service_requests/worker/activity.html:142
+#: templates/service_requests/worker/assignment_detail.html:74
+#: templates/service_requests/worker/pending.html:42
+#: templates/service_requests/worker/respond.html:54
+msgid "Duration:"
+msgstr "Muda:"
+
+#: templates/service_requests/client/activity.html:231
+#: templates/service_requests/client/upload_screenshot.html:172
+#, fuzzy
+#| msgid "Account"
+msgid "Amount:"
+msgstr "Akaunti"
+
+#: templates/service_requests/client/activity.html:252
+#, fuzzy
+#| msgid "First Name"
+msgid "First"
+msgstr "Jina la Kwanza"
+
+#: templates/service_requests/client/activity.html:270
+#, fuzzy
+#| msgid "Last Name"
+msgid "Last"
+msgstr "Jina la Mwisho"
+
+#: templates/service_requests/client/activity.html:283
+#, fuzzy
+#| msgid "No activity"
+msgid "No Activities Yet"
+msgstr "Hakuna shughuli"
+
+#: templates/service_requests/client/activity.html:284
+msgid ""
+"Activities will appear here once the worker starts working on this request."
+msgstr ""
+
+#: templates/service_requests/client/activity.html:287
+msgid "View All Activities"
+msgstr ""
+
+#: templates/service_requests/client/activity.html:297
+#, fuzzy
+#| msgid "No activity"
+msgid "About Activity Log"
+msgstr "Hakuna shughuli"
+
+#: templates/service_requests/client/cancel_confirm.html:25
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "Cancel Service Request"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/service_requests/client/cancel_confirm.html:32
+msgid "Are you sure you want to cancel this request?"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:34
+msgid ""
+"This action cannot be undone. Please review the details below before "
+"confirming."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:40
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request Details"
+msgstr "Omba Huduma"
+
+#: templates/service_requests/client/cancel_confirm.html:42
+#: templates/service_requests/client/edit_request.html:160
+#: templates/service_requests/client/upload_screenshot.html:168
+#, fuzzy
+#| msgid "My Requests"
+msgid "Request ID:"
+msgstr "Maombi Yangu"
+
+#: templates/service_requests/client/cancel_confirm.html:45
+#: templates/service_requests/client/upload_screenshot.html:169
+msgid "Title:"
+msgstr "Kichwa:"
+
+#: templates/service_requests/client/cancel_confirm.html:48
+#: templates/service_requests/client/rate_worker.html:73
+#: templates/service_requests/client/request_detail.html:111
+#: templates/service_requests/worker/assignment_detail.html:57
+#: templates/service_requests/worker/pending.html:34
+#: templates/service_requests/worker/respond.html:38
+msgid "Category:"
+msgstr "Kategoria:"
+
+#: templates/service_requests/client/cancel_confirm.html:73
+#: templates/service_requests/client/request_detail.html:138
+#: templates/service_requests/worker/assignment_detail.html:80
+#, fuzzy
+#| msgid "Total Services"
+msgid "Total Price:"
+msgstr "Jumla ya Huduma"
+
+#: templates/service_requests/client/cancel_confirm.html:79
+#: templates/service_requests/client/edit_request.html:159
+#: templates/service_requests/client/request_detail.html:164
+msgid "Created:"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:89
+msgid "Cancellation Policy"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:95
+#, fuzzy
+#| msgid "Post service requests easily"
+msgid "Your request is still"
+msgstr "Tuma maombi ya huduma kwa urahisi"
+
+#: templates/service_requests/client/cancel_confirm.html:95
+msgid "assignment. You can cancel without penalty."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:96
+msgid "No charges will be applied."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:98
+msgid "A worker has been"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:98
+msgid "but work hasn't started yet."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:99
+msgid "The worker will be notified of the cancellation."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:100
+msgid "No cancellation fees apply at this stage."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:102
+msgid "Work has already started"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:102
+msgid "on this request."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:103
+msgid "Cancelling now may incur charges for work already completed."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:104
+msgid "The worker will be compensated for time already worked."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:107
+msgid ""
+"Once cancelled, you will need to create a new request if you change your "
+"mind."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:108
+msgid "Our team may contact you to understand the reason for cancellation."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:119
+msgid "Reason for Cancellation"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:122
+msgid "-- Select a reason --"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:123
+msgid "No longer needed"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:124
+msgid "Found alternative solution"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:125
+msgid "Timing/scheduling issues"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:126
+msgid "Budget constraints"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:127
+msgid "Concerns about assigned worker"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:128
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service quality concerns"
+msgstr "Aina za Huduma"
+
+#: templates/service_requests/client/cancel_confirm.html:129
+msgid "Personal reasons"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:130
+msgid "Emergency situation"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:131
+msgid "Other"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:139
+msgid ""
+"Please provide more details about why you're cancelling this request. This "
+"helps us improve our service."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:143
+msgid ""
+"Please be specific. This information helps us improve our services and may "
+"be shared with the assigned worker."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:152
+msgid "I understand that I may be charged for work already completed"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:161
+msgid ""
+"I confirm that I want to cancel this service request and understand that "
+"this action cannot be undone."
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:167
+#, fuzzy
+#| msgid "Post service requests"
+msgid "Confirm cancellation of service request"
+msgstr "Chapisha maombi ya huduma"
+
+#: templates/service_requests/client/cancel_confirm.html:168
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "Yes, Cancel Request"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/service_requests/client/cancel_confirm.html:170
+msgid "Go back to request details without cancelling"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:171
+msgid "No, Go Back"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:182
+msgid "Need to make changes instead?"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:184
+msgid ""
+"If you need to modify your request rather than cancel it, consider these "
+"options:"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:186
+msgid "Contact the assigned worker to discuss adjustments"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:187
+msgid "Reach out to our support team for assistance"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:188
+msgid "Check if rescheduling is possible"
+msgstr ""
+
+#: templates/service_requests/client/cancel_confirm.html:191
+#, fuzzy
+#| msgid "Contact Us"
+msgid "Contact Support"
+msgstr "Wasiliana Nasi"
+
+#: templates/service_requests/client/dashboard.html:128
+#, fuzzy
+#| msgid "Dashboard"
+msgid "📊 My Dashboard"
+msgstr "Dashibodi"
+
+#: templates/service_requests/client/dashboard.html:136
+#, fuzzy
+#| msgid "My Requests"
+msgid "Total Requests"
+msgstr "Maombi Yangu"
+
+#: templates/service_requests/client/dashboard.html:171
+#, fuzzy
+#| msgid "Total Services"
+msgid "Total Spent:"
+msgstr "Jumla ya Huduma"
+
+#: templates/service_requests/client/dashboard.html:183
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request New Service"
+msgstr "Omba Huduma"
+
+#: templates/service_requests/client/dashboard.html:191
+msgid "View History"
+msgstr ""
+
+#: templates/service_requests/client/dashboard.html:206
+#: templates/service_requests/client/edit_request.html:136
+#: templates/service_requests/client/history.html:153
+msgid "Title"
+msgstr "Kichwa"
+
+#: templates/service_requests/client/dashboard.html:256
+#, fuzzy
+#| msgid "Post service requests"
+msgid "No service requests yet."
+msgstr "Chapisha maombi ya huduma"
+
+#: templates/service_requests/client/edit_request.html:24
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "✏️ Edit Service Request"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/service_requests/client/edit_request.html:44
+msgid "⚠️ Note:"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:44
+msgid ""
+"You can only edit pending service requests. Once a worker is assigned, "
+"editing is disabled."
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:51
+#: templates/service_requests/client/request_service.html:110
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service Category *"
+msgstr "Aina za Huduma"
+
+#: templates/service_requests/client/edit_request.html:53
+msgid "Category cannot be changed after request creation"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:60
+msgid "e.g., Fix kitchen sink leak"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:64
+msgid "Description * (min. 20 characters)"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:72
+#, fuzzy
+#| msgid "Notifications"
+msgid "Location *"
+msgstr "Arifa"
+
+#: templates/service_requests/client/edit_request.html:75
+msgid "123 Main Street, Building A"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:81
+msgid "Dar es Salaam"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:97
+msgid "Est. Duration (hours) *"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:106
+#: templates/service_requests/client/edit_request.html:141
+#: templates/service_requests/client/my_requests.html:218
+msgid "Urgency"
+msgstr "Uharaka"
+
+#: templates/service_requests/client/edit_request.html:117
+msgid "Any additional information..."
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:121
+msgid "💾 Save Changes"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:132
+msgid "ℹ️ What can you edit?"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:134
+msgid "✅ Can edit:"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:137
+#: templates/workers/experience_form.html:309
+#: templates/workers/profile_edit.html:801
+#: templates/workers/profile_edit.html:828
+msgid "Description"
+msgstr "Maelezo"
+
+#: templates/service_requests/client/edit_request.html:138
+msgid "Location & City"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:139
+msgid "Preferred Date & Time"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:145
+msgid "❌ Cannot edit:"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:147
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Service Category"
+msgstr "Aina za Huduma"
+
+#: templates/service_requests/client/edit_request.html:148
+msgid "Status (after worker assigned)"
+msgstr ""
+
+#: templates/service_requests/client/edit_request.html:157
+msgid "📌 Request Info"
+msgstr ""
+
+#: templates/service_requests/client/history.html:23
+msgid "📜 Request History"
+msgstr ""
+
+#: templates/service_requests/client/history.html:25
+#: templates/service_requests/worker/activity.html:37
+#: templates/workers/profile_edit.html:408
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Back to Dashboard"
+msgstr "Dashibodi"
+
+#: templates/service_requests/client/history.html:43
+#: templates/service_requests/client/history.html:79
+#: templates/service_requests/client/history.html:131
+#: templates/service_requests/client/history.html:206
+#: templates/service_requests/client/my_requests.html:145
+#: templates/service_requests/client/request_detail.html:646
+#: templates/service_requests/worker/assignments.html:407
+msgid "Cancelled"
+msgstr "Imefutwa"
+
+#: templates/service_requests/client/history.html:51
+msgid "Total Spent ($)"
+msgstr ""
+
+#: templates/service_requests/client/history.html:59
+#, fuzzy
+#| msgid "Total Earnings"
+msgid "Total Hours"
+msgstr "Jumla ya Mapato"
+
+#: templates/service_requests/client/history.html:71
+msgid "Title, description, location..."
+msgstr ""
+
+#: templates/service_requests/client/history.html:71
+msgid "Search request history by title, description or location"
+msgstr ""
+
+#: templates/service_requests/client/history.html:77
+#: templates/service_requests/worker/assignments.html:387
+msgid "All"
+msgstr "Zote"
+
+#: templates/service_requests/client/history.html:86
+#: templates/service_requests/client/my_requests.html:152
+#, fuzzy
+#| msgid "Service Categories"
+msgid "All Categories"
+msgstr "Aina za Huduma"
+
+#: templates/service_requests/client/history.html:96
+#: templates/service_requests/client/my_requests.html:162
+msgid "From Date"
+msgstr ""
+
+#: templates/service_requests/client/history.html:101
+#: templates/service_requests/client/my_requests.html:167
+msgid "To Date"
+msgstr ""
+
+#: templates/service_requests/client/history.html:107
+msgid "Filter"
+msgstr "Chuja"
+
+#: templates/service_requests/client/history.html:114
+#: templates/service_requests/client/my_requests.html:179
+msgid "Clear all active filters"
+msgstr ""
+
+#: templates/service_requests/client/history.html:115
+#: templates/service_requests/client/history.html:318
+#: templates/service_requests/client/my_requests.html:179
+#: templates/service_requests/client/my_requests.html:386
+msgid "Clear Filters"
+msgstr ""
+
+#: templates/service_requests/client/history.html:125
+msgid "All History"
+msgstr ""
+
+#: templates/service_requests/client/history.html:140
+msgid "Export to CSV"
+msgstr ""
+
+#: templates/service_requests/client/history.html:152
+msgid "ID"
+msgstr ""
+
+#: templates/service_requests/client/history.html:157
+#, fuzzy
+#| msgid "Completed"
+msgid "Completed/Cancelled"
+msgstr "Imekamilika"
+
+#: templates/service_requests/client/history.html:158
+#, fuzzy
+#| msgid "Account"
+msgid "Amount"
+msgstr "Akaunti"
+
+#: templates/service_requests/client/history.html:237
+msgid "Rate"
+msgstr ""
+
+#: templates/service_requests/client/history.html:253
+#, fuzzy
+#| msgid "Request Service"
+msgid "Request Again"
+msgstr "Omba Huduma"
+
+#: templates/service_requests/client/history.html:264
+msgid "Total on this page:"
+msgstr ""
+
+#: templates/service_requests/client/history.html:314
+#, fuzzy
+#| msgid "No results found"
+msgid "No History Found"
+msgstr "Hakuna matokeo yaliyopatikana"
+
+#: templates/service_requests/client/history.html:316
+msgid "No requests match your current filters."
+msgstr ""
+
+#: templates/service_requests/client/history.html:321
+msgid "You don't have any completed or cancelled requests yet."
+msgstr ""
+
+#: templates/service_requests/client/history.html:323
+#, fuzzy
+#| msgid "New Request"
+msgid "Create New Request"
+msgstr "Ombi Jipya"
+
+#: templates/service_requests/client/history.html:334
+msgid "About Request History"
+msgstr ""
+
+#: templates/service_requests/client/history.html:337
+#: templates/service_requests/client/rate_worker.html:74
+#: templates/service_requests/worker/assignment_detail.html:256
+#, fuzzy
+#| msgid "Completed"
+msgid "Completed:"
+msgstr "Imekamilika"
+
+#: templates/service_requests/client/history.html:337
+msgid "Requests that were successfully finished by the worker"
+msgstr ""
+
+#: templates/service_requests/client/history.html:338
+#: templates/service_requests/client/request_detail.html:188
+#, fuzzy
+#| msgid "Cancelled"
+msgid "Cancelled:"
+msgstr "Imefutwa"
+
+#: templates/service_requests/client/history.html:338
+msgid "Requests that were cancelled by either you or the worker"
+msgstr ""
+
+#: templates/service_requests/client/history.html:339
+msgid "You can view detailed information about each historical request"
+msgstr ""
+
+#: templates/service_requests/client/history.html:340
+msgid "Rate completed requests to help other clients make informed decisions"
+msgstr ""
+
+#: templates/service_requests/client/history.html:342
+msgid "Export your history to CSV for record keeping"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:122
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "📋 My Service Requests"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/service_requests/client/my_requests.html:134
+msgid "Search service requests by title, description or location"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:140
+msgid "All Statuses"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:216
+msgid "Title & Category"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:221
+msgid "Price"
+msgstr "Bei"
+
+#: templates/service_requests/client/my_requests.html:223
+#: templates/service_requests/client/request_detail.html:615
+msgid "Created"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:290
+#: templates/service_requests/client/my_requests.html:300
+msgid "Awaiting Response"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:364
+#: templates/service_requests/worker/assignments.html:570
+msgid "Next page"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:384
+msgid ""
+"No requests match your current filters. Try adjusting your search criteria."
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:389
+msgid ""
+"You haven't created any service requests yet. Get started by creating your "
+"first request!"
+msgstr ""
+
+#: templates/service_requests/client/my_requests.html:392
+#, fuzzy
+#| msgid "Create Your Account"
+msgid "Create Your First Request"
+msgstr "Fungua Akaunti Yako"
+
+#: templates/service_requests/client/rate_worker.html:55
+msgid "Rate Your Service Experience"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:75
+msgid "Total Cost:"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:83
+msgid "How would you rate this service?"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:84
+msgid "Service rating from 1 to 5 stars"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:85
+msgid "1 star"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:86
+msgid "2 stars"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:87
+msgid "3 stars"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:88
+msgid "4 stars"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:89
+msgid "5 stars"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:91
+#, fuzzy
+#| msgid "Settings"
+msgid "Select a rating"
+msgstr "Mipangilio"
+
+#: templates/service_requests/client/rate_worker.html:97
+#, fuzzy
+#| msgid "Rated & Reviewed"
+msgid "Write a Review"
+msgstr "Imepewa Alama & Kukaguliwa"
+
+#: templates/service_requests/client/rate_worker.html:97
+#, fuzzy
+#| msgid "optional"
+msgid "(Optional)"
+msgstr "hiari"
+
+#: templates/service_requests/client/rate_worker.html:103
+msgid "Tell us about your experience with this worker..."
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:105
+msgid ""
+"Your review will help other clients choose qualified workers and help "
+"workers improve their services."
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:110
+msgid "Submit rating and review"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:114
+msgid "Cancel and go back to request details"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:115
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to Request"
+msgstr "Rudi Nyumbani"
+
+#: templates/service_requests/client/rate_worker.html:125
+msgid "Rating Guidelines"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:127
+msgid "5 Stars:"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:127
+msgid "Exceptional service, exceeded expectations"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:128
+msgid "4 Stars:"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:128
+msgid "Good service, met expectations"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:129
+msgid "3 Stars:"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:129
+msgid "Average service, acceptable"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:130
+msgid "2 Stars:"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:130
+msgid "Below expectations, needs improvement"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:131
+msgid "1 Star:"
+msgstr ""
+
+#: templates/service_requests/client/rate_worker.html:131
+msgid "Poor service, not satisfied"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:89
+msgid "📄 Request Details"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:91
+#, fuzzy
+#| msgid "My Requests"
+msgid "Back to My Requests"
+msgstr "Maombi Yangu"
+
+#: templates/service_requests/client/request_detail.html:129
+msgid "Duration Type:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:135
+#: templates/service_requests/worker/assignment_detail.html:77
+#: templates/service_requests/worker/clock_in.html:39
+#: templates/service_requests/worker/clock_out.html:40
+#: templates/service_requests/worker/clock_out.html:99
+#: templates/service_requests/worker/complete.html:57
+msgid "Daily Rate:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:141
+#: templates/service_requests/worker/assignment_detail.html:83
+msgid "Est. Duration:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:147
+msgid "Start Date:"
+msgstr "Tarehe ya Kuanza:"
+
+#: templates/service_requests/client/request_detail.html:152
+msgid "End Date:"
+msgstr "Tarehe ya Kumaliza:"
+
+#: templates/service_requests/client/request_detail.html:157
+#: templates/service_requests/worker/assignment_detail.html:89
+#: templates/service_requests/worker/respond.html:64
+msgid "Preferred Time:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:173
+#: templates/service_requests/worker/assignment_detail.html:96
+#: templates/service_requests/worker/assignment_detail.html:254
+#, fuzzy
+#| msgid "Assignments"
+msgid "Assigned:"
+msgstr "Mgawo"
+
+#: templates/service_requests/client/request_detail.html:178
+#: templates/service_requests/worker/assignment_detail.html:100
+#, fuzzy
+#| msgid "Get Started"
+msgid "Work Started:"
+msgstr "Anza"
+
+#: templates/service_requests/client/request_detail.html:183
+#: templates/service_requests/worker/assignment_detail.html:105
+#, fuzzy
+#| msgid "Jobs Completed"
+msgid "Work Completed:"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/service_requests/client/request_detail.html:200
+msgid "Additional Notes:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:207
+#: templates/service_requests/worker/assignment_detail.html:117
+#: templates/service_requests/worker/pending.html:55
+#: templates/service_requests/worker/respond.html:75
+#, fuzzy
+#| msgid "Admin Panel"
+msgid "Admin Notes:"
+msgstr "Paneli ya Msimamizi"
+
+#: templates/service_requests/client/request_detail.html:215
+msgid "Cancellation Reason:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:223
+msgid "Your Rating:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:330
+#: templates/service_requests/client/request_detail.html:402
+#: templates/workers/analytics.html:194 templates/workers/cv_template.html:226
+#: templates/workers/cv_view.html:103
+msgid "Average Rating"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:393
+#, fuzzy
+#| msgid "Pending Assignments"
+msgid "Accepted Assignment"
+msgstr "Mgawo Unaongoja"
+
+#: templates/service_requests/client/request_detail.html:415
+#, fuzzy
+#| msgid "Daily Tracking"
+msgid "Time Tracking"
+msgstr "Ufuatiliaji wa Kila Siku"
+
+#: templates/service_requests/client/request_detail.html:422
+#: templates/service_requests/worker/assignment_detail.html:134
+#: templates/service_requests/worker/assignment_detail.html:222
+#: templates/service_requests/worker/clock_in.html:4
+#: templates/service_requests/worker/dashboard.html:72
+msgid "Clock In"
+msgstr "Ingia Kazini"
+
+#: templates/service_requests/client/request_detail.html:423
+#: templates/service_requests/worker/assignment_detail.html:135
+#: templates/service_requests/worker/assignment_detail.html:217
+#: templates/service_requests/worker/clock_out.html:4
+#: templates/service_requests/worker/dashboard.html:75
+msgid "Clock Out"
+msgstr "Toka Kazini"
+
+#: templates/service_requests/client/request_detail.html:425
+#: templates/service_requests/worker/assignment_detail.html:137
+msgid "Notes"
+msgstr "Maelezo ya Ziada"
+
+#: templates/service_requests/client/request_detail.html:436
+msgid "Currently Working"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:452
+#: templates/service_requests/worker/assignment_detail.html:164
+#: templates/service_requests/worker/complete.html:54
+msgid "Total Hours Worked:"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:491
+msgid "Payment Status:"
+msgstr "Hali ya Malipo:"
+
+#: templates/service_requests/client/request_detail.html:514
+msgid "View Screenshot"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:534
+#: templates/workers/dashboard.html:132
+msgid "Quick Actions"
+msgstr "Vitendo vya Haraka"
+
+#: templates/service_requests/client/request_detail.html:550
+msgid "View Activity Log"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:556
+#, fuzzy
+#| msgid "Pending Requests"
+msgid "Edit Request"
+msgstr "Maombi Yanayosubiri"
+
+#: templates/service_requests/client/request_detail.html:571
+msgid "Mark as Finished"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:589
+#: templates/service_requests/client/request_detail.html:594
+#, fuzzy
+#| msgid "Messages"
+msgid "Message Worker"
+msgstr "Ujumbe"
+
+#: templates/service_requests/client/request_detail.html:601
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to List"
+msgstr "Rudi Nyumbani"
+
+#: templates/service_requests/client/request_detail.html:609
+msgid "Status Timeline"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:622
+#, fuzzy
+#| msgid "Admin Assigns the Right Worker"
+msgid "Assigned to Worker"
+msgstr "Msimamizi Anateua Mfanyakazi Sahihi"
+
+#: templates/service_requests/client/request_detail.html:659
+msgid "Need Help?"
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:661
+msgid ""
+"If you have questions or concerns about this service request, please contact "
+"our support team."
+msgstr ""
+
+#: templates/service_requests/client/request_detail.html:738
+#: templates/service_requests/client/request_detail.html:742
+#: templates/workers/public_profile.html:4
+#, fuzzy
+#| msgid "My Profile"
+msgid "Worker Profile"
+msgstr "Wasifu Wangu"
+
+#: templates/service_requests/client/request_service.html:83
+#, fuzzy
+#| msgid "Request Service"
+msgid "📝 Request a Service"
+msgstr "Omba Huduma"
+
+#: templates/service_requests/client/request_service.html:94
+#, fuzzy
+#| msgid "Post a Service Request"
+msgid "Service Request"
+msgstr "Tuma Ombi la Huduma"
+
+#: templates/service_requests/client/request_service.html:95
+msgid ""
+"Fill out the form below to request a service. Our team will assign a "
+"qualified worker and notify you within 2-4 hours."
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:112
+msgid "-- Select Category --"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:179
+msgid "How should we pick your worker?"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:184
+msgid "Let admin choose"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:185
+msgid "Our team picks a qualified worker for you"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:192
+msgid "I'll pick myself"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:193
+msgid "Browse worker profiles and choose &mdash; admin still confirms"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:199
+msgid "Change"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:202
+msgid "Browse workers and pick one"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:209
+msgid "Auto-assign nearest worker"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:210
+msgid ""
+"Instantly assigns the closest available worker &mdash; needs your location"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:215
+msgid "Share my exact location"
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:544
+#, fuzzy
+#| msgid "I'm a Worker"
+msgid "Choose a Worker"
+msgstr "Mimi ni Mfanyakazi"
+
+#: templates/service_requests/client/request_service.html:548
+msgid ""
+"Pick who you'd like &mdash; the admin will still confirm before work starts."
+msgstr ""
+
+#: templates/service_requests/client/request_service.html:596
+#, fuzzy
+#| msgid "My Requests"
+msgid "Submit Request"
+msgstr "Maombi Yangu"
+
+#: templates/service_requests/client/upload_screenshot.html:97
+msgid "📸 Upload Payment Screenshot"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:104
+#, fuzzy
+#| msgid "Upload credentials"
+msgid "Upload Guidelines"
+msgstr "Pakia vyeti"
+
+#: templates/service_requests/client/upload_screenshot.html:106
+msgid "Accepted formats: JPEG, PNG, GIF, WebP"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:107
+msgid "Maximum file size: 5MB"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:108
+msgid "Screenshot should clearly show payment details"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:109
+msgid "Admin will verify the screenshot before processing"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:118
+msgid "Drag & Drop Screenshot Here"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:123
+#, fuzzy
+#| msgid "Browse Services"
+msgid "Browse Files"
+msgstr "Vinjari Huduma"
+
+#: templates/service_requests/client/upload_screenshot.html:134
+msgid "Selected Screenshot:"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:135
+msgid "Screenshot preview"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:140
+msgid "File:"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:141
+msgid "Size:"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:152
+#, fuzzy
+#| msgid "Upload credentials"
+msgid "Upload Screenshot"
+msgstr "Pakia vyeti"
+
+#: templates/service_requests/client/upload_screenshot.html:166
+msgid "📋 Request Info"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:191
+msgid "💡 Tips"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:193
+msgid "Take a clear screenshot"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:194
+msgid "Include transaction ID"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:195
+msgid "Show amount and date"
+msgstr ""
+
+#: templates/service_requests/client/upload_screenshot.html:196
+msgid "Avoid blurry images"
+msgstr ""
+
+#: templates/service_requests/worker/activity.html:4
+#: templates/service_requests/worker/activity.html:35
+msgid "My Activity History"
+msgstr ""
+
+#: templates/service_requests/worker/activity.html:55
+#: templates/workers/dashboard.html:210
+msgid "Rejected"
+msgstr "Imekataliwa"
+
+#: templates/service_requests/worker/activity.html:127
+#, fuzzy
+#| msgid "Total Services"
+msgid "Service:"
+msgstr "Jumla ya Huduma"
+
+#: templates/service_requests/worker/activity.html:149
+#: templates/service_requests/worker/dashboard.html:170
+#, python-format
+msgid "Earned: TSH %(amount)s"
+msgstr ""
+
+#: templates/service_requests/worker/activity.html:201
+#, fuzzy
+#| msgid "No activity"
+msgid "No Activity Found"
+msgstr "Hakuna shughuli"
+
+#: templates/service_requests/worker/activity.html:204
+#, python-format
+msgid "No activities of type \"%(type)s\" found."
+msgstr ""
+
+#: templates/service_requests/worker/activity.html:206
+msgid ""
+"You don't have any activity history yet. Start accepting assignments to see "
+"your activity timeline!"
+msgstr ""
+
+#: templates/service_requests/worker/activity.html:210
+#: templates/service_requests/worker/assignments.html:595
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Go to Dashboard"
+msgstr "Dashibodi"
+
+#: templates/service_requests/worker/assignment_detail.html:39
+#, fuzzy
+#| msgid "My Assignments"
+msgid "📋 Assignment Details"
+msgstr "Mgawo Wangu"
+
+#: templates/service_requests/worker/assignment_detail.html:41
+#, fuzzy
+#| msgid "Assignments"
+msgid "Back to Assignments"
+msgstr "Mgawo"
+
+#: templates/service_requests/worker/assignment_detail.html:60
+#: templates/service_requests/worker/clock_in.html:33
+#: templates/service_requests/worker/clock_out.html:31
+#: templates/service_requests/worker/complete.html:42
+#: templates/service_requests/worker/dashboard.html:58
+#: templates/service_requests/worker/pending.html:35
+#: templates/service_requests/worker/respond.html:41
+#, fuzzy
+#| msgid "Client"
+msgid "Client:"
+msgstr "Mteja"
+
+#: templates/service_requests/worker/assignment_detail.html:127
+msgid "Time Logs"
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:148
+msgid "Currently Clocked In"
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:187
+msgid "You need to respond to this assignment."
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:194
+#: templates/service_requests/worker/respond.html:97
+#, fuzzy
+#| msgid "Assignments"
+msgid "Accept Assignment"
+msgstr "Mgawo"
+
+#: templates/service_requests/worker/assignment_detail.html:203
+msgid "Reason for rejection (optional)"
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:206
+msgid "Reject"
+msgstr "Kataa"
+
+#: templates/service_requests/worker/assignment_detail.html:213
+msgid "You are currently clocked in."
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:230
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark Complete"
+msgstr "Weka Alama ya Kukamilika"
+
+#: templates/service_requests/worker/assignment_detail.html:236
+msgid "Service completed!"
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:243
+msgid "You rejected this assignment."
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:252
+msgid "Status Guide"
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:254
+msgid "Waiting for your response"
+msgstr ""
+
+#: templates/service_requests/worker/assignment_detail.html:255
+#, fuzzy
+#| msgid "In Progress"
+msgid "In Progress:"
+msgstr "Inaendelea"
+
+#: templates/service_requests/worker/assignment_detail.html:255
+#, fuzzy
+#| msgid "Worker Dashboard"
+msgid "Work has started"
+msgstr "Dashibodi ya Mfanyakazi"
+
+#: templates/service_requests/worker/assignment_detail.html:256
+msgid "Service finished"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:372
+msgid "Manage and track all your service assignments"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:384
+msgid "Status filter"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:414
+msgid "Cards"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:417
+msgid "Table"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:469
+msgid "Awaiting response"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:508
+#: templates/workers/analytics.html:416
+msgid "Earned"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:548
+#, fuzzy
+#| msgid "Assignments"
+msgid "Assignments pagination"
+msgstr "Mgawo"
+
+#: templates/service_requests/worker/assignments.html:552
+msgid "Previous page"
+msgstr ""
+
+#: templates/service_requests/worker/assignments.html:586
+#, fuzzy
+#| msgid "Assignments"
+msgid "No Assignments Found"
+msgstr "Mgawo"
+
+#: templates/service_requests/worker/clock_in.html:23
+msgid "Clock In to Start Work"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:50
+msgid "Important:"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:51
+msgid ""
+"By clocking in, you confirm that you have arrived at the work location and "
+"are ready to start work. Your time will be tracked until you clock out."
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:55
+#: templates/service_requests/worker/clock_out.html:50
+msgid "Current Location (Optional)"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:60
+#: templates/service_requests/worker/clock_out.html:55
+#, fuzzy
+#| msgid "Enter your credentials to continue"
+msgid "Enter your current location or address"
+msgstr "Weka nambari zako ili uendelee"
+
+#: templates/service_requests/worker/clock_in.html:62
+#: templates/service_requests/worker/clock_out.html:57
+msgid ""
+"You can manually enter your location. For mobile app, GPS is used "
+"automatically."
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:70
+msgid ""
+"I confirm that I have arrived at the work location and am ready to start "
+"work."
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:77
+msgid "Start Work - Clock In"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:91
+#, fuzzy
+#| msgid "How It Works"
+msgid "How Clock In/Out Works"
+msgstr "Jinsi Inavyofanya Kazi"
+
+#: templates/service_requests/worker/clock_in.html:93
+msgid "Clock in when you arrive and start work"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:94
+msgid "Your time is tracked automatically"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:95
+msgid "Clock out when you take a break or finish for the day"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:96
+msgid "You can clock in/out multiple times for the same job"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:97
+msgid "Total hours = Sum of all work sessions"
+msgstr ""
+
+#: templates/service_requests/worker/clock_in.html:98
+msgid "Payment = Total hours × Hourly rate"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:21
+msgid "Clock Out to End Work Session"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:37
+msgid "Current Work Session"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:38
+#, fuzzy
+#| msgid "Clock In"
+msgid "Clock In Time:"
+msgstr "Ingia Kazini"
+
+#: templates/service_requests/worker/clock_out.html:39
+#, fuzzy
+#| msgid "Not Verified"
+msgid "Not specified"
+msgstr "Haijathibitishwa"
+
+#: templates/service_requests/worker/clock_out.html:62
+msgid "Work Summary / Notes"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:67
+msgid "Describe the work you completed in this session..."
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:69
+msgid "Optional: Summarize what you accomplished during this work session."
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:75
+msgid ""
+"Once you clock out, the system will calculate the hours worked and update "
+"your earnings. You can clock in again later if needed."
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:80
+msgid "End Work Session - Clock Out"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:94
+msgid "Current Job Summary"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:96
+msgid "Total Hours Worked So Far:"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:97
+#: templates/service_requests/worker/complete.html:55
+#: templates/service_requests/worker/pending.html:46
+#: templates/service_requests/worker/respond.html:59
+msgid "hours"
+msgstr ""
+
+#: templates/service_requests/worker/clock_out.html:102
+#, fuzzy
+#| msgid "Total Earnings"
+msgid "Estimated Earnings:"
+msgstr "Jumla ya Mapato"
+
+#: templates/service_requests/worker/clock_out.html:107
+msgid "This session's hours will be added after you clock out."
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:4
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark Service Complete"
+msgstr "Weka Alama ya Kukamilika"
+
+#: templates/service_requests/worker/complete.html:32
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark Service as Complete"
+msgstr "Weka Alama ya Kukamilika"
+
+#: templates/service_requests/worker/complete.html:52
+msgid "Work Summary"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:60
+#, fuzzy
+#| msgid "Total Earnings"
+msgid "Total Earnings:"
+msgstr "Jumla ya Mapato"
+
+#: templates/service_requests/worker/complete.html:73
+msgid "Important Checklist:"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:75
+msgid "All work has been completed as requested"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:76
+msgid "You have clocked out from all work sessions"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:77
+msgid "The client has reviewed and approved the work (if applicable)"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:78
+msgid "Work area has been cleaned/tidied"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:84
+#, fuzzy
+#| msgid "Completed Jobs"
+msgid "Completion Notes"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/service_requests/worker/complete.html:91
+msgid ""
+"Provide a detailed summary of the work completed, any issues encountered, "
+"and any recommendations for the client..."
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:93
+msgid ""
+"Required: Describe all work completed, outcomes, and any follow-up "
+"recommendations."
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:101
+msgid ""
+"I confirm that all work has been completed to the best of my ability and "
+"meets the service requirements."
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:107
+#: templates/service_requests/worker/respond.html:125
+msgid "What Happens Next?"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:109
+#, python-format
+msgid "Your earnings (TSH %(amount)s) will be recorded"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:110
+msgid "The client will be notified that the service is complete"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:111
+msgid "The client can leave a review and rating"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:112
+msgid "Payment processing will be initiated"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:118
+msgid "Confirm Service Complete"
+msgstr ""
+
+#: templates/service_requests/worker/complete.html:132
+#, fuzzy
+#| msgid "Review After Completion"
+msgid "Before Completing"
+msgstr "Ukaguzi Baada ya Kukamilika"
+
+#: templates/service_requests/worker/complete.html:134
+msgid ""
+"Make sure you have clocked out from any active work session. You cannot mark "
+"a service complete while clocked in. Also ensure all work is finished - you "
+"cannot undo this action."
+msgstr ""
+
+#: templates/service_requests/worker/dashboard.html:4
+#: templates/service_requests/worker/dashboard.html:37
+#: templates/workers/dashboard.html:4 templates/workers/dashboard.html:31
+msgid "Worker Dashboard"
+msgstr "Dashibodi ya Mfanyakazi"
+
+#: templates/service_requests/worker/dashboard.html:42
+#, python-format
+msgid "🔔 You have %(count)s pending assignment%(count|pluralize)s!"
+msgstr ""
+
+#: templates/service_requests/worker/dashboard.html:43
+#, fuzzy
+#| msgid "View"
+msgid "View now"
+msgstr "Angalia"
+
+#: templates/service_requests/worker/dashboard.html:54
+#, fuzzy
+#| msgid "Pending Assignments"
+msgid "Current Assignment"
+msgstr "Mgawo Unaongoja"
+
+#: templates/service_requests/worker/dashboard.html:62
+msgid "Clocked In - Working"
+msgstr ""
+
+#: templates/service_requests/worker/dashboard.html:64
+#, fuzzy
+#| msgid "Get Started"
+msgid "Ready to Start"
+msgstr "Anza"
+
+#: templates/service_requests/worker/dashboard.html:90
+msgid "Total Services"
+msgstr "Jumla ya Huduma"
+
+#: templates/service_requests/worker/dashboard.html:114
+#, fuzzy
+#| msgid "Pending Requests"
+msgid "Pending Response"
+msgstr "Maombi Yanayosubiri"
+
+#: templates/service_requests/worker/dashboard.html:124
+#: templates/workers/analytics.html:148
+msgid "Total Earnings"
+msgstr "Jumla ya Mapato"
+
+#: templates/service_requests/worker/dashboard.html:127
+#: templates/service_requests/worker/dashboard.html:136
+#, python-format
+msgid "%(hours)s hours worked"
+msgstr ""
+
+#: templates/service_requests/worker/dashboard.html:133
+msgid "This Week"
+msgstr ""
+
+#: templates/service_requests/worker/dashboard.html:146
+#, fuzzy, python-format
+#| msgid "Pending Assignments"
+msgid "Pending Assignments (%(count)s)"
+msgstr "Mgawo Unaongoja"
+
+#: templates/service_requests/worker/dashboard.html:149
+#, fuzzy
+#| msgid "Assignments"
+msgid "All Assignments"
+msgstr "Mgawo"
+
+#: templates/service_requests/worker/dashboard.html:152
+#: templates/workers/base_worker.html:665
+msgid "Activity History"
+msgstr ""
+
+#: templates/service_requests/worker/dashboard.html:160
+#, fuzzy
+#| msgid "No activity"
+msgid "Recent Activity"
+msgstr "Hakuna shughuli"
+
+#: templates/service_requests/worker/dashboard.html:175
+#, fuzzy
+#| msgid "No activity"
+msgid "No recent activity"
+msgstr "Hakuna shughuli"
+
+#: templates/service_requests/worker/pending.html:24
+#, python-format
+msgid ""
+"You have %(count)s assignment%(count|pluralize)s waiting for your response."
+msgstr ""
+
+#: templates/service_requests/worker/pending.html:44
+#: templates/service_requests/worker/respond.html:57
+msgid "days"
+msgstr ""
+
+#: templates/service_requests/worker/pending.html:50
+msgid "Preferred Date:"
+msgstr ""
+
+#: templates/service_requests/worker/pending.html:62
+msgid "View & Respond"
+msgstr ""
+
+#: templates/service_requests/worker/pending.html:73
+msgid "All Caught Up!"
+msgstr ""
+
+#: templates/service_requests/worker/pending.html:74
+msgid "You have no pending assignments at the moment."
+msgstr ""
+
+#: templates/service_requests/worker/pending.html:77
+#, fuzzy
+#| msgid "Client Dashboard"
+msgid "Return to Dashboard"
+msgstr "Dashibodi ya Mteja"
+
+#: templates/service_requests/worker/respond.html:4
+#: templates/service_requests/worker/respond.html:27
+#, fuzzy
+#| msgid "Pending Assignments"
+msgid "Respond to Assignment"
+msgstr "Mgawo Unaongoja"
+
+#: templates/service_requests/worker/respond.html:85
+msgid "Your Response"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:92
+msgid "Will you accept this assignment?"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:104
+msgid "Or reject with reason:"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:106
+msgid "Please provide a reason for rejection..."
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:111
+#, fuzzy
+#| msgid "Assignments"
+msgid "Reject Assignment"
+msgstr "Mgawo"
+
+#: templates/service_requests/worker/respond.html:127
+msgid "If you accept:"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:129
+msgid "Client will be notified"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:130
+msgid "You can clock in when you arrive"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:131
+msgid "Work on the assignment"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:132
+msgid "Clock out when done"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:133
+#, fuzzy
+#| msgid "Mark as Complete"
+msgid "Mark as completed"
+msgstr "Weka Alama ya Kukamilika"
+
+#: templates/service_requests/worker/respond.html:136
+msgid "If you reject:"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:138
+msgid "Admin will be notified"
+msgstr ""
+
+#: templates/service_requests/worker/respond.html:139
+#, fuzzy
+#| msgid "Admin Assigns the Right Worker"
+msgid "Admin will assign another worker"
+msgstr "Msimamizi Anateua Mfanyakazi Sahihi"
+
+#: templates/service_requests/worker/respond.html:140
+msgid "No penalty for valid rejections"
+msgstr ""
+
+#: templates/workers/analytics.html:95
+#, fuzzy
+#| msgid "Analytics"
+msgid "Performance Analytics"
+msgstr "Uchambuzi"
+
+#: templates/workers/analytics.html:97
+msgid "Track your earnings, jobs, and performance metrics"
+msgstr ""
+
+#: templates/workers/analytics.html:101
+msgid "Export CSV"
+msgstr ""
+
+#: templates/workers/analytics.html:117
+msgid "Time Period:"
+msgstr ""
+
+#: templates/workers/analytics.html:120
+#, fuzzy
+#| msgid "Last Name"
+msgid "Last 7 Days"
+msgstr "Jina la Mwisho"
+
+#: templates/workers/analytics.html:123
+msgid "Last Month"
+msgstr ""
+
+#: templates/workers/analytics.html:126
+msgid "Last 3 Months"
+msgstr ""
+
+#: templates/workers/analytics.html:129 templates/workers/analytics.html:251
+msgid "Last 6 Months"
+msgstr ""
+
+#: templates/workers/analytics.html:132
+#, fuzzy
+#| msgid "Last Name"
+msgid "Last Year"
+msgstr "Jina la Mwisho"
+
+#: templates/workers/analytics.html:200
+msgid "Based on client reviews"
+msgstr ""
+
+#: templates/workers/analytics.html:221
+#, fuzzy
+#| msgid "Success"
+msgid "Success Rate"
+msgstr "Imefanikishwa"
+
+#: templates/workers/analytics.html:224
+#, fuzzy
+#| msgid "Jobs Completed"
+msgid "Job completion rate"
+msgstr "Kazi Zilizokamilika"
+
+# Earnings
+#: templates/workers/analytics.html:248
+#, fuzzy
+#| msgid "Earnings"
+msgid "Earnings Over Time"
+msgstr "Mapato"
+
+#: templates/workers/analytics.html:262
+msgid "No earnings data yet. Complete jobs to see your earnings trend!"
+msgstr ""
+
+#: templates/workers/analytics.html:274
+msgid "Performance Metrics"
+msgstr ""
+
+#: templates/workers/analytics.html:280 templates/workers/dashboard.html:236
+#: templates/workers/profile_edit.html:419
+#, fuzzy
+#| msgid "Review After Completion"
+msgid "Profile Completion"
+msgstr "Ukaguzi Baada ya Kukamilika"
+
+#: templates/workers/analytics.html:291
+msgid "Active Jobs"
+msgstr "Kazi Zinazoendelea"
+
+#: templates/workers/analytics.html:294
+msgid "Currently in progress"
+msgstr ""
+
+#: templates/workers/analytics.html:299
+#, fuzzy
+#| msgid "Assignments"
+msgid "Total Assignments"
+msgstr "Mgawo"
+
+#: templates/workers/analytics.html:302
+msgid "All jobs assigned to you"
+msgstr ""
+
+# Earnings
+#: templates/workers/analytics.html:307
+#, fuzzy
+#| msgid "Earnings"
+msgid "Avg. Earnings/Job"
+msgstr "Mapato"
+
+#: templates/workers/analytics.html:323
+#, fuzzy
+#| msgid "Client Dashboard"
+msgid "View Dashboard"
+msgstr "Dashibodi ya Mteja"
+
+#: templates/workers/analytics.html:337 templates/workers/analytics.html:371
+msgid "Earnings by Category"
+msgstr ""
+
+#: templates/workers/analytics.html:347 templates/workers/analytics.html:391
+msgid "No category data yet"
+msgstr ""
+
+#: templates/workers/analytics.html:358
+#, fuzzy
+#| msgid "Construction"
+msgid "Job Distribution"
+msgstr "Ujenzi"
+
+#: templates/workers/analytics.html:404
+#, fuzzy
+#| msgid "Completed Jobs"
+msgid "Recent Completed Jobs"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/workers/analytics.html:439
+#, fuzzy
+#| msgid "Completed Jobs"
+msgid "No completed jobs yet"
+msgstr "Kazi Zilizokamilika"
+
+#: templates/workers/analytics.html:453
+#, fuzzy
+#| msgid "Track worker performance"
+msgid "Tips to Improve Your Performance"
+msgstr "Fuatilia utendaji wa wafanyakazi"
+
+#: templates/workers/analytics.html:459
+#, fuzzy
+#| msgid "Complete jobs to start earning"
+msgid "Complete jobs on time"
+msgstr "Kamilisha kazi kuanza kupata mapato"
+
+#: templates/workers/analytics.html:465
+msgid "Maintain high ratings"
+msgstr ""
+
+#: templates/workers/analytics.html:471 templates/workers/cv_view.html:69
+msgid "Complete your profile"
+msgstr ""
+
+#: templates/workers/analytics.html:477
+msgid "Communicate clearly"
+msgstr ""
+
+#: templates/workers/base_worker.html:637
+#, fuzzy
+#| msgid "Worker Connect"
+msgid "Worker Panel"
+msgstr "Worker Connect"
+
+#: templates/workers/base_worker.html:647 templates/workers/dashboard.html:137
+msgid "Analytics"
+msgstr "Uchambuzi"
+
+#: templates/workers/base_worker.html:668
+msgid "PROFILE"
+msgstr "Wasifu"
+
+#: templates/workers/base_worker.html:675
+msgid "Documents"
+msgstr "Nyaraka"
+
+#: templates/workers/cv_template.html:204 templates/workers/cv_view.html:82
+#, fuzzy
+#| msgid "Verified Workers"
+msgid "Verified Worker"
+msgstr "Wafanyakazi Waliothibitishwa"
+
+#: templates/workers/cv_template.html:218 templates/workers/cv_view.html:95
+msgid "Years Experience"
+msgstr ""
+
+#: templates/workers/cv_template.html:284
+#, fuzzy
+#| msgid "Take Worker Connect"
+msgid "Generated by Worker Connect"
+msgstr "Chukua Worker Connect"
+
+#: templates/workers/cv_view.html:4 templates/workers/cv_view.html:5
+#: templates/workers/cv_view.html:56 templates/workers/dashboard.html:152
+msgid "My CV"
+msgstr ""
+
+#: templates/workers/cv_view.html:57
+msgid "Automatically generated from your profile"
+msgstr ""
+
+#: templates/workers/cv_view.html:60
+#, fuzzy
+#| msgid "Download on the"
+msgid "Download PDF"
+msgstr "Pakua kwenye"
+
+#: templates/workers/cv_view.html:68
+msgid "Your CV will look stronger with a complete profile."
+msgstr ""
+
+#: templates/workers/cv_view.html:70
+msgid "or"
+msgstr ""
+
+#: templates/workers/cv_view.html:71
+#, fuzzy
+#| msgid "Track worker performance"
+msgid "add work experience"
+msgstr "Fuatilia utendaji wa wafanyakazi"
+
+#: templates/workers/cv_view.html:140 templates/workers/dashboard.html:272
+#: templates/workers/experience_delete.html:27
+#: templates/workers/experience_list.html:371
+#: templates/workers/public_profile.html:103
+msgid "Present"
+msgstr ""
+
+# Dashboard
+#: templates/workers/dashboard.html:33
+#, fuzzy, python-format
+#| msgid "Welcome back"
+msgid "Welcome back, %(name)s!"
+msgstr "Karibu tena"
+
+#: templates/workers/dashboard.html:44
+#, fuzzy
+#| msgid "Post a Job"
+msgid "Total Jobs"
+msgstr "Tuma Kazi"
+
+#: templates/workers/dashboard.html:114
+msgid "Profile Verification:"
+msgstr ""
+
+#: templates/workers/dashboard.html:116
+msgid "Your profile is under review. You'll be notified once verified."
+msgstr ""
+
+#: templates/workers/dashboard.html:118
+msgid "Your profile was rejected. Please update your documents and try again."
+msgstr ""
+
+#: templates/workers/dashboard.html:147
+#, fuzzy
+#| msgid "Upload credentials"
+msgid "Upload Docs"
+msgstr "Pakia vyeti"
+
+#: templates/workers/dashboard.html:162
+#: templates/workers/experience_list.html:338
+msgid "Add Experience"
+msgstr ""
+
+#: templates/workers/dashboard.html:184
+#, fuzzy
+#| msgid "Recent Payments"
+msgid "Recent Documents"
+msgstr "Malipo ya Hivi Karibuni"
+
+#: templates/workers/dashboard.html:206
+msgid "Approved"
+msgstr "Imeidhinishwa"
+
+#: templates/workers/dashboard.html:220
+#, fuzzy
+#| msgid "No payments yet"
+msgid "No documents uploaded yet"
+msgstr "Hakuna malipo bado"
+
+#: templates/workers/dashboard.html:222
+#: templates/workers/document_list.html:346
+#: templates/workers/document_upload.html:387
+#: templates/workers/document_upload.html:484
+#, fuzzy
+#| msgid "Documents"
+msgid "Upload Document"
+msgstr "Nyaraka"
+
+#: templates/workers/dashboard.html:249
+msgid "Complete your profile to increase visibility"
+msgstr ""
+
+#: templates/workers/dashboard.html:279
+msgid "No experience added"
+msgstr ""
+
+#: templates/workers/dashboard.html:289
+msgid "Categories & Skills"
+msgstr ""
+
+#: templates/workers/dashboard.html:295
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Categories:"
+msgstr "Aina za Huduma"
+
+#: templates/workers/dashboard.html:305
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Custom Categories:"
+msgstr "Aina za Huduma"
+
+#: templates/workers/dashboard.html:322
+msgid "Skills:"
+msgstr "Ujuzi:"
+
+#: templates/workers/dashboard.html:337
+msgid "No categories or skills added"
+msgstr ""
+
+#: templates/workers/dashboard.html:339
+msgid "Add Categories & Skills"
+msgstr ""
+
+#: templates/workers/document_delete.html:4
+#: templates/workers/document_delete.html:5
+#, fuzzy
+#| msgid "Documents"
+msgid "Delete Document"
+msgstr "Nyaraka"
+
+#: templates/workers/document_delete.html:17
+msgid "Delete this document?"
+msgstr ""
+
+#: templates/workers/document_delete.html:18
+msgid "You will need to upload it again for verification."
+msgstr ""
+
+#: templates/workers/document_delete.html:27
+#, fuzzy
+#| msgid "Upload credentials"
+msgid "Uploaded"
+msgstr "Pakia vyeti"
+
+#: templates/workers/document_delete.html:34
+#, fuzzy
+#| msgid "Documents"
+msgid "Delete document"
+msgstr "Nyaraka"
+
+#: templates/workers/document_list.html:342
+#, fuzzy
+#| msgid "Documents"
+msgid "My Documents"
+msgstr "Nyaraka"
+
+#: templates/workers/document_list.html:343
+msgid "Upload and manage your professional documents and certifications"
+msgstr ""
+
+#: templates/workers/document_list.html:352
+#, fuzzy
+#| msgid "Documents"
+msgid "Document Guidelines"
+msgstr "Nyaraka"
+
+#: templates/workers/document_list.html:354
+msgid ""
+"All documents must be verified before they appear on your public profile"
+msgstr ""
+
+#: templates/workers/document_list.html:355
+msgid "Accepted formats: PDF, JPG, PNG (Max 10MB per file)"
+msgstr ""
+
+#: templates/workers/document_list.html:356
+msgid "Upload clear, readable copies of your certificates and identification"
+msgstr ""
+
+#: templates/workers/document_list.html:396
+msgid "Rejection Reason:"
+msgstr ""
+
+#: templates/workers/document_list.html:401
+msgid "This document was rejected. Please contact support for more details."
+msgstr ""
+
+#: templates/workers/document_list.html:419
+#, fuzzy
+#| msgid "Documents"
+msgid "View Document"
+msgstr "Nyaraka"
+
+#: templates/workers/document_list.html:424
+#: templates/workers/experience_list.html:406
+msgid "Delete"
+msgstr "Futa"
+
+#: templates/workers/document_list.html:436
+#, fuzzy
+#| msgid "Documents"
+msgid "No Documents Uploaded"
+msgstr "Nyaraka"
+
+#: templates/workers/document_list.html:437
+msgid ""
+"Start uploading your professional documents to verify your profile and "
+"increase your credibility"
+msgstr ""
+
+#: templates/workers/document_list.html:439
+msgid "Upload Your First Document"
+msgstr ""
+
+#: templates/workers/document_upload.html:383
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to Documents"
+msgstr "Rudi Nyumbani"
+
+#: templates/workers/document_upload.html:388
+msgid "Upload your professional documents for verification"
+msgstr ""
+
+#: templates/workers/document_upload.html:393
+#, fuzzy
+#| msgid "Documents"
+msgid "Document Requirements"
+msgstr "Nyaraka"
+
+#: templates/workers/document_upload.html:397
+msgid "Accepted formats: PDF, JPG, JPEG, PNG"
+msgstr ""
+
+#: templates/workers/document_upload.html:401
+msgid "Maximum file size: 10 MB"
+msgstr ""
+
+#: templates/workers/document_upload.html:405
+msgid "Documents will be reviewed within 24-48 hours"
+msgstr ""
+
+#: templates/workers/document_upload.html:409
+msgid "Make sure documents are clear and readable"
+msgstr ""
+
+#: templates/workers/document_upload.html:416
+#: templates/workers/experience_form.html:243
+msgid "Please correct the following errors:"
+msgstr ""
+
+#: templates/workers/document_upload.html:435
+#, fuzzy
+#| msgid "Documents"
+msgid "Document Type"
+msgstr "Nyaraka"
+
+#: templates/workers/document_upload.html:438
+msgid "Select the type of document you're uploading"
+msgstr ""
+
+#: templates/workers/document_upload.html:443
+#, fuzzy
+#| msgid "Documents"
+msgid "Document Title"
+msgstr "Nyaraka"
+
+#: templates/workers/document_upload.html:446
+msgid "Give your document a descriptive name"
+msgstr ""
+
+#: templates/workers/document_upload.html:452
+#, fuzzy
+#| msgid "Documents"
+msgid "Document File"
+msgstr "Nyaraka"
+
+#: templates/workers/document_upload.html:460
+msgid "Drop your file here or click to browse"
+msgstr ""
+
+#: templates/workers/document_upload.html:461
+msgid "PDF, JPG, JPEG, PNG up to 10MB"
+msgstr ""
+
+#: templates/workers/experience_delete.html:4
+#: templates/workers/experience_delete.html:5
+msgid "Delete Experience"
+msgstr ""
+
+#: templates/workers/experience_delete.html:17
+msgid "Remove this experience?"
+msgstr ""
+
+#: templates/workers/experience_delete.html:18
+msgid "It will no longer appear on your profile."
+msgstr ""
+
+#: templates/workers/experience_delete.html:34
+msgid "Remove experience"
+msgstr ""
+
+#: templates/workers/experience_form.html:233
+#, fuzzy
+#| msgid "Back to Home"
+msgid "Back to Experience"
+msgstr "Rudi Nyumbani"
+
+#: templates/workers/experience_form.html:238
+msgid "Share your work history and accomplishments"
+msgstr ""
+
+#: templates/workers/experience_form.html:261
+msgid "Job Title"
+msgstr ""
+
+#: templates/workers/experience_form.html:264
+msgid "E.g., Senior Plumber, Electrician"
+msgstr ""
+
+#: templates/workers/experience_form.html:272
+msgid "Where did you work?"
+msgstr ""
+
+#: templates/workers/experience_form.html:281
+msgid "City, State or Country"
+msgstr ""
+
+#: templates/workers/experience_form.html:287
+msgid "Start Date"
+msgstr "Tarehe ya Kuanza"
+
+#: templates/workers/experience_form.html:294
+msgid "End Date"
+msgstr "Tarehe ya Kumaliza"
+
+#: templates/workers/experience_form.html:303
+msgid "I currently work here"
+msgstr ""
+
+#: templates/workers/experience_form.html:312
+msgid "Describe your responsibilities and achievements"
+msgstr ""
+
+#: templates/workers/experience_form.html:317
+msgid "Save Experience"
+msgstr ""
+
+#: templates/workers/experience_list.html:334
+msgid "My Experience"
+msgstr ""
+
+#: templates/workers/experience_list.html:335
+msgid "Showcase your professional work history and achievements"
+msgstr ""
+
+#: templates/workers/experience_list.html:344
+msgid "Why Add Your Experience?"
+msgstr ""
+
+#: templates/workers/experience_list.html:345
+msgid ""
+"Adding your work experience helps clients understand your background and "
+"expertise. It increases your profile credibility and helps you stand out "
+"from other workers."
+msgstr ""
+
+#: templates/workers/experience_list.html:373
+msgid "Current"
+msgstr ""
+
+#: templates/workers/experience_list.html:401
+msgid "Edit"
+msgstr "Hariri"
+
+#: templates/workers/experience_list.html:416
+msgid "No Experience Added Yet"
+msgstr ""
+
+#: templates/workers/experience_list.html:417
+#, fuzzy
+#| msgid ""
+#| "Build your professional profile and start getting hired by verified "
+#| "clients."
+msgid "Start building your professional profile by adding your work experience"
+msgstr ""
+"Jenga wasifu wako wa kitaaluma na uanze kuajiriwa na wateja walioidhinishwa."
+
+#: templates/workers/experience_list.html:419
+msgid "Add Your First Experience"
+msgstr ""
+
+#: templates/workers/profile_edit.html:413
+msgid ""
+"Complete your profile to increase your visibility and get more job "
+"opportunities"
+msgstr ""
+
+#: templates/workers/profile_edit.html:445
+#, fuzzy
+#| msgid "Profile"
+msgid "Profile Photo"
+msgstr "Wasifu"
+
+#: templates/workers/profile_edit.html:446
+msgid "Upload a professional photo to help employers recognize you"
+msgstr ""
+
+#: templates/workers/profile_edit.html:462
+#, fuzzy
+#| msgid "Choose Your Role"
+msgid "Choose your profile photo"
+msgstr "Chagua Jukumu Lako"
+
+#: templates/workers/profile_edit.html:463
+msgid "JPG, PNG or GIF. Max size 5MB. Recommended: 400x400px"
+msgstr ""
+
+#: templates/workers/profile_edit.html:466
+msgid "Upload Photo"
+msgstr ""
+
+#: templates/workers/profile_edit.html:476
+msgid "Remove Photo"
+msgstr ""
+
+#: templates/workers/profile_edit.html:496
+msgid "Tell us about yourself and your professional background"
+msgstr ""
+
+#: templates/workers/profile_edit.html:506
+msgid "Write a brief introduction about your skills and experience"
+msgstr ""
+
+#: templates/workers/profile_edit.html:526
+msgid "Include country code (e.g., +255 for Tanzania)"
+msgstr ""
+
+#: templates/workers/profile_edit.html:541
+msgid "Email cannot be changed"
+msgstr ""
+
+#: templates/workers/profile_edit.html:554
+msgid "Where are you based?"
+msgstr ""
+
+#: templates/workers/profile_edit.html:573
+msgid "State/Province"
+msgstr ""
+
+#: templates/workers/profile_edit.html:595
+msgid "GPS Coordinates"
+msgstr ""
+
+#: templates/workers/profile_edit.html:599
+msgid "Use my current location"
+msgstr ""
+
+#: templates/workers/profile_edit.html:605
+msgid ""
+"Used to match you with nearby clients when they choose automatic worker "
+"assignment."
+msgstr ""
+
+#: templates/workers/profile_edit.html:611
+#: templates/workers/profile_setup.html:122
+#, fuzzy
+#| msgid "Regions"
+msgid "Religion"
+msgstr "Mikoa"
+
+#: templates/workers/profile_edit.html:614
+msgid "Optional: Select your religion or prefer not to say"
+msgstr ""
+
+#: templates/workers/profile_edit.html:618
+msgid "Work Flexibility"
+msgstr ""
+
+#: templates/workers/profile_edit.html:623
+msgid "Can work everywhere (any location)"
+msgstr ""
+
+#: templates/workers/profile_edit.html:626
+msgid "Check if you're willing to work at any location"
+msgstr ""
+
+#: templates/workers/profile_edit.html:638
+#: templates/workers/profile_setup.html:142
+msgid "Professional Details"
+msgstr ""
+
+#: templates/workers/profile_edit.html:639
+msgid "Your skills, experience, and rates"
+msgstr ""
+
+#: templates/workers/profile_edit.html:646
+#: templates/workers/profile_setup.html:146
+#, fuzzy
+#| msgid "Terms of Service"
+msgid "Years of Experience"
+msgstr "Masharti ya Huduma"
+
+#: templates/workers/profile_edit.html:652
+#: templates/workers/profile_setup.html:151
+#, fuzzy
+#| msgid "Available"
+msgid "Availability"
+msgstr "Inapatikana"
+
+#: templates/workers/profile_edit.html:667
+#, fuzzy
+#| msgid "Select the role that best describes you"
+msgid "Select the categories you work in"
+msgstr "Chagua jukumu linalokufaa zaidi"
+
+#: templates/workers/profile_edit.html:684
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Your Custom Categories"
+msgstr "Aina za Huduma"
+
+#: templates/workers/profile_edit.html:710
+msgid "Don't see your category?"
+msgstr ""
+
+#: templates/workers/profile_edit.html:710
+#: templates/workers/profile_edit.html:765
+msgid "Add it below"
+msgstr ""
+
+#: templates/workers/profile_edit.html:710
+#: templates/workers/profile_edit.html:765
+msgid "after saving your profile."
+msgstr ""
+
+#: templates/workers/profile_edit.html:723
+msgid "Add your professional skills with optional certificates"
+msgstr ""
+
+#: templates/workers/profile_edit.html:731
+msgid "Your Skills"
+msgstr ""
+
+#: templates/workers/profile_edit.html:749
+msgid "View Certificate"
+msgstr ""
+
+#: templates/workers/profile_edit.html:765
+msgid "Want to add a skill?"
+msgstr ""
+
+#: templates/workers/profile_edit.html:789
+#: templates/workers/profile_edit.html:806
+msgid "Add Custom Category"
+msgstr ""
+
+#: templates/workers/profile_edit.html:795
+msgid "Category Name *"
+msgstr ""
+
+#: templates/workers/profile_edit.html:816
+#: templates/workers/profile_edit.html:847
+msgid "Add Custom Skill"
+msgstr ""
+
+#: templates/workers/profile_edit.html:822
+msgid "Skill Name *"
+msgstr ""
+
+#: templates/workers/profile_edit.html:835
+#, fuzzy
+#| msgid "Terms of Service"
+msgid "Years of Experience *"
+msgstr "Masharti ya Huduma"
+
+#: templates/workers/profile_edit.html:841
+msgid "Certificate (Optional)"
+msgstr ""
+
+#: templates/workers/profile_setup.html:67
+#, fuzzy
+#| msgid "Choose Your Role"
+msgid "Complete Your Profile"
+msgstr "Chagua Jukumu Lako"
+
+#: templates/workers/profile_setup.html:68
+#, fuzzy
+#| msgid "Fill in your details to get started as a Worker"
+msgid "Fill in your professional details to get started"
+msgstr "Jaza maelezo yako ili kuanza kama Mfanyakazi"
+
+#: templates/workers/profile_setup.html:107
+msgid "State / Province"
+msgstr ""
+
+#: templates/workers/profile_setup.html:122
+#, fuzzy
+#| msgid "optional"
+msgid "(optional)"
+msgstr "hiari"
+
+#: templates/workers/profile_setup.html:131
+msgid "Willing to work at any location"
+msgstr ""
+
+#: templates/workers/profile_setup.html:161
+#, fuzzy
+#| msgid "Service Categories"
+msgid "Work Categories"
+msgstr "Aina za Huduma"
+
+#: templates/workers/profile_setup.html:163
+#, fuzzy
+#| msgid "Select the role that best describes you"
+msgid "Select the categories that match your skills"
+msgstr "Chagua jukumu linalokufaa zaidi"
+
+#: templates/workers/profile_setup.html:179
+msgid "You can update your profile anytime from the dashboard."
+msgstr ""
+
+#: templates/workers/profile_setup.html:181
+#, fuzzy
+#| msgid "Completed Jobs"
+msgid "Complete Profile"
+msgstr "Kazi Zilizokamilika"
+
+# Jobs & Assignments
+#: templates/workers/public_profile.html:44
+#, fuzzy
+#| msgid "Jobs"
+msgid "Jobs done"
+msgstr "Kazi"
+
+#: templates/workers/public_profile.html:48
+msgid "Years"
+msgstr ""
+
+#: templates/workers/public_profile.html:56
+msgid "Details"
+msgstr "Maelezo"
+
+#: templates/workers/public_profile.html:62
+msgid "Travel"
+msgstr ""
+
+#: templates/workers/public_profile.html:63
+#, fuzzy
+#| msgid "Available"
+msgid "Available anywhere"
+msgstr "Inapatikana"
+
+#: templates/workers/public_profile.html:74
+msgid "This worker has not added a bio yet."
+msgstr ""
+
+#: templates/workers/public_profile.html:81
+msgid "Services and skills"
+msgstr ""
+
+#: templates/workers/public_profile.html:94
+msgid "Work experience"
+msgstr ""
+
+#: templates/workers/public_profile.html:110
+msgid "No work experience listed yet."
+msgstr ""
+
+#~ msgid "Admin"
+#~ msgstr "Msimamizi"
+
+#~ msgid "Sign in to continue"
+#~ msgstr "Ingia ili kuendelea"
+
+#~ msgid "Withdrawn"
+#~ msgstr "Imetolewa"
+
+#~ msgid "Withdraw Funds"
+#~ msgstr "Toa Fedha"
+
+# Actions
+#~ msgid "Save"
+#~ msgstr "Hifadhi"
+
+#~ msgid "Loading..."
+#~ msgstr "Inapakia..."
+
+#~ msgid "Error"
+#~ msgstr "Hitilafu"
+
+# Landing page
+#~ msgid "Find Work. Hire Workers. Instantly."
+#~ msgstr "Tafuta Kazi. Ajiri Wafanyakazi. Haraka."
+
+#~ msgid "Privacy Policy"
+#~ msgstr "Sera ya Faragha"
+
+#~ msgid "Language"
+#~ msgstr "Lugha"
+
+#~ msgid "Tanzania's #1 Worker Platform"
+#~ msgstr "Jukwaa la Kwanza la Wafanyakazi Tanzania"
+
+#~ msgid "Sign in"
+#~ msgstr "Ingia"
+
+#~ msgid "App Store"
+#~ msgstr "Duka la Programu"
+
+#~ msgid "Get it on"
+#~ msgstr "Pata kwenye"
+
+#~ msgid "Google Play"
+#~ msgstr "Google Play"
+
+#~ msgid "App coming soon — join the web platform today"
+#~ msgstr "Programu inakuja hivi karibuni — jiunge na jukwaa la wavuti leo"
+
+#~ msgid ""
+#~ "Tanzania's trusted platform connecting clients with verified, skilled "
+#~ "professionals for every job — big or small."
+#~ msgstr ""
+#~ "Jukwaa la kuaminika la Tanzania linalowasiliana wateja na wataalamu wenye "
+#~ "ujuzi waliothshibitishwa kwa kila kazi — kubwa au ndogo."
+
+#~ msgid "Platform"
+#~ msgstr "Jukwaa"
+
+#~ msgid "Hospitality"
+#~ msgstr "Ukarimu"
+
+#~ msgid "Cleaning Services"
+#~ msgstr "Huduma za Usafi"
+
+#~ msgid "Engineering"
+#~ msgstr "Uhandisi"
+
+#~ msgid "Telecom"
+#~ msgstr "Simu"
+
+#~ msgid "Finance"
+#~ msgstr "Fedha"
+
+#~ msgid "FMCG"
+#~ msgstr "Bidhaa za Kila Siku"
+
+#~ msgid "Energy"
+#~ msgstr "Nishati"

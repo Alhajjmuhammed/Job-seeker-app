@@ -1,5 +1,6 @@
 {% extends "clients/base_client.html" %}
 
+{% load i18n %}
 {% block title %}Activity Log - Request #{{ service_request.id }}{% endblock %}
 
 {% block extra_css %}
@@ -43,20 +44,20 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'service_requests_web:client_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'service_requests_web:client_dashboard' %}">{% trans "Dashboard" %}</a></li>
             <li class="breadcrumb-item"><a href="{% url 'service_requests_web:client_request_detail' service_request.id %}">Request #{{ service_request.id }}</a></li>
-            <li class="breadcrumb-item active">Activity Log</li>
+            <li class="breadcrumb-item active">{% trans "Activity Log" %}</li>
         </ol>
     </nav>
     
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2>📋 Activity Log</h2>
+            <h2>{% trans "📋 Activity Log" %}</h2>
             <p class="text-muted mb-0">Request: {{ service_request.title }}</p>
         </div>
         <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Details
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Details" %}
         </a>
     </div>
     
@@ -97,9 +98,9 @@
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
-                    <div class="text-muted small">Activity Log</div>
+                    <div class="text-muted small">{% trans "Activity Log" %}</div>
                     <div class="fs-3 fw-bold text-primary">{{ activities.paginator.count }}</div>
-                    <div class="text-muted small">Total Activities</div>
+                    <div class="text-muted small">{% trans "Total Activities" %}</div>
                 </div>
             </div>
         </div>
@@ -108,30 +109,30 @@
     <!-- Activity Type Filter -->
     <div class="card mb-4">
         <div class="card-body">
-            <div class="btn-group flex-wrap" role="group" aria-label="Activity type filter">
+            <div class="btn-group flex-wrap" role="group" aria-label="{% trans "Activity type filter" %}">
                 <a href="{% url 'service_requests_web:client_request_activity' service_request.id %}" 
                    class="btn btn-sm {% if not activity_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    <i class="bi bi-funnel"></i> All Activities
+                    <i class="bi bi-funnel"></i> {% trans "All Activities" %}
                 </a>
                 <a href="?type=assigned" 
                    class="btn btn-sm {% if activity_type == 'assigned' %}btn-info text-white{% else %}btn-outline-info{% endif %}">
-                    <i class="bi bi-person-plus"></i> Assigned
+                    <i class="bi bi-person-plus"></i> {% trans "Assigned" %}
                 </a>
                 <a href="?type=accepted" 
                    class="btn btn-sm {% if activity_type == 'accepted' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    <i class="bi bi-check-circle"></i> Accepted
+                    <i class="bi bi-check-circle"></i> {% trans "Accepted" %}
                 </a>
                 <a href="?type=started" 
                    class="btn btn-sm {% if activity_type == 'started' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    <i class="bi bi-play-circle"></i> Started
+                    <i class="bi bi-play-circle"></i> {% trans "Started" %}
                 </a>
                 <a href="?type=paused" 
                    class="btn btn-sm {% if activity_type == 'paused' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
-                    <i class="bi bi-pause-circle"></i> Paused
+                    <i class="bi bi-pause-circle"></i> {% trans "Paused" %}
                 </a>
                 <a href="?type=completed" 
                    class="btn btn-sm {% if activity_type == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    <i class="bi bi-check-circle-fill"></i> Completed
+                    <i class="bi bi-check-circle-fill"></i> {% trans "Completed" %}
                 </a>
             </div>
         </div>
@@ -141,7 +142,7 @@
     {% if activities %}
     <div class="card shadow-sm">
         <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Activity Timeline</h5>
+            <h5 class="mb-0"><i class="bi bi-clock-history"></i> {% trans "Activity Timeline" %}</h5>
         </div>
         <div class="card-body">
             <div class="timeline">
@@ -220,14 +221,14 @@
                                     {% if activity.duration %}
                                     <div class="col-auto">
                                         <small class="text-muted">
-                                            <i class="bi bi-clock"></i> Duration: <strong>{{ activity.duration }}</strong>
+                                            <i class="bi bi-clock"></i> {% trans "Duration:" %} <strong>{{ activity.duration }}</strong>
                                         </small>
                                     </div>
                                     {% endif %}
                                     {% if activity.amount_earned %}
                                     <div class="col-auto">
                                         <small class="text-muted">
-                                            <i class="bi bi-currency-dollar"></i> Amount: <strong>TSH {{ activity.amount_earned|floatformat:2 }}</strong>
+                                            <i class="bi bi-currency-dollar"></i> {% trans "Amount:" %} <strong>TSH {{ activity.amount_earned|floatformat:2 }}</strong>
                                         </small>
                                     </div>
                                     {% endif %}
@@ -248,10 +249,10 @@
                 <ul class="pagination pagination-sm mb-0 justify-content-center">
                     {% if activities.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% if activity_type %}&type={{ activity_type }}{% endif %}">First</a>
+                        <a class="page-link" href="?page=1{% if activity_type %}&type={{ activity_type }}{% endif %}">{% trans "First" %}</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ activities.previous_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">Previous</a>
+                        <a class="page-link" href="?page={{ activities.previous_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{% trans "Previous" %}</a>
                     </li>
                     {% endif %}
                     
@@ -263,10 +264,10 @@
                     
                     {% if activities.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ activities.next_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">Next</a>
+                        <a class="page-link" href="?page={{ activities.next_page_number }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{% trans "Next" %}</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ activities.paginator.num_pages }}{% if activity_type %}&type={{ activity_type }}{% endif %}">Last</a>
+                        <a class="page-link" href="?page={{ activities.paginator.num_pages }}{% if activity_type %}&type={{ activity_type }}{% endif %}">{% trans "Last" %}</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -279,11 +280,11 @@
     <div class="card shadow-sm">
         <div class="card-body text-center py-5">
             <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
-            <h5 class="text-muted">No Activities Yet</h5>
-            <p class="text-muted">Activities will appear here once the worker starts working on this request.</p>
+            <h5 class="text-muted">{% trans "No Activities Yet" %}</h5>
+            <p class="text-muted">{% trans "Activities will appear here once the worker starts working on this request." %}</p>
             {% if activity_type %}
             <a href="{% url 'service_requests_web:client_request_activity' service_request.id %}" class="btn btn-primary mt-3">
-                View All Activities
+                {% trans "View All Activities" %}
             </a>
             {% endif %}
         </div>
@@ -293,7 +294,7 @@
     <!-- Helpful Info Card -->
     <div class="card bg-light mt-4">
         <div class="card-body">
-            <h6 class="card-title"><i class="bi bi-info-circle"></i> About Activity Log</h6>
+            <h6 class="card-title"><i class="bi bi-info-circle"></i> {% trans "About Activity Log" %}</h6>
             <p class="card-text small mb-0">
                 The activity log shows all actions taken by the assigned worker on your service request. 
                 This includes when they accepted the assignment, started work, paused, resumed, and completed the service. 

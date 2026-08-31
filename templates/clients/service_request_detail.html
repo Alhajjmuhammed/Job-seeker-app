@@ -1,4 +1,5 @@
 {% extends 'clients/base_client.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Service Request Details - Worker Connect{% endblock %}
@@ -39,35 +40,35 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <strong>Service Category:</strong><br>
+                            <strong>{% trans "Service Category:" %}</strong><br>
                             <span class="text-muted">{{ request.category.name }}</span>
                         </div>
                         <div class="col-md-6">
-                            <strong>Request Date:</strong><br>
+                            <strong>{% trans "Request Date:" %}</strong><br>
                             <span class="text-muted">{{ request.created_at|date:"F d, Y g:i A" }}</span>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <strong>Description:</strong>
+                        <strong>{% trans "Description:" %}</strong>
                         <p class="mt-2">{{ request.description|linebreaks }}</p>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-3">
-                            <strong>Budget:</strong><br>
+                            <strong>{% trans "Budget:" %}</strong><br>
                             <span class="text-success">TSH {{ request.budget }}</span>
                         </div>
                         <div class="col-md-3">
-                            <strong>Workers Needed:</strong><br>
+                            <strong>{% trans "Workers Needed:" %}</strong><br>
                             <span class="text-muted">{{ request.workers_needed }}</span>
                         </div>
                         <div class="col-md-3">
-                            <strong>Urgency:</strong><br>
+                            <strong>{% trans "Urgency:" %}</strong><br>
                             <span class="text-muted">{{ request.get_urgency_display }}</span>
                         </div>
                         <div class="col-md-3">
-                            <strong>Location:</strong><br>
+                            <strong>{% trans "Location:" %}</strong><br>
                             <span class="text-muted">{{ request.location }}</span>
                         </div>
                     </div>
@@ -80,73 +81,73 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="bi bi-credit-card"></i>
-                        Payment Information
+                        {% trans "Payment Information" %}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <strong>Payment Method:</strong><br>
+                            <strong>{% trans "Payment Method:" %}</strong><br>
                             <span class="text-muted">{{ request.payment_method }}</span>
                         </div>
                         <div class="col-md-6">
-                            <strong>Transaction ID:</strong><br>
+                            <strong>{% trans "Transaction ID:" %}</strong><br>
                             <span class="text-muted small">{{ request.payment_transaction_id }}</span>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <strong>Status:</strong><br>
+                        <strong>{% trans "Status:" %}</strong><br>
                         {% if request.payment_verified %}
                         <span class="badge bg-success">
-                            <i class="bi bi-check-circle"></i> Payment Verified
+                            <i class="bi bi-check-circle"></i> {% trans "Payment Verified" %}
                         </span>
                         {% elif request.payment_screenshot %}
                         <span class="badge bg-warning text-dark">
-                            <i class="bi bi-clock"></i> Verification Pending
+                            <i class="bi bi-clock"></i> {% trans "Verification Pending" %}
                         </span>
                         {% else %}
                         <span class="badge bg-secondary">
-                            <i class="bi bi-exclamation-circle"></i> No Proof Uploaded
+                            <i class="bi bi-exclamation-circle"></i> {% trans "No Proof Uploaded" %}
                         </span>
                         {% endif %}
                     </div>
                     
                     {% if request.payment_screenshot %}
                     <div class="mb-3">
-                        <strong>Payment Screenshot:</strong><br>
+                        <strong>{% trans "Payment Screenshot:" %}</strong><br>
                         <div class="text-center p-3 bg-light rounded">
                             <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                            <p class="mb-0 text-success"><strong>Screenshot uploaded successfully</strong></p>
+                            <p class="mb-0 text-success"><strong>{% trans "Screenshot uploaded successfully" %}</strong></p>
                         </div>
                     </div>
                     {% else %}
                     <!-- Late Upload Section -->
                     <div class="alert alert-warning">
                         <i class="bi bi-warning"></i>
-                        <strong>Payment Proof Required!</strong>
-                        <p class="mb-2">Please upload your payment screenshot for faster verification.</p>
-                        <small class="text-danger"><strong>⏰ Upload within 7 minutes for faster processing.</strong></small>
+                        <strong>{% trans "Payment Proof Required!" %}</strong>
+                        <p class="mb-2">{% trans "Please upload your payment screenshot for faster verification." %}</p>
+                        <small class="text-danger"><strong>{% trans "⏰ Upload within 7 minutes for faster processing." %}</strong></small>
                     </div>
                     
                     <div id="screenshotUploadSection">
                         <div id="uploadPreview" style="display: none;" class="text-center mb-3">
-                            <img id="previewImg" src="" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
+                            <img id="previewImg" src="" alt="{% trans "Preview" %}" class="img-fluid rounded" style="max-height: 200px;">
                             <br>
                             <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeUploadedScreenshot()">
-                                <i class="bi bi-trash"></i> Remove
+                                <i class="bi bi-trash"></i> {% trans "Remove" %}
                             </button>
                         </div>
                         
                         <div id="uploadButtonDiv">
                             <label for="paymentScreenshotFile" class="btn btn-primary w-100">
-                                <i class="bi bi-cloud-upload"></i> Upload Payment Screenshot
+                                <i class="bi bi-cloud-upload"></i> {% trans "Upload Payment Screenshot" %}
                             </label>
                             <input type="file" id="paymentScreenshotFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
                         </div>
                         
                         <button type="button" id="submitScreenshotBtn" class="btn btn-success w-100 mt-2" style="display: none;" onclick="submitScreenshot()">
-                            <i class="bi bi-check-circle"></i> Submit Screenshot
+                            <i class="bi bi-check-circle"></i> {% trans "Submit Screenshot" %}
                         </button>
                     </div>
                     {% endif %}
@@ -169,7 +170,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-user-check"></i>
-                        Assigned Workers
+                        {% trans "Assigned Workers" %}
                         <span class="badge bg-primary">{{ assignments_count }} of {{ request.workers_needed }} assigned</span>
                     </h5>
                 </div>
@@ -179,7 +180,7 @@
                         <div class="col-md-3 text-center">
                             {% if assignment.worker.profile_image %}
                             <img src="{{ assignment.worker.profile_image.url }}" 
-                                 alt="Worker Photo" 
+                                 alt="{% trans "Worker Photo" %}" 
                                  class="rounded-circle"
                                  width="80" height="80">
                             {% else %}
@@ -197,11 +198,11 @@
                                 </div>
                                 <div>
                                     {% if assignment.status == 'accepted' %}
-                                    <span class="badge bg-success">Accepted</span>
+                                    <span class="badge bg-success">{% trans "Accepted" %}</span>
                                     {% elif assignment.status == 'in_progress' %}
-                                    <span class="badge bg-info">In Progress</span>
+                                    <span class="badge bg-info">{% trans "In Progress" %}</span>
                                     {% elif assignment.status == 'completed' %}
-                                    <span class="badge bg-primary">Completed</span>
+                                    <span class="badge bg-primary">{% trans "Completed" %}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -244,14 +245,14 @@
             <!-- Status Timeline -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
-                    <h6 class="mb-0">Request Status</h6>
+                    <h6 class="mb-0">{% trans "Request Status" %}</h6>
                 </div>
                 <div class="card-body">
                     <div class="timeline">
                         <div class="timeline-item {% if request.status != 'pending' %}completed{% endif %}">
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6>Request Submitted</h6>
+                                <h6>{% trans "Request Submitted" %}</h6>
                                 <small class="text-muted">{{ request.created_at|date:"M d, Y g:i A" }}</small>
                             </div>
                         </div>
@@ -259,11 +260,11 @@
                         <div class="timeline-item {% if request.status == 'assigned' or request.status == 'in_progress' or request.status == 'completed' %}completed{% endif %}">
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6>Worker Assigned</h6>
+                                <h6>{% trans "Worker Assigned" %}</h6>
                                 {% if request.assigned_worker %}
                                 <small class="text-muted">{{ request.assigned_at|date:"M d, Y g:i A" }}</small>
                                 {% else %}
-                                <small class="text-muted">Pending assignment...</small>
+                                <small class="text-muted">{% trans "Pending assignment..." %}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -271,11 +272,11 @@
                         <div class="timeline-item {% if request.status == 'in_progress' or request.status == 'completed' %}completed{% endif %}">
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6>Work Started</h6>
+                                <h6>{% trans "Work Started" %}</h6>
                                 {% if request.started_at %}
                                 <small class="text-muted">{{ request.started_at|date:"M d, Y g:i A" }}</small>
                                 {% else %}
-                                <small class="text-muted">Not started yet</small>
+                                <small class="text-muted">{% trans "Not started yet" %}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -283,11 +284,11 @@
                         <div class="timeline-item {% if request.status == 'completed' %}completed{% endif %}">
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6>Work Completed</h6>
+                                <h6>{% trans "Work Completed" %}</h6>
                                 {% if request.completed_at %}
                                 <small class="text-muted">{{ request.completed_at|date:"M d, Y g:i A" }}</small>
                                 {% else %}
-                                <small class="text-muted">Not completed yet</small>
+                                <small class="text-muted">{% trans "Not completed yet" %}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -298,21 +299,21 @@
             <!-- Quick Actions -->
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h6 class="mb-0">Actions</h6>
+                    <h6 class="mb-0">{% trans "Actions" %}</h6>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <a href="{% url 'clients:my_service_requests' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-arrow-left"></i> Back to Requests
+                            <i class="fas fa-arrow-left"></i> {% trans "Back to Requests" %}
                         </a>
                         {% if request.status == 'pending' %}
                         <button class="btn btn-outline-danger" onclick="cancelRequest()">
-                            <i class="fas fa-times"></i> Cancel Request
+                            <i class="fas fa-times"></i> {% trans "Cancel Request" %}
                         </button>
                         {% endif %}
                         {% if request.status == 'completed' and not request.client_rating %}
                         <a href="{% url 'service_requests_web:client_rate_worker' request.id %}" class="btn btn-outline-warning">
-                            <i class="fas fa-star"></i> Rate Service
+                            <i class="fas fa-star"></i> {% trans "Rate Service" %}
                         </a>
                         {% elif request.status == 'completed' and request.client_rating %}
                         <span class="badge bg-success">
