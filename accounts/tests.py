@@ -267,7 +267,7 @@ class CurrentUserAPITest(APITestCase):
     
     def setUp(self):
         self.client = APIClient()
-        self.me_url = '/api/auth/me/'
+        self.me_url = '/api/auth/user/'
         
         # Create and authenticate a test user
         self.user = User.objects.create_user(
@@ -311,12 +311,20 @@ class RateLimitingTest(APITestCase):
             'password': 'wrongpassword'
         }
         
-        # Make multiple requests to trigger rate limit
-        # The limit is 5/minute, so 6 requests should trigger it
+        # Read the allowance off the throttle itself rather than hardcoding
+        # it. This test asserted a limit of 5/minute long after the throttle
+        # was raised to 20, so it failed for years while rate limiting
+        # actually worked.
+        from accounts.api_views import LoginRateThrottle
+
+        allowed = int(LoginRateThrottle.rate.split('/')[0])
         responses = []
-        for _ in range(7):
+        for _ in range(allowed + 3):
             response = self.client.post(login_url, data, format='json')
             responses.append(response.status_code)
-        
-        # At least one should be rate limited (429)
-        self.assertIn(429, responses)
+
+        self.assertIn(429, responses,
+                      f'no 429 after {allowed + 3} attempts against a '
+                      f'{LoginRateThrottle.rate} throttle')
+        self.assertEqual(responses[:allowed].count(429), 0,
+                         'throttled before the allowance was used up')

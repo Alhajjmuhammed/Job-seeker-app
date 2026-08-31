@@ -104,12 +104,12 @@ class ClientAPITest(APITestCase):
     def test_get_client_profile_authenticated(self):
         """Test getting client profile requires authentication"""
         # Without auth
-        response = self.api_client.get('/api/client/profile/')
+        response = self.api_client.get('/api/clients/profile/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         
         # With auth
         self.api_client.credentials(HTTP_AUTHORIZATION=f'Token {self.client_token.key}')
-        response = self.api_client.get('/api/client/profile/')
+        response = self.api_client.get('/api/clients/profile/')
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND])
     
     def test_update_client_profile(self):
@@ -119,13 +119,14 @@ class ClientAPITest(APITestCase):
             'company_name': 'Updated Company Name',
             'city': 'Portland'
         }
-        response = self.api_client.patch('/api/client/profile/', data)
+        # Updates have their own endpoint; the read URL does not accept PATCH.
+        response = self.api_client.patch('/api/clients/profile/update/', data)
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND])
     
     def test_worker_cannot_access_client_profile(self):
         """Test that workers cannot access client-only endpoints"""
         self.api_client.credentials(HTTP_AUTHORIZATION=f'Token {self.worker_token.key}')
-        response = self.api_client.get('/api/client/profile/')
+        response = self.api_client.get('/api/clients/profile/')
         # Should be forbidden or not found for workers
         self.assertIn(response.status_code, [
             status.HTTP_403_FORBIDDEN, 

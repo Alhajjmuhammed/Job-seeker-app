@@ -151,6 +151,27 @@ for url, label in (('/clients/dashboard/', 'client dashboard'),
           'bx_worker' in page or (wu.get_full_name() or 'zz') in page,
           f'HTTP {resp.status_code} - shows nobody assigned')
 
+# --- a new worker is discoverable by clients --------------------------
+wp.availability = 'available'; wp.is_public = True
+wp.verification_status = 'verified'; wp.save()
+r = cc.get('/api/workers/featured/')
+names = str(r.json()) if r.status_code == 200 else ''
+check('an unrated worker can still be featured',
+      wu.get_full_name() in names or 'bx_worker' in names or wp.id and str(wp.id) in names,
+      f'HTTP {r.status_code} - featured list is empty for a 0-rated worker')
+
+# --- profile completion is actually computed --------------------------
+wp.has_uploaded_national_id = True; wp.city = 'Dar'; wp.save()
+wp.categories.add(cat)
+wp.recalculate_completion()
+wp.refresh_from_db()
+check('profile completion is computed, not left at zero',
+      wp.profile_completion_percentage > 0,
+      f'percentage={wp.profile_completion_percentage}')
+check('a worker with ID, a category and a location counts as complete',
+      wp.is_profile_complete is True,
+      f'is_profile_complete={wp.is_profile_complete}')
+
 # --- 9. every template still parses ----------------------------------
 import pathlib
 from django.template.loader import get_template

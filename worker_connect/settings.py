@@ -549,6 +549,10 @@ if _redis_url:
 # Custom Exception Handler for standardized error responses
 REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'worker_connect.error_codes.custom_exception_handler'
 
+# Clear the cache between tests so DRF throttle counters cannot leak from
+# one test into the next - see worker_connect/test_runner.py.
+TEST_RUNNER = 'worker_connect.test_runner.CacheIsolatingTestRunner'
+
 # Production Security Settings
 if not DEBUG:
     # HTTPS-dependent settings used to be unconditionally True here,

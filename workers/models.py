@@ -192,6 +192,42 @@ class WorkerProfile(models.Model):
         """Worker can accept direct hire requests if they have ID and are verified"""
         return self.has_id_document and self.verification_status == 'verified'
     
+    def recalculate_completion(self, save=True):
+        """Work out how complete this profile is, and whether it is usable.
+
+        The percentage was computed inline in four places, only ever when a
+        document was uploaded or deleted, and it never set
+        is_profile_complete - which is why that flag was False for every
+        worker on the platform while several features quietly gated on it.
+        This is the single place that decides both.
+
+        A profile counts as complete when it has what a client needs in
+        order to choose this worker: an ID document on file, at least one
+        service category, and somewhere to work.
+        """
+        percentage = 20  # registered
+        if self.has_uploaded_national_id:
+            percentage += 40
+        optional_documents = self.documents.exclude(document_type='id').count()
+        percentage += min(optional_documents * 10, 20)
+        if self.bio:
+            percentage += 5
+        if self.city or self.can_work_everywhere:
+            percentage += 5
+        if self.pk and self.categories.exists():
+            percentage += 10
+
+        self.profile_completion_percentage = min(percentage, 100)
+        self.is_profile_complete = bool(
+            self.has_uploaded_national_id
+            and (self.city or self.can_work_everywhere)
+            and self.pk and self.categories.exists()
+        )
+        if save:
+            self.save(update_fields=[
+                'profile_completion_percentage', 'is_profile_complete'])
+        return self.profile_completion_percentage
+
     @property
     def completion_rate(self):
         if self.total_jobs > 0:

@@ -122,11 +122,15 @@ def featured_workers(request):
         # Get top-rated available workers. average_rating/completed_jobs
         # are already real, maintained fields on WorkerProfile - no need
         # to (mis)annotate them from unrelated relations.
+        # Requiring a 4.0 rating meant nobody could ever be featured on a
+        # new marketplace: an unrated worker has average_rating 0, so this
+        # returned an empty list for all 15 live workers and clients saw no
+        # one at all. Rating decides the ORDER now, not eligibility.
+        # is_profile_complete was also required while nothing ever set it.
         featured = WorkerProfile.objects.filter(
             availability='available',
-            is_profile_complete=True,
             is_public=True,
-            average_rating__gte=4.0,  # Only workers with 4+ rating
+            verification_status='verified',
         ).order_by('-average_rating', '-completed_jobs')[:6]
         
         # Serialize data
@@ -436,24 +440,8 @@ def upload_document(request):
         # Update profile if National ID uploaded
         if document_type == 'id':
             profile.has_uploaded_national_id = True
-            
-            # Calculate new completion percentage
-            base_percentage = 20  # Registration complete
-            id_percentage = 40    # National ID uploaded
-            optional_docs = profile.documents.exclude(document_type='id').count()
-            optional_percentage = min(optional_docs * 10, 30)  # Max 30% for optional docs
-            
-            profile.profile_completion_percentage = base_percentage + id_percentage + optional_percentage
-            profile.save()
-        else:
-            # Recalculate for optional documents
-            optional_docs = profile.documents.exclude(document_type='id').count()
-            base_percentage = 20
-            id_percentage = 40 if profile.has_uploaded_national_id else 0
-            optional_percentage = min(optional_docs * 10, 30)
-            
-            profile.profile_completion_percentage = base_percentage + id_percentage + optional_percentage
-            profile.save()
+            profile.save(update_fields=['has_uploaded_national_id'])
+        profile.recalculate_completion()
         
         return Response({
             'id': document.id,
@@ -531,20 +519,9 @@ def delete_document(request, document_id):
             # in place with nothing backing it.
             if profile.verification_status == 'verified':
                 profile.verification_status = 'pending'
-            # Recalculate completion percentage
-            optional_docs = profile.documents.exclude(document_type='id').count()
-            base_percentage = 20  # Registration complete
-            optional_percentage = min(optional_docs * 10, 30)
-            profile.profile_completion_percentage = base_percentage + optional_percentage
-            profile.save()
-        else:
-            # Recalculate for optional documents
-            optional_docs = profile.documents.exclude(document_type='id').count()
-            base_percentage = 20
-            id_percentage = 40 if profile.has_uploaded_national_id else 0
-            optional_percentage = min(optional_docs * 10, 30)
-            profile.profile_completion_percentage = base_percentage + id_percentage + optional_percentage
-            profile.save()
+            profile.save(update_fields=[
+                'has_uploaded_national_id', 'verification_status'])
+        profile.recalculate_completion()
         
         return Response({
             'message': 'Document deleted successfully',
