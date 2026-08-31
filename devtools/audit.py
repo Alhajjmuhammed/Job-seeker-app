@@ -16,7 +16,13 @@ import os
 import pathlib
 import sys
 
-import django
+# Python puts this script's own directory on sys.path, not the working
+# directory, so the project root has to be added explicitly for
+# `python devtools/audit.py` to find the apps.
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+import django  # noqa: E402
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'worker_connect.settings')
 django.setup()
@@ -24,7 +30,6 @@ django.setup()
 from django.apps import apps  # noqa: E402
 from django.core.exceptions import FieldDoesNotExist  # noqa: E402
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKIP_PARTS = ('.venv', 'migrations', 'node_modules', 'devscripts', '__pycache__')
 
 MODELS = {m.__name__: m for m in apps.get_models()}
