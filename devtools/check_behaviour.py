@@ -161,7 +161,14 @@ check('an unrated worker can still be featured',
       f'HTTP {r.status_code} - featured list is empty for a 0-rated worker')
 
 # --- profile completion is actually computed --------------------------
-wp.has_uploaded_national_id = True; wp.city = 'Dar'; wp.save()
+# A real ID document, not just the flag - completion is derived from the
+# documents on file, because the flag is not maintained on every path.
+from workers.models import WorkerDocument
+from django.core.files.uploadedfile import SimpleUploadedFile
+WorkerDocument.objects.create(
+    worker=wp, document_type='id', title='National ID',
+    file=SimpleUploadedFile('id.txt', b'x'))
+wp.city = 'Dar'; wp.save()
 wp.categories.add(cat)
 wp.recalculate_completion()
 wp.refresh_from_db()
@@ -171,6 +178,9 @@ check('profile completion is computed, not left at zero',
 check('a worker with ID, a category and a location counts as complete',
       wp.is_profile_complete is True,
       f'is_profile_complete={wp.is_profile_complete}')
+check('the ID flag is repaired from the documents on file',
+      wp.has_uploaded_national_id is True,
+      'flag still False despite an ID document existing')
 
 # --- 9. every template still parses ----------------------------------
 import pathlib

@@ -205,8 +205,17 @@ class WorkerProfile(models.Model):
         order to choose this worker: an ID document on file, at least one
         service category, and somewhere to work.
         """
+        # Ask the documents, not the has_uploaded_national_id flag. That
+        # flag is only written by the API upload path, so the 12 workers who
+        # uploaded an ID through the website had it left False - they were
+        # verified, with the document on file, and still counted as having
+        # no ID. Repair the flag from the documents while we are here.
+        has_id = self.pk and self.has_id_document
+        if has_id != self.has_uploaded_national_id:
+            self.has_uploaded_national_id = bool(has_id)
+
         percentage = 20  # registered
-        if self.has_uploaded_national_id:
+        if has_id:
             percentage += 40
         optional_documents = self.documents.exclude(document_type='id').count()
         percentage += min(optional_documents * 10, 20)
@@ -219,13 +228,14 @@ class WorkerProfile(models.Model):
 
         self.profile_completion_percentage = min(percentage, 100)
         self.is_profile_complete = bool(
-            self.has_uploaded_national_id
+            has_id
             and (self.city or self.can_work_everywhere)
             and self.pk and self.categories.exists()
         )
         if save:
             self.save(update_fields=[
-                'profile_completion_percentage', 'is_profile_complete'])
+                'profile_completion_percentage', 'is_profile_complete',
+                'has_uploaded_national_id'])
         return self.profile_completion_percentage
 
     @property
