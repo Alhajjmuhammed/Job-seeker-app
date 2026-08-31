@@ -74,7 +74,7 @@ export default function ChooseWorkerScreen() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Choose a Worker</Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Pick who you'd like &mdash; the admin will still confirm before work starts.
+          Pick who you&apos;d like &mdash; the admin will still confirm before work starts.
         </Text>
       </View>
 

@@ -329,7 +329,7 @@ export default function ClientDashboard() {
             <View style={s.emptyBox}>
               <Ionicons name="clipboard-outline" size={44} color={theme.textSecondary} />
               <Text style={s.emptyText}>
-                No service requests yet.{'\n'}Tap "New Request" to get started.
+                No service requests yet.{'\n'}Tap &quot;New Request&quot; to get started.
               </Text>
             </View>
           ) : (

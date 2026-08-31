@@ -607,7 +607,7 @@ export default function RequestServiceScreen() {
               color={assignmentMode === 'client_choice' ? theme.primary : theme.textSecondary}
             />
             <View style={styles.modeRowText}>
-              <Text style={[styles.modeRowTitle, { color: theme.text }]}>I'll pick myself</Text>
+              <Text style={[styles.modeRowTitle, { color: theme.text }]}>I&apos;ll pick myself</Text>
               <Text style={[styles.modeRowSubtitle, { color: theme.textSecondary }]}>Browse worker profiles and choose - admin still confirms</Text>
             </View>
           </TouchableOpacity>
