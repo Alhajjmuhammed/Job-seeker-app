@@ -6,9 +6,22 @@ from .models import (Category, Skill, WorkerProfile, WorkerDocument, WorkExperie
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'is_active', 'created_at']
+    # daily_rate and service_fee are editable straight from the list, so all
+    # of the categories can be priced on one screen and saved in a single
+    # action. Setting them one category at a time through the detail page is
+    # what made pricing the whole catalogue impractical.
+    list_display = ['name', 'daily_rate', 'service_fee', 'client_pays_one_worker',
+                    'is_active', 'created_at']
+    list_editable = ['daily_rate', 'service_fee', 'is_active']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
+    ordering = ['name']
+    list_per_page = 100
+
+    @admin.display(description='Client pays (1 worker)')
+    def client_pays_one_worker(self, obj):
+        """The number a client actually sees, so the fee's effect is visible."""
+        return f'TSh {obj.price_for(1):,.0f}'
 
 
 @admin.register(Skill)

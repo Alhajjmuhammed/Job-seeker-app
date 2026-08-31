@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import csv
 import json
 
@@ -221,24 +221,37 @@ def category_list(request):
             description = request.POST.get('description', '').strip()
             icon = request.POST.get('icon', '').strip()
             daily_rate = request.POST.get('daily_rate', '25.00')
-            
+            # The platform's own cut. This form could not set it at all, so
+            # every category sat at a fee of zero and the marketplace earned
+            # nothing on any booking.
+            service_fee = request.POST.get('service_fee', '0.00')
+
             if name:
                 try:
                     daily_rate_decimal = Decimal(daily_rate)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, InvalidOperation):
                     daily_rate_decimal = Decimal('25.00')
-                    
+                try:
+                    service_fee_decimal = max(Decimal('0.00'), Decimal(service_fee))
+                except (ValueError, TypeError, InvalidOperation):
+                    service_fee_decimal = Decimal('0.00')
+
                 category, created = Category.objects.get_or_create(
                     name=name,
                     defaults={
                         'description': description,
                         'icon': icon,
                         'is_active': True,
-                        'daily_rate': daily_rate_decimal
+                        'daily_rate': daily_rate_decimal,
+                        'service_fee': service_fee_decimal,
                     }
                 )
                 if created:
-                    messages.success(request, f'Category "{name}" created successfully with daily rate ${daily_rate_decimal}!')
+                    messages.success(
+                        request,
+                        f'Category "{name}" created. Clients pay TSh '
+                        f'{daily_rate_decimal:,.0f} per worker plus a TSh '
+                        f'{service_fee_decimal:,.0f} service fee.')
                 else:
                     messages.warning(request, f'Category "{name}" already exists.')
             else:
@@ -258,9 +271,20 @@ def category_list(request):
                     if daily_rate:
                         try:
                             category.daily_rate = Decimal(daily_rate)
-                        except (ValueError, TypeError):
+                        except (ValueError, TypeError, InvalidOperation):
                             pass  # Keep existing rate if invalid
-                    
+
+                    # Update the platform service fee. '' is a meaningful
+                    # value here - it means "no fee" - so only skip when the
+                    # field was not submitted at all.
+                    service_fee = request.POST.get('service_fee')
+                    if service_fee is not None:
+                        try:
+                            category.service_fee = max(
+                                Decimal('0.00'), Decimal(service_fee or '0'))
+                        except (ValueError, TypeError, InvalidOperation):
+                            pass  # Keep existing fee if invalid
+
                     category.save()
                     messages.success(request, f'Category "{category.name}" updated successfully!')
                 except Category.DoesNotExist:
