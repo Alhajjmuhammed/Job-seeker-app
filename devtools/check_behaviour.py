@@ -240,6 +240,32 @@ check('accepting marks the worker busy',
       all(o['worker_availability'] == 'busy' for o in outcomes),
       f"availability: {[o['worker_availability'] for o in outcomes]}")
 
+# --- clocking out must credit the worker's own hours ------------------
+# Three endpoints clock a worker out. Two funnel through clock_out_now(),
+# which only ever updated the request's hours - so a worker who used the
+# website saw 0 hours on their own dashboard however long they worked.
+from jobs.service_request_models import TimeTracking
+from datetime import timedelta
+
+hr = ServiceRequest.objects.create(
+    client=cu, category=cat, title='BX hours', description='d', location='Dar',
+    workers_needed=1, daily_rate=D('20000'), service_fee=D('30000'),
+    preferred_date=timezone.now().date(), status='in_progress')
+hr.total_price = hr.calculate_total_price(); hr.save()
+ha = ServiceRequestAssignment.objects.create(
+    service_request=hr, worker=wp, status='in_progress', worker_payment=hr.daily_rate)
+now = timezone.now()
+log = TimeTracking.objects.create(
+    service_request=hr, worker=wp, clock_in=now - timedelta(hours=4))
+log.clock_out_now(notes='done')
+ha.refresh_from_db(); hr.refresh_from_db()
+check('clocking out records hours on the worker\'s own assignment',
+      D(str(ha.total_hours_worked)) == D('4.00'),
+      f'assignment={ha.total_hours_worked} request={hr.total_hours_worked}')
+check('the request still totals hours across all its workers',
+      D(str(hr.total_hours_worked)) == D('4.00'),
+      f'request={hr.total_hours_worked}')
+
 # --- 9. every template still parses ----------------------------------
 import pathlib
 from django.template.loader import get_template

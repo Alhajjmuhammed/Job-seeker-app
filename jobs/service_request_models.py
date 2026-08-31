@@ -562,18 +562,38 @@ class TimeTracking(models.Model):
         return True
     
     def update_service_request_hours(self):
-        """Update total hours in service request"""
-        if self.duration_hours:
-            # Sum all time logs for this service request
-            from django.db.models import Sum
-            total = TimeTracking.objects.filter(
-                service_request=self.service_request,
-                clock_out__isnull=False
-            ).aggregate(total=Sum('duration_hours'))['total'] or Decimal('0.00')
-            
-            self.service_request.total_hours_worked = total
-            self.service_request.calculate_total_amount()
-            self.service_request.save()
+        """Roll this time log up to the request and to the worker's assignment.
+
+        Only the request's total used to be updated here. A worker's own
+        hours live on their ServiceRequestAssignment, and their statistics
+        are summed from there, so anyone who clocked out through the website
+        or the /service-requests/<pk>/clock-out/ endpoint - both of which
+        come through here - had their hours recorded on the job but showed
+        0 hours worked on their own dashboard. Only the third clock-out
+        path, the one the mobile app happens to use, updated the assignment.
+        """
+        if not self.duration_hours:
+            return
+
+        from django.db.models import Sum
+
+        logs = TimeTracking.objects.filter(
+            service_request=self.service_request, clock_out__isnull=False)
+
+        # The request's total is every worker's hours on the job.
+        total = logs.aggregate(total=Sum('duration_hours'))['total'] or Decimal('0.00')
+        self.service_request.total_hours_worked = total
+        self.service_request.calculate_total_amount()
+        self.service_request.save()
+
+        # The assignment's total is only this worker's own hours.
+        assignment = ServiceRequestAssignment.objects.filter(
+            service_request=self.service_request, worker=self.worker).first()
+        if assignment:
+            mine = logs.filter(worker=self.worker).aggregate(
+                total=Sum('duration_hours'))['total'] or Decimal('0.00')
+            assignment.total_hours_worked = mine
+            assignment.save(update_fields=['total_hours_worked', 'updated_at'])
 
 
 class WorkerActivity(models.Model):
