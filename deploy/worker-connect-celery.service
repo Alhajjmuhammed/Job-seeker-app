@@ -1,0 +1,24 @@
+[Unit]
+Description=Worker Connect Celery Worker
+After=network.target redis-server.service
+Requires=redis-server.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/worker-connect
+EnvironmentFile=/var/www/worker-connect/.env
+Environment="PATH=/var/www/worker-connect/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=worker_connect.settings"
+ExecStart=/var/www/worker-connect/venv/bin/celery -A worker_connect worker \
+    --loglevel=info --concurrency=2
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+StandardOutput=append:/var/log/celery/worker-connect.log
+StandardError=append:/var/log/celery/worker-connect.log
+
+[Install]
+WantedBy=multi-user.target

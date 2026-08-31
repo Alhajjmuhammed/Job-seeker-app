@@ -36,6 +36,15 @@ source $VENV_DIR/bin/activate
 echo -e "${YELLOW}📦 Installing/updating dependencies...${NC}"
 pip install -r requirements.txt --quiet
 
+echo -e "${YELLOW}🔎 Running the static audit...${NC}"
+# Fails the deploy on the defect classes this codebase has actually shipped:
+# queryset paths naming fields that do not exist, None into NOT NULL columns,
+# serializers that cannot be built, missing templates, unbound names.
+if ! python devtools/audit.py; then
+    echo -e "${RED}Audit found problems - deployment stopped before migrating.${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}🗄️  Running database migrations...${NC}"
 python manage.py migrate --noinput
 
@@ -52,6 +61,15 @@ echo -e "${YELLOW}🔄 Restarting Daphne (WebSocket) service...${NC}"
 # so it survives reboots, not just this deploy.
 systemctl enable --now worker-connect-daphne >/dev/null 2>&1
 systemctl restart worker-connect-daphne
+
+echo -e "${YELLOW}🔄 Restarting Celery worker and scheduler...${NC}"
+# Background work - reminder e-mails, scheduled jobs - silently never ran
+# because no worker existed. The broker sits on its own redis database so
+# the queue can never cross with the JamboGo project on the same host.
+systemctl enable --now worker-connect-celery >/dev/null 2>&1
+systemctl restart worker-connect-celery
+systemctl enable --now worker-connect-celery-beat >/dev/null 2>&1
+systemctl restart worker-connect-celery-beat
 
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
 sleep 3

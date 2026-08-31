@@ -1,0 +1,22 @@
+[Unit]
+Description=Worker Connect Celery Beat (scheduled tasks)
+After=network.target redis-server.service worker-connect-celery.service
+Requires=redis-server.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/worker-connect
+EnvironmentFile=/var/www/worker-connect/.env
+Environment="PATH=/var/www/worker-connect/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=worker_connect.settings"
+ExecStart=/var/www/worker-connect/venv/bin/celery -A worker_connect beat \
+    --loglevel=info --schedule /var/log/celery/worker-connect-beat-schedule
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/celery/worker-connect-beat.log
+StandardError=append:/var/log/celery/worker-connect-beat.log
+
+[Install]
+WantedBy=multi-user.target
