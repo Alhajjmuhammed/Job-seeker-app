@@ -239,11 +239,38 @@ class ServiceRequestPublicSerializer(serializers.ModelSerializer):
 
 
 class ServiceRequestListSerializer(serializers.ModelSerializer):
-    """Simplified serializer for list views"""
+    """Simplified serializer for list views.
+
+    client_name and client_phone used to be plain fields, so every consumer
+    of this serializer published them - including /api/search/jobs/, which
+    is AllowAny. Real clients' names and phone numbers were being served to
+    unauthenticated callers on the live site. They are now shown only to
+    someone entitled to them, and they fail CLOSED: with no request in the
+    context we cannot tell who is asking, so we do not answer.
+    """
     category_name = serializers.CharField(source='category.name', read_only=True)
-    client_name = serializers.CharField(source='client.get_full_name', read_only=True)
-    client_phone = serializers.CharField(source='client.phone_number', read_only=True)
+    client_name = serializers.SerializerMethodField()
+    client_phone = serializers.SerializerMethodField()
     worker_name = serializers.SerializerMethodField()
+
+    def _may_see_client(self, obj):
+        """The client themselves, a worker on the job, or staff."""
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if user is None or not user.is_authenticated:
+            return False
+        if user.is_staff or obj.client_id == user.id:
+            return True
+        worker_profile = getattr(user, 'worker_profile', None)
+        if worker_profile is None:
+            return False
+        return obj.assignments.filter(worker=worker_profile).exists()
+
+    def get_client_name(self, obj):
+        return obj.client.get_full_name() if self._may_see_client(obj) else None
+
+    def get_client_phone(self, obj):
+        return obj.client.phone_number if self._may_see_client(obj) else None
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:

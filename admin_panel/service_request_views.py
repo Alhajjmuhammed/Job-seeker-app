@@ -661,7 +661,7 @@ def admin_dashboard_stats(request):
     
     # Recent activities
     recent_requests = ServiceRequest.objects.order_by('-created_at')[:5]
-    recent_requests_data = ServiceRequestListSerializer(recent_requests, many=True).data
+    recent_requests_data = ServiceRequestListSerializer(recent_requests, many=True, context={'request': request}).data
     
     return Response({
         'total_requests': total_requests,

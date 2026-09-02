@@ -266,6 +266,39 @@ check('the request still totals hours across all its workers',
       D(str(hr.total_hours_worked)) == D('4.00'),
       f'request={hr.total_hours_worked}')
 
+# --- client contact details must never reach the public -------------
+# /api/search/jobs/ is AllowAny and serialised client_phone, so real
+# clients' names and phone numbers were served to anyone on the internet.
+cu.phone_number = '+255700123456'; cu.save()
+anon = TC()
+for url in ('/api/search/jobs/', '/api/v1/search/jobs/'):
+    body = anon.get(url).content.decode('utf8', 'replace')
+    check(f'{url} hides the client phone from anonymous callers',
+          '+255123' not in body and cu.phone_number not in body,
+          'client phone served to the public internet')
+    check(f'{url} hides the client name from anonymous callers',
+          (cu.get_full_name() or 'zzzz') not in body,
+          'client name served to the public internet')
+
+# a worker with no connection to the job must not get contact details.
+# (the fixture worker IS assigned, and so is entitled to them.)
+stranger = User.objects.create_user(username='bx_stranger', email='bx_s@t.co',
+                                    password='Pw!23456', user_type='worker')
+WorkerProfile.objects.create(user=stranger)
+sc = TC(); sc.force_login(stranger)
+body = sc.get('/api/search/jobs/').content.decode('utf8', 'replace')
+check('an unrelated worker gets no client phone from search',
+      cu.phone_number not in body, 'phone exposed to an unassigned worker')
+body = c.get('/api/search/jobs/').content.decode('utf8', 'replace')
+check('the assigned worker still gets the contact details they need',
+      cu.phone_number in body, 'gating too aggressive - assigned worker lost the phone')
+
+# but the people entitled to it must still receive it
+body = cc.get('/api/v1/clients/requests/').content.decode('utf8', 'replace')
+check('the client still sees their own details in their own list',
+      cu.phone_number in body or cu.get_full_name() in body,
+      'gating is too aggressive - the owner lost their own data')
+
 # --- 9. every template still parses ----------------------------------
 import pathlib
 from django.template.loader import get_template

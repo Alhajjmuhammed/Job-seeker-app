@@ -245,7 +245,7 @@ def client_pending_requests(request):
         status='pending'
     ).select_related('category').order_by('-created_at')
     
-    serializer = ServiceRequestListSerializer(queryset, many=True)
+    serializer = ServiceRequestListSerializer(queryset, many=True, context={'request': request})
     return Response({
         'count': queryset.count(),
         'pending_requests': serializer.data
@@ -264,7 +264,7 @@ def client_in_progress_requests(request):
         status__in=['assigned', 'in_progress']
     ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')
     
-    serializer = ServiceRequestListSerializer(queryset, many=True)
+    serializer = ServiceRequestListSerializer(queryset, many=True, context={'request': request})
     return Response({
         'count': queryset.count(),
         'in_progress_requests': serializer.data
