@@ -1396,7 +1396,7 @@ msgstr ""
 
 #: templates/admin_panel/base_admin.html:754
 msgid "Administrator"
-msgstr ""
+msgstr "Msimamizi"
 
 #: templates/admin_panel/base_admin.html:759
 #: templates/admin_panel/worker_verification_list.html:423
@@ -2233,7 +2233,7 @@ msgstr "Kazi Zilizokamilika"
 #: templates/admin_panel/job_management.html:342
 #: templates/service_requests/client/my_requests.html:140
 msgid "All Statuses"
-msgstr ""
+msgstr "Hali Zote"
 
 #: templates/admin_panel/job_management.html:344
 #: templates/admin_panel/job_management.html:418
@@ -2626,15 +2626,15 @@ msgstr "Usajili wa Mfanyakazi"
 
 #: templates/admin_panel/reports.html:167
 msgid "Day"
-msgstr ""
+msgstr "Siku"
 
 #: templates/admin_panel/reports.html:170
 msgid "Week"
-msgstr ""
+msgstr "Wiki"
 
 #: templates/admin_panel/reports.html:173
 msgid "Month"
-msgstr ""
+msgstr "Mwezi"
 
 #: templates/admin_panel/reports.html:176
 #, fuzzy
@@ -2870,7 +2870,7 @@ msgstr ""
 #: templates/clients/service_request_detail.html:84
 #: templates/service_requests/client/request_detail.html:476
 msgid "Payment Information"
-msgstr ""
+msgstr "Taarifa za Malipo"
 
 #: templates/admin_panel/service_request_detail.html:190
 #: templates/clients/service_request_detail.html:111
@@ -3215,7 +3215,7 @@ msgstr "Uharaka"
 
 #: templates/admin_panel/service_request_list.html:156
 msgid "Clear"
-msgstr ""
+msgstr "Futa"
 
 #: templates/admin_panel/service_request_list.html:171
 #: templates/service_requests/client/history.html:152
@@ -3461,7 +3461,7 @@ msgstr "Ujumbe"
 #: templates/workers/profile_edit.html:495
 #: templates/workers/profile_setup.html:81
 msgid "Personal Information"
-msgstr ""
+msgstr "Taarifa Binafsi"
 
 #: templates/admin_panel/user_detail.html:355 templates/agents/profile.html:94
 #, fuzzy
@@ -4013,7 +4013,7 @@ msgstr "Wafanyakazi Waliothibitishwa"
 
 #: templates/agents/profile.html:90
 msgid "Account Information"
-msgstr ""
+msgstr "Taarifa za Akaunti"
 
 #: templates/agents/profile.html:111
 msgid "Security"
@@ -4059,7 +4059,7 @@ msgstr ""
 
 #: templates/agents/search_workers.html:77
 msgid "Add to Team"
-msgstr ""
+msgstr "Ongeza kwenye Timu"
 
 #: templates/agents/search_workers.html:93
 msgid ""
@@ -4476,7 +4476,7 @@ msgstr "Tuma Kazi"
 #: templates/workers/profile_edit.html:579
 #: templates/workers/profile_setup.html:112
 msgid "Country"
-msgstr ""
+msgstr "Nchi"
 
 #: templates/clients/rate_worker.html:191
 msgid "Your Current Rating"
@@ -4562,13 +4562,13 @@ msgstr ""
 #: templates/service_requests/client/edit_request.html:87
 #: templates/service_requests/client/request_service.html:224
 msgid "Preferred Date"
-msgstr ""
+msgstr "Tarehe Unayopendelea"
 
 #: templates/clients/request_service.html:201
 #: templates/service_requests/client/edit_request.html:92
 #: templates/service_requests/client/request_service.html:231
 msgid "Preferred Time"
-msgstr ""
+msgstr "Muda Unaopendelea"
 
 #: templates/clients/request_service.html:211
 #: templates/service_requests/client/request_service.html:241
@@ -4595,12 +4595,12 @@ msgstr ""
 #: templates/clients/request_service.html:252
 #: templates/service_requests/client/request_service.html:282
 msgid "3 Months"
-msgstr ""
+msgstr "Miezi 3"
 
 #: templates/clients/request_service.html:257
 #: templates/service_requests/client/request_service.html:287
 msgid "6 Months"
-msgstr ""
+msgstr "Miezi 6"
 
 #: templates/clients/request_service.html:262
 #: templates/service_requests/client/request_service.html:292
@@ -4657,7 +4657,7 @@ msgstr ""
 #: templates/service_requests/client/edit_request.html:142
 #: templates/service_requests/client/request_service.html:385
 msgid "Additional Notes"
-msgstr ""
+msgstr "Maelezo ya Ziada"
 
 #: templates/clients/request_service.html:371
 #: templates/jobs/apply_for_job.html:236
@@ -4860,7 +4860,7 @@ msgstr "Omba Huduma"
 #: templates/clients/service_request_detail.html:63
 #: templates/service_requests/client/request_detail.html:167
 msgid "Workers Needed:"
-msgstr ""
+msgstr "Wafanyakazi Wanaohitajika:"
 
 #: templates/clients/service_request_detail.html:67
 #: templates/service_requests/client/request_detail.html:116
@@ -5022,7 +5022,7 @@ msgstr "Yuko Tayari Kufanya Kazi"
 
 #: templates/clients/worker_detail.html:860
 msgid "Additional Information"
-msgstr ""
+msgstr "Taarifa za Ziada"
 
 #: templates/clients/worker_detail.html:866
 #, fuzzy
@@ -5056,7 +5056,7 @@ msgstr ""
 
 #: templates/clients/worker_detail.html:1065
 msgid "Daily Rate"
-msgstr ""
+msgstr "Kiwango cha Kila Siku"
 
 #: templates/clients/worker_detail.html:1139
 msgid "Share your experience with this worker..."
@@ -5645,7 +5645,7 @@ msgstr "Nyumbani"
 
 #: templates/errors/403.html:9
 msgid "Access Forbidden"
-msgstr ""
+msgstr "Hauruhusiwi"
 
 #: templates/errors/403.html:10
 msgid "You do not have permission to access this resource."
@@ -6247,7 +6247,7 @@ msgstr "Jifunze Zaidi"
 
 #: templates/invoices/invoice_template.html:294
 msgid "INVOICE"
-msgstr ""
+msgstr "Ankara"
 
 #: templates/invoices/invoice_template.html:303
 #: templates/jobs/message_detail.html:19
@@ -6427,7 +6427,7 @@ msgstr ""
 
 #: templates/jobs/client_direct_hires.html:45
 msgid "Sent"
-msgstr ""
+msgstr "Imetumwa"
 
 #: templates/jobs/client_direct_hires.html:75
 #, fuzzy
@@ -6447,7 +6447,7 @@ msgstr "Ombi Jipya"
 
 #: templates/jobs/direct_hire_accept.html:17
 msgid "Accept this job?"
-msgstr ""
+msgstr "Ukubali kazi hii?"
 
 #: templates/jobs/direct_hire_accept.html:18
 msgid "Accepting marks you as busy until the work is complete."
@@ -7015,7 +7015,7 @@ msgstr ""
 
 #: templates/jobs/worker_direct_requests.html:45
 msgid "Received"
-msgstr ""
+msgstr "Imepokelewa"
 
 #: templates/jobs/worker_direct_requests.html:75
 msgid "No client has sent you a direct hire request yet."
@@ -7027,7 +7027,7 @@ msgstr "Aina:"
 
 #: templates/notifications/notification_center.html:231
 msgid "All Types"
-msgstr ""
+msgstr "Aina Zote"
 
 #: templates/notifications/notification_center.html:362
 #, fuzzy
@@ -7983,7 +7983,7 @@ msgstr ""
 
 #: templates/service_requests/client/history.html:125
 msgid "All History"
-msgstr ""
+msgstr "Historia Yote"
 
 #: templates/service_requests/client/history.html:157
 #, fuzzy
@@ -8242,7 +8242,7 @@ msgstr ""
 #: templates/service_requests/worker/clock_out.html:99
 #: templates/service_requests/worker/complete.html:57
 msgid "Daily Rate:"
-msgstr ""
+msgstr "Kiwango cha Kila Siku:"
 
 #: templates/service_requests/client/request_detail.html:141
 #: templates/service_requests/worker/assignment_detail.html:83
@@ -8261,7 +8261,7 @@ msgstr "Tarehe ya Kumaliza:"
 #: templates/service_requests/worker/assignment_detail.html:89
 #: templates/service_requests/worker/respond.html:64
 msgid "Preferred Time:"
-msgstr ""
+msgstr "Muda Unaopendelea:"
 
 #: templates/service_requests/client/request_detail.html:173
 #: templates/service_requests/worker/assignment_detail.html:96
@@ -8287,7 +8287,7 @@ msgstr "Kazi Zilizokamilika"
 
 #: templates/service_requests/client/request_detail.html:200
 msgid "Additional Notes:"
-msgstr ""
+msgstr "Maelezo ya Ziada:"
 
 #: templates/service_requests/client/request_detail.html:215
 msgid "Cancellation Reason:"
@@ -8979,7 +8979,7 @@ msgstr ""
 
 #: templates/service_requests/worker/dashboard.html:133
 msgid "This Week"
-msgstr ""
+msgstr "Wiki Hii"
 
 #: templates/service_requests/worker/dashboard.html:146
 #, fuzzy, python-format
@@ -8996,7 +8996,7 @@ msgstr "Mgawo"
 #: templates/service_requests/worker/dashboard.html:152
 #: templates/workers/base_worker.html:665
 msgid "Activity History"
-msgstr ""
+msgstr "Historia ya Shughuli"
 
 #: templates/service_requests/worker/pending.html:24
 #, python-format
@@ -9007,11 +9007,11 @@ msgstr ""
 #: templates/service_requests/worker/pending.html:44
 #: templates/service_requests/worker/respond.html:57
 msgid "days"
-msgstr ""
+msgstr "Siku"
 
 #: templates/service_requests/worker/pending.html:50
 msgid "Preferred Date:"
-msgstr ""
+msgstr "Tarehe Unayopendelea:"
 
 #: templates/service_requests/worker/pending.html:62
 msgid "View & Respond"
@@ -9449,7 +9449,7 @@ msgstr "Jina la Mwisho"
 
 #: templates/workers/analytics.html:123
 msgid "Last Month"
-msgstr ""
+msgstr "Mwezi Uliopita"
 
 #: templates/workers/analytics.html:126
 msgid "Last 3 Months"
@@ -9665,7 +9665,7 @@ msgstr "Pakia vyeti"
 #: templates/workers/dashboard.html:162
 #: templates/workers/experience_list.html:338
 msgid "Add Experience"
-msgstr ""
+msgstr "Ongeza Uzoefu"
 
 #: templates/workers/dashboard.html:184
 #, fuzzy
