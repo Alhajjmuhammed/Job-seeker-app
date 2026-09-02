@@ -9,7 +9,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Sum, Q
+from django.utils import timezone
 from datetime import datetime, timedelta
+import logging
+
+from clients.models import PaymentTransaction
 
 from jobs.service_request_models import ServiceRequest
 from jobs.service_request_serializers import (
@@ -20,6 +24,8 @@ from jobs.service_request_serializers import (
 from workers.models import Category, WorkerProfile
 from workers.proximity import rank_by_distance
 from worker_connect.pagination import paginate_queryset
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
@@ -112,20 +118,55 @@ def client_create_service_request(request):
     else:
         availability_message = f'{available_workers} worker(s) available. Your request will be processed quickly.'
     
-    # Create service request with pricing
+    # Create service request with pricing.
+    #
+    # Deliberately created UNPAID. This path used to mark a booking 'paid'
+    # because the caller sent a payment_transaction_id - any string at all -
+    # so a client could post a made-up reference and receive the service for
+    # free. The other booking endpoint was fixed to verify the reference;
+    # this one was missed, which left the bypass wide open on
+    # /api/v1/client/service-requests/create/.
+    #
+    # service_fee is snapshotted here too. It was not passed at all, so it
+    # defaulted to zero and the platform earned nothing on anything booked
+    # through this endpoint, however the category was priced.
     service_request = serializer.save(
-        client=request.user, 
+        client=request.user,
         status='pending',
         daily_rate=category.daily_rate,
-        payment_status='paid',
+        service_fee=category.service_fee,
+        payment_status='pending',
         payment_method=payment_method,
-        payment_transaction_id=payment_transaction_id,
-        paid_at=datetime.now()
+        payment_transaction_id='',
+        paid_at=None,
     )
-    
+
     # Calculate and save total price
-    service_request.calculate_total_price()
+    total_price = service_request.calculate_total_price()
     service_request.save()
+
+    # Only a reference this server issued, to this client, for this amount,
+    # and not already spent, is accepted as payment.
+    supplied_reference = (payment_transaction_id or '').strip()
+    if supplied_reference:
+        txn = PaymentTransaction.redeem(
+            supplied_reference, request.user, expected_amount=total_price
+        )
+        if txn is not None:
+            txn.consumed_by = service_request
+            txn.consumed_at = timezone.now()
+            txn.save(update_fields=['consumed_by', 'consumed_at'])
+            service_request.payment_status = 'paid'
+            service_request.payment_transaction_id = txn.reference
+            service_request.paid_at = timezone.now()
+            service_request.save(update_fields=[
+                'payment_status', 'payment_transaction_id', 'paid_at', 'updated_at',
+            ])
+        else:
+            logger.warning(
+                "Rejected unverifiable payment reference %r from user %s",
+                supplied_reference[:32], request.user.pk,
+            )
 
     # Apply the client's chosen assignment mode (no-op unless auto_nearest;
     # falls back to admin_choice if it can't auto-assign)
