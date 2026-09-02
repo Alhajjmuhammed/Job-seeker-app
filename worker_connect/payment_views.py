@@ -6,12 +6,17 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+import logging
 from decimal import Decimal
 from workers.models import Payment, WorkerEarning
 from .payments import PaymentService
 from .payment_serializers import PaymentSerializer, WorkerEarningSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -47,14 +52,30 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Get job and validate
-            from jobs.models import JobRequest
-            job = get_object_or_404(JobRequest, id=job_id)
-            
             if not hasattr(request.user, 'client_profile'):
                 return Response(
                     {'error': 'Only clients can create payments'},
                     status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Get job and validate.
+            #
+            # The job used to be fetched by id alone, so a client could raise
+            # a payment against somebody else's job, and `amount` was taken
+            # from the request body with no check beyond "greater than zero" -
+            # a client could pay 1 for a job worth 55,000. Neither is
+            # exploitable while Stripe is unconfigured and this endpoint
+            # returns 503, but both would go live with the keys.
+            from jobs.models import JobRequest
+            job = get_object_or_404(
+                JobRequest, id=job_id, client=request.user
+            )
+
+            expected = getattr(job, 'total_price', None) or getattr(job, 'budget', None)
+            if expected is not None and amount != Decimal(str(expected)):
+                return Response(
+                    {'error': 'Amount does not match the price of this job'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
             
             # Initialize payment service
@@ -99,9 +120,17 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 'amount': str(amount)
             })
             
-        except Exception as e:
+        except Http404:
+            # get_object_or_404 signals "not yours / not there". Letting the
+            # blanket handler below catch it turned a refusal into a 500.
+            raise
+        except Exception:
+            # str(e) went straight to the caller, which hands out database
+            # and configuration detail on any unexpected failure. Log it,
+            # return something plain.
+            logger.exception("create_payment_intent failed for user %s", request.user.pk)
             return Response(
-                {'error': str(e)},
+                {'error': 'Could not create the payment'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

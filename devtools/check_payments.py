@@ -104,6 +104,51 @@ check('the platform service fee is charged on every booking',
       all(s.total_price == TOTAL for s in ServiceRequest.objects.all()),
       str(sorted({str(s.total_price) for s in ServiceRequest.objects.all()})))
 
+# --- saved payment methods stay private ------------------------------
+from workers.models import BankAccount, MobileMoneyAccount
+from workers.models import WorkerProfile
+w1 = User.objects.create_user(username='pm_a', email='pm_a@t.co', password='Pw!23456', user_type='worker')
+WorkerProfile.objects.create(user=w1)
+w2 = User.objects.create_user(username='pm_b', email='pm_b@t.co', password='Pw!23456', user_type='worker')
+WorkerProfile.objects.create(user=w2)
+acct = BankAccount.objects.create(user=w1, bank_name='CRDB', account_holder_name='A',
+                                  account_number='1234567890123', account_type='savings')
+w1c, w2c = TC(), TC(); w1c.force_login(w1); w2c.force_login(w2)
+
+body = w2c.get('/api/v1/payment-methods/bank-accounts/').content.decode()
+check("a worker cannot list another worker's bank accounts",
+      '1234567890123' not in body and 'CRDB' not in body, body[:120])
+check("a worker cannot fetch another worker's account by id",
+      w2c.get(f'/api/v1/payment-methods/bank-accounts/{acct.id}/').status_code in (403, 404))
+w2c.delete(f'/api/v1/payment-methods/bank-accounts/{acct.id}/')
+acct.refresh_from_db()
+check("a worker cannot delete another worker's account", acct.is_active)
+body = w1c.get('/api/v1/payment-methods/bank-accounts/').content.decode()
+check('the owner still sees their own account', 'CRDB' in body)
+check('the full account number is never returned', '1234567890123' not in body)
+r = w2c.post('/api/v1/payment-methods/bank-accounts/', json.dumps({
+    'bank_name':'NMB','account_holder_name':'B','account_number':'999',
+    'account_type':'savings','user': w1.id}), content_type='application/json')
+check('a payment method cannot be created owned by someone else',
+      not BankAccount.objects.filter(user=w1, bank_name='NMB').exists())
+
+# --- escrow payment intents ------------------------------------------
+# Stripe is unconfigured, so this endpoint answers 503 - but validation
+# runs first, and these are the checks that matter once keys are added.
+from jobs.models import JobRequest
+job = JobRequest.objects.create(client=alice, category=cat, title='J', description='d',
+                                location='Dar', budget=D('55000'), duration_days=1)
+def intent(client, amount):
+    return client.post('/api/v1/payments/payments/create_payment_intent/',
+        json.dumps({'amount': float(amount), 'job_id': job.id}),
+        content_type='application/json')
+check("a client cannot raise a payment against someone else's job",
+      intent(mc, D('55000')).status_code in (403, 404))
+check('a client cannot pay 1 for a 55,000 job',
+      intent(ac, D('1')).status_code == 400)
+check('an internal failure does not echo the exception to the caller',
+      b'Traceback' not in intent(ac, D('55000')).content)
+
 print(f'\n  {ok} passed, {fail} failed\n')
 runner.teardown_databases(cfg)
 raise SystemExit(1 if fail else 0)
