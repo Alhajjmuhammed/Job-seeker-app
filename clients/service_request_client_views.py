@@ -174,12 +174,9 @@ def client_create_service_request(request):
     apply_assignment_mode(service_request)
     service_request.refresh_from_db()
 
-    # Update client profile
-    if hasattr(request.user, 'client_profile'):
-        profile = request.user.client_profile
-        profile.total_jobs_posted += 1
-        profile.total_spent += service_request.total_price
-        profile.save()
+    # Totals are recomputed by the post_save hook on ServiceRequest,
+    # which covers every booking path. Incrementing here as well
+    # counted the same booking twice.
     
     # Notify admin about new request
     from worker_connect.notification_service import NotificationService

@@ -104,6 +104,23 @@ check('the platform service fee is charged on every booking',
       all(s.total_price == TOTAL for s in ServiceRequest.objects.all()),
       str(sorted({str(s.total_price) for s in ServiceRequest.objects.all()})))
 
+# --- totals must count each booking once, not once per code path -----
+# These have to be asserted through the real endpoint. Creating a
+# ServiceRequest directly does not run the view, and the view was
+# incrementing the totals on top of the post_save recompute - so a check
+# built on a directly-created object saw nothing wrong.
+from clients.models import ClientProfile
+prof = ClientProfile.objects.get(user=alice)
+prof.refresh_from_db()
+booked = ServiceRequest.objects.filter(client=alice)
+check('a booking is counted exactly once',
+      prof.total_jobs_posted == booked.count(),
+      f'stored={prof.total_jobs_posted} actual={booked.count()}')
+paid_total = sum((s.total_price for s in booked.filter(payment_status='paid')), D('0'))
+check('spend is counted exactly once',
+      D(str(prof.total_spent)) == paid_total,
+      f'stored={prof.total_spent} actual={paid_total}')
+
 # --- saved payment methods stay private ------------------------------
 from workers.models import BankAccount, MobileMoneyAccount
 from workers.models import WorkerProfile

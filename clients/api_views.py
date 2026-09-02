@@ -806,6 +806,15 @@ def update_service_request(request, request_id):
 @permission_classes([IsAuthenticated])
 def client_jobs(request):
     """Get client's jobs (legacy support)"""
+    # The sibling endpoint at /api/v1/jobs/client/jobs/ refuses a
+    # non-client with 403; this one answered 200 with an empty list, so the
+    # same request got two different answers depending which URL was used.
+    if request.user.user_type != 'client':
+        return Response(
+            {'error': 'Only clients can access this'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
     try:
         jobs = ServiceRequest.objects.filter(client=request.user).order_by('-created_at')
         
@@ -836,6 +845,15 @@ def client_jobs(request):
 @permission_classes([IsAuthenticated])
 def client_job_detail(request, job_id):
     """Get detailed job information (legacy support)"""
+    # The sibling endpoint at /api/v1/jobs/client/jobs/ refuses a
+    # non-client with 403; this one answered 200 with an empty list, so the
+    # same request got two different answers depending which URL was used.
+    if request.user.user_type != 'client':
+        return Response(
+            {'error': 'Only clients can access this'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
     try:
         job = ServiceRequest.objects.get(id=job_id, client=request.user)
         

@@ -248,11 +248,8 @@ def request_service(request, category_id):
                 service_request.payment_screenshot = payment_screenshot
                 service_request.save()
             
-            # Update client profile
-            if hasattr(request.user, 'client_profile'):
-                profile = request.user.client_profile
-                profile.total_jobs_posted += 1
-                profile.save()
+            # Totals are recomputed by the post_save hook on
+            # ServiceRequest; incrementing here double-counted.
             
             # Notify admin
             from worker_connect.notification_service import NotificationService

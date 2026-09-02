@@ -132,9 +132,10 @@ def job_create(request):
             if not hasattr(request.user, 'client_profile'):
                 from clients.models import ClientProfile
                 ClientProfile.objects.get_or_create(user=request.user)
-            profile = request.user.client_profile
-            profile.total_jobs_posted += 1
-            profile.save()
+            # JobRequest is the deprecated model and has no post_save
+            # totals hook, but ClientProfile.total_jobs_posted counts
+            # ServiceRequests - incrementing it here made the stored
+            # number disagree with the requests it claims to count.
             
             messages.success(request, 'Job posted successfully!')
             return redirect('jobs:job_detail', pk=job.pk)

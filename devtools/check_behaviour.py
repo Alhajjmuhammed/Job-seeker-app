@@ -103,6 +103,11 @@ check('admin dashboard counts assigned jobs', assigned >= 2, f'assigned={assigne
 # --- 5. client-only endpoint refuses a worker ------------------------
 r = c.get('/api/v1/jobs/client/jobs/')
 check('client-only endpoint refuses a worker', r.status_code == 403, f'HTTP {r.status_code}')
+# the legacy sibling must agree - it used to answer 200 with an empty list
+for legacy in ('/api/clients/jobs/', f'/api/clients/jobs/{sr.id}/'):
+    resp = c.get(legacy)
+    check(f'{legacy} also refuses a worker', resp.status_code == 403,
+          f'HTTP {resp.status_code}')
 
 # --- 6. a rejected-only job is not "assigned" ------------------------
 sr3 = ServiceRequest.objects.create(
