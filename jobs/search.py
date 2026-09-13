@@ -13,7 +13,8 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from jobs.models import JobRequest
 from workers.models import WorkerProfile
 from jobs.serializers import JobRequestSerializer
-from workers.serializers import WorkerProfileSerializer
+from workers.serializers import WorkerPublicSerializer
+from worker_connect.search_views import _as_number
 
 
 @api_view(['GET'])
@@ -78,13 +79,13 @@ def search_jobs(request):
     
     if min_budget:
         try:
-            jobs = jobs.filter(budget__gte=float(min_budget))
+            jobs = jobs.filter(budget__gte=_as_number(min_budget))
         except ValueError:
             pass
     
     if max_budget:
         try:
-            jobs = jobs.filter(budget__lte=float(max_budget))
+            jobs = jobs.filter(budget__lte=_as_number(max_budget))
         except ValueError:
             pass
     
@@ -188,7 +189,7 @@ def search_workers(request):
     # Rating filter
     if min_rating:
         try:
-            workers = workers.filter(average_rating__gte=float(min_rating))
+            workers = workers.filter(average_rating__gte=_as_number(min_rating))
         except ValueError:
             pass
 
@@ -206,7 +207,7 @@ def search_workers(request):
     end = start + page_size
     workers = workers[start:end]
     
-    serializer = WorkerProfileSerializer(workers, many=True)
+    serializer = WorkerPublicSerializer(workers, many=True)
     
     return Response({
         'results': serializer.data,

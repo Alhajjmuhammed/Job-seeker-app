@@ -10,7 +10,7 @@ from jobs.service_request_models import ServiceRequest
 from workers.models import WorkerProfile, Category
 from clients.models import ClientProfile
 from jobs.service_request_serializers import ServiceRequestListSerializer
-from workers.serializers import WorkerProfileSerializer
+from workers.serializers import WorkerPublicSerializer
 
 class SearchPagination(PageNumberPagination):
     page_size = 20
@@ -32,6 +32,24 @@ def haversine_distance(lat1, lon1, lat2, lon2):
         return c * r
     except (ValueError, TypeError):
         return float('inf')
+
+def _as_number(raw, default=None):
+    """A query-string number, or the default when it is not one.
+
+    These filters were passed straight to float(), so ?min_rating=abc or
+    ?min_budget=1e999 raised out of the view and returned a 500 to anyone
+    who mistyped a filter - or probed one.
+    """
+    if raw in (None, ''):
+        return default
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return default
+    if value != value or value in (float('inf'), float('-inf')):
+        return default
+    return value
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -105,10 +123,12 @@ def search_jobs(request):
             jobs = jobs.filter(category__name__iexact=category)
         
         # Price filter
-        if min_budget:
-            jobs = jobs.filter(total_price__gte=float(min_budget))
-        if max_budget:
-            jobs = jobs.filter(total_price__lte=float(max_budget))
+        min_budget_value = _as_number(min_budget)
+        if min_budget_value is not None:
+            jobs = jobs.filter(total_price__gte=min_budget_value)
+        max_budget_value = _as_number(max_budget)
+        if max_budget_value is not None:
+            jobs = jobs.filter(total_price__lte=max_budget_value)
         
         # Location filter (city). ServiceRequest.client is a User FK with no
         # city field - ServiceRequest has its own city field to filter on.
@@ -237,16 +257,18 @@ def search_workers(request):
             workers = workers.filter(categories__name__iexact=category)
         
         # Rating filter
-        if min_rating:
-            workers = workers.filter(average_rating__gte=float(min_rating))
+        min_rating_value = _as_number(min_rating)
+        if min_rating_value is not None:
+            workers = workers.filter(average_rating__gte=min_rating_value)
         
         # Price filter. Workers are paid for the job, not by the hour, and
         # the amount is set on the category rather than the worker - so a
         # price ceiling means "only categories that cost at most this".
-        if max_rate:
+        max_rate_value = _as_number(max_rate)
+        if max_rate_value is not None:
             try:
                 workers = workers.filter(
-                    categories__daily_rate__lte=float(max_rate)
+                    categories__daily_rate__lte=max_rate_value
                 ).distinct()
             except (TypeError, ValueError):
                 pass
@@ -309,7 +331,7 @@ def search_workers(request):
         page = paginator.paginate_queryset(workers, request)
         
         if page is not None:
-            serializer = WorkerProfileSerializer(page, many=True, context={'request': request})
+            serializer = WorkerPublicSerializer(page, many=True, context={'request': request})
             return paginator.get_paginated_response({
                 'workers': serializer.data,
                 'total_count': workers.count(),
@@ -324,7 +346,7 @@ def search_workers(request):
                 }
             })
         
-        serializer = WorkerProfileSerializer(workers, many=True, context={'request': request})
+        serializer = WorkerPublicSerializer(workers, many=True, context={'request': request})
         return Response({
             'success': True,
             'workers': serializer.data,

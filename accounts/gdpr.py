@@ -298,32 +298,47 @@ class GDPRService:
         # Store original email hash for duplicate prevention
         email_hash = hashlib.sha256(user.email.encode()).hexdigest()
         
-        # Anonymize account
+        # Anonymize account.
+        #
+        # phone_number and profile_picture used to survive this: the code
+        # cleared `profile.phone`, but neither profile model has that field,
+        # so the branch never ran - the phone lives on User. A phone number
+        # and a photograph identify someone at least as well as their name,
+        # so an "anonymised" account that kept both was not anonymous.
         user.email = f"deleted_{anon_id}@anonymized.local"
         user.username = f"deleted_{anon_id}"
         user.first_name = "Deleted"
         user.last_name = "User"
+        user.phone_number = ""
+        if user.profile_picture:
+            user.profile_picture.delete(save=False)
+            user.profile_picture = None
+        user.email_verified = False
+        user.phone_verified = False
         user.is_active = False
         user.save()
-        
+
         # Anonymize worker profile
         if hasattr(user, 'worker_profile') and user.worker_profile:
             profile = user.worker_profile
-            if hasattr(profile, 'bio'):
-                profile.bio = "[Deleted]"
-            if hasattr(profile, 'phone'):
-                profile.phone = ""
-            if hasattr(profile, 'address'):
-                profile.address = ""
+            profile.bio = "[Deleted]"
+            profile.address = ""
+            profile.city = ""
+            # coordinates pinpoint a home address on their own
+            profile.latitude = None
+            profile.longitude = None
+            if profile.profile_image:
+                profile.profile_image.delete(save=False)
+                profile.profile_image = None
             profile.save()
-        
-        # Anonymize client profile  
+
+        # Anonymize client profile
         if hasattr(user, 'client_profile') and user.client_profile:
             profile = user.client_profile
-            if hasattr(profile, 'company_name'):
-                profile.company_name = "[Deleted]"
-            if hasattr(profile, 'phone'):
-                profile.phone = ""
+            profile.company_name = "[Deleted]"
+            profile.address = ""
+            profile.city = ""
+            profile.bio = ""
             profile.save()
         
         # Anonymize messages

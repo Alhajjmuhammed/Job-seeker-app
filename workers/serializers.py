@@ -106,3 +106,40 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
             instance.skills.set(skill_ids)
         
         return instance
+
+
+class WorkerPublicSerializer(serializers.ModelSerializer):
+    """What a stranger may see of a worker.
+
+    WorkerProfileSerializer is the worker's own full record - it carries
+    their email, phone number, street address, postal code, GPS coordinates,
+    lifetime earnings and religion. The public worker search rendered it
+    straight to unauthenticated callers, so every worker's contact details,
+    home area and religious affiliation were readable by anyone on the
+    internet. Religion is special-category data; none of it belongs in a
+    directory listing.
+
+    What stays is what a client needs in order to choose someone: who they
+    are, what they do, how well they are rated, and roughly where they work.
+    """
+
+    categories = CategorySerializer(many=True, read_only=True)
+    skills = SkillSerializer(many=True, read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WorkerProfile
+        fields = [
+            'id', 'first_name', 'last_name', 'full_name',
+            'bio', 'profile_image', 'worker_type',
+            'categories', 'skills', 'experience_years',
+            'city', 'country', 'can_work_everywhere',
+            'availability', 'verification_status', 'is_featured',
+            'average_rating', 'completed_jobs',
+        ]
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username
