@@ -48,7 +48,9 @@ def apply_assignment_mode(service_request):
 
     candidates = WorkerProfile.objects.filter(
         verification_status='verified',
-        availability='available'
+        availability='available',
+        # never auto-assign a worker whose account has been disabled
+        user__is_active=True,
     ).exclude(id__in=already_assigned_ids)
     if service_request.category:
         candidates = candidates.filter(categories=service_request.category)

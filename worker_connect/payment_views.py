@@ -19,8 +19,17 @@ from .payment_serializers import PaymentSerializer, WorkerEarningSerializer
 logger = logging.getLogger(__name__)
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
-    """Payment management viewset"""
+class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    """Payment management viewset.
+
+    Read-only on purpose. As a ModelViewSet this exposed create, update and
+    destroy built straight from the serializer, and `status` and `amount`
+    were writable - so a client could POST a Payment of their own with
+    status 'completed' and have it accepted, bypassing create_payment_intent,
+    the Stripe check and every amount validation. Money moves through the
+    explicit actions below (create_payment_intent, confirm_payment,
+    release_escrow), which is the only path that verifies anything.
+    """
     
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]

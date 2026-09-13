@@ -121,7 +121,9 @@ def admin_service_request_detail(request, pk):
         available_workers = WorkerProfile.objects.filter(
             categories=service_request.category,
             verification_status='verified',
-            availability='available'
+            availability='available',
+            # never offer a worker whose account has been disabled
+            user__is_active=True,
         ).select_related('user')
 
         # Sort by distance when we know where the request is; otherwise
@@ -525,7 +527,9 @@ def admin_auto_assign_nearest_workers(request, pk):
 
     candidates = WorkerProfile.objects.filter(
         verification_status='verified',
-        availability='available'
+        availability='available',
+        # never offer a worker whose account has been disabled
+        user__is_active=True,
     ).exclude(id__in=already_assigned_ids)
 
     if service_request.category:

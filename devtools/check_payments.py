@@ -166,6 +166,21 @@ check('a client cannot pay 1 for a 55,000 job',
 check('an internal failure does not echo the exception to the caller',
       b'Traceback' not in intent(ac, D('55000')).content)
 
+# --- payments cannot be forged through the CRUD routes ----------------
+# PaymentViewSet was a full ModelViewSet with `status` and `amount`
+# writable, so a client could POST a Payment of their own marked
+# 'completed' and have it accepted with a 201.
+for method, path in (('post', '/api/v1/payments/payments/'),):
+    r = getattr(ac, method)(path, json.dumps(
+        {'job': job.id, 'amount': '1.00', 'status': 'completed'}),
+        content_type='application/json')
+    check('a client cannot create a payment row directly',
+          r.status_code in (403, 405), f'HTTP {r.status_code} {r.content[:90]}')
+from worker_connect.payment_serializers import PaymentSerializer
+writable = {f for f, fld in PaymentSerializer().fields.items() if not fld.read_only}
+check('payment status and amount are not client-writable',
+      not ({'status', 'amount'} & writable), f'writable: {sorted(writable)}')
+
 print(f'\n  {ok} passed, {fail} failed\n')
 runner.teardown_databases(cfg)
 raise SystemExit(1 if fail else 0)

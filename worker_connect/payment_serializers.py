@@ -39,6 +39,10 @@ class PaymentSerializer(serializers.ModelSerializer):
             'created_at',
             'processed_at', 
             'completed_at',
+            # never settable by a client: money and state move only through
+            # the explicit payment actions
+            'status',
+            'amount',
         ]
 
 

@@ -131,6 +131,8 @@ def featured_workers(request):
             availability='available',
             is_public=True,
             verification_status='verified',
+            # A disabled account must never be offered work it cannot accept.
+            user__is_active=True,
         ).order_by('-average_rating', '-completed_jobs')[:6]
         
         # Serialize data

@@ -113,13 +113,21 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
     
     @database_sync_to_async
     def get_user_from_token(self, token):
-        """Authenticate user from token."""
+        """Authenticate user from token.
+
+        DRF's own TokenAuthentication refuses a token whose user is
+        inactive; this hand-rolled lookup did not, so a suspended or
+        deleted-in-all-but-name account kept its live notification feed and
+        could still join chats with a token issued before the ban.
+        """
         from rest_framework.authtoken.models import Token
         try:
             token_obj = Token.objects.select_related('user').get(key=token)
-            return token_obj.user
         except Token.DoesNotExist:
             return None
+        if not token_obj.user.is_active:
+            return None
+        return token_obj.user
     
     @database_sync_to_async
     def mark_notification_read(self, notification_id):
@@ -350,13 +358,21 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     
     @database_sync_to_async
     def get_user_from_token(self, token):
-        """Authenticate user from token."""
+        """Authenticate user from token.
+
+        DRF's own TokenAuthentication refuses a token whose user is
+        inactive; this hand-rolled lookup did not, so a suspended or
+        deleted-in-all-but-name account kept its live notification feed and
+        could still join chats with a token issued before the ban.
+        """
         from rest_framework.authtoken.models import Token
         try:
             token_obj = Token.objects.select_related('user').get(key=token)
-            return token_obj.user
         except Token.DoesNotExist:
             return None
+        if not token_obj.user.is_active:
+            return None
+        return token_obj.user
     
     @database_sync_to_async
     def user_in_conversation(self):

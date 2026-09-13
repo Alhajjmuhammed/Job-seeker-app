@@ -54,6 +54,13 @@ def bulk_user_action(request):
         
         elif action == 'deactivate':
             affected_count = users.update(is_active=False)
+            # Discovery and the assignment pickers filter on
+            # WorkerProfile.availability, not on the linked account, so a
+            # deactivated worker stayed on the featured list and could still
+            # be assigned jobs they were no longer able to log in and accept.
+            # 'suspend' on the worker endpoint already did this; deactivate
+            # here did not.
+            WorkerProfile.objects.filter(user__in=users).update(availability='offline')
         
         elif action == 'delete':
             affected_count = users.count()
@@ -186,7 +193,16 @@ def bulk_job_action(request):
                 affected_count += 1
 
         elif action == 'delete':
+            # Release the workers before the rows go. A plain queryset
+            # delete cascades the assignments away but never touches
+            # WorkerProfile.availability, so everyone who was on a deleted
+            # job stayed 'busy' forever - invisible to the featured list and
+            # to every admin assignment picker, with no way back except
+            # editing their own profile. Same omission the bulk cancel above
+            # already had fixed; delete was missed.
             affected_count = jobs.count()
+            for job in jobs:
+                job.cancel(reason='Request deleted by an administrator')
             jobs.delete()
     
     return Response({
