@@ -82,7 +82,19 @@ class RegisterSerializer(serializers.Serializer):
                 is_profile_complete=False,
                 agent=agent,
             )
-        
+        elif validated_data['userType'] == 'client':
+            # Only workers were given a profile here. Five places reach for
+            # client_profile directly, so a client who registered through the
+            # API - which is how the mobile app registers everyone - hit
+            # errors on booking, invoices and their own profile page. The web
+            # form was fixed; this path was not, and backfill_profiles had to
+            # repair the accounts it left behind.
+            from clients.models import ClientProfile
+            ClientProfile.objects.create(user=user)
+        elif validated_data['userType'] == 'agent':
+            from agents.models import AgentProfile
+            AgentProfile.objects.create(user=user)
+
         return user
 
 

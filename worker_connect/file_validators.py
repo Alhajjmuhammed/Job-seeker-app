@@ -23,13 +23,23 @@ ALLOWED_FILE_TYPES = {
         'mime_types': ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
         'max_size': 5 * 1024 * 1024,  # 5MB
     },
+    # Worker documents are mostly a photograph of a National ID taken on a
+    # phone, and the app's picker offers image/* alongside application/pdf.
+    # Leaving images out of this category rejected every one of those
+    # uploads, which blocked verification - the step the whole platform
+    # gates on. EXTENSION_MIME_MAP still pins each extension to its real
+    # sniffed type, so a .png must genuinely be a PNG.
     'document': {
-        'extensions': ['.pdf', '.doc', '.docx', '.txt'],
+        'extensions': ['.pdf', '.doc', '.docx', '.txt',
+                       '.jpg', '.jpeg', '.png', '.webp'],
         'mime_types': [
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'text/plain',
+            'image/jpeg',
+            'image/png',
+            'image/webp',
         ],
         'max_size': 10 * 1024 * 1024,  # 10MB
     },

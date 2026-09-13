@@ -2114,6 +2114,21 @@ def agent_detail(request, agent_id):
     return render(request, 'admin_panel/agent_detail.html', context)
 
 
+def _parse_commission_rate(raw):
+    """Validate a commission percentage, or raise ValueError.
+
+    AgentProfile.commission_rate carries MinValueValidator(0) and
+    MaxValueValidator(100), but Django only runs validators from
+    full_clean(), and these views assigned the float and called save()
+    directly - so 500 and -20 both stuck. At 500% a worker earning 25,000
+    credited their agent 125,000, against a platform fee of 30,000.
+    """
+    rate = Decimal(str(raw))
+    if rate < 0 or rate > 100:
+        raise ValueError('commission rate must be between 0 and 100')
+    return rate
+
+
 @staff_member_required
 @require_http_methods(["POST"])
 def approve_agent(request, agent_id):
@@ -2124,9 +2139,10 @@ def approve_agent(request, agent_id):
     commission_rate = request.POST.get('commission_rate')
     if commission_rate:
         try:
-            agent.commission_rate = float(commission_rate)
-        except ValueError:
-            pass
+            agent.commission_rate = _parse_commission_rate(commission_rate)
+        except (ValueError, InvalidOperation):
+            messages.error(request, 'Commission rate must be a number between 0 and 100.')
+            return redirect('admin_panel:agent_detail', agent_id=agent_id)
     agent.approve()
     messages.success(request, f"Agent {agent.display_name} approved. Code: {agent.agent_code}")
     return redirect('admin_panel:agent_detail', agent_id=agent_id)
@@ -2155,11 +2171,11 @@ def update_agent_commission(request, agent_id):
     commission_rate = request.POST.get('commission_rate')
     if commission_rate:
         try:
-            agent.commission_rate = float(commission_rate)
+            agent.commission_rate = _parse_commission_rate(commission_rate)
             agent.save()
             messages.success(request, f"Commission rate updated to {agent.commission_rate}%")
-        except ValueError:
-            messages.error(request, "Invalid commission rate.")
+        except (ValueError, InvalidOperation):
+            messages.error(request, "Commission rate must be a number between 0 and 100.")
     return redirect('admin_panel:agent_detail', agent_id=agent_id)
 
 
