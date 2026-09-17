@@ -1,6 +1,6 @@
 # 🚀 Worker Connect - Web-Only Deployment Guide
 
-Complete deployment guide for deploying Worker Connect web application to your server at **72.62.51.225**.
+Complete deployment guide for deploying Worker Connect web application to your server at **41.59.229.104**.
 
 ---
 
@@ -8,7 +8,7 @@ Complete deployment guide for deploying Worker Connect web application to your s
 
 Your server already has:
 - ✅ Ubuntu/Debian Linux
-- ✅ SSH access (root@72.62.51.225)
+- ✅ SSH access (root@41.59.229.104)
 - ✅ Another Django project running (/var/www/restaurant)
 
 ---
@@ -41,7 +41,7 @@ git push origin web-deployment
 
 ```bash
 # SSH into your server
-ssh root@72.62.51.225
+ssh root@41.59.229.104
 
 # Update system packages
 apt update && apt upgrade -y
@@ -118,7 +118,7 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 # Update these settings:
 SECRET_KEY=paste-generated-key-here
 DEBUG=False
-ALLOWED_HOSTS=your-domain.com,www.your-domain.com,72.62.51.225
+ALLOWED_HOSTS=workersearch.co.tz,www.workersearch.co.tz,41.59.229.104,localhost,127.0.0.1
 DATABASE_URL=postgresql://worker_connect_user:STRONG_PASSWORD_HERE@localhost:5432/worker_connect_db
 ```
 
@@ -161,7 +161,7 @@ cp /var/www/worker-connect/deploy/nginx_worker_connect.conf /etc/nginx/sites-ava
 # Edit configuration to update domain name
 nano /etc/nginx/sites-available/worker-connect
 # Change: server_name your-domain.com www.your-domain.com;
-# To your actual domain or IP: server_name 72.62.51.225;
+# To your actual domain or IP: server_name workersearch.co.tz www.workersearch.co.tz;
 
 # Create symbolic link
 ln -s /etc/nginx/sites-available/worker-connect /etc/nginx/sites-enabled/
@@ -221,11 +221,11 @@ tail -f /var/www/worker-connect/logs/gunicorn-error.log
 tail -f /var/www/worker-connect/logs/nginx-error.log
 
 # Test the website
-curl http://72.62.51.225
-# OR visit in browser: http://72.62.51.225
+curl https://workersearch.co.tz
+# OR visit in browser: https://workersearch.co.tz
 
 # Access admin panel
-# http://72.62.51.225/admin/
+# https://workersearch.co.tz/admin/
 ```
 
 ---
@@ -234,7 +234,7 @@ curl http://72.62.51.225
 
 ```bash
 # SSH into server
-ssh root@72.62.51.225
+ssh root@41.59.229.104
 
 # Navigate to project
 cd /var/www/worker-connect
@@ -401,7 +401,7 @@ git commit -m "Web-only deployment"
 git push origin web-deployment
 
 # === ON SERVER (Initial Setup) ===
-ssh root@72.62.51.225
+ssh root@41.59.229.104
 cd /var/www/worker-connect
 git clone -b web-deployment YOUR_REPO_URL .
 python3 -m venv venv
@@ -455,6 +455,6 @@ systemctl restart worker-connect
 
 ---
 
-**Your Worker Connect web app will be accessible at:** `http://72.62.51.225` or your domain name!
+**Your Worker Connect web app will be accessible at:** `https://workersearch.co.tz` or your domain name!
 
 Good luck with deployment! 🚀

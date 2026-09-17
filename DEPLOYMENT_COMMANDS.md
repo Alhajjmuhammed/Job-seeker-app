@@ -1,6 +1,6 @@
 # 🚀 COMPLETE DEPLOYMENT COMMAND LIST
 
-## All commands needed to deploy Worker Connect web app to root@72.62.51.225
+## All commands needed to deploy Worker Connect web app to root@41.59.229.104
 
 ---
 
@@ -29,7 +29,7 @@ git push origin web-deployment
 
 ```bash
 # === CONNECTION ===
-ssh root@72.62.51.225
+ssh root@41.59.229.104
 
 # === SYSTEM UPDATE ===
 apt update && apt upgrade -y
@@ -71,9 +71,9 @@ nano .env
 ```ini
 SECRET_KEY=paste-the-generated-key-here
 DEBUG=False
-ALLOWED_HOSTS=72.62.51.225,your-domain.com
+ALLOWED_HOSTS=workersearch.co.tz,www.workersearch.co.tz,41.59.229.104
 DATABASE_URL=postgresql://worker_connect_user:YourStrongPassword123!@localhost:5432/worker_connect_db
-CORS_ALLOWED_ORIGINS=http://72.62.51.225
+CORS_ALLOWED_ORIGINS=https://workersearch.co.tz
 CORS_ALLOW_ALL_ORIGINS=False
 ```
 
@@ -112,7 +112,7 @@ upstream worker_connect_app {
 
 server {
     listen 80;
-    server_name 72.62.51.225;
+    server_name workersearch.co.tz www.workersearch.co.tz;
     
     client_max_body_size 20M;
     
@@ -191,10 +191,10 @@ systemctl start worker-connect
 systemctl status worker-connect
 
 # === TEST WEBSITE ===
-curl http://72.62.51.225
+curl https://workersearch.co.tz
 ```
 
-✅ **Your site should now be live at:** `http://72.62.51.225`
+✅ **Your site should now be live at:** `https://workersearch.co.tz`
 
 ---
 
@@ -202,7 +202,7 @@ curl http://72.62.51.225
 
 ```bash
 # === CONNECT TO SERVER ===
-ssh root@72.62.51.225
+ssh root@41.59.229.104
 
 # === NAVIGATE TO PROJECT ===
 cd /var/www/worker-connect
@@ -287,7 +287,7 @@ sudo -u postgres psql -d worker_connect_db -U worker_connect_user
 cd /var/www/worker-connect
 source venv/bin/activate
 python manage.py runserver 0.0.0.0:8002
-# Then visit: http://72.62.51.225:8002
+# Then visit: https://workersearch.co.tz
 
 # Check Python environment
 which python
@@ -356,7 +356,7 @@ tar -czf /backup/media_$(date +%Y%m%d).tar.gz /var/www/worker-connect/media/
 
 ```bash
 # ==================== FULL INITIAL DEPLOYMENT ====================
-ssh root@72.62.51.225
+ssh root@41.59.229.104
 apt update && apt upgrade -y
 apt install -y python3 python3-pip python3-venv nginx postgresql postgresql-contrib git
 sudo -u postgres psql -c "CREATE DATABASE worker_connect_db;"

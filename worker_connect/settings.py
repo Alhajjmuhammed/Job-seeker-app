@@ -557,7 +557,7 @@ TEST_RUNNER = 'worker_connect.test_runner.CacheIsolatingTestRunner'
 if not DEBUG:
     # HTTPS-dependent settings used to be unconditionally True here,
     # ignoring whatever .env said - correct for a server with a real SSL
-    # cert (wc.easyfixsoft.com), but it silently forced an HTTP-redirect
+    # cert (workersearch.co.tz), but it silently forced an HTTP-redirect
     # loop and non-functional (never-sent) secure cookies on any
     # deployment without HTTPS in front of it (e.g. a bare-IP mirror).
     # .env is now authoritative; defaults still assume HTTPS is present,

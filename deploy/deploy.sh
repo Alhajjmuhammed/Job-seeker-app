@@ -98,4 +98,4 @@ if [ "$DEPLOY_OK" = false ]; then
 fi
 
 echo -e "${GREEN}🎉 Deployment completed successfully!${NC}"
-echo -e "${GREEN}Your app is running at: http://72.62.51.225${NC}"
+echo -e "${GREEN}Your app is running at: https://workersearch.co.tz${NC}"
