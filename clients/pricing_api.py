@@ -132,12 +132,18 @@ def calculate_price(request):
 @permission_classes([IsAuthenticated])
 def process_fake_payment(request):
     """
-    Process fake payment for demo purposes (Card or M-Pesa)
+    Process a demo payment (Card or Mixx by YAS).
+
+    Still simulated: YAS is reached over an IPsec tunnel that is not built
+    yet, so no real money moves. The reference this issues is what
+    PaymentTransaction.redeem() checks at booking, and that contract does
+    not change when the real gateway replaces this - only where the
+    reference comes from.
     
     POST /api/v1/client/process-payment/
     Body for Card: {
         "amount": 750.00,
-        "payment_type": "card",  # card or mpesa
+        "payment_type": "card",  # card or yas
         "card_number": "4242424242424242",  # or 5555555555555555 for Mastercard
         "card_holder": "John Doe",
         "card_expiry": "12/28",
@@ -146,7 +152,7 @@ def process_fake_payment(request):
     
     Body for Mobile Money: {
         "amount": 750.00,
-        "payment_type": "mpesa",
+        "payment_type": "yas",
         "phone_number": "+255123456789"
     }
     
@@ -154,7 +160,7 @@ def process_fake_payment(request):
     """
     try:
         amount = request.data.get('amount')
-        payment_type = request.data.get('payment_type', 'card')  # card or mpesa
+        payment_type = request.data.get('payment_type', 'card')  # card or yas
         
         if not amount:
             return Response({
@@ -193,25 +199,25 @@ def process_fake_payment(request):
                 
             payment_method = 'Credit Card'
             
-        elif payment_type == 'mpesa':
+        elif payment_type == 'yas':
             phone_number = request.data.get('phone_number', '')
             
             if not phone_number:
                 return Response({
-                    'error': 'Phone number is required for M-Pesa'
+                    'error': 'Phone number is required for Mixx by YAS'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Demo validation: Accept numbers starting with +255
             if not phone_number.startswith('+255'):
                 return Response({
                     'success': False,
-                    'error': 'Invalid M-Pesa number. Use demo number: +255123456789'
+                    'error': 'Invalid YAS number. Use demo number: +255123456789'
                 }, status=status.HTTP_402_PAYMENT_REQUIRED)
             
             payment_method = 'Mobile Money'
         else:
             return Response({
-                'error': 'Invalid payment type. Use "card" or "mpesa"'
+                'error': 'Invalid payment type. Use "card" or "yas"'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Simulate payment processing delay
@@ -219,7 +225,7 @@ def process_fake_payment(request):
         time.sleep(2)  # Simulate network delay 
         
         # Generate fake transaction ID
-        prefix = 'CARD' if payment_type == 'card' else 'MPESA'
+        prefix = 'CARD' if payment_type == 'card' else 'YAS'
         transaction_id = f"DEMO-{prefix}-{uuid.uuid4().hex[:12].upper()}"
         
         # 98% success rate for demo (using valid test credentials)
@@ -235,7 +241,7 @@ def process_fake_payment(request):
                 reference=transaction_id,
                 client=request.user,
                 amount=amount,
-                method='card' if payment_type == 'card' else 'mpesa',
+                method='card' if payment_type == 'card' else 'yas',
                 is_demo=True,
             )
             return Response({

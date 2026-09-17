@@ -25,7 +25,7 @@ interface PaymentModalProps {
   processPayment: (paymentData: any) => Promise<any>;
 }
 
-type PaymentMethod = 'select' | 'card' | 'mpesa';
+type PaymentMethod = 'select' | 'card' | 'yas';
 
 export default function PaymentModal({
   visible,
@@ -46,7 +46,7 @@ export default function PaymentModal({
   const [cardCVV, setCardCVV] = useState('');
   const [cardType, setCardType] = useState<'visa' | 'mastercard' | null>(null);
 
-  // M-Pesa payment state
+  // Mixx by YAS payment state
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const resetForm = () => {
@@ -156,7 +156,7 @@ export default function PaymentModal({
     }
   };
 
-  const handleMPesaPayment = async () => {
+  const handleYasPayment = async () => {
     // Validation
     if (phoneNumber.length < 13) {
       Alert.alert(t('paymentModal.invalidPhone'), t('paymentModal.invalidPhoneMsg'));
@@ -167,7 +167,7 @@ export default function PaymentModal({
       setProcessing(true);
       const result = await processPayment({
         amount,
-        payment_type: 'mpesa',
+        payment_type: 'yas',
         phone_number: phoneNumber,
       });
 
@@ -181,7 +181,7 @@ export default function PaymentModal({
         Alert.alert(t('paymentModal.paymentFailed'), result.error || t('paymentModal.paymentFailedMsg'));
       }
     } catch (error: any) {
-      console.error('M-Pesa payment error:', error);
+      console.error('YAS payment error:', error);
       Alert.alert(
         t('paymentModal.paymentError'),
         error.response?.data?.error || t('paymentModal.paymentErrorMsg')
@@ -242,7 +242,7 @@ export default function PaymentModal({
 
                   <TouchableOpacity
                     style={styles.methodButton}
-                    onPress={() => setPaymentMethod('mpesa')}
+                    onPress={() => setPaymentMethod('yas')}
                   >
                     <View style={styles.methodIcon}>
                       <Ionicons name="phone-portrait" size={32} color="#14b8a6" />
@@ -370,7 +370,7 @@ export default function PaymentModal({
                 </View>
               )}
 
-              {paymentMethod === 'mpesa' && (
+              {paymentMethod === 'yas' && (
                 <View style={styles.form}>
                   <TouchableOpacity
                     style={styles.backButton}
@@ -399,16 +399,16 @@ export default function PaymentModal({
                     </Text>
                   </View>
 
-                  <View style={styles.mpesaInfo}>
+                  <View style={styles.yasInfo}>
                     <Ionicons name="information-circle" size={20} color="#14b8a6" />
-                    <Text style={styles.mpesaInfoText}>
+                    <Text style={styles.yasInfoText}>
                       {t('paymentModal.mobileMoneyPrompt')}
                     </Text>
                   </View>
 
                   <TouchableOpacity
                     style={[styles.payButton, processing && styles.payButtonDisabled]}
-                    onPress={handleMPesaPayment}
+                    onPress={handleYasPayment}
                     disabled={processing}
                   >
                     {processing ? (
@@ -635,14 +635,14 @@ const styles = StyleSheet.create({
   marginLeft: {
     marginLeft: 12,
   },
-  mpesaInfo: {
+  yasInfo: {
     flexDirection: 'row',
     padding: 12,
     backgroundColor: '#e6f7f5',
     borderRadius: 8,
     marginBottom: 16,
   },
-  mpesaInfoText: {
+  yasInfoText: {
     flex: 1,
     fontSize: 13,
     color: '#0f766e',

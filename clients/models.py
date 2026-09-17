@@ -121,7 +121,7 @@ class PaymentTransaction(models.Model):
 
     METHOD_CHOICES = (
         ('card', 'Card'),
-        ('mpesa', 'Mobile Money'),
+        ('yas', 'Mixx by YAS'),
     )
 
     reference = models.CharField(max_length=64, unique=True, db_index=True)

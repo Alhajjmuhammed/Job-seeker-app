@@ -45,7 +45,7 @@ mallory, mc = mk('mallory')
 
 def issue(client, amount):
     r = client.post('/api/v1/client/process-payment/', json.dumps({
-        'amount': float(amount), 'payment_type': 'mpesa', 'phone_number': '+255123456789'}),
+        'amount': float(amount), 'payment_type': 'yas', 'phone_number': '+255123456789'}),
         content_type='application/json')
     try: return r.json().get('transaction_id') or r.json().get('reference'), r
     except Exception: return None, r
@@ -55,7 +55,7 @@ def book(client, reference, url='/api/v1/client/service-requests/create/'):
         'category': cat.id, 'title': 'Job', 'description': 'd', 'location': 'Dar',
         'city': 'Dar', 'workers_needed': 1, 'duration_type': 'daily',
         'preferred_date': str(timezone.now().date()), 'preferred_time': '09:00:00',
-        'payment_transaction_id': reference or '', 'payment_method': 'mpesa',
+        'payment_transaction_id': reference or '', 'payment_method': 'yas',
     }), content_type='application/json')
 
 TOTAL = D('55000')

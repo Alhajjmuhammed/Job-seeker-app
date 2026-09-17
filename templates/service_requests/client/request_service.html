@@ -488,7 +488,7 @@
                     
                     <div class="alert alert-info small">
                         <strong>{% trans "Demo Mode:" %}</strong> {% trans "Use test number: +255123456789" %}<br>
-                        {% trans "Supports: M-Pesa, Tigo Pesa, Airtel Money" %}
+                        {% trans "Pay with Mixx by YAS" %}
                     </div>
                     
                     <div class="mb-3">
@@ -975,8 +975,8 @@ async function processMobilePayment() {
         // Mock successful payment
         paymentData = {
             success: true,
-            transaction_id: 'MPesa' + Date.now(),
-            payment_method: 'mpesa',
+            transaction_id: 'YAS' + Date.now(),
+            payment_method: 'yas',
             amount: currentTotalPrice,
             phone_number: phoneNumber
         };

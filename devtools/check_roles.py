@@ -71,14 +71,14 @@ step('client', 'sees a price quote before booking', lambda: (
             content_type='application/json'))))
 def pay_and_book():
     r = cc.post('/api/v1/client/process-payment/', json.dumps(
-        {'amount': 55000.0, 'payment_type': 'mpesa', 'phone_number': '+255123456789'}),
+        {'amount': 55000.0, 'payment_type': 'yas', 'phone_number': '+255123456789'}),
         content_type='application/json')
     ref = r.json().get('transaction_id') or r.json().get('reference')
     r2 = cc.post('/api/v1/client/service-requests/create/', json.dumps({
         'category': cat.id, 'title': 'Leaky tap', 'description': 'fix it',
         'location': 'Dar', 'city': 'Dar', 'workers_needed': 1, 'duration_type': 'daily',
         'preferred_date': str(timezone.now().date()), 'preferred_time': '09:00:00',
-        'payment_transaction_id': ref or '', 'payment_method': 'mpesa'}),
+        'payment_transaction_id': ref or '', 'payment_method': 'yas'}),
         content_type='application/json')
     sr = ServiceRequest.objects.filter(client=client).order_by('-id').first()
     return (sr is not None and sr.payment_status == 'paid' and sr.total_price == D('55000'),
