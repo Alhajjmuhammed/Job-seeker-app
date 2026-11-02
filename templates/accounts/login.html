@@ -194,7 +194,7 @@
 
                 <!-- Username -->
                 <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}">{% trans "Username" %}</label>
+                    <label for="{{ form.username.id_for_label }}">{% trans "Email, username or phone number" %}</label>
                     {{ form.username }}
                     {% if form.username.errors %}
                         <div class="text-danger mt-1" style="font-size:0.82rem;">{{ form.username.errors }}</div>

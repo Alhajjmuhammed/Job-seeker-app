@@ -12,8 +12,20 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    # 'email' is the field the app has always sent; it now accepts an email,
+    # username or phone number. 'identifier' is the same thing by its name.
+    email = serializers.CharField(required=False, allow_blank=True, max_length=254)
+    identifier = serializers.CharField(required=False, allow_blank=True, max_length=254)
     password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        identifier = (data.get('identifier') or data.get('email') or '').strip()
+        if not identifier:
+            raise serializers.ValidationError(
+                {'email': 'Enter your email, username or phone number.'}
+            )
+        data['identifier'] = identifier
+        return data
 
 class RegisterSerializer(serializers.Serializer):
     firstName = serializers.CharField(min_length=1, max_length=150)

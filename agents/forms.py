@@ -1,10 +1,11 @@
 from django import forms
 from accounts.models import User
 from django.contrib.auth.forms import UserCreationForm
+from accounts.forms import UniqueEmailMixin
 from .models import AgentProfile
 
 
-class AgentRegistrationForm(UserCreationForm):
+class AgentRegistrationForm(UniqueEmailMixin, UserCreationForm):
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email address'})
@@ -61,7 +62,7 @@ class AgentProfileForm(forms.ModelForm):
         }
 
 
-class AgentCreateWorkerForm(UserCreationForm):
+class AgentCreateWorkerForm(UniqueEmailMixin, UserCreationForm):
     """Form used by an agent to create a new worker account directly."""
     email = forms.EmailField(
         required=True,

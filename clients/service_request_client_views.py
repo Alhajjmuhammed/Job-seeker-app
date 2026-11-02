@@ -538,8 +538,13 @@ def client_browse_workers(request):
     lat = request.GET.get('latitude')
     lon = request.GET.get('longitude')
 
-    if lat and lon:
-        workers = rank_by_distance(list(workers), float(lat), float(lon))
+    try:
+        lat, lon = (float(lat), float(lon)) if lat and lon else (None, None)
+    except ValueError:
+        lat, lon = None, None  # bad coordinates: just fall back to rating order
+
+    if lat is not None and lon is not None:
+        workers = rank_by_distance(list(workers), lat, lon)
     else:
         workers = list(workers.order_by('-average_rating'))
 

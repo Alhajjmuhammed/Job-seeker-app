@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import pushNotificationService from '../services/pushNotifications';
 import apiService from '../services/api';
 import { getToken } from '../services/secureStorage';
+import { useAuth } from './AuthContext';
 
 interface NotificationContextType {
   unreadCount: number;
@@ -15,11 +16,21 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useAuth();
+
+  // Registering needs a logged-in user. This ran once at start-up, so on a
+  // fresh install (logged out) the server answered 401 and the user got no
+  // push notifications until the app was restarted after logging in.
+  useEffect(() => {
+    if (user?.id) {
+      registerPushNotifications();
+      refreshUnreadCount();
+    } else {
+      setUnreadCount(0);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
-    // Register for push notifications
-    registerPushNotifications();
-
     // Set up notification listeners
     pushNotificationService.setupNotificationListeners(
       handleNotificationReceived,

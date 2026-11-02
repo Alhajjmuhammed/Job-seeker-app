@@ -30,24 +30,22 @@ def login_view(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    email = serializer.validated_data['email']
-    password = serializer.validated_data['password']
-    
-    # Look up user by email first
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
+    from .login_lookup import authenticate_identifier, AMBIGUOUS
+
+    # Email (any capitalisation), username or phone number in any format.
+    user = authenticate_identifier(
+        request,
+        serializer.validated_data['identifier'],
+        serializer.validated_data['password'],
+    )
+    if user == AMBIGUOUS:
         return Response(
-            {'message': 'Invalid email or password'},
+            {'message': 'More than one account uses this phone number. Please log in with your email or username.'},
             status=status.HTTP_401_UNAUTHORIZED
         )
-    
-    # Authenticate using email (since USERNAME_FIELD is 'email')
-    user = authenticate(request, email=email, password=password)
-    
     if user is None:
         return Response(
-            {'message': 'Invalid email or password'},
+            {'message': 'Invalid email, username, phone number or password'},
             status=status.HTTP_401_UNAUTHORIZED
         )
     
@@ -114,6 +112,12 @@ def register_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
+    # Stop this phone's push notifications for the account logging out -
+    # otherwise the next person to use the phone kept receiving them.
+    push_token = request.data.get('push_token') if hasattr(request, 'data') else None
+    if push_token:
+        from worker_connect.notification_models import PushToken
+        PushToken.objects.filter(user=request.user, token=push_token).update(is_active=False)
     try:
         # Delete the user's token
         request.user.auth_token.delete()
@@ -197,8 +201,13 @@ def password_reset_request(request):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
-        # Build reset URL (for mobile app, this would be a deep link)
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+        # The website's reset page uses the same token generator, so the
+        # link works from any phone. It used to point at FRONTEND_URL, which
+        # is unset on the server, so every link went to localhost.
+        from django.urls import reverse
+        reset_url = request.build_absolute_uri(
+            reverse('accounts:reset_password', kwargs={'uidb64': uid, 'token': token})
+        )
         
         # Send email
         send_mail(
@@ -481,8 +490,14 @@ def get_notifications(request):
     from worker_connect.notification_models import Notification
     from worker_connect.notification_serializers import NotificationSerializer
     
-    unread_only = request.GET.get('unread_only', 'false').lower() == 'true'
-    limit = int(request.GET.get('limit', 50))  # Default limit to 50
+    # The app sends is_read=false (it expected worker_connect's view, but
+    # this one answers /api/notifications/ first) - accept both spellings.
+    unread_only = (request.GET.get('unread_only', 'false').lower() == 'true'
+                   or request.GET.get('is_read', '').lower() == 'false')
+    try:
+        limit = min(max(int(request.GET.get('limit', 50)), 1), 200)
+    except ValueError:
+        limit = 50
     
     # Query notifications from database (use recipient field from worker_connect model)
     notifications = Notification.objects.filter(recipient=request.user)

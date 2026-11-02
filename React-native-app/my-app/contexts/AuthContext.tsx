@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authService, User } from '../services/auth';
+import apiService from '../services/api';
 import { router } from 'expo-router';
 
 interface AuthContextType {
@@ -19,6 +20,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadUser();
+  }, []);
+
+  // Session ended on the server: go back to the login screen instead of
+  // leaving the user on screens where every request now fails.
+  useEffect(() => {
+    let handled = false;
+    apiService.setOnAuthExpired(() => {
+      if (handled) return;
+      handled = true;
+      setUser(null);
+      router.replace('/(auth)/login');
+      setTimeout(() => { handled = false; }, 2000);
+    });
   }, []);
 
   const loadUser = async () => {

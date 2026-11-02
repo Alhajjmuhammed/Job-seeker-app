@@ -4,7 +4,19 @@ from .models import User
 from clients.models import ClientProfile
 
 
-class WorkerRegistrationForm(UserCreationForm):
+class UniqueEmailMixin:
+    """Emails are stored lower-case and must be unique ignoring case -
+    logins match case-insensitively, so two accounts differing only by
+    capital letters could not both be logged into."""
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
+
+
+class WorkerRegistrationForm(UniqueEmailMixin, UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True, max_length=30)
     last_name = forms.CharField(required=True, max_length=30)
@@ -49,7 +61,7 @@ class WorkerRegistrationForm(UserCreationForm):
         return user
 
 
-class ClientRegistrationForm(UserCreationForm):
+class ClientRegistrationForm(UniqueEmailMixin, UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True, max_length=30)
     last_name = forms.CharField(required=True, max_length=30)
@@ -73,7 +85,7 @@ class ClientRegistrationForm(UserCreationForm):
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={
         'class': 'form-control',
-        'placeholder': 'Username or Email'
+        'placeholder': 'Email, username or phone number'
     }))
     password = forms.CharField(widget=forms.PasswordInput(attrs={
         'class': 'form-control',

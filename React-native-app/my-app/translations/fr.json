@@ -56,7 +56,8 @@
     "loginSuccess": "Connexion réussie",
     "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
     "deleteAccount": "Supprimer le compte",
-    "deleteWarning": "Cette action est irréversible !"
+    "deleteWarning": "Cette action est irréversible !",
+    "loginIdentifier": "E-mail, nom d'utilisateur ou numéro de téléphone"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -199,7 +200,8 @@
     "paymentFailed": "Paiement échoué",
     "paymentFailedMsg": "Le paiement n'a pas pu être traité",
     "paymentError": "Erreur de paiement",
-    "paymentErrorMsg": "Une erreur s'est produite lors du traitement de votre paiement"
+    "paymentErrorMsg": "Une erreur s'est produite lors du traitement de votre paiement",
+    "verificationNotice": "Payez avec Mixx by YAS, puis téléversez une capture d'écran de la confirmation. Votre réservation est confirmée dès que notre équipe a vérifié le paiement."
   },
   "paymentScreenshot": {
     "title": "Preuve de paiement",

@@ -91,16 +91,15 @@ def user_login(request):
         identifier = post_data.get('username', '').strip()
 
         # USERNAME_FIELD is 'email', so authenticate() only ever matches by
-        # email - resolve a plain username to its email here, before the
-        # form runs, since AuthenticationForm.clean() calls authenticate()
-        # itself during is_valid() and would otherwise always reject a
-        # username with no indication why. This is what makes the login
-        # page's "Username or Email" placeholder actually true.
-        if identifier and '@' not in identifier:
-            try:
-                post_data['username'] = User.objects.get(username=identifier).email
-            except User.DoesNotExist:
-                pass  # let the normal invalid-login error surface below
+        # email. Resolve whatever the user typed - email in any case,
+        # username or phone number - to the account's email before the form
+        # runs, since AuthenticationForm.clean() calls authenticate() itself.
+        from .login_lookup import authenticate_identifier, AMBIGUOUS
+        resolved = authenticate_identifier(request, identifier, post_data.get('password', ''))
+        if resolved == AMBIGUOUS:
+            messages.error(request, 'More than one account uses this phone number. Please log in with your email or username.')
+        elif resolved is not None:
+            post_data['username'] = resolved.email
 
         form = CustomLoginForm(request, data=post_data)
         if form.is_valid():
@@ -258,7 +257,8 @@ def forgot_password(request):
             
             # Try to find user by email
             try:
-                user = User.objects.get(email=email)
+                user = User.objects.get(email__iexact=email.strip())
+                email = user.email
                 
                 # Generate token
                 token = default_token_generator.make_token(user)

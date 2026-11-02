@@ -1,4 +1,5 @@
 import apiService from './api';
+import pushNotificationService from './pushNotifications';
 
 export interface User {
   id: number;
@@ -22,13 +23,38 @@ export interface AuthResponse {
   user: User;
 }
 
+// The API answers in three shapes: {message}, {detail} (rate limits) or a
+// map of field -> [errors] (validation). Only {message} used to be read, so
+// "email already used" or "too many attempts" showed as a bare "failed".
+export function apiErrorMessage(error: any, fallback: string): string {
+  const data = error?.response?.data;
+  if (!data) {
+    return error?.message === 'Network Error'
+      ? 'No internet connection. Please check your connection and try again.'
+      : fallback;
+  }
+  if (typeof data === 'string') return fallback;
+  if (data.message) return data.message;
+  if (data.detail) return data.detail;
+  if (data.error) return data.error;
+  const firstField = Object.keys(data)[0];
+  if (firstField) {
+    const value = data[firstField];
+    const text = Array.isArray(value) ? value[0] : value;
+    if (typeof text === 'string') {
+      return firstField === 'non_field_errors' ? text : `${firstField}: ${text}`;
+    }
+  }
+  return fallback;
+}
+
 export const authService = {
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
       const response = await apiService.login(email, password);
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(apiErrorMessage(error, 'Login failed'));
     }
   },
 
@@ -46,12 +72,13 @@ export const authService = {
       const response = await apiService.register(userData);
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      throw new Error(apiErrorMessage(error, 'Registration failed'));
     }
   },
 
   async logout(): Promise<void> {
-    await apiService.logout();
+    await apiService.logout(pushNotificationService.currentToken);
+    pushNotificationService.currentToken = null;
   },
 
   async getCurrentUser(): Promise<User | null> {

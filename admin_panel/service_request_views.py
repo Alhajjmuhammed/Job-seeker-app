@@ -207,6 +207,17 @@ def admin_assign_worker(request, pk):
         with transaction.atomic():
             locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
 
+            # Lock the worker too and re-read availability: two admins
+            # assigning the same worker to two different requests at once
+            # each locked only their own request, so both passed the
+            # "available" check above and the worker was double-booked.
+            worker = WorkerProfile.objects.select_for_update().get(pk=worker.pk)
+            if worker.availability != 'available':
+                return Response(
+                    {'error': f'Worker is {worker.availability} and cannot be assigned. Only available workers can be assigned.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             # Check if worker is already assigned
             existing_assignment = ServiceRequestAssignment.objects.filter(
                 service_request=locked_request,

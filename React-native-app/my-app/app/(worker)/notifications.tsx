@@ -92,13 +92,12 @@ export default function NotificationsScreen() {
     // the notification_type choices on the Notification model.
     const data = notification.extra_data || {};
     const assignmentId = data.assignment_id;
-    const requestId = data.service_request_id ?? data.request_id ?? data.job_id;
     switch (notification.notification_type) {
       case 'job_assigned':
+        // service-assignment/[id] loads an assignment id - a request id there
+        // opened the wrong assignment or a 404, so without one go to the list.
         if (assignmentId) {
           router.push(`/(worker)/service-assignment/${assignmentId}` as any);
-        } else if (requestId) {
-          router.push(`/(worker)/service-assignment/${requestId}` as any);
         } else {
           router.push('/(worker)/jobs' as any);
         }

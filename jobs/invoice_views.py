@@ -175,11 +175,22 @@ def create_invoice(request):
         }, status=status.HTTP_400_BAD_REQUEST)
     
     # Validate items
+    from decimal import Decimal, InvalidOperation
+    if not isinstance(items, list):
+        return Response({'error': 'items must be a list'}, status=status.HTTP_400_BAD_REQUEST)
     for item in items:
-        if not all(k in item for k in ['description', 'quantity', 'unit_price']):
+        if not isinstance(item, dict) or not all(k in item for k in ['description', 'quantity', 'unit_price']):
             return Response({
                 'error': 'Each item must have description, quantity, and unit_price'
             }, status=status.HTTP_400_BAD_REQUEST)
+        # A non-number here used to be a 500; a negative one a negative bill.
+        try:
+            quantity = Decimal(str(item['quantity']))
+            unit_price = Decimal(str(item['unit_price']))
+        except (InvalidOperation, ValueError, TypeError):
+            return Response({'error': 'quantity and unit_price must be numbers'}, status=status.HTTP_400_BAD_REQUEST)
+        if not quantity.is_finite() or not unit_price.is_finite() or quantity <= 0 or unit_price < 0:
+            return Response({'error': 'quantity must be above 0 and unit_price cannot be negative'}, status=status.HTTP_400_BAD_REQUEST)
     
     invoice = InvoiceService.create_invoice(
         worker=worker,

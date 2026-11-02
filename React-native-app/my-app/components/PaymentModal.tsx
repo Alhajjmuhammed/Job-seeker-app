@@ -226,20 +226,9 @@ export default function PaymentModal({
                 <View style={styles.methodsContainer}>
                   <Text style={styles.sectionTitle}>{t('paymentModal.selectMethod')}</Text>
 
-                  <TouchableOpacity
-                    style={styles.methodButton}
-                    onPress={() => setPaymentMethod('card')}
-                  >
-                    <View style={styles.methodIcon}>
-                      <Ionicons name="card" size={32} color="#14b8a6" />
-                    </View>
-                    <View style={styles.methodInfo}>
-                      <Text style={styles.methodTitle}>{t('paymentModal.creditCard')}</Text>
-                      <Text style={styles.methodSubtitle}>{t('paymentModal.visaMastercard')}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#999" />
-                  </TouchableOpacity>
-
+                  {/* Card payments are off until a real card gateway is
+                      connected - this screen used to collect full card
+                      numbers and CVVs for a simulated charge. */}
                   <TouchableOpacity
                     style={styles.methodButton}
                     onPress={() => setPaymentMethod('yas')}
@@ -257,10 +246,7 @@ export default function PaymentModal({
                   <View style={styles.demoNotice}>
                     <Ionicons name="information-circle" size={20} color="#14b8a6" />
                     <Text style={styles.demoText}>
-                      Demo Mode: Use test credentials{'\n'}
-                      Visa: 4242 4242 4242 4242{'\n'}
-                      Mastercard: 5555 5555 5555 5555{'\n'}
-                      Mobile Money: +255123456789
+                      {t('paymentModal.verificationNotice')}
                     </Text>
                   </View>
                 </View>

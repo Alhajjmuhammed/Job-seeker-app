@@ -38,6 +38,8 @@ export interface PushNotificationToken {
 class PushNotificationService {
   private notificationListener: any = null;
   private responseListener: any = null;
+  // Last token registered, so logout can tell the server to stop using it
+  currentToken: string | null = null;
 
   /**
    * Register for push notifications and get the token. Returns null (and
@@ -84,6 +86,7 @@ class PushNotificationService {
       }
 
       const tokenData = await notif.getExpoPushTokenAsync({ projectId });
+      this.currentToken = tokenData.data;
       await this.sendTokenToBackend(tokenData.data);
       return tokenData.data;
     } catch (error) {

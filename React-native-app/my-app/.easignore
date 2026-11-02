@@ -9,3 +9,6 @@ web-build/
 *.key
 *.mobileprovision
 google-service-account.json
+
+# translation helper scripts are not part of the app
+*.py

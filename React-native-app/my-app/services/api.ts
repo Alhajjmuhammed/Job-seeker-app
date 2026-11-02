@@ -63,7 +63,7 @@ class ApiService {
         if (!config || config.__retryCount >= this.maxRetries) {
           // Max retries reached or no config
           if (error.response?.status === 401) {
-            await SecureStorage.clearAuth();
+            await this.handleUnauthorized(config);
           }
           return Promise.reject(error);
         }
@@ -87,7 +87,7 @@ class ApiService {
 
         if (!shouldRetry) {
           if (error.response?.status === 401) {
-            await SecureStorage.clearAuth();
+            await this.handleUnauthorized(config);
           }
           return Promise.reject(error);
         }
@@ -132,6 +132,18 @@ class ApiService {
   // Callback for handling auth expiration (set by app to navigate to login)
   private onAuthExpired?: () => void;
   
+  // A 401 on a request that carried a token means the session is gone
+  // (logged out elsewhere, revoked, password changed). Clearing storage was
+  // all that happened, so the app stayed on screens where every call failed.
+  // A 401 from the login call itself (wrong password) is not an expiry.
+  private async handleUnauthorized(config: any): Promise<void> {
+    await SecureStorage.clearAuth();
+    const sentToken = !!config?.headers?.Authorization;
+    if (sentToken && this.onAuthExpired) {
+      this.onAuthExpired();
+    }
+  }
+
   setOnAuthExpired(callback: () => void): void {
     this.onAuthExpired = callback;
   }
@@ -214,9 +226,9 @@ class ApiService {
     return response.data;
   }
 
-  async logout() {
+  async logout(pushToken?: string | null) {
     try {
-      await this.api.post('/auth/logout/');
+      await this.api.post('/auth/logout/', pushToken ? { push_token: pushToken } : {});
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

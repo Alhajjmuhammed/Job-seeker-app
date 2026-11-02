@@ -107,15 +107,15 @@ export default function LoginScreen() {
                 { backgroundColor: emailFocused ? TEAL : (isDark ? '#1e3432' : '#e8f7f5') },
               ]}
             >
-              <Ionicons name="mail" size={16} color={emailFocused ? '#fff' : (isDark ? '#8aa8a6' : TEAL)} />
+              <Ionicons name="person" size={16} color={emailFocused ? '#fff' : (isDark ? '#8aa8a6' : TEAL)} />
             </View>
             <TextInput
               style={[styles.fieldInput, { color: textPrimary }]}
-              placeholder={t('emailAddress') || 'Email address'}
+              placeholder={t('auth.loginIdentifier')}
               placeholderTextColor={textSec}
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
+              keyboardType="default"
               autoCapitalize="none"
               autoCorrect={false}
               onFocus={() => setEmailFocused(true)}

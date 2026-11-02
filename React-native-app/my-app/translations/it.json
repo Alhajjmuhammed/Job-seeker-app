@@ -56,7 +56,8 @@
     "loginSuccess": "Accesso riuscito",
     "logoutConfirm": "Sei sicuro di voler uscire?",
     "deleteAccount": "Elimina account",
-    "deleteWarning": "Questa azione non può essere annullata!"
+    "deleteWarning": "Questa azione non può essere annullata!",
+    "loginIdentifier": "Email, nome utente o numero di telefono"
   },
   "dashboard": {
     "title": "Cruscotto",
@@ -199,7 +200,8 @@
     "paymentFailed": "Pagamento fallito",
     "paymentFailedMsg": "Il pagamento non ha potuto essere elaborato",
     "paymentError": "Errore di pagamento",
-    "paymentErrorMsg": "Si è verificato un errore durante l'elaborazione del pagamento"
+    "paymentErrorMsg": "Si è verificato un errore durante l'elaborazione del pagamento",
+    "verificationNotice": "Paga con Mixx by YAS, poi carica uno screenshot della conferma di pagamento. La prenotazione è confermata quando il nostro team verifica il pagamento."
   },
   "paymentScreenshot": {
     "title": "Prova di pagamento",

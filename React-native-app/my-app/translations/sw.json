@@ -56,7 +56,8 @@
     "loginSuccess": "Umeingia kwa mafanikio",
     "logoutConfirm": "Je, una uhakika unataka kutoka?",
     "deleteAccount": "Futa Akaunti",
-    "deleteWarning": "Hatua hii haiwezi kutenduliwa!"
+    "deleteWarning": "Hatua hii haiwezi kutenduliwa!",
+    "loginIdentifier": "Barua pepe, jina la mtumiaji au namba ya simu"
   },
   "dashboard": {
     "title": "Dashibodi",
@@ -199,7 +200,8 @@
     "paymentFailed": "Malipo Yameshindwa",
     "paymentFailedMsg": "Malipo hayakuweza kusindikizwa",
     "paymentError": "Hitilafu ya Malipo",
-    "paymentErrorMsg": "Hitilafu imetokea wakati wa kusindikiza malipo yako"
+    "paymentErrorMsg": "Hitilafu imetokea wakati wa kusindikiza malipo yako",
+    "verificationNotice": "Lipa kwa Mixx by YAS, kisha pakia picha ya uthibitisho wa malipo. Ombi lako litathibitishwa mara timu yetu itakapohakiki malipo."
   },
   "paymentScreenshot": {
     "title": "Uthibitisho wa Malipo",

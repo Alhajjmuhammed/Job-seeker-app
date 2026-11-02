@@ -68,7 +68,6 @@ function RootLayoutContent() {
                       <Stack.Screen name="(worker)" options={{ headerShown: false }} />
                       <Stack.Screen name="(client)" options={{ headerShown: false }} />
                       <Stack.Screen name="terms" options={{ headerShown: false }} />
-                      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
                     </Stack>
                     <StatusBar style={theme?.statusBar || 'auto'} />
                   </NavigationThemeProvider>

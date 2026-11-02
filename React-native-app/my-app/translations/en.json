@@ -116,7 +116,8 @@
     "resetFailedMessage": "Failed to reset password. The link may be expired or invalid.",
     "invalidResetToken": "Invalid reset token",
     "fillAllFieldsError": "Please fill in all fields",
-    "passwordMinLength": "Password must be at least 8 characters long"
+    "passwordMinLength": "Password must be at least 8 characters long",
+    "loginIdentifier": "Email, username or phone number"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -981,7 +982,8 @@
     "paymentFailed": "Payment Failed",
     "paymentFailedMsg": "Payment could not be processed",
     "paymentError": "Payment Error",
-    "paymentErrorMsg": "An error occurred while processing your payment"
+    "paymentErrorMsg": "An error occurred while processing your payment",
+    "verificationNotice": "Pay with Mixx by YAS, then upload a screenshot of the payment confirmation. Your booking is confirmed once our team verifies the payment."
   },
   "paymentScreenshot": {
     "title": "Payment Proof",
