@@ -35,33 +35,36 @@ def send_job_reminders(self):
         from jobs.service_request_models import ServiceRequest
         from datetime import timedelta
         
-        tomorrow = timezone.now().date() + timedelta(days=1)
-        
-        # Find service requests starting tomorrow
-        upcoming_jobs = ServiceRequest.objects.filter(
-            status='assigned',
-            service_start_date=tomorrow
-        ).select_related('client', 'assigned_worker__user')
-        
-        for job in upcoming_jobs:
-            # Send reminder to client
-            send_job_reminder_email.delay(
-                job.client.email,
-                job.title,
-                str(job.service_start_date),
-                'client'
-            )
+        from django.db.models import Q
 
-            # Send reminder to assigned worker (if exists)
-            if job.assigned_worker:
-                send_job_reminder_email.delay(
-                    job.assigned_worker.user.email,
-                    job.title,
-                    str(job.service_start_date),
-                    'worker'
-                )
-        
-        logger.info(f"Sent reminders for {upcoming_jobs.count()} service requests")
+        tomorrow = timezone.now().date() + timedelta(days=1)
+
+        # Requests starting tomorrow that have workers on them. Accepting an
+        # assignment moves a request to 'in_progress', so 'assigned' alone
+        # missed every job a worker had already confirmed; and most bookings
+        # carry their day in preferred_date, not service_start_date.
+        upcoming_jobs = ServiceRequest.objects.filter(
+            Q(service_start_date=tomorrow) | Q(service_start_date__isnull=True, preferred_date=tomorrow),
+            status__in=['assigned', 'in_progress'],
+            work_started_at__isnull=True,
+        ).select_related('client').prefetch_related('assignments__worker__user')
+
+        count = 0
+        for job in upcoming_jobs:
+            job_date = str(job.service_start_date or job.preferred_date)
+            send_job_reminder_email.delay(job.client.email, job.title, job_date, 'client')
+
+            # Workers are reached through their assignments - the legacy
+            # assigned_worker field is never filled by the current flow, so
+            # no worker was ever reminded.
+            for assignment in job.assignments.all():
+                if assignment.status in ('accepted', 'in_progress') and assignment.worker.user.email:
+                    send_job_reminder_email.delay(
+                        assignment.worker.user.email, job.title, job_date, 'worker'
+                    )
+            count += 1
+
+        logger.info(f"Sent reminders for {count} service requests")
     except Exception as e:
         logger.error(f"Error sending job reminders: {e}")
         raise self.retry(exc=e)

@@ -8,32 +8,45 @@
 
 <p>{% trans "Thank you for joining Worker Connect! We're excited to have you on board." %}</p>
 
-<p>{% trans "Whether you're looking to hire skilled workers or offer your services, we're here to help you succeed." %}</p>
-
 <div class="info-box">
     <h3>{% trans "Get Started" %}</h3>
-    <p>Complete your profile to start connecting with {% if is_worker %}clients{% else %}workers{% endif %} in your area.</p>
+    {% if is_worker %}
+    <p>{% trans "Complete your profile and upload your ID so our team can verify you. Verified workers can be assigned to jobs." %}</p>
+    {% elif is_agent %}
+    <p>{% trans "Our team will review your agent account. Once you are verified you can add workers to your team." %}</p>
+    {% else %}
+    <p>{% trans "You can book a service right away - choose a category, tell us what you need, and we will send suitable workers." %}</p>
+    {% endif %}
 </div>
 
 <p style="text-align: center;">
-    <a href="{{ dashboard_url }}" class="btn">{% trans "Complete Your Profile" %}</a>
+    <a href="{{ dashboard_url }}" class="btn">{% trans "Log in to Worker Connect" %}</a>
 </p>
+
+<p>{% trans "You can log in with your email, username or phone number." %}</p>
 
 {% if is_worker %}
 <h3>{% trans "As a Worker, you can:" %}</h3>
 <ul>
-    <li>{% trans "Browse and apply for jobs that match your skills" %}</li>
-    <li>{% trans "Build your portfolio to showcase past work" %}</li>
-    <li>{% trans "Set your availability and rates" %}</li>
-    <li>{% trans "Earn badges and build your reputation" %}</li>
+    <li>{% trans "Receive job assignments that match your skills" %}</li>
+    <li>{% trans "Accept or decline each assignment" %}</li>
+    <li>{% trans "Clock in and out, and mark your work complete" %}</li>
+    <li>{% trans "Track your earnings and build your rating" %}</li>
+</ul>
+{% elif is_agent %}
+<h3>{% trans "As an Agent, you can:" %}</h3>
+<ul>
+    <li>{% trans "Register workers and add them to your team" %}</li>
+    <li>{% trans "Follow your team's jobs" %}</li>
+    <li>{% trans "Earn commission on the work they complete" %}</li>
 </ul>
 {% else %}
 <h3>{% trans "As a Client, you can:" %}</h3>
 <ul>
-    <li>{% trans "Post jobs and receive applications from qualified workers" %}</li>
-    <li>{% trans "Browse worker profiles and reviews" %}</li>
-    <li>{% trans "Securely communicate and manage projects" %}</li>
-    <li>{% trans "Process payments safely through our platform" %}</li>
+    <li>{% trans "Book a service and choose how many workers you need" %}</li>
+    <li>{% trans "Pay with Mixx by YAS and upload your payment confirmation" %}</li>
+    <li>{% trans "Follow your request from assignment to completion" %}</li>
+    <li>{% trans "Rate the service when the work is done" %}</li>
 </ul>
 {% endif %}
 

@@ -596,3 +596,6 @@ DEMO_PAYMENTS_COUNT_AS_PAID = config('DEMO_PAYMENTS_COUNT_AS_PAID', default=Fals
 # Web login: failed attempts allowed per client address before a lockout.
 LOGIN_FAILURE_LIMIT = config('LOGIN_FAILURE_LIMIT', default=10, cast=int)
 LOGIN_LOCKOUT_SECONDS = config('LOGIN_LOCKOUT_SECONDS', default=900, cast=int)
+
+# Public address of the site, used for links in e-mails.
+SITE_URL = config('SITE_URL', default='https://workersearch.co.tz').rstrip('/')

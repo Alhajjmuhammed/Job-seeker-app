@@ -439,3 +439,47 @@ class PagesRenderTests(FlowBase):
                        (Client(), '/accounts/login/'), (Client(), '/accounts/register/')]:
             r = c.get(url, follow=True)
             self.assertEqual(r.status_code, 200, url)
+
+
+class EmailTests(FlowBase):
+    def test_welcome_email_on_signup_from_app_and_website(self):
+        from unittest import mock
+        from django.core import mail
+        from workers.tasks import send_welcome_email
+
+        run_now = mock.patch.object(send_welcome_email, 'delay',
+                                    side_effect=lambda uid, kind: send_welcome_email(uid, kind))
+        with run_now, self.captureOnCommitCallbacks(execute=True):
+            post_json(Client(), '/api/auth/register/', {
+                'firstName': 'Asha', 'lastName': 'J', 'email': 'asha@t.co', 'phone': '0766000111',
+                'password': PW, 'userType': 'client'})
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.to, ['asha@t.co'])
+        html = msg.alternatives[0][0]
+        self.assertIn('https://workersearch.co.tz/accounts/login/', html)
+        self.assertNotIn('localhost', html)
+        self.assertNotIn('portfolio', html.lower())
+
+        # admins created by staff get no welcome mail
+        with run_now, self.captureOnCommitCallbacks(execute=True):
+            User.objects.create_user(email='ops@t.co', username='ops', password=PW,
+                                     user_type='admin', is_staff=True)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_job_reminder_reaches_client_and_accepted_workers(self):
+        from datetime import timedelta
+        from unittest import mock
+        from jobs.tasks import send_job_reminders, send_job_reminder_email
+
+        sr, _ = self.book()
+        self.assign_and_accept(sr)
+        tomorrow = timezone.now().date() + timedelta(days=1)
+        ServiceRequest.objects.filter(pk=sr.pk).update(preferred_date=tomorrow, service_start_date=None)
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'in_progress')  # accepting moves it on
+
+        with mock.patch.object(send_job_reminder_email, 'delay') as queued:
+            send_job_reminders()
+        recipients = sorted(call.args[0] for call in queued.call_args_list)
+        self.assertEqual(recipients, sorted([self.client_user.email, self.worker_user.email]))

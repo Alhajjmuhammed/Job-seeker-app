@@ -187,7 +187,9 @@ def send_welcome_email(user_id, user_type):
         context = {
             'user': user,
             'is_worker': user_type == 'worker',
-            'dashboard_url': f"{settings.FRONTEND_URL}/dashboard",
+            'is_agent': user_type == 'agent',
+            # FRONTEND_URL is unset on the server, so this linked to localhost
+            'dashboard_url': f"{settings.SITE_URL}/accounts/login/",
         }
         
         html_message = render_to_string('emails/welcome.html', context)
