@@ -63,12 +63,18 @@ print()
 ref, r = issue(ac, TOTAL)
 check('payment endpoint issues a reference', bool(ref), f'HTTP {r.status_code} {r.content[:120]}')
 
-# 1. a genuine reference works
+# 1. a genuine reference is attached to the booking. While payments are
+# simulated it is a demo reference, so the booking waits for an admin to
+# verify the client's payment proof before it counts as paid.
 book(ac, ref)
 sr = ServiceRequest.objects.filter(client=alice).order_by('-id').first()
-check('a genuine reference marks the booking paid',
-      sr and sr.payment_status == 'paid' and sr.total_price == TOTAL,
-      f'status={getattr(sr,"payment_status",None)} total={getattr(sr,"total_price",None)}')
+check('a genuine reference is recorded on the booking, awaiting verification',
+      sr and sr.payment_transaction_id == ref and sr.payment_status == 'pending' and sr.total_price == TOTAL,
+      f'status={getattr(sr,"payment_status",None)} ref={getattr(sr,"payment_transaction_id",None)} total={getattr(sr,"total_price",None)}')
+sr.mark_payment_verified(None)
+sr.refresh_from_db()
+check('admin verification marks the booking paid', sr.payment_status == 'paid' and sr.payment_verified,
+      f'status={sr.payment_status} verified={sr.payment_verified}')
 
 # 2. the same reference cannot be spent twice
 book(ac, ref)

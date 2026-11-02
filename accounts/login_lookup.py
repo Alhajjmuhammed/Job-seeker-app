@@ -6,7 +6,8 @@ remembers. Shared by the website and the app so both accept the same thing.
 import re
 
 from django.contrib.auth import authenticate
-from django.db.models import Q
+from django.db.models import Value
+from django.db.models.functions import Replace
 
 from .models import User
 
@@ -35,8 +36,13 @@ def find_login_candidates(identifier):
     users = list(User.objects.filter(username__iexact=identifier))
     tail = _phone_tail(identifier)
     if tail and re.fullmatch(r'[\d\s+()-]+', identifier):
+        # Stored numbers may contain spaces, dashes or brackets; strip them
+        # in the query so "0711 222 333" matches too.
+        stripped = 'phone_number'
+        for char in (' ', '-', '(', ')'):
+            stripped = Replace(stripped, Value(char), Value(''))
         seen = {u.pk for u in users}
-        for u in User.objects.filter(Q(phone_number__endswith=tail[-4:]) & ~Q(phone_number='')):
+        for u in User.objects.annotate(phone_digits=stripped).filter(phone_digits__endswith=tail):
             if u.pk not in seen and _phone_tail(u.phone_number) == tail:
                 users.append(u)
     return users

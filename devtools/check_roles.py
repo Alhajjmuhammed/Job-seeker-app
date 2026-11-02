@@ -81,9 +81,14 @@ def pay_and_book():
         'payment_transaction_id': ref or '', 'payment_method': 'yas'}),
         content_type='application/json')
     sr = ServiceRequest.objects.filter(client=client).order_by('-id').first()
-    return (sr is not None and sr.payment_status == 'paid' and sr.total_price == D('55000'),
+    # A demo reference leaves the booking pending until an admin verifies
+    # the client's payment proof - that is what makes it paid.
+    pending = sr is not None and sr.payment_status == 'pending' and sr.payment_transaction_id == ref
+    sr.mark_payment_verified(admin)
+    sr.refresh_from_db()
+    return (pending and sr.payment_status == 'paid' and sr.total_price == D('55000'),
             f'HTTP {r2.status_code} status={getattr(sr,"payment_status",None)} total={getattr(sr,"total_price",None)}')
-step('client', 'pays and books a service', pay_and_book)
+step('client', 'books a service, paid once the admin verifies the proof', pay_and_book)
 sr = ServiceRequest.objects.filter(client=client).order_by('-id').first()
 step('client', 'sees the booking in their list', lambda: (
     (lambda r: ('Leaky tap' in r.content.decode(), f'HTTP {r.status_code}'))(

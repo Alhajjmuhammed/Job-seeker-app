@@ -1,0 +1,441 @@
+"""
+End-to-end checks of every main flow, as real HTTP requests on a throwaway
+database: login (website and app), registration, booking, payment proof and
+admin verification, assignment, clock in/out, completion and earnings, and
+the privacy rules around documents, search and messaging.
+
+    python manage.py test tests.test_full_flows
+"""
+import json
+import shutil
+import tempfile
+from decimal import Decimal as D
+
+from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
+from django.utils import timezone
+
+from accounts.models import User
+from agents.models import AgentProfile
+from clients.models import ClientProfile, PaymentTransaction
+from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
+from workers.models import Category, WorkerDocument, WorkerProfile
+
+PW = 'Str0ng-pass-2026'
+MEDIA = tempfile.mkdtemp(prefix='wc-test-media-')
+
+# smallest valid PNG, for upload validation
+PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f'
+       b'\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00'
+       b'IEND\xaeB`\x82')
+
+
+def post_json(client, url, data=None, **extra):
+    return client.post(url, json.dumps(data or {}), content_type='application/json', **extra)
+
+
+def patch_json(client, url, data=None):
+    return client.patch(url, json.dumps(data or {}), content_type='application/json')
+
+
+def patch_file(client, url, field, upload):
+    from django.test.client import encode_multipart, BOUNDARY, MULTIPART_CONTENT
+    return client.patch(url, encode_multipart(BOUNDARY, {field: upload}), content_type=MULTIPART_CONTENT)
+
+
+@override_settings(MEDIA_ROOT=MEDIA)
+class FlowBase(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(MEDIA, ignore_errors=True)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name='Plumber', daily_rate=D('25000'), service_fee=D('5000'))
+        cls.admin = User.objects.create_user(
+            email='admin@t.co', username='boss', password=PW,
+            user_type='admin', is_staff=True, is_superuser=True)
+        cls.client_user = User.objects.create_user(
+            email='Client.One@t.co', username='clientone', password=PW, user_type='client',
+            first_name='Cli', last_name='One', phone_number='+255711222333')
+        ClientProfile.objects.create(user=cls.client_user)
+        cls.other_client = User.objects.create_user(
+            email='other@t.co', username='otherclient', password=PW, user_type='client',
+            first_name='Oth', last_name='Er')
+        ClientProfile.objects.create(user=cls.other_client)
+        cls.agent_user = User.objects.create_user(
+            email='agent@t.co', username='agentx', password=PW, user_type='agent')
+        cls.agent = AgentProfile.objects.create(user=cls.agent_user, is_verified=True,
+                                                commission_rate=D('10'))
+        cls.worker_user = User.objects.create_user(
+            email='worker@t.co', username='workerw', password=PW, user_type='worker',
+            first_name='Wor', last_name='Ker', phone_number='0744555666')
+        cls.wp = WorkerProfile.objects.create(
+            user=cls.worker_user, verification_status='verified', availability='available',
+            is_public=True, city='Dar', agent=cls.agent)
+        cls.wp.categories.add(cls.cat)
+        cls.worker2_user = User.objects.create_user(
+            email='worker2@t.co', username='workertwo', password=PW, user_type='worker',
+            first_name='Two', last_name='Worker')
+        cls.wp2 = WorkerProfile.objects.create(
+            user=cls.worker2_user, verification_status='verified', availability='available',
+            is_public=True, city='Dar')
+        cls.wp2.categories.add(cls.cat)
+
+    def setUp(self):
+        cache.clear()
+        self.admin_c, self.client_c, self.worker_c = Client(), Client(), Client()
+        self.admin_c.force_login(self.admin)
+        self.client_c.force_login(self.client_user)
+        self.worker_c.force_login(self.worker_user)
+
+    # -- helpers -------------------------------------------------------------
+    def book(self, workers=1, **extra):
+        """Client takes a (demo) payment reference and books with it."""
+        total = float(self.cat.daily_rate * workers + self.cat.service_fee)
+        pay = post_json(self.client_c, '/api/v1/client/process-payment/',
+                        {'amount': total, 'payment_type': 'yas', 'phone_number': '+255711222333'})
+        self.assertEqual(pay.status_code, 200, pay.content)
+        ref = pay.json()['transaction_id']
+        body = {'category': self.cat.id, 'title': 'Leaky tap', 'description': 'fix it',
+                'location': '12 Secret Street', 'city': 'Dar', 'workers_needed': workers,
+                'duration_type': 'daily', 'preferred_date': str(timezone.now().date()),
+                'preferred_time': '09:00:00', 'payment_transaction_id': ref,
+                'payment_method': 'yas', **extra}
+        r = post_json(self.client_c, '/api/v1/client/service-requests/create/', body)
+        self.assertIn(r.status_code, (200, 201), r.content)
+        return ServiceRequest.objects.filter(client=self.client_user).latest('id'), ref
+
+    def assign_and_accept(self, sr, worker_c=None, wp=None):
+        wp = wp or self.wp
+        r = post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': wp.id})
+        self.assertIn(r.status_code, (200, 201), r.content)
+        asg = ServiceRequestAssignment.objects.get(service_request=sr, worker=wp)
+        r = post_json(worker_c or self.worker_c, f'/api/v1/worker/my-assignments/{asg.id}/respond/',
+                      {'accepted': True})
+        self.assertEqual(r.status_code, 200, r.content)
+        asg.refresh_from_db()
+        return asg
+
+
+class LoginTests(FlowBase):
+    def api_login(self, identifier, password=PW):
+        return post_json(Client(), '/api/auth/login/', {'email': identifier, 'password': password})
+
+    def test_app_login_with_every_identifier(self):
+        for ident in ['Client.One@t.co', 'client.one@T.CO', 'clientone', 'CLIENTONE',
+                      '+255711222333', '0711222333', '255711222333', '711 222 333']:
+            r = self.api_login(ident)
+            self.assertEqual(r.status_code, 200, f'{ident}: {r.content}')
+            self.assertEqual(r.json()['user']['email'], 'Client.One@t.co')
+            self.assertTrue(r.json()['token'])
+
+    def test_app_login_rejects_wrong_details(self):
+        self.assertEqual(self.api_login('clientone', 'wrong').status_code, 401)
+        self.assertEqual(self.api_login('nobody').status_code, 401)
+        self.assertEqual(post_json(Client(), '/api/auth/login/', {'password': PW}).status_code, 400)
+
+    def test_shared_phone_uses_password_to_pick_account(self):
+        u = User.objects.create_user(email='twin@t.co', username='twin', password='Other-pass-99',
+                                     user_type='worker', phone_number='0711 222 333')
+        r = self.api_login('0711222333', 'Other-pass-99')
+        self.assertEqual(r.json()['user']['email'], u.email)
+        u.set_password(PW)
+        u.save()
+        r = self.api_login('0711222333', PW)
+        self.assertEqual(r.status_code, 401)
+        self.assertIn('email or username', r.json()['message'])
+
+    def test_website_login_with_every_identifier(self):
+        for ident in ['client.one@t.co', 'clientone', '0711222333']:
+            c = Client()
+            r = c.post('/accounts/login/', {'username': ident, 'password': PW})
+            self.assertEqual(r.status_code, 302, ident)
+            self.assertIn('/clients/', r['Location'], ident)
+
+    def test_website_login_lockout_after_repeated_failures(self):
+        c = Client()
+        for _ in range(10):
+            c.post('/accounts/login/', {'username': 'clientone', 'password': 'bad'}, HTTP_X_REAL_IP='1.2.3.4')
+        r = c.post('/accounts/login/', {'username': 'clientone', 'password': PW}, HTTP_X_REAL_IP='1.2.3.4')
+        self.assertEqual(r.status_code, 429)
+        # a different address is unaffected
+        r = Client().post('/accounts/login/', {'username': 'clientone', 'password': PW}, HTTP_X_REAL_IP='5.6.7.8')
+        self.assertEqual(r.status_code, 302)
+
+    def test_login_next_cannot_redirect_off_site(self):
+        u = User.objects.create_user(email='plain@t.co', username='plain', password=PW, user_type='')
+        r = Client().post('/accounts/login/?next=https://evil.example/', {'username': 'plain', 'password': PW})
+        self.assertEqual(r.status_code, 302)
+        self.assertNotIn('evil.example', r['Location'])
+        self.assertTrue(u)
+
+    def test_registration_rejects_email_differing_only_by_case(self):
+        r = post_json(Client(), '/api/auth/register/', {
+            'firstName': 'A', 'lastName': 'B', 'email': 'CLIENT.ONE@t.co', 'phone': '0700000001',
+            'password': PW, 'userType': 'client'})
+        self.assertEqual(r.status_code, 400, r.content)
+
+    def test_app_registration_then_login(self):
+        r = post_json(Client(), '/api/auth/register/', {
+            'firstName': 'New', 'lastName': 'Worker', 'email': 'New.Worker@t.co', 'phone': '0755123456',
+            'password': PW, 'userType': 'worker', 'workerType': 'non-academic'})
+        self.assertIn(r.status_code, (200, 201), r.content)
+        self.assertEqual(self.api_login('0755123456').status_code, 200)
+        self.assertEqual(self.api_login('new.worker@t.co').status_code, 200)
+
+    def test_password_reset_link_points_at_website(self):
+        from django.core import mail
+        post_json(Client(), '/api/auth/password-reset/', {'email': 'client.one@t.co'})
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('/accounts/reset-password/', mail.outbox[0].body)
+        self.assertNotIn('localhost:8081', mail.outbox[0].body)
+
+
+class BookingAndPaymentTests(FlowBase):
+    def test_payment_endpoint_needs_no_card_details_and_is_pending(self):
+        r = post_json(self.client_c, '/api/v1/client/process-payment/', {'amount': 30000, 'payment_type': 'card'})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['status'], 'pending_verification')
+
+    def test_demo_reference_books_but_is_not_paid_until_admin_verifies(self):
+        sr, ref = self.book()
+        self.assertEqual(sr.payment_status, 'pending')
+        self.assertEqual(sr.payment_transaction_id, ref)
+        self.assertEqual(sr.total_price, D('30000'))
+
+        # proof upload, then admin verification marks it paid
+        r = patch_file(self.client_c, f'/api/v1/clients/requests/{sr.id}/update/',
+                       'payment_screenshot', SimpleUploadedFile('p.png', PNG, 'image/png'))
+        self.assertEqual(r.status_code, 200, r.content)
+        r = self.admin_c.post(f'/dashboard/service-requests/{sr.id}/verify-payment/')
+        self.assertEqual(r.status_code, 302)
+        sr.refresh_from_db()
+        self.assertEqual(sr.payment_status, 'paid')
+        self.assertTrue(sr.payment_verified)
+
+        # a verified proof can no longer be swapped
+        r = patch_file(self.client_c, f'/api/v1/clients/requests/{sr.id}/update/',
+                       'payment_screenshot', SimpleUploadedFile('q.png', PNG, 'image/png'))
+        self.assertEqual(r.status_code, 400)
+
+    def test_reference_cannot_be_used_twice_or_for_another_amount(self):
+        sr, ref = self.book()
+        body = {'category': self.cat.id, 'title': 'Again', 'description': 'x', 'location': 'x', 'city': 'Dar',
+                'workers_needed': 1, 'duration_type': 'daily', 'preferred_date': str(timezone.now().date()),
+                'preferred_time': '09:00:00', 'payment_transaction_id': ref, 'payment_method': 'yas'}
+        post_json(self.client_c, '/api/v1/client/service-requests/create/', body)
+        second = ServiceRequest.objects.filter(client=self.client_user).latest('id')
+        self.assertNotEqual(second.id, sr.id)
+        self.assertEqual(second.payment_transaction_id, '')
+        self.assertEqual(PaymentTransaction.objects.get(reference=ref).consumed_by_id, sr.id)
+
+    def test_auto_assign_waits_for_verified_payment(self):
+        sr, _ = self.book(assignment_mode='auto_nearest', latitude=-6.8, longitude=39.28)
+        self.wp.latitude, self.wp.longitude = -6.81, 39.29
+        self.wp.save()
+        self.assertFalse(sr.assignments.exists())
+        sr.payment_screenshot = SimpleUploadedFile('p.png', PNG, 'image/png')
+        sr.save()
+        self.admin_c.post(f'/dashboard/service-requests/{sr.id}/verify-payment/')
+        sr.refresh_from_db()
+        if sr.assignment_mode == 'auto_nearest':  # coordinates were accepted
+            self.assertTrue(sr.assignments.exists())
+
+    def test_client_cannot_change_workers_after_payment(self):
+        sr, _ = self.book()
+        url = f'/api/v1/clients/requests/{sr.id}/update/'
+        self.assertEqual(patch_json(self.client_c, url, {'workers_needed': 'abc'}).status_code, 400)
+        self.assertEqual(patch_json(self.client_c, url, {'workers_needed': -3}).status_code, 400)
+        # unpaid: allowed, and the price follows
+        self.assertEqual(patch_json(self.client_c, url, {'workers_needed': 2}).status_code, 200)
+        sr.refresh_from_db()
+        self.assertEqual(sr.total_price, D('55000'))
+        # paid: refused
+        ServiceRequest.objects.filter(pk=sr.pk).update(payment_status='paid')
+        self.assertEqual(patch_json(self.client_c, url, {'workers_needed': 5}).status_code, 400)
+        r = self.client_c.put(f'/api/v1/client/service-requests/{sr.id}/update/',
+                              json.dumps({'workers_needed': 5}), content_type='application/json')
+        self.assertEqual(r.status_code, 400, r.content)
+
+    def test_other_client_cannot_see_or_edit_my_request(self):
+        sr, _ = self.book()
+        other = Client()
+        other.force_login(self.other_client)
+        self.assertEqual(other.get(f'/api/v1/clients/requests/{sr.id}/').status_code, 404)
+        self.assertEqual(patch_json(other, f'/api/v1/clients/requests/{sr.id}/update/',
+                                    {'title': 'hacked'}).status_code, 404)
+
+
+class WorkFlowTests(FlowBase):
+    def test_full_job_and_earnings_credited_once(self):
+        sr, _ = self.book()
+        asg = self.assign_and_accept(sr)
+        self.assertEqual(asg.status, 'accepted')
+        self.wp.refresh_from_db()
+        self.assertEqual(self.wp.availability, 'busy')
+
+        base = f'/api/v1/worker/my-assignments/{asg.id}'
+        self.assertEqual(post_json(self.worker_c, f'{base}/clock-in/').status_code, 200)
+        # cannot complete while clocked in
+        self.assertEqual(post_json(self.worker_c, f'{base}/complete/').status_code, 400)
+        self.assertEqual(post_json(self.worker_c, f'{base}/clock-out/').status_code, 200)
+        r = post_json(self.worker_c, f'{base}/complete/', {'completion_notes': 'done'})
+        self.assertEqual(r.status_code, 200, r.content)
+
+        self.wp.refresh_from_db()
+        self.agent.refresh_from_db()
+        self.assertEqual(self.wp.total_earnings, D('25000'))
+        self.assertEqual(self.wp.completed_jobs, 1)
+        self.assertEqual(self.wp.availability, 'available')
+        self.assertEqual(self.agent.total_commission_earned, D('2500.00'))
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'completed')
+
+        # every other completion route refuses to pay again
+        self.assertEqual(post_json(self.worker_c, f'{base}/complete/').status_code, 400)
+        self.assertEqual(self.worker_c.patch(f'/api/v1/workers/assigned-jobs/{sr.id}/status/',
+                                             json.dumps({'status': 'completed'}),
+                                             content_type='application/json').status_code, 400)
+        self.assertEqual(post_json(self.worker_c, f'/api/v1/worker/service-requests/{asg.id}/complete/').status_code, 400)
+        self.wp.refresh_from_db()
+        self.agent.refresh_from_db()
+        self.assertEqual(self.wp.total_earnings, D('25000'))
+        self.assertEqual(self.wp.completed_jobs, 1)
+        self.assertEqual(self.agent.total_commission_earned, D('2500.00'))
+
+    def test_rejected_or_unaccepted_assignment_cannot_be_completed(self):
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        asg = ServiceRequestAssignment.objects.get(service_request=sr, worker=self.wp)
+        # not accepted yet
+        self.assertEqual(post_json(self.worker_c, f'/api/v1/worker/service-requests/{asg.id}/complete/').status_code, 400)
+        post_json(self.worker_c, f'/api/v1/worker/my-assignments/{asg.id}/respond/',
+                  {'accepted': False, 'rejection_reason': 'busy'})
+        self.assertEqual(post_json(self.worker_c, f'/api/v1/worker/my-assignments/{asg.id}/complete/').status_code, 400)
+        self.wp.refresh_from_db()
+        self.assertEqual(self.wp.total_earnings, D('0'))
+
+    def test_busy_worker_cannot_be_assigned_again(self):
+        sr1, _ = self.book()
+        self.assign_and_accept(sr1)
+        sr2, _ = self.book()
+        r = post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr2.id}/assign/', {'worker_id': self.wp.id})
+        self.assertEqual(r.status_code, 400)
+
+    def test_client_mark_finished_pays_each_worker_once(self):
+        sr, _ = self.book(workers=2)
+        self.assign_and_accept(sr)
+        w2 = Client()
+        w2.force_login(self.worker2_user)
+        self.assign_and_accept(sr, worker_c=w2, wp=self.wp2)
+        ServiceRequest.objects.filter(pk=sr.pk).update(status='in_progress')
+        r = post_json(self.client_c, f'/api/v1/clients/requests/{sr.id}/complete/')
+        self.assertEqual(r.status_code, 200, r.content)
+        for wp in (self.wp, self.wp2):
+            wp.refresh_from_db()
+            self.assertEqual(wp.total_earnings, D('25000'))
+
+    def test_worker_cannot_touch_someone_elses_assignment(self):
+        sr, _ = self.book()
+        asg = self.assign_and_accept(sr)
+        w2 = Client()
+        w2.force_login(self.worker2_user)
+        self.assertEqual(post_json(w2, f'/api/v1/worker/my-assignments/{asg.id}/complete/').status_code, 404)
+
+    def test_non_admin_cannot_assign(self):
+        sr, _ = self.book()
+        r = post_json(self.client_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        self.assertEqual(r.status_code, 403)
+
+
+class PrivacyTests(FlowBase):
+    def test_private_documents_owner_staff_or_signed_link_only(self):
+        doc = WorkerDocument.objects.create(worker=self.wp, document_type='id', title='ID',
+                                            file=SimpleUploadedFile('id.pdf', b'%PDF-1.4 x'))
+        url = f'/media/{doc.file.name}'
+        self.assertEqual(Client().get(url).status_code, 403)
+        self.assertEqual(self.client_c.get(url).status_code, 403)
+        for c in (self.worker_c, self.admin_c):
+            r = c.get(url)
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(r['X-Accel-Redirect'], f'/protected-media/{doc.file.name}')
+        # the app's link works without a login, a forged one does not
+        r = self.worker_c.get('/api/v1/workers/documents/')
+        file_url = next(d['file_url'] for d in r.json()['documents'] if d['id'] == doc.id) \
+            if r.status_code == 200 and 'documents' in r.json() else None
+        if file_url:
+            path = file_url.split('testserver', 1)[1]
+            self.assertEqual(Client().get(path).status_code, 200)
+            self.assertEqual(Client().get(url + '?sig=forged').status_code, 403)
+
+    def test_user_search_never_returns_emails(self):
+        r = self.client_c.get('/api/messages/search-users/', {'q': 'admin'})
+        self.assertNotIn(b'admin@t.co', r.content)
+        r = self.client_c.get('/api/messages/search-users/', {'q': 'Wor'})
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn('username', r.json()['users'][0])
+        self.assertIn(b'clientone', self.admin_c.get('/api/messages/search-users/', {'q': 'clientone'}).content)
+
+    def test_public_job_search_hides_address(self):
+        self.book()
+        r = Client().get('/api/search/jobs/')
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn(b'Secret Street', r.content)
+        self.assertIn(b'Secret Street', self.client_c.get('/api/v1/client/service-requests/').content)
+
+    def test_review_requires_completed_work_together(self):
+        r = post_json(self.other_client and self.client_c, '/api/v1/job-reviews/',
+                      {'reviewee_id': self.worker2_user.id, 'overall_rating': 1, 'comment': 'fake'})
+        self.assertEqual(r.status_code, 403)
+
+    def test_api_docs_not_public(self):
+        self.assertIn(Client().get('/api/docs/').status_code, (401, 403))
+
+    def test_agent_finds_worker_by_exact_contact_only(self):
+        WorkerProfile.objects.filter(pk=self.wp2.pk).update(agent=None)
+        ag = Client()
+        ag.force_login(self.agent_user)
+        self.assertNotIn(b'worker2@t.co', ag.get('/agents/workers/search/', {'q': 'worker'}).content)
+        self.assertIn(b'worker2@t.co', ag.get('/agents/workers/search/', {'q': 'worker2@t.co'}).content)
+
+
+class NotificationTests(FlowBase):
+    def test_unread_filter_and_push_token_follow_the_user(self):
+        from worker_connect.notification_models import Notification, PushToken
+        from worker_connect.notification_service import NotificationService
+        NotificationService.create_notification(recipient=self.client_user, title='a', message='a',
+                                                notification_type='system_alert')
+        n = Notification.objects.filter(recipient=self.client_user).first()
+        n.is_read = True
+        n.save()
+        NotificationService.create_notification(recipient=self.client_user, title='b', message='b',
+                                                notification_type='system_alert')
+        r = self.client_c.get('/api/notifications/', {'is_read': 'false'})
+        self.assertEqual([x['title'] for x in r.json()], ['b'])
+
+        token = 'ExponentPushToken[same-phone]'
+        for c in (self.client_c, self.worker_c):
+            r = post_json(c, '/api/notifications/push-token/register/', {'token': token, 'device_type': 'android'})
+            self.assertEqual(r.status_code, 200, r.content)
+        pt = PushToken.objects.get(token=token)
+        self.assertEqual(pt.user, self.worker_user)
+        self.assertTrue(pt.is_active)
+
+        api_token = post_json(Client(), '/api/auth/login/', {'email': 'workerw', 'password': PW}).json()['token']
+        post_json(Client(), '/api/auth/logout/', {'push_token': token}, HTTP_AUTHORIZATION=f'Token {api_token}')
+        pt.refresh_from_db()
+        self.assertFalse(pt.is_active)
+
+
+class PagesRenderTests(FlowBase):
+    def test_each_role_dashboard_loads(self):
+        ag = Client()
+        ag.force_login(self.agent_user)
+        for c, url in [(self.client_c, '/clients/dashboard/'), (self.worker_c, '/workers/dashboard/'),
+                       (self.admin_c, '/dashboard/'), (ag, '/agents/'), (Client(), '/'),
+                       (Client(), '/accounts/login/'), (Client(), '/accounts/register/')]:
+            r = c.get(url, follow=True)
+            self.assertEqual(r.status_code, 200, url)

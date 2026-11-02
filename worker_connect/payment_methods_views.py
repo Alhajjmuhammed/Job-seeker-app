@@ -98,8 +98,10 @@ class SavedCardViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, pk=None):
         """Remove a saved card"""
+        # Outside the try: a missing (or someone else's) record is a 404,
+        # not a 500 echoing the exception text.
+        card = self.get_object()
         try:
-            card = self.get_object()
             
             # Detach card from Stripe
             PaymentService.initialize()
@@ -180,8 +182,10 @@ class BankAccountViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, pk=None):
         """Remove a bank account"""
+        # Outside the try: a missing (or someone else's) record is a 404,
+        # not a 500 echoing the exception text.
+        bank_account = self.get_object()
         try:
-            bank_account = self.get_object()
             
             # Soft delete (mark as inactive)
             bank_account.is_active = False
@@ -253,8 +257,10 @@ class MobileMoneyAccountViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, pk=None):
         """Remove a mobile money account"""
+        # Outside the try: a missing (or someone else's) record is a 404,
+        # not a 500 echoing the exception text.
+        mobile_account = self.get_object()
         try:
-            mobile_account = self.get_object()
             
             # Soft delete (mark as inactive)
             mobile_account.is_active = False
