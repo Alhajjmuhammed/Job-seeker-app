@@ -69,8 +69,23 @@ def agent_register(request):
     return render(request, 'accounts/agent_register.html', {'form': form})
 
 
+def _client_ip(request):
+    # nginx sets X-Real-IP itself (it is not appended to), so it cannot be
+    # spoofed by the client the way X-Forwarded-For can. REMOTE_ADDR is
+    # always 127.0.0.1 behind the proxy.
+    return request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR', '')
+
+
 def user_login(request):
     """Login view for all users"""
+    from django.core.cache import cache
+
+    lockout_key = f'web-login-failures:{_client_ip(request)}'
+    if request.method == 'POST' and cache.get(lockout_key, 0) >= settings.LOGIN_FAILURE_LIMIT:
+        # The web login had no limit at all, unlike the API login.
+        messages.error(request, 'Too many failed login attempts. Please wait 15 minutes and try again.')
+        return render(request, 'accounts/login.html', {'form': CustomLoginForm()}, status=429)
+
     if request.method == 'POST':
         post_data = request.POST.copy()
         identifier = post_data.get('username', '').strip()
@@ -92,6 +107,7 @@ def user_login(request):
             user = form.get_user()
 
             if user is not None:
+                cache.delete(lockout_key)
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.username}!')
                 
@@ -106,11 +122,22 @@ def user_login(request):
                     return redirect('agents:dashboard')
                 
                 # Only use 'next' for non-role users
+                # Only follow a 'next' that stays on this site - otherwise the
+                # login page could be used to bounce users to a phishing page.
+                from django.utils.http import url_has_allowed_host_and_scheme
                 next_url = request.GET.get('next') or request.POST.get('next')
-                if next_url:
+                if next_url and url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+                ):
                     return redirect(next_url)
                 
                 return redirect('home')
+        else:
+            try:
+                cache.add(lockout_key, 0, settings.LOGIN_LOCKOUT_SECONDS)
+                cache.incr(lockout_key)
+            except ValueError:
+                pass
     else:
         form = CustomLoginForm()
     

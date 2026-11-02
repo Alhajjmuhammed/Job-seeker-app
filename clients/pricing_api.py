@@ -178,90 +178,46 @@ def process_fake_payment(request):
                 'error': 'Invalid amount format'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate based on payment type
+        # No gateway is connected yet (YAS is reached over an IPsec tunnel
+        # that is not built), so nothing is charged here. Card numbers and
+        # CVVs are deliberately never read: this server is not PCI scoped
+        # and must not handle them. The reference issued below lets the
+        # booking go through, but a demo reference does not make it paid -
+        # an admin verifying the client's payment proof does
+        # (ServiceRequest.mark_payment_verified).
         if payment_type == 'card':
-            card_number = request.data.get('card_number', '').replace(' ', '')
-            card_holder = request.data.get('card_holder', '')
-            card_expiry = request.data.get('card_expiry', '')
-            card_cvv = request.data.get('card_cvv', '')
-            
-            if not all([card_number, card_holder, card_expiry, card_cvv]):
-                return Response({
-                    'error': 'Card details are incomplete'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Demo validation: Accept test cards (Visa 4242... or Mastercard 5555...)
-            if not (card_number.startswith('4242') or card_number.startswith('5555')):
-                return Response({
-                    'success': False,
-                    'error': 'Card declined. Use demo cards: 4242 4242 4242 4242 (Visa) or 5555 5555 5555 5555 (Mastercard)'
-                }, status=status.HTTP_402_PAYMENT_REQUIRED)
-                
             payment_method = 'Credit Card'
-            
         elif payment_type == 'yas':
-            phone_number = request.data.get('phone_number', '')
-            
-            if not phone_number:
-                return Response({
-                    'error': 'Phone number is required for Mixx by YAS'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Demo validation: Accept numbers starting with +255
-            if not phone_number.startswith('+255'):
-                return Response({
-                    'success': False,
-                    'error': 'Invalid YAS number. Use demo number: +255123456789'
-                }, status=status.HTTP_402_PAYMENT_REQUIRED)
-            
             payment_method = 'Mobile Money'
         else:
             return Response({
                 'error': 'Invalid payment type. Use "card" or "yas"'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Simulate payment processing delay
-        import time
-        time.sleep(2)  # Simulate network delay 
-        
-        # Generate fake transaction ID
+
         prefix = 'CARD' if payment_type == 'card' else 'YAS'
         transaction_id = f"DEMO-{prefix}-{uuid.uuid4().hex[:12].upper()}"
-        
-        # 98% success rate for demo (using valid test credentials)
-        import random
-        success = random.random() < 0.98
-        
-        if success:
-            # Record the reference we just issued. A booking can only be
-            # marked paid by presenting a reference recorded here, to this
-            # client, for this amount, and not already spent - otherwise any
-            # made-up string was accepted as proof of payment.
-            PaymentTransaction.objects.create(
-                reference=transaction_id,
-                client=request.user,
-                amount=amount,
-                method='card' if payment_type == 'card' else 'yas',
-                is_demo=True,
-            )
-            return Response({
-                'success': True,
-                'transaction_id': transaction_id,
-                'amount': float(amount),
-                'currency': 'TSH',
-                'payment_method': payment_method,
-                'payment_type': payment_type,
-                'status': 'paid',
-                'paid_at': django_timezone.now().isoformat(),
-                'message': f'Payment processed successfully via {payment_method} (DEMO MODE)'
-            })
-        else:
-            return Response({
-                'success': False,
-                'error': f'{payment_method} payment failed. Please try again. (DEMO MODE)',
-                'status': 'failed'
-            }, status=status.HTTP_402_PAYMENT_REQUIRED)
-        
+
+        # A booking can only use a reference recorded here, to this client,
+        # for this amount, and not already spent.
+        PaymentTransaction.objects.create(
+            reference=transaction_id,
+            client=request.user,
+            amount=amount,
+            method='card' if payment_type == 'card' else 'yas',
+            is_demo=True,
+        )
+        return Response({
+            'success': True,
+            'transaction_id': transaction_id,
+            'amount': float(amount),
+            'currency': 'TSH',
+            'payment_method': payment_method,
+            'payment_type': payment_type,
+            'status': 'pending_verification',
+            'paid_at': None,
+            'message': 'Please upload your payment proof. Your booking is confirmed once an admin verifies it.'
+        })
+
     except Exception as e:
         logger.error(f"Error processing payment: {str(e)}", exc_info=True)
         return Response({

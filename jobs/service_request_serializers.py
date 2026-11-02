@@ -285,6 +285,18 @@ class ServiceRequestListSerializer(serializers.ModelSerializer):
             'workers_needed',  # NEW: Multiple workers support
         ]
 
+    # The street address, the client's review and exactly when they will be
+    # home are as private as their name - the public job search served them
+    # to anyone. Others still see the city.
+    PRIVATE_FIELDS = ('location', 'client_review', 'preferred_date', 'preferred_time')
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        if not self._may_see_client(obj):
+            for field in self.PRIVATE_FIELDS:
+                data[field] = None
+        return data
+
     def get_worker_name(self, obj):
         """assigned_worker is the LEGACY single-worker field, never populated
         by the real multi-worker assignment flow - see ServiceRequestSerializer

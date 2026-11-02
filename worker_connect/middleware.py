@@ -23,11 +23,20 @@ class APILoggingMiddleware(MiddlewareMixin):
         super().__init__(get_response)
         self.get_response = get_response
     
+    # Matched as substrings, so new_password, card_number, card_cvv and
+    # access_token are caught too - exact names let all of those through.
+    SENSITIVE_SUBSTRINGS = ('password', 'token', 'secret', 'api_key', 'authorization',
+                            'card', 'cvv', 'pin', 'otp')
+
+    def _is_sensitive(self, key):
+        key = str(key).lower()
+        return any(part in key for part in self.SENSITIVE_SUBSTRINGS)
+
     def _mask_sensitive_data(self, data):
         """Mask sensitive fields in request/response data"""
         if isinstance(data, dict):
             return {
-                k: '***REDACTED***' if k.lower() in self.SENSITIVE_FIELDS else self._mask_sensitive_data(v)
+                k: '***REDACTED***' if self._is_sensitive(k) else self._mask_sensitive_data(v)
                 for k, v in data.items()
             }
         elif isinstance(data, list):

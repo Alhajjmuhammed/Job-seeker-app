@@ -144,7 +144,9 @@ def search_jobs(request):
             try:
                 user_lat = float(latitude)
                 user_lon = float(longitude)
-                max_distance = float(radius)
+                # A tiny radius around chosen coordinates would pin down
+                # where each request is; 5 km is the finest it gets.
+                max_distance = max(float(radius), 5.0)
                 
                 filtered_jobs = []
                 for job in jobs_list:
@@ -287,7 +289,9 @@ def search_workers(request):
             try:
                 user_lat = float(latitude)
                 user_lon = float(longitude)
-                max_distance = float(radius)
+                # A tiny radius around chosen coordinates would pin down
+                # where each request is; 5 km is the finest it gets.
+                max_distance = max(float(radius), 5.0)
                 
                 filtered_workers = []
                 for worker in workers_list:

@@ -201,27 +201,34 @@ def search_users(request):
     query = request.GET.get('q', '').strip()
     user_type = request.GET.get('type', '')  # 'worker', 'client', 'admin'
     
-    users = User.objects.exclude(id=user.id)
-    
+    users = User.objects.filter(is_active=True).exclude(id=user.id)
+
+    # username is the e-mail address for every API sign-up, so searching or
+    # returning it let any account harvest everyone's e-mail - staff
+    # included. Only staff see it; everyone else finds people by name.
+    is_staff = user.is_staff
     if query:
-        users = users.filter(
-            Q(username__icontains=query) |
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query)
-        )
-    
+        name_match = Q(first_name__icontains=query) | Q(last_name__icontains=query)
+        if is_staff:
+            name_match |= Q(username__icontains=query) | Q(email__icontains=query)
+        users = users.filter(name_match)
+    elif not is_staff:
+        return Response({'users': []})
+
     if user_type:
         users = users.filter(user_type=user_type)
-    
+
     users = users[:20]  # Limit to 20 results
-    
+
     users_data = []
     for u in users:
-        users_data.append({
+        entry = {
             'id': u.id,
-            'name': u.get_full_name() or u.username,
-            'username': u.username,
+            'name': u.get_full_name() or (u.username if is_staff else f'User {u.id}'),
             'user_type': u.user_type,
-        })
+        }
+        if is_staff:
+            entry['username'] = u.username
+        users_data.append(entry)
     
     return Response({'users': users_data})

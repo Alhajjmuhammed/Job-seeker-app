@@ -435,6 +435,11 @@ REST_FRAMEWORK = {
         'anon': '100/hour',  # Anonymous users: 100 requests per hour
         'user': '1000/hour',  # Authenticated users: 1000 requests per hour
     },
+    # nginx sits in front and appends the real client address to
+    # X-Forwarded-For. Without this DRF keyed throttles on the whole header,
+    # which the client controls, so a fresh fake value per request bypassed
+    # the login, registration and password-reset limits.
+    'NUM_PROXIES': config('NUM_PROXIES', default=1, cast=int),
 }
 
 # CORS Configuration
@@ -458,7 +463,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r'^https?://192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$',  # Local network devices
     r'^https?://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$',  # Private network
     r'^exp://.*$',  # Expo development
-]
+] if DEBUG else []  # with credentials allowed, any LAN page could call the live API
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -563,6 +568,10 @@ if not DEBUG:
     # .env is now authoritative; defaults still assume HTTPS is present,
     # matching prior behavior for anyone who doesn't set these explicitly.
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    # TLS ends at nginx, which sets X-Forwarded-Proto. Without this Django
+    # only knew a request was HTTPS because of a gunicorn default - any
+    # other server (daphne, a changed proxy) would loop on the redirect.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
     SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
@@ -570,3 +579,20 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Origins allowed to submit forms over HTTPS (comma-separated).
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://workersearch.co.tz,https://www.workersearch.co.tz',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
+
+# Payments are simulated until the YAS gateway is connected. A demo
+# reference lets a booking go through, but only an admin verifying the
+# client's payment proof marks it paid. Turn this on in test environments
+# only, to let demo references count as real payment.
+DEMO_PAYMENTS_COUNT_AS_PAID = config('DEMO_PAYMENTS_COUNT_AS_PAID', default=False, cast=bool)
+
+# Web login: failed attempts allowed per client address before a lockout.
+LOGIN_FAILURE_LIMIT = config('LOGIN_FAILURE_LIMIT', default=10, cast=int)
+LOGIN_LOCKOUT_SECONDS = config('LOGIN_LOCKOUT_SECONDS', default=900, cast=int)

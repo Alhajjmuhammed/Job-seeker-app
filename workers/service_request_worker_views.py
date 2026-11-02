@@ -469,34 +469,17 @@ def worker_complete_service(request, pk):
     
     completion_notes = serializer.validated_data.get('completion_notes', '')
     
-    # Mark assignment as completed - NEW system
-    assignment.status = 'completed'
-    assignment.work_completed_at = timezone.now()
-    assignment.completion_notes = completion_notes
-    assignment.save()
-    
-    # Check if all assignments are completed
-    all_completed = not service_request.assignments.exclude(
-        status='completed'
-    ).filter(
-        status__in=['accepted', 'in_progress']
-    ).exists()
-    
-    if all_completed:
-        service_request.status = 'completed'
-        service_request.work_completed_at = timezone.now()
-        service_request.save()
-    
-    # Log activity
-    WorkerActivity.log_activity(
-        worker=worker_profile,
-        activity_type='completed',
-        description=f'Completed service: {service_request.title} (Worker {assignment.assignment_number})',
-        service_request=service_request,
-        location=service_request.location,
-        amount_earned=assignment.worker_payment
-    )
-    
+    # This used to hand-set the fields, so a pending, rejected or cancelled
+    # assignment could be "completed" and flip a cancelled request to
+    # completed. mark_completed() guards the state, credits earnings once,
+    # logs the activity and closes the request when all work is done.
+    if not assignment.mark_completed(completion_notes):
+        return Response(
+            {'error': f'Cannot complete an assignment that is {assignment.status}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    service_request.refresh_from_db()
+
     response_serializer = ServiceRequestAssignmentSerializer(assignment)
     return Response({
         'message': 'Service marked as completed',

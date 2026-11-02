@@ -95,16 +95,18 @@ def search_workers(request):
     query = request.GET.get('q', '').strip()
     results = []
     if query:
+        # Exact e-mail or phone only. A partial name/e-mail search let any
+        # agent page through every unlinked worker's e-mail address and
+        # attach strangers to themselves for commission; now an agent has to
+        # already know the worker's own contact details.
         results = (
             WorkerProfile.objects
-            .filter(agent__isnull=True)
+            .filter(agent__isnull=True, user__is_active=True)
             .filter(
-                models.Q(user__username__icontains=query) |
-                models.Q(user__email__icontains=query) |
-                models.Q(user__first_name__icontains=query) |
-                models.Q(user__last_name__icontains=query)
+                models.Q(user__email__iexact=query) |
+                models.Q(user__phone_number=query)
             )
-            .select_related('user')[:20]
+            .select_related('user')[:5]
         )
     return render(request, 'agents/search_workers.html', {
         'agent': agent,
@@ -133,6 +135,14 @@ def add_worker(request, worker_id):
     else:
         worker.agent = agent
         worker.save()
+        # The worker is told, so nobody is attached to an agent silently.
+        from worker_connect.notification_helpers import notify_system_alert
+        agent_name = request.user.get_full_name() or request.user.username
+        notify_system_alert(
+            worker.user,
+            'Linked to an agent',
+            f'{agent_name} added you to their team of workers. If you do not know this agent, please contact support.'
+        )
         messages.success(request, f'{worker.user.get_full_name() or worker.user.username} added to your team.')
     return redirect('agents:workers')
 

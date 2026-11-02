@@ -10,6 +10,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from .health_views import health_check, health_check_detailed, readiness_check, liveness_check
+from .media_views import private_media, PRIVATE_MEDIA_DIRS
 from jobs.service_request_urls import admin_urlpatterns, worker_urlpatterns, client_urlpatterns
 from .download_views import download_app
 
@@ -42,11 +43,16 @@ Authorization: Token <your-token>
         contact=openapi.Contact(email="sales@easyfix.co.tz"),
         license=openapi.License(name="Proprietary"),
     ),
-    public=True,
-    permission_classes=[permissions.AllowAny],
+    public=settings.DEBUG,
+    # The full API map is not for the public internet in production.
+    permission_classes=[permissions.AllowAny] if settings.DEBUG else [permissions.IsAdminUser],
 )
 
 urlpatterns = [
+    # Private uploads go through an access check (nginx routes these
+    # folders here instead of serving them itself).
+    re_path(r'^media/(?P<path>(?:%s)/.+)$' % '|'.join(PRIVATE_MEDIA_DIRS), private_media, name='private_media'),
+
     # Redirect admin login to custom system login
     path('admin/login/', RedirectView.as_view(pattern_name='accounts:login', query_string=True), name='admin_login_redirect'),
     path('admin/', admin.site.urls),

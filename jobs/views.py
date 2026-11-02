@@ -194,10 +194,14 @@ def job_close(request, pk):
     job = get_object_or_404(JobRequest, pk=pk, client=request.user)
     
     if request.method == 'POST':
+        if job.status in ('completed', 'cancelled'):
+            messages.warning(request, f'This job is already {job.get_status_display().lower()}.')
+            return redirect('jobs:job_detail', pk=job.pk)
+
         job.status = 'completed'
         job.completed_at = timezone.now()
         job.save()
-        
+
         if job.assigned_worker:
             job.assigned_worker.completed_jobs += 1
             job.assigned_worker.save()
@@ -527,7 +531,6 @@ def message_detail(request, pk):
 # DIRECT HIRE / ON-DEMAND BOOKING VIEWS
 # ===============================================
 
-@login_required
 def _suggested_rate(worker):
     """A sensible opening offer for hiring this worker directly.
 
@@ -538,6 +541,7 @@ def _suggested_rate(worker):
     return category.daily_rate if category else None
 
 
+@login_required
 def request_worker_directly(request, worker_id):
     """Client requests/books a worker directly for quick work"""
     if not request.user.is_client:

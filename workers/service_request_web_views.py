@@ -482,8 +482,9 @@ def worker_web_complete_service(request, pk):
         # mark_completed() also runs its own "are all assignments done"
         # check and notifies the client when the whole request closes, so
         # the inline duplicate of that logic below is no longer needed.
-        assignment.mark_completed(completion_notes)
-        assignment.calculate_payment()
+        if not assignment.mark_completed(completion_notes):
+            messages.error(request, f'Only an assignment you accepted can be completed (this one is {assignment.get_status_display()}).')
+            return redirect('service_requests_web:worker_assignment_detail', pk=pk)
 
         from worker_connect.notification_service import NotificationService
         NotificationService.create_notification(

@@ -448,10 +448,11 @@ def worker_complete_assignment(request, assignment_id):
     completion_notes = request.data.get('completion_notes', '')
     
     # Mark MY assignment as completed (mark_completed() logs the activity)
-    assignment.mark_completed(completion_notes)
-
-    # Calculate MY payment
-    assignment.calculate_payment()
+    if not assignment.mark_completed(completion_notes):
+        return Response(
+            {'error': f'Cannot complete an assignment that is {assignment.status}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     # Notify client that I completed MY part
     from worker_connect.notification_service import NotificationService

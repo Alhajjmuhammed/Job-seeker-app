@@ -15,10 +15,10 @@
     <div class="card-body">
         <h6 class="fw-semibold mb-3">{% trans "Search for a Worker" %}</h6>
         <p class="text-muted small mb-3">
-            {% trans "Find workers who are not yet linked to any agent. Search by name, username, or email address." %}
+            {% trans "Find a worker who is not yet linked to any agent by their exact email address or phone number." %}
         </p>
         <form method="get" class="d-flex gap-2">
-            <input type="text" name="q" value="{{ query }}" placeholder="{% trans "Name, username or email..." %}"
+            <input type="text" name="q" value="{{ query }}" placeholder="{% trans "Email or phone number" %}"
                    class="form-control" autofocus>
             <button type="submit" class="btn btn-teal px-4 fw-semibold flex-shrink-0">
                 <i class="bi bi-search me-1"></i> {% trans "Search" %}

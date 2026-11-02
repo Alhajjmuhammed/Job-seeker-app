@@ -27,6 +27,12 @@ def apply_assignment_mode(service_request):
     if service_request.assignment_mode != 'auto_nearest':
         return
 
+    # Workers are only sent once the booking is paid. This used to assign
+    # immediately, so an unpaid request still got workers dispatched.
+    # mark_payment_verified() calls back in here once payment is confirmed.
+    if not service_request.is_paid:
+        return
+
     # Account for assignments that may already exist - this can be called
     # more than once on the same request (e.g. the client updates a still-
     # pending request and re-triggers auto_nearest), and without this check

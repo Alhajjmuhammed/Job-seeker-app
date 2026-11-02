@@ -1668,11 +1668,8 @@ def verify_payment(request, request_id):
         messages.info(request, 'Payment has already been verified.')
         return redirect('admin_panel:service_request_detail', request_id=request_id)
     
-    # Mark payment as verified
-    service_request.payment_verified = True
-    service_request.payment_verified_by = request.user
-    service_request.payment_verified_at = timezone.now()
-    service_request.save()
+    # Verifying the proof is what makes the booking paid
+    service_request.mark_payment_verified(request.user)
     
     messages.success(
         request, 

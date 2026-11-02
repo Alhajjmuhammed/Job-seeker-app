@@ -425,26 +425,9 @@ def request_service(request, category_id):
         # their own booking paid and receive the service for free. Only a
         # reference this server issued, to this client, for this amount, and
         # not already spent, is accepted.
-        supplied_reference = (request.data.get('payment_transaction_id') or '').strip()
-        if supplied_reference:
-            txn = PaymentTransaction.redeem(
-                supplied_reference, request.user, expected_amount=total_price
-            )
-            if txn is not None:
-                txn.consumed_by = service_request
-                txn.consumed_at = timezone.now()
-                txn.save(update_fields=['consumed_by', 'consumed_at'])
-                service_request.payment_status = 'paid'
-                service_request.payment_transaction_id = txn.reference
-                service_request.paid_at = timezone.now()
-                service_request.save(update_fields=[
-                    'payment_status', 'payment_transaction_id', 'paid_at', 'updated_at',
-                ])
-            else:
-                logger.warning(
-                    "Rejected unverifiable payment reference %r from user %s",
-                    supplied_reference[:32], request.user.pk,
-                )
+        PaymentTransaction.settle(
+            service_request, request.data.get('payment_transaction_id'), request.user
+        )
         
         # Handle payment screenshot if provided
         if 'payment_screenshot' in request.FILES:
@@ -615,7 +598,6 @@ def complete_service_request(request, request_id):
         # (which never fires if there happen to be zero real assignments).
         for assignment in service_request.assignments.filter(status__in=['accepted', 'in_progress']):
             assignment.mark_completed()
-            assignment.calculate_payment()
 
         service_request.refresh_from_db()
         service_request.status = 'completed'
@@ -749,6 +731,14 @@ def update_service_request(request, request_id):
             except ValidationError as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Swapping the proof after an admin accepted it would let the
+            # verified badge stand for a different picture.
+            if service_request.payment_verified:
+                return Response(
+                    {'error': 'Payment has already been verified; the proof can no longer be replaced'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             service_request.payment_screenshot = screenshot
             service_request.save()
 
@@ -771,8 +761,32 @@ def update_service_request(request, request_id):
                          'preferred_time', 'estimated_duration_hours', 'urgency', 'client_notes',
                          'workers_needed']
 
+        # Same rule as the other update endpoint: only a request nobody is
+        # working on yet can be edited.
+        if service_request.status != 'pending':
+            return Response(
+                {'error': 'Can only update pending service requests'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if 'workers_needed' in request.data:
+            try:
+                workers_needed = int(request.data['workers_needed'])
+            except (TypeError, ValueError):
+                return Response({'error': 'workers_needed must be a number'}, status=status.HTTP_400_BAD_REQUEST)
+            if not 1 <= workers_needed <= 100:
+                return Response({'error': 'workers_needed must be between 1 and 100'}, status=status.HTTP_400_BAD_REQUEST)
+            # The price was fixed when the client paid - more workers would
+            # be work nobody paid for.
+            if workers_needed != service_request.workers_needed and service_request.is_paid:
+                return Response(
+                    {'error': 'The number of workers cannot be changed after payment. Please contact support.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            service_request.workers_needed = workers_needed
+
         for field in allowed_fields:
-            if field in request.data:
+            if field in request.data and field != 'workers_needed':
                 setattr(service_request, field, request.data[field])
 
         # workers_needed feeds directly into total_price

@@ -77,8 +77,7 @@ def client_create_service_request(request):
     
     serializer = ServiceRequestCreateSerializer(data=request.data)
     if not serializer.is_valid():
-        print(f"Validation errors: {serializer.errors}")
-        print(f"Request data: {request.data}")
+        logger.info("Service request validation failed: %s", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     # Get category to fetch daily rate
@@ -147,26 +146,7 @@ def client_create_service_request(request):
 
     # Only a reference this server issued, to this client, for this amount,
     # and not already spent, is accepted as payment.
-    supplied_reference = (payment_transaction_id or '').strip()
-    if supplied_reference:
-        txn = PaymentTransaction.redeem(
-            supplied_reference, request.user, expected_amount=total_price
-        )
-        if txn is not None:
-            txn.consumed_by = service_request
-            txn.consumed_at = timezone.now()
-            txn.save(update_fields=['consumed_by', 'consumed_at'])
-            service_request.payment_status = 'paid'
-            service_request.payment_transaction_id = txn.reference
-            service_request.paid_at = timezone.now()
-            service_request.save(update_fields=[
-                'payment_status', 'payment_transaction_id', 'paid_at', 'updated_at',
-            ])
-        else:
-            logger.warning(
-                "Rejected unverifiable payment reference %r from user %s",
-                supplied_reference[:32], request.user.pk,
-            )
+    PaymentTransaction.settle(service_request, payment_transaction_id, request.user)
 
     # Apply the client's chosen assignment mode (no-op unless auto_nearest;
     # falls back to admin_choice if it can't auto-assign)
@@ -419,7 +399,26 @@ def client_update_request(request, pk):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer.save()
+    # What the client paid for is fixed once paid: a cheaper category or
+    # more workers after payment would be work nobody paid for.
+    priced_fields = ('category', 'workers_needed')
+    changes_price = any(
+        f in serializer.validated_data and serializer.validated_data[f] != getattr(service_request, f)
+        for f in priced_fields
+    )
+    if changes_price and service_request.is_paid:
+        return Response(
+            {'error': 'The category and number of workers cannot be changed after payment. Please contact support.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    service_request = serializer.save()
+    if changes_price:
+        if 'category' in serializer.validated_data and service_request.category:
+            service_request.daily_rate = service_request.category.daily_rate
+            service_request.service_fee = service_request.category.service_fee
+        service_request.calculate_total_price()
+        service_request.save()
 
     # If the client changed assignment_mode to auto_nearest on this update
     # (e.g. added their location after initially picking "let admin choose"),

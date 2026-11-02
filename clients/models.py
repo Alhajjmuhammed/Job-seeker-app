@@ -177,3 +177,49 @@ class PaymentTransaction(models.Model):
             return None
         return txn
 
+    @classmethod
+    def settle(cls, service_request, reference, client):
+        """
+        Attach a payment reference to a new booking. Returns True if the
+        booking is now paid.
+
+        The row is locked so one reference cannot pay for two bookings
+        submitted at the same moment. A demo reference (no money moved) is
+        recorded on the booking but leaves it 'pending' until an admin
+        verifies the client's payment proof - unless DEMO_PAYMENTS_COUNT_AS_PAID
+        is switched on, which is only for test environments.
+        """
+        import logging
+        from django.conf import settings
+        from django.db import transaction
+        from django.utils import timezone
+
+        reference = (reference or '').strip()
+        if not reference:
+            return False
+
+        with transaction.atomic():
+            txn = cls.objects.select_for_update().filter(
+                reference=reference, client=client, consumed_by__isnull=True
+            ).first()
+            if txn is None or txn.amount != service_request.total_price:
+                logging.getLogger(__name__).warning(
+                    "Rejected unverifiable payment reference %r from user %s",
+                    reference[:32], client.pk,
+                )
+                return False
+
+            txn.consumed_by = service_request
+            txn.consumed_at = timezone.now()
+            txn.save(update_fields=['consumed_by', 'consumed_at'])
+
+            service_request.payment_transaction_id = txn.reference
+            update_fields = ['payment_transaction_id', 'updated_at']
+            paid = not txn.is_demo or getattr(settings, 'DEMO_PAYMENTS_COUNT_AS_PAID', False)
+            if paid:
+                service_request.payment_status = 'paid'
+                service_request.paid_at = timezone.now()
+                update_fields += ['payment_status', 'paid_at']
+            service_request.save(update_fields=update_fields)
+        return paid
+

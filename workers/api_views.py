@@ -1,5 +1,6 @@
 import logging
 from rest_framework import status
+from worker_connect.media_views import signed_media_url
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, permission_classes, parser_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -303,9 +304,17 @@ def update_job_status(request, job_id):
             # 'available', increments completed_jobs, and credits any
             # recruiting agent's commission - setting job.status directly
             # skipped all of that.
-            assignment.mark_completed()
-            assignment.calculate_payment()
+            if not assignment.mark_completed():
+                return Response(
+                    {'error': f'Cannot complete an assignment that is {assignment.status}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         else:
+            if not assignment.can_be_completed():
+                return Response(
+                    {'error': f'Cannot start an assignment that is {assignment.status}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             assignment.status = new_status
             assignment.save(update_fields=['status', 'updated_at'])
             job.status = new_status
@@ -474,7 +483,7 @@ def get_documents(request):
             'id': doc.id,
             'document_type': doc.document_type,
             'title': doc.title,
-            'file_url': request.build_absolute_uri(doc.file.url) if doc.file else None,
+            'file_url': signed_media_url(request, doc.file),
             'verification_status': doc.verification_status,
             'rejection_reason': doc.rejection_reason,
             'uploaded_at': doc.uploaded_at.isoformat(),

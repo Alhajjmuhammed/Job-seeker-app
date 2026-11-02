@@ -546,7 +546,6 @@ def client_web_complete_request(request, pk):
         # (which never fires if there happen to be zero real assignments).
         for assignment in service_request.assignments.filter(status__in=['accepted', 'in_progress']):
             assignment.mark_completed()
-            assignment.calculate_payment()
 
         service_request.refresh_from_db()
         service_request.status = 'completed'

@@ -13,6 +13,23 @@ from jobs.models import JobRequest
 from .reviews import Review, ReviewService
 
 
+def _have_worked_together(a, b):
+    """True if one is the client and the other a worker on completed work."""
+    from django.db.models import Q
+    from jobs.service_request_models import ServiceRequestAssignment
+    from jobs.models import DirectHireRequest
+
+    pair = (Q(service_request__client=a, worker__user=b) |
+            Q(service_request__client=b, worker__user=a))
+    if ServiceRequestAssignment.objects.filter(pair, status='completed').exists():
+        return True
+    jobs_pair = (Q(client=a, assigned_worker__user=b) | Q(client=b, assigned_worker__user=a))
+    if JobRequest.objects.filter(jobs_pair, status='completed').exists():
+        return True
+    hire_pair = (Q(client=a, worker__user=b) | Q(client=b, worker__user=a))
+    return DirectHireRequest.objects.filter(hire_pair, status='completed').exists()
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_review(request):
@@ -58,7 +75,15 @@ def create_review(request):
     job = None
     if job_id:
         job = get_object_or_404(JobRequest, id=job_id)
-    
+
+    # Reviews feed the hourly average_rating that orders search results, so
+    # anyone could raise or sink a worker with throwaway accounts. Only
+    # people who actually finished work together can review each other.
+    if not _have_worked_together(request.user, reviewee):
+        return Response({
+            'error': 'You can only review someone you have completed a job with'
+        }, status=status.HTTP_403_FORBIDDEN)
+
     result = ReviewService.create_review(
         reviewer=request.user,
         reviewee=reviewee,

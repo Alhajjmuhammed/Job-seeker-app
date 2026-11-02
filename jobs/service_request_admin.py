@@ -135,10 +135,7 @@ class ServiceRequestAdmin(admin.ModelAdmin):
         count = 0
         for sr in queryset:
             if sr.payment_screenshot and not sr.payment_verified:
-                sr.payment_verified = True
-                sr.payment_verified_by = request.user
-                sr.payment_verified_at = timezone.now()
-                sr.save()
+                sr.mark_payment_verified(request.user)
                 
                 # Notify client
                 from worker_connect.notification_helpers import notify_system_alert

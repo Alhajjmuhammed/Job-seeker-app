@@ -307,6 +307,28 @@ class ServiceRequest(models.Model):
         self.total_price = (rate * Decimal(str(workers_count))) + fee
         return self.total_price
 
+    @property
+    def is_paid(self):
+        return self.payment_status == 'paid' or bool(self.payment_verified)
+
+    def mark_payment_verified(self, admin_user):
+        """
+        An admin has checked the client's payment proof. This is what makes a
+        booking paid while online payments are still simulated, so it also
+        runs the client's auto-assign choice, which waits for payment.
+        """
+        now = timezone.now()
+        self.payment_verified = True
+        self.payment_verified_by = admin_user
+        self.payment_verified_at = now
+        self.payment_status = 'paid'
+        if not self.paid_at:
+            self.paid_at = now
+        self.save()
+
+        from clients.assignment_mode import apply_assignment_mode
+        apply_assignment_mode(self)
+
     @staticmethod
     def quote(category, workers_needed=1):
         """
@@ -830,40 +852,64 @@ class ServiceRequestAssignment(models.Model):
         
         return True
     
+    # Only work a worker actually took on can be completed (and paid). Every
+    # completion route - app, web, client "mark finished" - goes through
+    # mark_completed(), so this one guard covers them all.
+    COMPLETABLE_STATUSES = ('accepted', 'in_progress')
+
+    def can_be_completed(self):
+        return self.worker_accepted is True and self.status in self.COMPLETABLE_STATUSES
+
     def mark_completed(self, completion_notes=''):
-        """Worker marks their assignment as completed"""
-        self.work_completed_at = timezone.now()
-        self.status = 'completed'
-        self.completion_notes = completion_notes
-        self.save()
-        
-        # Note: Notifications are handled in the API view layer
-        
-        # Update worker completed jobs count and credit what they earned.
-        # total_earnings was never incremented anywhere in the service-request
-        # flow, so a worker's lifetime earnings sat at zero however much work
-        # they finished. F() rather than read-modify-write, so two devices
-        # completing at once cannot lose one of the increments.
-        payment = Decimal(str(self.worker_payment or '0.00'))
-        WorkerProfile.objects.filter(pk=self.worker_id).update(
-            completed_jobs=models.F('completed_jobs') + 1,
-            total_earnings=models.F('total_earnings') + payment,
-        )
-        self.worker.refresh_from_db(fields=['completed_jobs', 'total_earnings'])
+        """
+        Worker's assignment is done: credit their earnings once.
+
+        Returns False (and changes nothing) if the assignment is not in a
+        completable state. Repeating a completion used to credit
+        total_earnings and agent commission again on every call, and a
+        rejected/cancelled/never-accepted assignment could be paid too.
+        The row lock makes a double-submit from two devices credit once.
+        """
+        from django.db import transaction
+        from agents.models import AgentProfile
+
+        with transaction.atomic():
+            locked = ServiceRequestAssignment.objects.select_for_update().get(pk=self.pk)
+            if not locked.can_be_completed():
+                self.status = locked.status
+                self.worker_accepted = locked.worker_accepted
+                return False
+
+            # The payment has to be known before it is credited - callers
+            # used to run calculate_payment() afterwards, so the credit was
+            # whatever worker_payment held before (usually 0).
+            self.worker_payment = Decimal(str(self.service_request.daily_rate or '0.00'))
+            self.work_completed_at = timezone.now()
+            self.status = 'completed'
+            self.completion_notes = completion_notes
+            self.save()
+
+            # F() rather than read-modify-write, so concurrent completions
+            # cannot lose one of the increments.
+            payment = self.worker_payment
+            WorkerProfile.objects.filter(pk=self.worker_id).update(
+                completed_jobs=models.F('completed_jobs') + 1,
+                total_earnings=models.F('total_earnings') + payment,
+            )
+            self.worker.refresh_from_db(fields=['completed_jobs', 'total_earnings', 'agent'])
+
+            # Credit the recruiting agent's commission, if this worker has one.
+            if self.worker.agent_id:
+                agent = self.worker.agent
+                commission = (payment * agent.commission_rate / 100).quantize(Decimal('0.01'))
+                AgentProfile.objects.filter(pk=agent.pk).update(
+                    total_commission_earned=models.F('total_commission_earned') + commission
+                )
 
         # AUTO-UPDATE: Set worker to available if no other active jobs
         if not self._worker_has_other_active_jobs():
             self.worker.availability = 'available'
             self.worker.save(update_fields=['availability'])
-
-        # Credit the recruiting agent's commission, if this worker has one.
-        # AgentProfile.total_commission_earned previously existed but was
-        # never actually incremented anywhere in the codebase.
-        if self.worker.agent_id:
-            agent = self.worker.agent
-            commission = (self.worker_payment * agent.commission_rate / 100).quantize(Decimal('0.01'))
-            agent.total_commission_earned += commission
-            agent.save(update_fields=['total_commission_earned'])
 
         # Check if all assignments are completed
         self._check_all_completed()
@@ -899,8 +945,11 @@ class ServiceRequestAssignment(models.Model):
         """Check if all assignments are completed and update main request"""
         sr = self.service_request
         
-        # Get all assignments for this service request
-        all_assignments = ServiceRequestAssignment.objects.filter(service_request=sr)
+        # Rejected/cancelled rows are not work that is still owed, so they
+        # must not stop the request from closing.
+        all_assignments = ServiceRequestAssignment.objects.filter(
+            service_request=sr
+        ).exclude(status__in=['rejected', 'cancelled'])
         completed_count = all_assignments.filter(status='completed').count()
         total_count = all_assignments.count()
         
