@@ -8,6 +8,7 @@ import re
 from django.contrib.auth import authenticate
 from django.db.models import Value
 from django.db.models.functions import Replace
+from django.db.models.lookups import EndsWith
 
 from .models import User
 
@@ -42,7 +43,7 @@ def find_login_candidates(identifier):
         for char in (' ', '-', '(', ')'):
             stripped = Replace(stripped, Value(char), Value(''))
         seen = {u.pk for u in users}
-        for u in User.objects.annotate(phone_digits=stripped).filter(phone_digits__endswith=tail):
+        for u in User.objects.filter(EndsWith(stripped, tail)):
             if u.pk not in seen and _phone_tail(u.phone_number) == tail:
                 users.append(u)
     return users
