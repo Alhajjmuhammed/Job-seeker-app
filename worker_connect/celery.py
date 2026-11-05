@@ -18,11 +18,11 @@ app = Celery('worker_connect')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Celery configuration
+# Broker and result backend come from Django settings (CELERY_BROKER_URL,
+# read from .env) via config_from_object above. They used to be re-read from
+# os.environ here, which only the Celery services have - the website would
+# have queued to redis db 0, shared with the other project on this server.
 app.conf.update(
-    # Broker settings (Redis)
-    broker_url=os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
-    result_backend=os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0'),
-    
     # Task settings
     task_serializer='json',
     accept_content=['json'],

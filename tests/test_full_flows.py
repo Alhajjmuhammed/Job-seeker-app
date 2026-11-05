@@ -483,3 +483,12 @@ class EmailTests(FlowBase):
             send_job_reminders()
         recipients = sorted(call.args[0] for call in queued.call_args_list)
         self.assertEqual(recipients, sorted([self.client_user.email, self.worker_user.email]))
+
+
+class WorkerProfileTests(FlowBase):
+    def test_adding_the_same_custom_skill_twice_is_not_an_error(self):
+        for _ in range(2):
+            r = self.worker_c.post('/workers/custom-skills/add/',
+                                   {'name': 'House Painting', 'description': 'walls', 'years_of_experience': 2})
+            self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.wp.custom_skills.filter(name='House Painting').count(), 1)

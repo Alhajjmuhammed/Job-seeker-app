@@ -141,6 +141,8 @@ if config('REDIS_URL', default=None):
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             'hosts': [config('REDIS_URL')],
+            # another project shares this redis; never share group names
+            'prefix': 'workerconnect',
         },
     }
 

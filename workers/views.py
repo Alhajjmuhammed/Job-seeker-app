@@ -309,8 +309,12 @@ def custom_skill_add(request):
         if form.is_valid():
             skill = form.save(commit=False)
             skill.worker = profile
-            skill.save()
-            messages.success(request, f'Custom skill "{skill.name}" added successfully!')
+            # (worker, name) is unique - adding the same skill twice was a 500
+            if profile.custom_skills.filter(name__iexact=skill.name.strip()).exists():
+                messages.info(request, f'You already have the skill "{skill.name}".')
+            else:
+                skill.save()
+                messages.success(request, f'Custom skill "{skill.name}" added successfully!')
         else:
             messages.error(request, 'Please correct the errors in the form.')
     
@@ -348,8 +352,11 @@ def custom_category_add(request):
         if form.is_valid():
             category = form.save(commit=False)
             category.worker = profile
-            category.save()
-            messages.success(request, f'Custom category "{category.name}" added successfully!')
+            if profile.custom_categories.filter(name__iexact=category.name.strip()).exists():
+                messages.info(request, f'You already have the category "{category.name}".')
+            else:
+                category.save()
+                messages.success(request, f'Custom category "{category.name}" added successfully!')
         else:
             # Show form errors for debugging
             for field, errors in form.errors.items():
