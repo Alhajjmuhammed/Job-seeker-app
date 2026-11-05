@@ -668,3 +668,25 @@ class PublicPagesTests(FlowBase):
         self.assertIn('Disallow: /dashboard/', r.content.decode())
         self.assertIn(Client().get('/api/health/detailed/').status_code, (401, 403))
         self.assertEqual(Client().get('/api/health/').status_code, 200)
+
+
+class CityMatchingTests(FlowBase):
+    def test_city_spellings_and_neighbourhoods_match(self):
+        from workers.cities import city_key
+        for typed in ['Zanzibar', 'ZANZIBAR', 'zanzibar', 'Zanzibra', 'STONETOWN', 'Stone Town',
+                      'Fuoni', 'mbweni', 'Fuoni, Zanzibar', ' zanzibar  ']:
+            self.assertEqual(city_key(typed), 'zanzibar', typed)
+        for typed in ['Dar es Salaam', 'Dar es salaam', 'DSM', 'Dar', 'Kinondoni']:
+            self.assertEqual(city_key(typed), 'dar es salaam', typed)
+        self.assertEqual(city_key('Dodoma'), 'dodoma')
+        self.assertEqual(city_key(''), '')
+        self.assertNotEqual(city_key('Arusha'), city_key('Zanzibar'))
+
+    def test_nearest_matches_a_worker_who_typed_a_neighbourhood(self):
+        WorkerProfile.objects.filter(pk=self.wp.pk).update(latitude=None, longitude=None, city='STONETOWN')
+        WorkerProfile.objects.filter(pk=self.wp2.pk).update(latitude=None, longitude=None, city='Arusha')
+        sr, _ = self.book(assignment_mode='auto_nearest', city='zanzibar')
+        sr.payment_screenshot = SimpleUploadedFile('p.png', PNG, 'image/png')
+        sr.save()
+        self.admin_c.post(f'/dashboard/service-requests/{sr.id}/verify-payment/')
+        self.assertEqual(set(sr.assignments.values_list('worker_id', flat=True)), {self.wp.id})

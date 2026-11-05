@@ -6,6 +6,7 @@ web) so the auto-assign logic isn't duplicated three times.
 
 from jobs.service_request_models import ServiceRequestAssignment
 from workers.models import WorkerProfile
+from workers.cities import city_key
 from workers.proximity import rank_by_distance
 
 
@@ -84,10 +85,13 @@ def apply_assignment_mode(service_request):
             chosen.append((worker, f'nearest, {worker.distance_km:.1f} km'))
 
     city = (service_request.city or '').strip()
-    if len(chosen) < slots_remaining and city:
+    wanted = city_key(city)
+    if len(chosen) < slots_remaining and wanted:
+        # matched on a normalised key: workers type "ZANZIBAR", "Zanzibra",
+        # "Stone Town" or their neighbourhood for the same place
         taken = {w.id for w, _ in chosen}
-        same_city = (candidates.filter(city__iexact=city).exclude(id__in=taken)
-                     .order_by('-average_rating', '-completed_jobs'))
+        same_city = [w for w in candidates.exclude(id__in=taken).order_by('-average_rating', '-completed_jobs')
+                     if city_key(w.city) == wanted]
         for worker in same_city[:slots_remaining - len(chosen)]:
             chosen.append((worker, f'same city, {city}'))
 
