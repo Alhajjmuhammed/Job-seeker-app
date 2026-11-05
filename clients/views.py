@@ -117,7 +117,14 @@ def request_service(request, category_id):
         return redirect('home')
     
     category = get_object_or_404(Category, id=category_id, is_active=True)
-    
+
+    if request.method != 'POST':
+        # One booking page for every entry point: the main one offers all
+        # three ways to get a worker (admin, client's pick, nearest). This
+        # page only ever let the admin choose.
+        from django.urls import reverse
+        return redirect(f"{reverse('service_requests_web:client_request_service')}?category={category.id}")
+
     if request.method == 'POST':
         try:
             # Same rules the other two booking paths apply, from one shared

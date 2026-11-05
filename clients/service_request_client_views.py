@@ -528,11 +528,9 @@ def client_browse_workers(request):
     if not category_id:
         return Response({'error': 'category is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    workers = WorkerProfile.objects.filter(
-        categories__id=category_id,
-        verification_status='verified',
+    from .assignment_mode import bookable_workers
+    workers = bookable_workers(category_id).filter(
         availability='available',
-        is_public=True
     ).select_related('user').prefetch_related('categories')
 
     lat = request.GET.get('latitude')
@@ -544,7 +542,7 @@ def client_browse_workers(request):
         lat, lon = None, None  # bad coordinates: just fall back to rating order
 
     if lat is not None and lon is not None:
-        workers = rank_by_distance(list(workers), lat, lon)
+        workers = rank_by_distance(workers, lat, lon, include_unlocated=True)
     else:
         workers = list(workers.order_by('-average_rating'))
 
@@ -557,7 +555,7 @@ def client_browse_workers(request):
         'completed_jobs': w.completed_jobs,
         'experience_years': w.experience_years,
         'city': w.city,
-        'distance_km': round(w.distance_km, 1) if hasattr(w, 'distance_km') else None,
+        'distance_km': round(w.distance_km, 1) if getattr(w, 'distance_km', None) is not None else None,
         'categories': [{'id': c.id, 'name': c.name} for c in w.categories.all()],
     } for w in workers]
 

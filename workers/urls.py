@@ -5,6 +5,7 @@ app_name = 'workers'
 
 urlpatterns = [
     path('dashboard/', views.worker_dashboard, name='dashboard'),
+    path('location/', views.save_location, name='save_location'),
     path('analytics/', views.worker_analytics, name='analytics'),
     path('analytics/export/', views.export_analytics_csv, name='export_analytics'),
     path('profile/setup/', views.profile_setup, name='profile_setup'),

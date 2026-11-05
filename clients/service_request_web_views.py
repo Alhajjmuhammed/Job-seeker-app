@@ -213,16 +213,23 @@ def client_web_request_service(request):
             preferred_worker_id = request.POST.get('preferred_worker')
             if preferred_worker_id:
                 preferred_worker = get_object_or_404(WorkerProfile, id=preferred_worker_id)
-                if not preferred_worker.categories.filter(id=category.id).exists():
+                from .assignment_mode import validate_preferred_worker
+                problem = validate_preferred_worker(preferred_worker, category)
+                if problem:
                     # Caught by the existing `except Exception` below, which
                     # turns it into a single message and re-renders the form.
-                    raise ValueError("The requested worker doesn't offer this category.")
+                    raise ValueError(problem)
 
             # How the client wants their worker selected: admin picks
             # (default), client already picked one above (preferred_worker),
             # or auto-assign the nearest available worker right now
             assignment_mode = request.POST.get('assignment_mode', 'admin_choice')
             if assignment_mode not in dict(ServiceRequest.ASSIGNMENT_MODE_CHOICES):
+                assignment_mode = 'admin_choice'
+            # the mode has to match whether a worker was actually picked
+            if preferred_worker and assignment_mode == 'admin_choice':
+                assignment_mode = 'client_choice'
+            elif assignment_mode == 'client_choice' and not preferred_worker:
                 assignment_mode = 'admin_choice'
 
             # Create service request
@@ -278,8 +285,22 @@ def client_web_request_service(request):
             # Success message
             if service_request.assignment_mode == 'auto_nearest' and service_request.status == 'assigned':
                 messages.success(request,
-                    f'Your {category.name} service request has been submitted and a worker has been '
-                    f'automatically assigned based on proximity to your location!'
+                    f'Your {category.name} service request has been submitted and the nearest '
+                    f'available worker has been assigned.'
+                )
+            elif service_request.assignment_mode == 'auto_nearest':
+                # assignment waits for the payment to be verified
+                messages.success(request,
+                    f'Your {category.name} service request has been submitted! '
+                    f'Total price: TSH {total_price:.2f}. '
+                    'Once your payment is verified we will automatically assign the nearest available worker.'
+                )
+            elif service_request.preferred_worker_id:
+                messages.success(request,
+                    f'Your {category.name} service request has been submitted! '
+                    f'Total price: TSH {total_price:.2f}. '
+                    f'We will confirm {service_request.preferred_worker.user.get_full_name()} '
+                    'with you once your payment is verified.'
                 )
             else:
                 messages.success(request,
@@ -307,8 +328,14 @@ def client_web_request_service(request):
         ).distinct().count()
         category.available_workers = available_count
     
+    try:
+        selected_category_id = int(request.GET.get('category', ''))
+    except ValueError:
+        selected_category_id = None
+
     context = {
         'categories': categories_list,
+        'selected_category_id': selected_category_id,
         'active_menu': 'request_service'
     }
     

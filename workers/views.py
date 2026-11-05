@@ -684,3 +684,30 @@ def cv_download_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{profile.user.username}_CV.pdf"'
     return response
+
+
+@login_required
+def save_location(request):
+    """
+    One tap from the dashboard: store the worker's GPS position so clients
+    choosing "nearest worker" can be matched with them. Saving it used to
+    mean submitting the whole profile form, and no worker had done it.
+    """
+    from django.http import JsonResponse
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    if not request.user.is_worker:
+        return JsonResponse({'error': 'Workers only'}, status=403)
+    try:
+        lat = float(request.POST.get('latitude', ''))
+        lon = float(request.POST.get('longitude', ''))
+    except ValueError:
+        return JsonResponse({'error': 'latitude and longitude must be numbers'}, status=400)
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        return JsonResponse({'error': 'Location is out of range'}, status=400)
+
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    profile.latitude, profile.longitude = lat, lon
+    profile.save(update_fields=['latitude', 'longitude'])
+    return JsonResponse({'saved': True})

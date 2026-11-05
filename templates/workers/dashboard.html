@@ -106,6 +106,22 @@
         </div>
     </div>
 
+    <!-- Location prompt: needed for "nearest worker" matching -->
+    {% if profile.latitude is None or profile.longitude is None %}
+    <div class="alert alert-info d-flex align-items-center flex-wrap gap-2 mb-4" role="alert" id="locationPrompt">
+        {% csrf_token %}
+        <i class="bi bi-geo-alt-fill me-1"></i>
+        <div class="flex-grow-1">
+            <strong>{% trans "Get jobs near you" %}</strong><br>
+            <small>{% trans "Save your location so clients nearby can be matched with you automatically. Tap the button where you usually work." %}</small>
+            <div class="small mt-1" id="locationPromptStatus"></div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="saveLocationBtn">
+            <i class="bi bi-crosshair"></i> {% trans "Save my location" %}
+        </button>
+    </div>
+    {% endif %}
+
     <!-- Profile Status Alert -->
     {% if profile.verification_status != 'verified' %}
     <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
@@ -346,6 +362,35 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+(function () {
+    const btn = document.getElementById('saveLocationBtn');
+    if (!btn) return;
+    const status = document.getElementById('locationPromptStatus');
+    btn.addEventListener('click', function () {
+        if (!navigator.geolocation) {
+            status.textContent = '{% trans "Location is not available in this browser. Please try from your phone." %}';
+            return;
+        }
+        btn.disabled = true;
+        status.textContent = '{% trans "Getting your location..." %}';
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            const body = new URLSearchParams({latitude: pos.coords.latitude, longitude: pos.coords.longitude});
+            const csrf = document.querySelector('#locationPrompt [name=csrfmiddlewaretoken]').value;
+            fetch('{% url "workers:save_location" %}', {method: 'POST', body: body, headers: {'X-CSRFToken': csrf}})
+                .then(r => r.ok ? r.json() : Promise.reject())
+                .then(() => {
+                    document.getElementById('locationPrompt').className = 'alert alert-success mb-4';
+                    document.getElementById('locationPrompt').textContent = '{% trans "Location saved. Clients near you can now be matched with you." %}';
+                })
+                .catch(() => { btn.disabled = false; status.textContent = '{% trans "Could not save your location. Please try again." %}'; });
+        }, function () {
+            btn.disabled = false;
+            status.textContent = '{% trans "Please allow location access in your browser and try again." %}';
+        }, {enableHighAccuracy: true, timeout: 15000});
+    });
+})();
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const progressBar = document.querySelector('.profile-completion-bar');

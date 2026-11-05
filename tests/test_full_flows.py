@@ -492,3 +492,170 @@ class WorkerProfileTests(FlowBase):
                                    {'name': 'House Painting', 'description': 'walls', 'years_of_experience': 2})
             self.assertEqual(r.status_code, 302)
         self.assertEqual(self.wp.custom_skills.filter(name='House Painting').count(), 1)
+
+
+class AssignmentOptionTests(FlowBase):
+    """The three ways a client gets a worker, on the app API and the website."""
+
+    def setUp(self):
+        super().setUp()
+        # both workers in Dar; worker 2 is the closer one to the request below
+        WorkerProfile.objects.filter(pk=self.wp.pk).update(latitude=-6.90, longitude=39.30, city='Dar')
+        WorkerProfile.objects.filter(pk=self.wp2.pk).update(latitude=-6.80, longitude=39.28, city='Dar')
+        self.unverified_user = User.objects.create_user(
+            email='newbie@t.co', username='newbie', password=PW, user_type='worker', first_name='New')
+        self.unverified = WorkerProfile.objects.create(user=self.unverified_user, verification_status='pending',
+                                                       availability='available', is_public=True, city='Dar')
+        self.unverified.categories.add(self.cat)
+
+    def verify_payment(self, sr):
+        sr.payment_screenshot = SimpleUploadedFile('p.png', PNG, 'image/png')
+        sr.save()
+        r = self.admin_c.post(f'/dashboard/service-requests/{sr.id}/verify-payment/')
+        self.assertEqual(r.status_code, 302)
+        sr.refresh_from_db()
+        return sr
+
+    def workers_on(self, sr):
+        return set(sr.assignments.values_list('worker_id', flat=True))
+
+    def web_booking(self, **extra):
+        return self.client_c.post('/services/client/request-service/', {
+            'category': self.cat.id, 'title': 'Fix sink', 'description': 'leaking', 'location': 'Mikocheni',
+            'city': 'Dar', 'duration_type': 'daily', 'workers_needed': 1, 'urgency': 'normal',
+            'preferred_date': str(timezone.now().date()), 'payment_method': 'yas', **extra})
+
+    # -- 1. admin chooses --------------------------------------------------
+    def test_admin_choice_waits_for_the_admin(self):
+        sr, _ = self.book()
+        self.assertEqual(sr.assignment_mode, 'admin_choice')
+        sr = self.verify_payment(sr)
+        self.assertEqual(self.workers_on(sr), set())
+        r = post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        self.assertIn(r.status_code, (200, 201), r.content)
+        self.assertEqual(self.workers_on(sr), {self.wp.id})
+
+    # -- 2. client chooses -------------------------------------------------
+    def test_browse_list_keeps_workers_without_location_and_hides_unverified(self):
+        WorkerProfile.objects.filter(pk=self.wp.pk).update(latitude=None, longitude=None)
+        r = self.client_c.get('/api/v1/client/browse-workers/',
+                              {'category': self.cat.id, 'latitude': -6.79, 'longitude': 39.27})
+        self.assertEqual(r.status_code, 200)
+        ids = [w['id'] for w in r.json()['workers']]
+        self.assertEqual(ids, [self.wp2.id, self.wp.id])  # located first, then the rest
+        self.assertIsNotNone(r.json()['workers'][0]['distance_km'])
+        self.assertIsNone(r.json()['workers'][1]['distance_km'])
+        self.assertNotIn(self.unverified.id, ids)
+
+    def test_client_choice_on_the_app(self):
+        sr, _ = self.book(preferred_worker=self.wp2.id, assignment_mode='client_choice')
+        self.assertEqual((sr.assignment_mode, sr.preferred_worker_id), ('client_choice', self.wp2.id))
+        # the admin confirms the requested worker with one click
+        sr = self.verify_payment(sr)
+        r = self.admin_c.post(f'/dashboard/service-requests/{sr.id}/assign/', {'worker_id': self.wp2.id})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.workers_on(sr), {self.wp2.id})
+
+    def test_client_cannot_pick_an_unverified_worker(self):
+        total = float(self.cat.daily_rate + self.cat.service_fee)
+        for url in ('/api/v1/client/service-requests/create/', f'/api/v1/clients/services/{self.cat.id}/request/'):
+            ref = post_json(self.client_c, '/api/v1/client/process-payment/',
+                            {'amount': total, 'payment_type': 'yas'}).json()['transaction_id']
+            body = {'category': self.cat.id, 'title': 'x', 'description': 'x', 'location': 'x', 'city': 'Dar',
+                    'workers_needed': 1, 'duration_type': 'daily', 'preferred_date': str(timezone.now().date()),
+                    'preferred_time': '09:00:00', 'payment_transaction_id': ref, 'payment_method': 'yas',
+                    'preferred_worker': self.unverified.id, 'assignment_mode': 'client_choice'}
+            r = post_json(self.client_c, url, body)
+            self.assertEqual(r.status_code, 400, f'{url}: {r.content}')
+        r = self.web_booking(assignment_mode='client_choice', preferred_worker=self.unverified.id)
+        self.assertFalse(ServiceRequest.objects.filter(preferred_worker=self.unverified).exists())
+
+    def test_mode_follows_whether_a_worker_was_picked(self):
+        sr, _ = self.book(preferred_worker=self.wp.id, assignment_mode='admin_choice')
+        self.assertEqual(sr.assignment_mode, 'client_choice')
+        sr, _ = self.book(assignment_mode='client_choice')
+        self.assertEqual(sr.assignment_mode, 'admin_choice')
+
+    def test_client_choice_on_the_website(self):
+        r = self.web_booking(assignment_mode='client_choice', preferred_worker=self.wp.id)
+        self.assertEqual(r.status_code, 302)
+        sr = ServiceRequest.objects.filter(client=self.client_user).latest('id')
+        self.assertEqual((sr.assignment_mode, sr.preferred_worker_id), ('client_choice', self.wp.id))
+
+    # -- 3. nearest automatically ------------------------------------------
+    def test_nearest_by_gps_after_payment_is_verified(self):
+        sr, _ = self.book(assignment_mode='auto_nearest', latitude=-6.79, longitude=39.27)
+        self.assertEqual(self.workers_on(sr), set())  # not before payment
+        sr = self.verify_payment(sr)
+        self.assertEqual(self.workers_on(sr), {self.wp2.id})  # the closer one
+        self.assertEqual(sr.status, 'assigned')
+
+    def test_nearest_falls_back_to_same_city_without_gps(self):
+        WorkerProfile.objects.filter(pk__in=[self.wp.pk, self.wp2.pk]).update(latitude=None, longitude=None)
+        WorkerProfile.objects.filter(pk=self.wp2.pk).update(city='Arusha')
+        sr, _ = self.book(assignment_mode='auto_nearest')  # city Dar, no coordinates
+        sr = self.verify_payment(sr)
+        self.assertEqual(self.workers_on(sr), {self.wp.id})
+        self.assertEqual(sr.assignment_mode, 'auto_nearest')
+
+    def test_nearest_never_picks_busy_or_unverified_and_falls_back_to_admin(self):
+        WorkerProfile.objects.filter(pk__in=[self.wp.pk, self.wp2.pk]).update(availability='busy')
+        sr, _ = self.book(assignment_mode='auto_nearest', latitude=-6.79, longitude=39.27)
+        sr = self.verify_payment(sr)
+        self.assertEqual(self.workers_on(sr), set())
+        self.assertEqual(sr.assignment_mode, 'admin_choice')
+
+    def test_nearest_fills_every_slot(self):
+        sr, _ = self.book(workers=2, assignment_mode='auto_nearest', latitude=-6.79, longitude=39.27)
+        sr = self.verify_payment(sr)
+        self.assertEqual(self.workers_on(sr), {self.wp.id, self.wp2.id})
+        self.assertEqual(sr.status, 'assigned')
+
+    def test_nearest_on_the_website(self):
+        r = self.web_booking(assignment_mode='auto_nearest', latitude='-6.79', longitude='39.27')
+        self.assertEqual(r.status_code, 302)
+        sr = ServiceRequest.objects.filter(client=self.client_user).latest('id')
+        self.assertEqual(sr.assignment_mode, 'auto_nearest')
+        sr = self.verify_payment(sr)
+        self.assertEqual(self.workers_on(sr), {self.wp2.id})
+
+    # -- both booking pages offer all three ---------------------------------
+    def test_category_booking_link_opens_the_main_page_preselected(self):
+        r = self.client_c.get(f'/clients/services/{self.cat.id}/request/')
+        self.assertEqual(r.status_code, 302)
+        self.assertIn(f'request-service/?category={self.cat.id}', r['Location'])
+        page = self.client_c.get(r['Location']).content.decode()
+        self.assertIn(f'value="{self.cat.id}" selected', page)
+        for mode in ('admin_choice', 'client_choice', 'auto_nearest'):
+            self.assertIn(f'value="{mode}"', page)
+
+
+class WorkerLocationTests(FlowBase):
+    def test_dashboard_prompt_and_one_tap_save(self):
+        self.assertIn('Save my location', self.worker_c.get('/workers/dashboard/').content.decode())
+        self.assertEqual(self.worker_c.post('/workers/location/', {'latitude': 'x', 'longitude': '1'}).status_code, 400)
+        self.assertEqual(self.worker_c.post('/workers/location/', {'latitude': '200', 'longitude': '1'}).status_code, 400)
+        self.assertEqual(self.client_c.post('/workers/location/', {'latitude': '-6.8', 'longitude': '39.2'}).status_code, 403)
+        r = self.worker_c.post('/workers/location/', {'latitude': '-6.8', 'longitude': '39.2'})
+        self.assertEqual(r.status_code, 200)
+        self.wp.refresh_from_db()
+        self.assertEqual((self.wp.latitude, self.wp.longitude), (-6.8, 39.2))
+        self.assertNotIn('Save my location', self.worker_c.get('/workers/dashboard/').content.decode())
+
+    def test_app_can_save_location(self):
+        r = self.worker_c.patch('/api/workers/profile/update/', json.dumps({'latitude': -6.81, 'longitude': 39.29}),
+                                content_type='application/json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.wp.refresh_from_db()
+        self.assertEqual(self.wp.latitude, -6.81)
+
+    def test_reminder_command_previews_unless_told_to_send(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from worker_connect.notification_models import Notification
+        out = StringIO()
+        call_command('notify_workers_location', stdout=out)
+        self.assertIn('Preview only', out.getvalue())
+        self.assertEqual(Notification.objects.filter(title__startswith='Get jobs near you').count(), 0)
+        call_command('notify_workers_location', '--send', stdout=StringIO())
+        self.assertEqual(Notification.objects.filter(title__startswith='Get jobs near you').count(), 2)

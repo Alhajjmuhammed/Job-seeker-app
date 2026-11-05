@@ -19,6 +19,7 @@ import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import WorkerLocationPrompt from '../../components/WorkerLocationPrompt';
 import '../../services/i18n';
 
 interface DirectHireRequest {
@@ -772,6 +773,8 @@ export default function WorkerDashboard() {
           />
         }
       >
+        <WorkerLocationPrompt />
+
         {/* Greeting Section */}
         <View style={styles.greetingSection}>
           {/* Decorative circles */}

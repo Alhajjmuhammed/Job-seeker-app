@@ -376,14 +376,22 @@ def request_service(request, category_id):
                 preferred_worker = WorkerProfile.objects.get(id=preferred_worker_id)
             except WorkerProfile.DoesNotExist:
                 return Response({'error': 'Preferred worker not found'}, status=status.HTTP_404_NOT_FOUND)
-            if not preferred_worker.categories.filter(id=category.id).exists():
-                return Response({'error': "This worker doesn't offer the requested category"}, status=status.HTTP_400_BAD_REQUEST)
+            # verified, public and active too - any worker id used to be accepted
+            from .assignment_mode import validate_preferred_worker
+            problem = validate_preferred_worker(preferred_worker, category)
+            if problem:
+                return Response({'error': problem}, status=status.HTTP_400_BAD_REQUEST)
 
         # How the client wants their worker selected: admin picks (default),
         # client already picked one above (preferred_worker), or auto-assign
         # the nearest available worker right now (see assignment_mode.py)
         assignment_mode = request.data.get('assignment_mode', 'admin_choice')
         if assignment_mode not in dict(ServiceRequest.ASSIGNMENT_MODE_CHOICES):
+            assignment_mode = 'admin_choice'
+        # the mode has to match whether a worker was actually picked
+        if preferred_worker and assignment_mode == 'admin_choice':
+            assignment_mode = 'client_choice'
+        elif assignment_mode == 'client_choice' and not preferred_worker:
             assignment_mode = 'admin_choice'
 
         # Create service request without any worker assignment
@@ -448,7 +456,10 @@ def request_service(request, category_id):
         auto_assigned = service_request.assignment_mode == 'auto_nearest' and service_request.status == 'assigned'
         details = f'Our admin will review your payment and assign {workers_needed} suitable worker(s). You will be notified once workers are assigned.' if workers_needed > 1 else 'Our admin will review your payment and assign the most suitable worker. You will be notified once a worker is assigned.'
         if auto_assigned:
-            details = 'A worker has been automatically assigned based on proximity to your location!'
+            details = 'The nearest available worker has been assigned to your request.'
+        elif service_request.assignment_mode == 'auto_nearest':
+            # assignment waits for the payment to be verified
+            details = 'Once your payment is verified we will automatically assign the nearest available worker. You will be notified.'
 
         return Response({
             'id': service_request.id,

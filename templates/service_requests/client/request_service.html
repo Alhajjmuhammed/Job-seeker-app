@@ -111,7 +111,7 @@
                                     <select class="form-select" id="category" name="category" required>
                                         <option value="">{% trans "-- Select Category --" %}</option>
                                         {% for cat in categories %}
-                                        <option value="{{ cat.id }}" 
+                                        <option value="{{ cat.id }}" {% if cat.id == selected_category_id %}selected{% endif %}
                                                 data-daily-rate="{{ cat.daily_rate }}"
                                                 data-available-workers="{{ cat.available_workers|default:0 }}"
                                                 data-category-name="{{ cat.name }}">
@@ -207,7 +207,7 @@
                                         <input class="form-check-input" type="radio" name="assignment_mode" id="modeAuto" value="auto_nearest" onchange="onAssignmentModeChange()">
                                         <label class="form-check-label" for="modeAuto">
                                             <strong>{% trans "Auto-assign nearest worker" %}</strong>
-                                            <div class="text-muted small">{% trans "Instantly assigns the closest available worker &mdash; needs your location" %}</div>
+                                            <div class="text-muted small">{% trans "We assign the closest available worker as soon as your payment is verified" %}</div>
                                         </label>
                                     </div>
                                     <div id="autoNearestDetail" class="d-none ms-4">
@@ -654,6 +654,13 @@ function adjustWorkers(delta) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // A category chosen on another page arrives preselected; run the change
+    // handler for it once it is registered below.
+    setTimeout(() => {
+        const preselected = document.getElementById('category');
+        if (preselected.value) preselected.dispatchEvent(new Event('change'));
+    }, 0);
+
     // Category change handler - update availability
     document.getElementById('category').addEventListener('change', function(e) {
         const selectedOption = e.target.options[e.target.selectedIndex];
@@ -1041,7 +1048,7 @@ function onAssignmentModeChange() {
 function useMyLocation() {
     const status = document.getElementById('locateStatus');
     if (!navigator.geolocation) {
-        status.textContent = 'Geolocation is not supported by this browser. Choose "Let admin choose" instead.';
+        status.textContent = 'Location is not available in this browser - we will match a worker in your city instead.';
         return;
     }
     status.textContent = 'Locating...';
@@ -1049,10 +1056,10 @@ function useMyLocation() {
         (position) => {
             document.getElementById('latitude').value = position.coords.latitude;
             document.getElementById('longitude').value = position.coords.longitude;
-            status.textContent = 'Location captured ✓ - the nearest worker will be assigned instantly';
+            status.textContent = 'Location captured ✓ - the nearest worker will be assigned once your payment is verified';
         },
         (error) => {
-            status.textContent = 'Could not get your location. Choose "Let admin choose" instead, or retry.';
+            status.textContent = 'Could not get your location - we will match a worker in your city instead, or you can retry.';
         }
     );
 }
@@ -1085,18 +1092,24 @@ async function browseWorkers() {
             return;
         }
 
+        // Names and cities are typed by workers: escape them - they were
+        // inserted into the client's page as raw HTML.
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
         listEl.innerHTML = data.workers.map(w => `
-            <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2" style="cursor:pointer;" onclick="selectPreferredWorker(${w.id}, '${w.name.replace(/'/g, "\\'")}')">
+            <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2 worker-option" style="cursor:pointer;" data-worker-id="${Number(w.id)}" data-worker-name="${esc(w.name)}">
                 <div>
-                    <strong>${w.name}</strong><br>
+                    <strong>${esc(w.name)}</strong><br>
                     <small class="text-muted">
-                        <i class="bi bi-star-fill text-warning"></i> ${w.average_rating} &middot; ${w.completed_jobs} jobs &middot; ${w.city || 'Unknown'}
-                        ${w.distance_km !== null ? ' &middot; ' + w.distance_km + ' km away' : ''}
+                        <i class="bi bi-star-fill text-warning"></i> ${esc(w.average_rating)} &middot; ${Number(w.completed_jobs) || 0} jobs &middot; ${esc(w.city) || 'Unknown'}
+                        ${w.distance_km !== null ? ' &middot; ' + Number(w.distance_km) + ' km away' : ''}
                     </small>
                 </div>
                 <i class="bi bi-chevron-right"></i>
             </div>
         `).join('');
+        listEl.querySelectorAll('.worker-option').forEach(el => {
+            el.addEventListener('click', () => selectPreferredWorker(Number(el.dataset.workerId), el.dataset.workerName));
+        });
     } catch (error) {
         listEl.innerHTML = '<p class="text-danger text-center py-3">Failed to load workers. Please try again.</p>';
     }

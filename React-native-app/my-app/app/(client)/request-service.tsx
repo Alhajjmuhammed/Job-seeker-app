@@ -97,7 +97,7 @@ export default function RequestServiceScreen() {
       setLocatingMe(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(t('common.error'), 'Location permission denied. Auto-assign nearest needs your location - you can pick "Let admin choose" instead.');
+        Alert.alert(t('common.error'), 'Location permission denied. We will match a worker in your city instead - or allow location to get the closest one.');
         return;
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
@@ -105,7 +105,7 @@ export default function RequestServiceScreen() {
       setLongitude(loc.coords.longitude);
     } catch (error) {
       console.error('Error getting location:', error);
-      Alert.alert(t('common.error'), 'Could not get your current location.');
+      Alert.alert(t('common.error'), 'Could not get your current location. We will match a worker in your city instead.');
     } finally {
       setLocatingMe(false);
     }
@@ -654,7 +654,7 @@ export default function RequestServiceScreen() {
             />
             <View style={styles.modeRowText}>
               <Text style={[styles.modeRowTitle, { color: theme.text }]}>Auto-assign nearest worker</Text>
-              <Text style={[styles.modeRowSubtitle, { color: theme.textSecondary }]}>Instantly assigns the closest available worker - needs your location</Text>
+              <Text style={[styles.modeRowSubtitle, { color: theme.textSecondary }]}>We assign the closest available worker as soon as your payment is verified</Text>
             </View>
           </TouchableOpacity>
 
@@ -666,7 +666,7 @@ export default function RequestServiceScreen() {
                   <Text style={[styles.locationButtonText, { color: theme.primary }]}>Getting your location...</Text>
                 </View>
               ) : latitude !== null ? (
-                <Text style={[styles.locationButtonText, { color: theme.primary }]}>📍 Location captured ✓ - the nearest worker will be assigned instantly</Text>
+                <Text style={[styles.locationButtonText, { color: theme.primary }]}>📍 Location captured ✓ - the nearest worker will be assigned once your payment is verified</Text>
               ) : (
                 <TouchableOpacity style={[styles.locationButton, { borderColor: theme.primary }]} onPress={handleUseCurrentLocation}>
                   <Ionicons name="locate" size={18} color={theme.primary} />

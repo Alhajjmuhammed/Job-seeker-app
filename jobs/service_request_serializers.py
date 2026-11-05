@@ -188,10 +188,20 @@ class ServiceRequestCreateSerializer(serializers.ModelSerializer):
         """
         preferred_worker = data.get('preferred_worker')
         category = data.get('category')
-        if preferred_worker and category and not preferred_worker.categories.filter(id=category.id).exists():
-            raise serializers.ValidationError({
-                'preferred_worker': "This worker doesn't offer the requested category."
-            })
+        if preferred_worker and category:
+            from clients.assignment_mode import validate_preferred_worker
+            problem = validate_preferred_worker(preferred_worker, category)
+            if problem:
+                raise serializers.ValidationError({'preferred_worker': problem})
+
+        # the mode has to match whether a worker was actually picked (on an
+        # edit, the worker already on the request counts if none is sent)
+        picked = data['preferred_worker'] if 'preferred_worker' in data else getattr(self.instance, 'preferred_worker', None)
+        mode = data.get('assignment_mode')
+        if 'preferred_worker' in data and picked and mode in (None, 'admin_choice'):
+            data['assignment_mode'] = 'client_choice'
+        elif mode == 'client_choice' and not picked:
+            data['assignment_mode'] = 'admin_choice'
 
         if data.get('duration_type') == 'custom':
             if not data.get('service_start_date') or not data.get('service_end_date'):
