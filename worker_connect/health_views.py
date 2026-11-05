@@ -2,7 +2,7 @@
 Health check API views for monitoring and load balancer checks.
 """
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
@@ -225,7 +225,10 @@ def health_check(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+# Staff only: it names the server's workers and takes ~2s (it pings Celery),
+# so anyone could tie up the web workers by calling it repeatedly.
+# /api/health/ stays public for monitoring.
+@permission_classes([IsAdminUser])
 def health_check_detailed(request):
     """
     Detailed health check endpoint.

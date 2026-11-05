@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /media/
+Disallow: /clients/
+Disallow: /workers/
+Disallow: /agents/
+Disallow: /services/
+Disallow: /notifications/
+Allow: /

@@ -64,6 +64,8 @@ urlpatterns = [
 
     # Mobile App Download Page
     path('download/', download_app, name='download_app'),
+    # Let search engines list the public pages, not the private areas
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain'), name='robots_txt'),
     
     # Health Check Endpoints (for monitoring and load balancers)
     path('api/health/', health_check, name='health_check'),

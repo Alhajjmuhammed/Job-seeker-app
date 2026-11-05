@@ -659,3 +659,12 @@ class WorkerLocationTests(FlowBase):
         self.assertEqual(Notification.objects.filter(title__startswith='Get jobs near you').count(), 0)
         call_command('notify_workers_location', '--send', stdout=StringIO())
         self.assertEqual(Notification.objects.filter(title__startswith='Get jobs near you').count(), 2)
+
+
+class PublicPagesTests(FlowBase):
+    def test_robots_and_staff_only_detailed_health(self):
+        r = Client().get('/robots.txt')
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('Disallow: /dashboard/', r.content.decode())
+        self.assertIn(Client().get('/api/health/detailed/').status_code, (401, 403))
+        self.assertEqual(Client().get('/api/health/').status_code, 200)
