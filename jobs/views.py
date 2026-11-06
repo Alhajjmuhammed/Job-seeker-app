@@ -373,20 +373,29 @@ def _conversation_list(user):
             convs[other.id] = {'user': other, 'last_message': None, 'unread_count': 0,
                                'about': partners.get(other.id, ''),
                                'is_support': is_admin(other),
-                               'can_send': admin_view or is_admin(other) or other.id in partners}
+                               'can_send': other.is_active and (admin_view or is_admin(other) or other.id in partners)}
         return convs[other.id]
 
-    msgs = (Message.objects.filter(Q(sender=user) | Q(recipient=user))
-            .select_related('sender', 'recipient').order_by('-created_at'))
-    for msg in msgs:
-        other = msg.recipient if msg.sender_id == user.id else msg.sender
-        if other.id == user.id:
-            continue
-        c = entry(other)
-        if c['last_message'] is None:
-            c['last_message'] = msg
-        if msg.recipient_id == user.id and not msg.is_read:
-            c['unread_count'] += 1
+    # One row per chat partner, worked out in the database (this list is
+    # rebuilt every few seconds while a chat page is open).
+    from django.db.models import Case, When, F, Max, Count, IntegerField
+    rows = (Message.objects.filter(Q(sender=user) | Q(recipient=user))
+            .annotate(other=Case(When(sender=user, then=F('recipient_id')), default=F('sender_id'),
+                                 output_field=IntegerField()))
+            .exclude(other=user.id)
+            .values('other')
+            .annotate(last_id=Max('id'), unread=Count('id', filter=Q(recipient=user, is_read=False))))
+    rows = list(rows)
+    if rows:
+        lasts = Message.objects.in_bulk([r['last_id'] for r in rows])
+        people = User.objects.in_bulk([r['other'] for r in rows])
+        for r in rows:
+            other = people.get(r['other'])
+            if other is None:
+                continue
+            c = entry(other)
+            c['last_message'] = lasts.get(r['last_id'])
+            c['unread_count'] = r['unread']
 
     if not admin_view:
         support = support_user()

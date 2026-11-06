@@ -1150,8 +1150,46 @@ class ChatTests(FlowBase):
         self.assertEqual(notes.count() - before, 1)
         self.assertEqual(notes.first().target_url, f'/jobs/conversation/{self.worker_user.id}/')
         self.admin_c.get(f'/jobs/conversation/{self.worker_user.id}/')  # reads them
-        self.send(self.worker_c, self.admin, 'd')
+        self.send(self.worker_c, self.admin, 'd')  # still chatting: no new alert
+        self.assertEqual(Notification.objects.filter(recipient=self.admin).count() - before, 1)
+        from datetime import timedelta
+        Message.objects.filter(sender=self.worker_user).update(created_at=timezone.now() - timedelta(minutes=30))
+        self.admin_c.get(f'/jobs/conversation/{self.worker_user.id}/')
+        self.send(self.worker_c, self.admin, 'e')  # later, after reading: alert again
         self.assertEqual(Notification.objects.filter(recipient=self.admin).count() - before, 2)
+
+    def test_two_messages_at_once_still_alert_once(self):
+        from worker_connect.notification_models import Notification
+        from jobs.chat_access import notify_new_message
+        m1 = Message.objects.create(sender=self.worker_user, recipient=self.admin, message='1')
+        m2 = Message.objects.create(sender=self.worker_user, recipient=self.admin, message='2')
+        notify_new_message(m2); notify_new_message(m1)  # both saved before either alert ran
+        self.assertEqual(Notification.objects.filter(recipient=self.admin, notification_type='message_received').count(), 1)
+
+    def test_app_never_hands_out_strangers_details(self):
+        r = self.client_c.get(f'/api/messages/{self.worker2_user.id}/')
+        self.assertEqual(r.status_code, 404)
+        self.assertNotIn(b'worker2@t.co', r.content)
+        self.assertNotIn(b'Two', r.content)
+        r = self.client_c.get(f'/api/messages/{self.admin.id}/')  # support: allowed, but no e-mail
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn(b'admin@t.co', r.content)
+        self.assertNotIn(b'boss', r.content)
+        self.assertNotIn(b'admin@t.co', self.client_c.get('/api/messages/conversations/').content)
+
+    def test_deactivated_person_shows_a_closed_chat(self):
+        Message.objects.create(sender=self.admin, recipient=self.worker_user, message='old')
+        self.worker_user.is_active = False; self.worker_user.save()
+        r = self.admin_c.get(f'/jobs/conversation/{self.worker_user.id}/')
+        self.assertContains(r, 'old')
+        self.assertContains(r, 'This chat is closed')
+        convs = self.admin_c.get('/api/messages/conversations/').json()['conversations']
+        self.assertFalse(next(c for c in convs if c['id'] == self.worker_user.id)['can_send'])
+
+    def test_admin_without_staff_flag_can_search_everyone(self):
+        ops = User.objects.create_user(email='ops2@t.co', username='ops2', password=PW, user_type='admin')
+        c = Client(); c.force_login(ops)
+        self.assertIn(b'clientone', c.get('/api/messages/search-users/', {'q': 'clientone'}).content)
 
     def test_agent_messages_page_uses_the_agent_layout(self):
         ag = Client(); ag.force_login(self.agent_user)

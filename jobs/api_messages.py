@@ -17,13 +17,17 @@ from accounts.models import User
 def get_conversations(request):
     """Get list of conversations for the current user"""
     from .views import _conversation_list
+    from .chat_access import is_admin
+    me_admin = is_admin(request.user)
     conversations = []
     for c in _conversation_list(request.user):
         other, last = c['user'], c['last_message']
+        name = other.get_full_name() or (other.username if me_admin else 'Worker Connect')
         conversations.append({
             'id': other.id,
-            'name': other.get_full_name() or other.username,
-            'username': other.username,
+            'name': name,
+            # username is the sign-up e-mail: only staff get it
+            'username': other.username if me_admin else name,
             'user_type': 'admin' if c['is_support'] else other.user_type,
             'last_message': last.message if last else '',
             'last_message_time': last.created_at.isoformat() if last else None,
@@ -47,42 +51,45 @@ def get_messages(request, user_id):
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    from .chat_access import can_chat
-    # Get all messages between these two users
-    messages = Message.objects.filter(
-        Q(sender=user, recipient=other_user) | Q(sender=other_user, recipient=user)
-    ).order_by('created_at')
-    
-    # Mark messages as read
-    Message.objects.filter(
-        sender=other_user,
-        recipient=user,
-        is_read=False
-    ).update(is_read=True)
-    
-    messages_data = []
-    for msg in messages:
-        messages_data.append({
-            'id': msg.id,
-            'sender_id': msg.sender.id,
-            'sender_name': msg.sender.get_full_name() or msg.sender.username,
-            'sender_type': msg.sender.user_type,
-            'recipient_id': msg.recipient.id,
-            'recipient_name': msg.recipient.get_full_name() or msg.recipient.username,
-            'message': msg.message,
-            'subject': msg.subject,
-            'is_read': msg.is_read,
-            'created_at': msg.created_at.isoformat(),
-            'is_sent_by_me': msg.sender.id == user.id,
-        })
-    
+    from .chat_access import can_chat, is_admin
+    allowed = can_chat(user, other_user)
+    messages = (Message.objects.filter(
+        Q(sender=user, recipient=other_user) | Q(sender=other_user, recipient=user))
+        .select_related('sender', 'recipient').order_by('created_at'))
+    # Strangers get nothing - not even a name (this used to hand out anyone's
+    # e-mail address for any user id).
+    if not allowed and not messages.exists():
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    Message.objects.filter(sender=other_user, recipient=user, is_read=False).update(
+        is_read=True, read_at=timezone.now())
+
+    me_admin = is_admin(user)
+
+    def name_of(u):
+        return u.get_full_name() or (u.username if me_admin or u.pk == user.pk else 'Worker Connect')
+
+    messages_data = [{
+        'id': msg.id,
+        'sender_id': msg.sender_id,
+        'sender_name': name_of(msg.sender),
+        'sender_type': msg.sender.user_type,
+        'recipient_id': msg.recipient_id,
+        'recipient_name': name_of(msg.recipient),
+        'message': msg.message,
+        'subject': msg.subject,
+        'is_read': msg.is_read,
+        'created_at': msg.created_at.isoformat(),
+        'is_sent_by_me': msg.sender_id == user.id,
+    } for msg in messages]
+
     return Response({
         'messages': messages_data,
-        'can_send': can_chat(user, other_user),
+        'can_send': allowed,
         'other_user': {
             'id': other_user.id,
-            'name': other_user.get_full_name() or other_user.username,
-            'username': other_user.username,
+            'name': name_of(other_user),
+            'username': other_user.username if me_admin else name_of(other_user),
             'user_type': other_user.user_type,
         }
     })
@@ -166,7 +173,8 @@ def mark_as_read(request, message_id):
     try:
         message = Message.objects.get(id=message_id, recipient=user)
         message.is_read = True
-        message.save()
+        message.read_at = message.read_at or timezone.now()
+        message.save(update_fields=['is_read', 'read_at'])
         
         return Response({'success': True, 'message': 'Message marked as read'})
     except Message.DoesNotExist:
@@ -187,7 +195,8 @@ def search_users(request):
     # username is the e-mail address for every API sign-up, so searching or
     # returning it let any account harvest everyone's e-mail - staff
     # included. Only staff see it; everyone else finds people by name.
-    is_staff = user.is_staff
+    from .chat_access import is_admin
+    is_staff = is_admin(user)
     if query:
         name_match = Q(first_name__icontains=query) | Q(last_name__icontains=query)
         if is_staff:

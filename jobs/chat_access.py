@@ -71,16 +71,25 @@ CLOSED_REASON = ('You can chat with a worker or client only after the worker has
                  'your job. Contact support if you need help.')
 
 
+QUIET_MINUTES = 5
+
+
 def notify_new_message(msg):
     """
-    Bell + email for a new chat message - but only for the first one the
-    recipient hasn't read yet. A lively chat used to send one email per line;
-    now the next alert comes after they've opened the chat.
+    Bell + email for a new chat message - not for every line of a lively chat.
+    Stay quiet when the recipient already has an unread message from this
+    sender (they have been told), or when the sender wrote to them in the last
+    few minutes (they are chatting right now, with the chat open).
+    Only EARLIER messages count, so two messages sent at the same moment can't
+    each silence the other.
     """
+    from datetime import timedelta
+    from django.utils import timezone
     from .models import Message
-    earlier_unread = (Message.objects.filter(sender_id=msg.sender_id, recipient_id=msg.recipient_id, is_read=False)
-                      .exclude(pk=msg.pk).exists())
-    if earlier_unread:
+    earlier = Message.objects.filter(sender_id=msg.sender_id, recipient_id=msg.recipient_id, pk__lt=msg.pk)
+    if earlier.filter(is_read=False).exists():
+        return
+    if earlier.filter(created_at__gte=timezone.now() - timedelta(minutes=QUIET_MINUTES)).exists():
         return
     try:
         from worker_connect.notification_service import NotificationService

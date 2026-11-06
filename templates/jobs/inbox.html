@@ -74,6 +74,20 @@
   .ui-chat-empty h3 { font-size: 1rem; font-weight: 700; color: var(--bs-body-color); margin-bottom: .35rem; }
   .ui-chat-empty p { font-size: .83rem; max-width: 380px; margin: 0; }
   .ui-chat-empty ul { text-align: left; font-size: .8rem; margin: .9rem 0 0; padding-left: 1.1rem; max-width: 380px; }
+  .ui-chat-item, .ui-chat-item:hover, .ui-chat-name, .ui-bubble.in { color: var(--bs-body-color); }
+  [data-bs-theme="dark"] .ui-chat { background: #111827; border-color: #1f2937; }
+  [data-bs-theme="dark"] .ui-chat-list, [data-bs-theme="dark"] .ui-chat-list-head,
+  [data-bs-theme="dark"] .ui-chat-thread-head, [data-bs-theme="dark"] .ui-chat-compose, [data-bs-theme="dark"] .ui-chat-hint { border-color: #1f2937; background: #111827; }
+  [data-bs-theme="dark"] .ui-chat-item, [data-bs-theme="dark"] .ui-chat-name, [data-bs-theme="dark"] .ui-chat-list-head h2 { color: #f1f5f9; }
+  [data-bs-theme="dark"] .ui-chat-prev, [data-bs-theme="dark"] .ui-chat-sub, [data-bs-theme="dark"] .ui-chat-time, [data-bs-theme="dark"] .ui-chat-list-head p { color: #94a3b8; }
+  [data-bs-theme="dark"] .ui-chat-item.unread .ui-chat-prev { color: #e2e8f0; }
+  [data-bs-theme="dark"] .ui-chat-item:hover { background: rgba(255, 255, 255, .05); }
+  [data-bs-theme="dark"] .ui-chat-item.active { background: rgba(52, 211, 153, .12); }
+  [data-bs-theme="dark"] .ui-chat-msgs, [data-bs-theme="dark"] .ui-chat-empty { background-color: #0b1220; background-image: radial-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px); }
+  [data-bs-theme="dark"] .ui-bubble.in { background: #1f2937; color: #f1f5f9; }
+  [data-bs-theme="dark"] .ui-chat-day { background: #111827; border-color: #334155; color: #94a3b8; }
+  [data-bs-theme="dark"] .ui-chat-search input, [data-bs-theme="dark"] .ui-chat-compose textarea { background: #1f2937; color: #f1f5f9; border-color: transparent; }
+  [data-bs-theme="dark"] .ui-chat-empty h3 { color: #f1f5f9; }
   [data-bs-theme="dark"] .ui-chat-closed { background: rgba(245, 158, 11, .1); color: #fcd34d; }
   [data-bs-theme="dark"] .ui-chat-tag.t-admin { background: rgba(16, 185, 129, .18); color: #6ee7b7; }
   [data-bs-theme="dark"] .ui-chat-tag.t-worker { background: rgba(139, 92, 246, .2); color: #c4b5fd; }
@@ -218,7 +232,8 @@
       /* computer: Enter sends. Phone keyboard: Enter is a new line, the green button sends. */
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !window.matchMedia('(pointer: coarse)').matches) {
         e.preventDefault();
-        if (input.value.trim()) { document.getElementById('chatSend').disabled = true; form.submit(); }
+        var btn = document.getElementById('chatSend');
+        if (input.value.trim() && !btn.disabled) { btn.disabled = true; form.submit(); }  /* never twice */
       }
     });
     form.addEventListener('submit', function () { document.getElementById('chatSend').disabled = true; });

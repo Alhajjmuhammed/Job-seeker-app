@@ -4221,7 +4221,7 @@ msgstr "Maombi Yangu"
 #: templates/clients/base_client.html:690
 #: templates/workers/base_worker.html:682
 msgid "COMMUNICATION"
-msgstr ""
+msgstr "MAWASILIANO"
 
 #: templates/clients/base_client.html:700
 #: templates/workers/base_worker.html:692
@@ -5532,7 +5532,7 @@ msgstr ""
 #, fuzzy
 #| msgid "Notifications"
 msgid "Communication"
-msgstr "Arifa"
+msgstr "Mawasiliano"
 
 #: templates/emails/review_received.html:35
 msgid "Quality"

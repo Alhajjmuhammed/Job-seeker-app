@@ -394,12 +394,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             from jobs.chat_access import can_chat
             other_user_id = int(self.conversation_id)
             other = User.objects.filter(pk=other_user_id).first()
-            if other and can_chat(self.user, other):
-                return True
-            return Message.objects.filter(
-                Q(sender_id=self.user.id, recipient_id=other_user_id) |
-                Q(sender_id=other_user_id, recipient_id=self.user.id)
-            ).exists()
+            # only while the two may chat - a closed chat closes the live channel too
+            return bool(other and can_chat(self.user, other))
         except Exception as e:
             logger.error(f"Error checking conversation membership: {e}")
             return False
