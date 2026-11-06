@@ -337,11 +337,11 @@
                                 <div class="d-flex align-items-center flex-grow-1">
                                     <!-- Profile Picture -->
                                     <div class="me-3">
-                                        {% if assignment.worker.profile_image %}
-                                        <img src="{{ assignment.worker.profile_image.url }}" alt="{{ assignment.worker.user.get_full_name }}" 
+                                        {% if assignment.worker.photo_url %}
+                                        <img src="{{ assignment.worker.photo_url }}" alt="{{ assignment.worker.user.get_full_name }}" 
                                              class="rounded-circle" width="50" height="50" style="object-fit: cover; cursor: pointer;"
                                              data-bs-toggle="modal" data-bs-target="#workerImageModal"
-                                             onclick="showWorkerImage('{{ assignment.worker.profile_image.url }}', '{{ assignment.worker.user.get_full_name }}')">
+                                             onclick="showWorkerImage('{{ assignment.worker.photo_url }}', '{{ assignment.worker.user.get_full_name }}')">
                                         {% else %}
                                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
                                              style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
@@ -585,11 +585,11 @@
                                     
                                     <!-- Profile Picture -->
                                     <div class="me-3">
-                                        {% if worker.profile_image %}
-                                        <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" 
+                                        {% if worker.photo_url %}
+                                        <img src="{{ worker.photo_url }}" alt="{{ worker.user.get_full_name }}" 
                                              class="rounded-circle" width="50" height="50" style="object-fit: cover; cursor: pointer;"
                                              data-bs-toggle="modal" data-bs-target="#workerImageModal"
-                                             onclick="showWorkerImage('{{ worker.profile_image.url }}', '{{ worker.user.get_full_name }}')">
+                                             onclick="showWorkerImage('{{ worker.photo_url }}', '{{ worker.user.get_full_name }}')">
                                         {% elif worker.user.profile_picture %}
                                         <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 
                                              class="rounded-circle" width="50" height="50" style="object-fit: cover; cursor: pointer;"

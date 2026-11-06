@@ -979,8 +979,8 @@
                     <div class="assigned-worker-card">
                         <div class="worker-card-header">
                             <div class="worker-avatar">
-                                {% if worker.profile_image %}
-                                    <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar-img">
+                                {% if worker.photo_url %}
+                                    <img src="{{ worker.photo_url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar-img">
                                 {% else %}
                                     <div class="worker-avatar-placeholder">
                                         {{ worker.user.get_full_name|first|upper }}

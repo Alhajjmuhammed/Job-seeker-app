@@ -265,8 +265,8 @@
 <div class="user-header">
     <div class="user-profile">
         <div class="user-avatar-large">
-            {% if user.is_worker and worker_profile and worker_profile.profile_image %}
-                <img src="{{ worker_profile.profile_image.url }}" alt="{{ user.get_full_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;">
+            {% if user.is_worker and worker_profile and worker_profile.photo_url %}
+                <img src="{{ worker_profile.photo_url }}" alt="{{ user.get_full_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;">
             {% elif user.is_client and user.client_profile and user.client_profile.profile_image %}
                 <img src="{{ user.client_profile.profile_image.url }}" alt="{{ user.get_full_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;">
             {% else %}

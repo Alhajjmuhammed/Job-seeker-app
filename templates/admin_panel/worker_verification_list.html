@@ -54,7 +54,7 @@
         <tr class="vq-row">
           <td>
             <a href="{% url 'admin_panel:verify_worker' w.id %}" class="d-flex align-items-center gap-2 text-decoration-none text-body">
-              {% if w.profile_image %}<img src="{{ w.profile_image.url }}" class="vq-avatar" alt="">
+              {% if w.photo_url %}<img src="{{ w.photo_url }}" class="vq-avatar" alt="">
               {% else %}<span class="vq-avatar">{{ w.user.first_name|first|upper|default:"?" }}</span>{% endif %}
               <span>
                 <strong>{{ w.user.get_full_name|default:w.user.username }}</strong><br>

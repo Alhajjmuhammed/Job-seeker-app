@@ -653,6 +653,8 @@
 </style>
     
     {% block extra_css %}{% endblock %}
+    {# one look for every signed-in page - loaded last so it wins #}
+    <link rel="stylesheet" href="{% static 'css/ui.css' %}">
 </head>
 <body>
     <!-- Sidebar -->
@@ -714,7 +716,7 @@
                     <button type="button" class="sidebar-toggle-btn" id="sidebarToggle">
                         <i class="bi bi-list"></i>
                     </button>
-                    <h1 class="page-title-header">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <h1 class="page-title-header" id="pageTitleHeader">{% block page_title %}{% endblock %}</h1>
                 </div>
                 
                 <!-- Right Side -->
@@ -983,5 +985,14 @@
 </div>
 
 {% include 'partials/notification_badge.html' %}
+<script>
+// Pages that set no header title showed "Dashboard"; use the page's own name.
+(function () {
+    var h = document.getElementById('pageTitleHeader');
+    if (h && !h.textContent.trim()) {
+        h.textContent = document.title.split(' - ')[0].replace(/^[^\wÀ-ɏ]+/, '').trim() || 'Dashboard';
+    }
+})();
+</script>
 </body>
 </html>

@@ -69,7 +69,7 @@
     <div class="card border-0 shadow-sm">
       <div class="card-body">
         <div class="d-flex align-items-center gap-3 mb-3">
-          {% if worker.profile_image %}<img src="{{ worker.profile_image.url }}" class="rv-avatar" alt="">
+          {% if worker.photo_url %}<img src="{{ worker.photo_url }}" class="rv-avatar" alt="">
           {% else %}<div class="rv-avatar">{{ worker.user.first_name|first|upper|default:"?" }}</div>{% endif %}
           <div>
             <div class="fw-bold">{{ worker.user.get_full_name|default:worker.user.username }}</div>
@@ -99,7 +99,10 @@
       <div class="col-md-6">
         <div class="rv-doc h-100 d-flex flex-column">
           <div class="rv-doc-preview">
-            {% if doc.is_image %}
+            {% if doc.file_missing %}
+              <div class="text-center text-muted small px-3"><i class="bi bi-exclamation-octagon fs-3 d-block text-warning"></i>
+                {% trans "File missing on the server - ask the worker to upload it again." %}</div>
+            {% elif doc.is_image %}
               <a href="{{ doc.file.url }}" target="_blank" rel="noopener"><img src="{{ doc.file.url }}" alt="{{ doc.title }}" loading="lazy"></a>
             {% else %}
               <a href="{{ doc.file.url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
@@ -118,7 +121,12 @@
               <div class="small text-danger mb-2">{{ doc.rejection_reason }}</div>
             {% endif %}
             <div class="mt-auto d-flex flex-wrap gap-2">
-              {% if doc.verification_status != 'approved' %}
+              {% if doc.file_missing %}
+              <form method="post">{% csrf_token %}<input type="hidden" name="action" value="reject_doc"><input type="hidden" name="doc_id" value="{{ doc.id }}">
+                <input type="hidden" name="reason" value="{% trans 'Your file could not be found on our system. Please upload it again' %}">
+                <button class="btn btn-sm btn-warning">{% trans "Ask to upload again" %}</button></form>
+              {% endif %}
+              {% if doc.verification_status != 'approved' and not doc.file_missing %}
               <form method="post">{% csrf_token %}<input type="hidden" name="action" value="approve_doc"><input type="hidden" name="doc_id" value="{{ doc.id }}">
                 <button class="btn btn-sm btn-success">{% trans "Approve" %}</button></form>
               {% endif %}

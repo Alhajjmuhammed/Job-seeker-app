@@ -780,8 +780,8 @@ document.addEventListener('DOMContentLoaded', function() {
 {% block content %}
 <!-- Profile Header -->
 <div class="profile-header">
-    {% if worker.profile_image %}
-    <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="profile-avatar">
+    {% if worker.photo_url %}
+    <img src="{{ worker.photo_url }}" alt="{{ worker.user.get_full_name }}" class="profile-avatar">
     {% else %}
     <div class="profile-avatar-placeholder">
         {{ worker.user.get_full_name|first|upper }}

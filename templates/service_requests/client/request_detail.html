@@ -273,14 +273,14 @@
                     <div class="row mb-4 {% if not forloop.last %}pb-4 border-bottom{% endif %}">
                         <div class="col-md-2 text-center">
                             <!-- Worker Profile Image -->
-                            {% if assignment.worker.profile_image %}
-                            <img src="{{ assignment.worker.profile_image.url }}" 
+                            {% if assignment.worker.photo_url %}
+                            <img src="{{ assignment.worker.photo_url }}" 
                                  alt="{{ assignment.worker.user.get_full_name }}" 
                                  class="rounded-circle img-fluid mb-2 profile-image-clickable"
                                  style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #14b8a6; cursor: pointer;"
                                  data-bs-toggle="modal" 
                                  data-bs-target="#imageModal"
-                                 onclick="showFullImage('{{ assignment.worker.profile_image.url }}', '{{ assignment.worker.user.get_full_name }}')">
+                                 onclick="showFullImage('{{ assignment.worker.photo_url }}', '{{ assignment.worker.user.get_full_name }}')">
                             {% elif assignment.worker.user.profile_picture %}
                             <img src="{{ assignment.worker.user.profile_picture.url }}" 
                                  alt="{{ assignment.worker.user.get_full_name }}" 
@@ -364,14 +364,14 @@
                     <div class="row">
                         <div class="col-md-2 text-center">
                             <!-- Worker Profile Image -->
-                            {% if service_request.assigned_worker.profile_image %}
-                            <img src="{{ service_request.assigned_worker.profile_image.url }}" 
+                            {% if service_request.assigned_worker.photo_url %}
+                            <img src="{{ service_request.assigned_worker.photo_url }}" 
                                  alt="{{ service_request.assigned_worker.user.get_full_name }}" 
                                  class="rounded-circle img-fluid mb-2 profile-image-clickable"
                                  style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #14b8a6; cursor: pointer;"
                                  data-bs-toggle="modal" 
                                  data-bs-target="#imageModal"
-                                 onclick="showFullImage('{{ service_request.assigned_worker.profile_image.url }}', '{{ service_request.assigned_worker.user.get_full_name }}')">
+                                 onclick="showFullImage('{{ service_request.assigned_worker.photo_url }}', '{{ service_request.assigned_worker.user.get_full_name }}')">
                             {% elif service_request.assigned_worker.user.profile_picture %}
                             <img src="{{ service_request.assigned_worker.user.profile_picture.url }}" 
                                  alt="{{ service_request.assigned_worker.user.get_full_name }}" 

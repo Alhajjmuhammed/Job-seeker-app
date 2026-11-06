@@ -175,8 +175,8 @@
     <div class="rate-card">
         <!-- Worker Info -->
         <div class="worker-info">
-            {% if worker.profile_image %}
-            <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar">
+            {% if worker.photo_url %}
+            <img src="{{ worker.photo_url }}" alt="{{ worker.user.get_full_name }}" class="worker-avatar">
             {% else %}
             <div class="worker-avatar mx-auto bg-white bg-opacity-20 d-flex align-items-center justify-content-center">
                 <i class="bi bi-person-fill display-6"></i>

@@ -451,8 +451,8 @@
                 {% csrf_token %}
                 <div class="form-group">
                     <div class="profile-image-upload">
-                        {% if profile.profile_image %}
-                            <img src="{{ profile.profile_image.url }}" alt="{% trans "Profile" %}" class="current-profile-image" id="profileImagePreview">
+                        {% if profile.photo_url %}
+                            <img src="{{ profile.photo_url }}" alt="{% trans "Profile" %}" class="current-profile-image" id="profileImagePreview">
                         {% else %}
                             <div class="profile-image-placeholder" id="profileImagePlaceholder">
                                 {{ user.first_name.0 }}{{ user.last_name.0 }}
@@ -469,7 +469,7 @@
                     </div>
                 </div>
             </form>
-            {% if profile.profile_image %}
+            {% if profile.photo_url %}
             <form method="post" action="{% url 'workers:profile_image_remove' %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-danger mt-2" style="border-radius:8px; font-weight:600;">

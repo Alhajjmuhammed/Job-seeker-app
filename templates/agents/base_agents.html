@@ -233,6 +233,8 @@
         }
     </style>
     {% block extra_css %}{% endblock %}
+    {# one look for every signed-in page - loaded last so it wins #}
+    <link rel="stylesheet" href="{% static 'css/ui.css' %}">
 </head>
 <body>
 

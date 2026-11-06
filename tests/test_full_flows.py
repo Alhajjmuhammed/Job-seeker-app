@@ -1000,3 +1000,27 @@ class AdminMenuTests(FlowBase):
         self.assertNotIn('Document Reviews', page)
         self.assertNotIn('Worker Verifications', page)
         self.assertIn('>Verifications<', page)
+
+
+class MissingFileTests(FlowBase):
+    def test_review_page_says_when_a_document_file_is_missing(self):
+        doc = WorkerDocument.objects.create(worker=self.wp, document_type='id', title='ID',
+                                            file='worker_documents/lost-in-move.png', verification_status='approved')
+        WorkerProfile.objects.filter(pk=self.wp.pk).update(profile_image='worker_profiles/lost.png')
+        self.wp.refresh_from_db()
+        self.assertTrue(doc.file_missing)
+        self.assertIsNone(self.wp.photo_url)
+        page = self.admin_c.get(f'/dashboard/workers/verify/{self.wp.id}/').content.decode()
+        self.assertIn('File missing on the server', page)
+        self.assertIn('Ask to upload again', page)
+        self.assertNotIn('worker_profiles/lost.png', page)  # no broken photo
+        # asking for a new upload tells the worker
+        from worker_connect.notification_models import Notification
+        self.admin_c.post(f'/dashboard/workers/verify/{self.wp.id}/', {
+            'action': 'reject_doc', 'doc_id': doc.id,
+            'reason': 'Your file could not be found on our system. Please upload it again'})
+        self.assertTrue(Notification.objects.filter(recipient=self.worker_user, title='Document needs attention').exists())
+
+    def test_all_signed_in_layouts_load_the_shared_design(self):
+        for c, url in [(self.admin_c, '/dashboard/'), (self.client_c, '/clients/dashboard/'), (self.worker_c, '/workers/dashboard/')]:
+            self.assertIn('css/ui.css', c.get(url).content.decode(), url)

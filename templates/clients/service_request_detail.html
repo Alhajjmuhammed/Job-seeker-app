@@ -178,8 +178,8 @@
                     {% for assignment in assignments %}
                     <div class="row align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
                         <div class="col-md-3 text-center">
-                            {% if assignment.worker.profile_image %}
-                            <img src="{{ assignment.worker.profile_image.url }}" 
+                            {% if assignment.worker.photo_url %}
+                            <img src="{{ assignment.worker.photo_url }}" 
                                  alt="{% trans "Worker Photo" %}" 
                                  class="rounded-circle"
                                  width="80" height="80">

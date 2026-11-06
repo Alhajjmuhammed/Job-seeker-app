@@ -48,7 +48,7 @@
             <div class="card text-center bg-info text-white">
                 <div class="card-body">
                     <h3 class="card-title">{{ total_spent|floatformat:2 }}</h3>
-                    <p class="card-text mb-0">{% trans "Total Spent ($)" %}</p>
+                    <p class="card-text mb-0">{% trans "Total spent (TSh)" %}</p>
                 </div>
             </div>
         </div>
@@ -329,19 +329,7 @@
     
     <!-- Info Box -->
     <div class="card mt-4 border-info">
-        <div class="card-body">
-            <h6 class="text-info">
-                <i class="bi bi-info-circle"></i> {% trans "About Request History" %}
-            </h6>
-            <ul class="mb-0 small">
-                <li><strong>{% trans "Completed:" %}</strong> {% trans "Requests that were successfully finished by the worker" %}</li>
-                <li><strong>{% trans "Cancelled:" %}</strong> {% trans "Requests that were cancelled by either you or the worker" %}</li>
-                <li>{% trans "You can view detailed information about each historical request" %}</li>
-                <li>{% trans "Rate completed requests to help other clients make informed decisions" %}</li>
-                <li>Use the "Request Again" button to quickly create a similar request</li>
-                <li>{% trans "Export your history to CSV for record keeping" %}</li>
-            </ul>
-        </div>
+        
     </div>
 </div>
 {% endblock %}

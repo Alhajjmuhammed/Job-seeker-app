@@ -183,6 +183,14 @@ class WorkerProfile(models.Model):
         return f"{self.user.get_full_name()} - Worker Profile"
     
     @property
+    def photo_url(self):
+        """The profile photo's URL, or None if there is none or its file is
+        gone (photos from before the August server move were not copied)."""
+        if self.profile_image and self.profile_image.storage.exists(self.profile_image.name):
+            return self.profile_image.url
+        return None
+
+    @property
     def has_id_document(self):
         """Check if worker has uploaded ID document (required for verification)"""
         return self.documents.filter(document_type='id').exists()
@@ -331,6 +339,11 @@ class WorkerDocument(models.Model):
     class Meta:
         ordering = ['-uploaded_at']
     
+    @property
+    def file_missing(self):
+        """True when the record exists but its file is not on the server."""
+        return bool(self.file) and not self.file.storage.exists(self.file.name)
+
     def __str__(self):
         return f"{self.worker.user.username} - {self.get_document_type_display()}"
     

@@ -10,8 +10,8 @@
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm">
         <div class="card-body p-4 text-center">
-          {% if profile.profile_image %}
-            <img src="{{ profile.profile_image.url }}" alt="" class="rounded-circle mb-3" style="width:110px;height:110px;object-fit:cover;">
+          {% if profile.photo_url %}
+            <img src="{{ profile.photo_url }}" alt="" class="rounded-circle mb-3" style="width:110px;height:110px;object-fit:cover;">
           {% else %}
             <div class="rounded-circle bg-secondary-subtle d-inline-flex align-items-center justify-content-center mb-3" style="width:110px;height:110px;font-size:2.5rem;">
               {{ profile.user.get_full_name|first|upper }}

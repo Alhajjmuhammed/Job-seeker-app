@@ -35,8 +35,8 @@
                 <div class="card-header bg-white border-bottom">
                     <div class="d-flex align-items-center">
                         <div class="me-3">
-                            {% if worker.profile_image %}
-                            <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" 
+                            {% if worker.photo_url %}
+                            <img src="{{ worker.photo_url }}" alt="{{ worker.user.get_full_name }}" 
                                  class="rounded-circle" width="60" height="60" style="object-fit: cover;">
                             {% elif worker.user.profile_picture %}
                             <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 

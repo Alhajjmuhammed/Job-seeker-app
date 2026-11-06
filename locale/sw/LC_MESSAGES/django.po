@@ -10917,3 +10917,15 @@ msgstr "Mipangilio ya taarifa"
 
 msgid "Verifications"
 msgstr "Uthibitishaji"
+
+msgid "File missing on the server - ask the worker to upload it again."
+msgstr "Faili halipo kwenye seva - mwombe fundi alipakie tena."
+
+msgid "Ask to upload again"
+msgstr "Omba apakie tena"
+
+msgid "Your file could not be found on our system. Please upload it again"
+msgstr "Faili lako halikupatikana kwenye mfumo wetu. Tafadhali lipakie tena"
+
+msgid "Total spent (TSh)"
+msgstr "Jumla iliyotumika (TSh)"

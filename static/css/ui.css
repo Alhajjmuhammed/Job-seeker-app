@@ -1,0 +1,207 @@
+/*
+ * Worker Connect - one look for every signed-in page (admin, client, worker).
+ *
+ * Loaded last in the three app layouts, so it wins over the per-page styles
+ * that made each screen look different: one text scale, one card, one
+ * table, one set of buttons and badges. The public home page keeps its own
+ * design and does not load this file.
+ */
+:root {
+    --ui-teal: #14b8a6;
+    --ui-teal-dark: #0f766e;
+    --ui-teal-soft: rgba(20, 184, 166, .1);
+    --ui-radius: 12px;
+    --ui-radius-sm: 8px;
+    --ui-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    --ui-muted: #6b7280;
+}
+
+/* ---------- text: one scale ---------- */
+html { font-size: 14.5px; }
+.page-title-header { font-size: 1.2rem !important; }
+.sidebar-nav-item { font-size: .95rem !important; }
+.sidebar-section-title { font-size: .7rem !important; letter-spacing: .06em; }
+
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(h1, .h1) { font-size: 1.4rem; font-weight: 700; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(h2, .h2) { font-size: 1.2rem; font-weight: 700; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(h3, .h3) { font-size: 1.05rem; font-weight: 700; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(h4, .h4) { font-size: 1.15rem; font-weight: 700; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(h5, .h5) { font-size: 1rem; font-weight: 600; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(h6, .h6) { font-size: .95rem; font-weight: 700; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .display-4,
+:is(.admin-content, .client-content, .worker-content, .agent-content) .display-5,
+:is(.admin-content, .client-content, .worker-content, .agent-content) .display-6 { font-size: 1.6rem; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .lead { font-size: 1rem; }
+.form-label, label.form-label { font-size: .85rem; font-weight: 600; margin-bottom: .3rem; }
+.form-text, .form-help { font-size: .78rem; }
+
+/* ---------- cards: one card ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card,
+.ad-card, .ch-card, .wh-card, .jb-card, .bk-step, .rv-doc {
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--ui-radius) !important;
+    box-shadow: var(--ui-shadow) !important;
+    background-color: var(--bs-body-bg);
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card-header {
+    background: var(--bs-tertiary-bg) !important;
+    border-bottom: 1px solid var(--bs-border-color) !important;
+    padding: .75rem 1rem;
+    font-size: .95rem;
+    font-weight: 600;
+}
+/* coloured headers (teal, blue, cyan...) become the neutral one, so their
+   white text has to follow - badges and buttons keep their own colours */
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card-header,
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card-header :is(h1, h2, h3, h4, h5, h6, i, small, span:not(.badge), p) {
+    color: var(--bs-body-color) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card-header :is(h1, h2, h3, h4, h5, h6) { font-size: .98rem !important; margin: 0; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card-body { padding: 1rem; }
+
+/* ---------- tables: one table ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table { font-size: .9rem; margin-bottom: 0; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table > thead th {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--ui-muted) !important;
+    background: var(--bs-tertiary-bg) !important;
+    border-bottom: 1px solid var(--bs-border-color);
+    padding: .6rem .75rem;
+    white-space: nowrap;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table > tbody td { padding: .6rem .75rem; vertical-align: middle; }
+/* actions inside tables: small outline buttons, not big coloured blocks */
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table td .btn {
+    padding: .25rem .5rem;
+    font-size: .8rem;
+    border-radius: var(--ui-radius-sm);
+    margin: 1px;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table td .btn:not(.btn-danger):not(.btn-outline-danger) {
+    background: transparent !important;
+    border: 1px solid var(--bs-border-color) !important;
+    color: var(--ui-teal-dark) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table td .btn:not(.btn-danger):not(.btn-outline-danger):hover {
+    background: var(--ui-teal-soft) !important;
+    border-color: var(--ui-teal) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table td :is(.btn-danger, .btn-outline-danger) {
+    background: transparent !important;
+    border: 1px solid #fecaca !important;
+    color: #dc2626 !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table td :is(.btn-danger, .btn-outline-danger):hover { background: #fef2f2 !important; }
+
+/* ---------- buttons ---------- */
+.btn { border-radius: var(--ui-radius-sm); font-weight: 600; }
+.btn-lg { font-size: 1rem; padding: .6rem 1.1rem; }
+.btn-primary { background-color: var(--ui-teal) !important; border-color: var(--ui-teal) !important; color: #fff !important; }
+.btn-primary:hover, .btn-primary:focus { background-color: var(--ui-teal-dark) !important; border-color: var(--ui-teal-dark) !important; }
+.btn-outline-primary { color: var(--ui-teal-dark) !important; border-color: var(--ui-teal) !important; }
+.btn-outline-primary:hover { background-color: var(--ui-teal) !important; color: #fff !important; }
+a:not(.btn):not(.nav-link):not(.sidebar-nav-item):not(.list-group-item):not(.dropdown-item) { color: var(--ui-teal-dark); }
+
+/* ---------- badges: one pill ---------- */
+.badge { font-weight: 600; border-radius: 999px; padding: .35em .7em; font-size: .72rem; }
+.badge.bg-primary { background-color: var(--ui-teal) !important; }
+.badge.bg-info { background-color: #cffafe !important; color: #155e75 !important; }
+
+/* ---------- forms ---------- */
+.form-control, .form-select { border-radius: var(--ui-radius-sm); font-size: .92rem; }
+.form-control:focus, .form-select:focus { border-color: var(--ui-teal); box-shadow: 0 0 0 .2rem var(--ui-teal-soft); }
+.form-check-input:checked { background-color: var(--ui-teal); border-color: var(--ui-teal); }
+
+/* ---------- alerts and lists ---------- */
+.alert { border-radius: var(--ui-radius-sm); font-size: .9rem; }
+.list-group-item { font-size: .92rem; }
+.pagination .page-link { color: var(--ui-teal-dark); }
+.pagination .page-item.active .page-link { background-color: var(--ui-teal); border-color: var(--ui-teal); color: #fff; }
+
+/* ---------- stat cards: one number box (83 of them, five different designs) ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box, .summary-card) {
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--ui-radius) !important;
+    box-shadow: var(--ui-shadow) !important;
+    background: var(--bs-body-bg) !important;
+    padding: 1rem 1.1rem !important;
+    color: var(--bs-body-color) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box) :is(h3, h4, h6, .stat-label, .label, .stat-header, p:not(.stat-value)) {
+    font-size: .75rem !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    color: var(--ui-muted) !important;
+    margin-bottom: .25rem !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box) :is(.stat-value, .stat-number, .value, h2) {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    line-height: 1.15 !important;
+    color: var(--bs-body-color) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box) .stat-subtitle { font-size: .75rem !important; color: var(--ui-muted) !important; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box) > i,
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box) .stat-icon { font-size: 1.3rem !important; }
+
+/* ---------- page-specific action buttons -> the same small outline button ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.btn-view, .btn-edit, .btn-toggle, .btn-action, .btn-delete):not(.w-100) {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 32px; padding: 0 .5rem !important;
+    font-size: .85rem !important;
+    background: transparent !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--ui-radius-sm) !important;
+    color: var(--ui-teal-dark) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.btn-view, .btn-edit, .btn-toggle, .btn-action):not(.w-100):hover {
+    background: var(--ui-teal-soft) !important; border-color: var(--ui-teal) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .btn-delete:not(.w-100) { color: #dc2626 !important; border-color: #fecaca !important; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .btn-delete:not(.w-100):hover { background: #fef2f2 !important; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .action-buttons { display: flex; gap: .3rem; flex-wrap: wrap; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .btn-create {
+    background: var(--ui-teal) !important; color: #fff !important; border: 0 !important;
+    border-radius: var(--ui-radius-sm) !important; font-weight: 600; padding: .5rem 1rem !important; font-size: .92rem !important;
+}
+
+/* ---------- page headers: plain title, not a coloured banner ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) .page-header {
+    background: none !important;
+    color: var(--bs-body-color) !important;
+    padding: 0 0 .75rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .page-header :is(h1, h2, h3, p, i, span, small) { color: inherit !important; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .page-header p { color: var(--ui-muted) !important; font-size: .9rem; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .page-header .btn-light {
+    background: transparent !important; border: 1px solid var(--bs-border-color) !important; color: var(--ui-teal-dark) !important;
+}
+
+/* ---------- coloured stat boxes -> the standard one ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card:is(.bg-success, .bg-warning, .bg-primary, .bg-info, .bg-danger, .bg-secondary, .bg-dark) {
+    background: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .card:is(.bg-success, .bg-warning, .bg-primary, .bg-info, .bg-danger, .bg-secondary, .bg-dark) :is(.text-white, h1, h2, h3, h4, h5, h6, p) { color: inherit !important; }
+
+/* ---------- filter buttons: one style instead of yellow / cyan / green ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.btn-outline-warning, .btn-outline-info, .btn-outline-success, .btn-outline-secondary, .btn-outline-dark) {
+    color: var(--ui-teal-dark) !important;
+    border-color: var(--bs-border-color) !important;
+    background: transparent !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.btn-outline-warning, .btn-outline-info, .btn-outline-success, .btn-outline-secondary, .btn-outline-dark):is(:hover, .active) {
+    background: var(--ui-teal) !important; border-color: var(--ui-teal) !important; color: #fff !important;
+}
+:is(.admin-content, .client-content, .worker-content, .agent-content) .btn-group .btn,
+:is(.admin-content, .client-content, .worker-content, .agent-content) .d-flex.gap-1 > .btn,
+:is(.admin-content, .client-content, .worker-content, .agent-content) .d-flex.gap-2 > .btn-sm { font-size: .85rem; }

@@ -26,8 +26,8 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        {% if worker.profile_image %}
-                            <img src="{{ worker.profile_image.url }}" alt="{{ worker.user.get_full_name }}" 
+                        {% if worker.photo_url %}
+                            <img src="{{ worker.photo_url }}" alt="{{ worker.user.get_full_name }}" 
                                  class="rounded-circle me-3" style="width: 80px; height: 80px; object-fit: cover;">
                         {% else %}
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" 
