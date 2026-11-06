@@ -227,5 +227,33 @@
     "uploadScreenshot": "Pakia Picha",
     "skipTitle": "Ruka Kupakia Picha?",
     "skipMsg": "Ombi lako litawasilishwa bila uthibitisho wa malipo. Msimamizi anaweza kuhitaji uthibitisho kabla ya kumkabidhi mfanyakazi."
+  },
+  "messages": {
+    "searchMessages": "Tafuta ujumbe...",
+    "loadingConversations": "Inapakia mazungumzo...",
+    "noConversations": "Bado hakuna mazungumzo",
+    "startChatting": "Anza kuzungumza na wateja na msaada",
+    "noMessagesYet": "Bado hakuna ujumbe",
+    "failedLoadConversations": "Imeshindikana kupakia mazungumzo",
+    "searchConversations": "Tafuta mazungumzo...",
+    "startChattingWorkers": "Anza kuzungumza na mafundi na msaada",
+    "typeMessage": "Andika ujumbe",
+    "send": "Tuma",
+    "call": "Piga simu",
+    "cannotCall": "Simu hii haiwezi kupiga simu.",
+    "support": "Msaada",
+    "supportTeam": "Msaada wa Worker Connect",
+    "worker": "Fundi",
+    "client": "Mteja",
+    "justNow": "sasa",
+    "sayHello": "Sema habari",
+    "writeFirst": "Andika ujumbe wa kwanza hapa chini.",
+    "notSent": "Ujumbe haujatumwa",
+    "sendFailed": "Angalia mtandao wako kisha ujaribu tena.",
+    "chatClosed": "Mazungumzo haya yamefungwa - kazi haiendelei tena. Bado unaweza kusoma ujumbe.",
+    "chatNotAvailable": "Mazungumzo hayapatikani",
+    "chatAfterAccept": "Unaweza kuzungumza na kupiga simu mara fundi anapokubali kazi. Msaada upo wakati wote.",
+    "chatSupport": "Zungumza na msaada",
+    "supportReplies": "Tunajibu kwenye Ujumbe"
   }
 }

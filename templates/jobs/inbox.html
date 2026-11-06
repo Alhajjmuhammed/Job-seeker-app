@@ -45,6 +45,11 @@
   .ui-chat-thread-head .ui-chat-name { font-size: .95rem; }
   .ui-chat-sub { font-size: .76rem; color: var(--bs-secondary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ui-chat-back { display: none; }
+  .ui-chat-call { margin-left: auto; display: inline-flex; align-items: center; gap: .45rem; flex-shrink: 0; text-decoration: none;
+                  background: #10b981; color: #fff; font-weight: 600; font-size: .82rem; border-radius: 999px; padding: .45rem .9rem; }
+  .ui-chat-call:hover { background: #059669; }
+  .ui-chat-call, .ui-chat-call:hover, .ui-chat-call:visited { color: #fff !important; }
+  @media (max-width: 767.98px) { .ui-chat-call { width: 40px; height: 40px; padding: 0; justify-content: center; } }
   .ui-chat-msgs { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .3rem;
                   background-color: var(--bs-tertiary-bg);
                   background-image: radial-gradient(rgba(15, 118, 110, .06) 1px, transparent 1px); background-size: 16px 16px; }
@@ -161,9 +166,12 @@
           {% if okind == 'admin' %}{% trans "Worker Connect support team" %}
           {% elif okind == 'worker' %}{{ t_worker }}{% else %}{{ t_client }}{% endif %}
           {% if current.about %} · {% trans "Job" %}: {{ current.about }}{% endif %}
-          {% if me_admin and other_user.phone_number %} · {{ other_user.phone_number }}{% endif %}
         </div>
       </div>
+      {% if call_phone %}
+      <a href="tel:{{ call_phone }}" class="ui-chat-call" title="{% trans 'Call' %} {{ call_phone }}">
+        <i class="bi bi-telephone-fill"></i><span class="d-none d-md-inline">{% trans "Call" %} {{ call_phone }}</span></a>
+      {% endif %}
     </div>
 
     <div class="ui-chat-msgs" id="chatMsgs" data-count="{{ thread_sig }}">

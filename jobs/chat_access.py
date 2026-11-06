@@ -97,3 +97,17 @@ def notify_new_message(msg):
     except Exception:  # a failed alert must never lose the message
         import logging
         logging.getLogger(__name__).exception('message notification failed')
+
+
+def call_number(user, other):
+    """
+    The phone number `user` may call: only a worker/client they share an
+    ACCEPTED job with (the same rule as chat). Support is reached by chat.
+    """
+    if not other or not other.is_active or other.pk == user.pk:
+        return ''
+    if is_admin(user):
+        return other.phone_number or ''
+    if other.pk in chat_partners(user):
+        return other.phone_number or ''
+    return ''

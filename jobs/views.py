@@ -373,7 +373,10 @@ def _conversation_list(user):
             convs[other.id] = {'user': other, 'last_message': None, 'unread_count': 0,
                                'about': partners.get(other.id, ''),
                                'is_support': is_admin(other),
-                               'can_send': other.is_active and (admin_view or is_admin(other) or other.id in partners)}
+                               'can_send': other.is_active and (admin_view or is_admin(other) or other.id in partners),
+                               # who may be phoned: an accepted-job partner (admins: anyone)
+                               'call_phone': (other.phone_number or '') if other.is_active and (
+                                   (admin_view and not is_admin(other)) or other.id in partners) else ''}
         return convs[other.id]
 
     # One row per chat partner, worked out in the database (this list is
@@ -457,7 +460,7 @@ def send_message(request, recipient_id):
 @login_required
 def conversation(request, user_id):
     """One chat thread, shown next to the chat list."""
-    from .chat_access import can_chat, is_admin, CLOSED_REASON
+    from .chat_access import can_chat, is_admin, call_number, CLOSED_REASON
 
     other_user = get_object_or_404(User, pk=user_id)
     if other_user.pk == request.user.pk:
@@ -503,6 +506,7 @@ def conversation(request, user_id):
         'thread_sig': f"{len(thread)}-{sum(1 for m in thread if m.is_read)}",
         'me_admin': is_admin(request.user),
         'can_send': allowed,
+        'call_phone': call_number(request.user, other_user),
         'closed_reason': CLOSED_REASON,
     })
 

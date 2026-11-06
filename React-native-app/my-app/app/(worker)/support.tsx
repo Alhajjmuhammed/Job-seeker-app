@@ -122,7 +122,8 @@ export default function SupportScreen() {
   };
 
   const handleCallSupport = () => {
-    Linking.openURL('tel:+1234567890');
+    // no public support line yet: support answers in Messages
+    router.push('/(worker)/messages' as any);
   };
 
   const handleOpenTerms = () => {
@@ -159,9 +160,9 @@ export default function SupportScreen() {
               style={[styles.contactButton, { backgroundColor: theme.surface }]}
               onPress={handleCallSupport}
             >
-              <Ionicons name="call" size={32} color={theme.primary} />
-              <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('support.callUs')}</Text>
-              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('support.supportPhone')}</Text>
+              <Ionicons name="chatbubbles" size={32} color={theme.primary} />
+              <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('messages.chatSupport')}</Text>
+              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('messages.supportReplies')}</Text>
             </TouchableOpacity>
           </View>
         </View>

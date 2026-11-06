@@ -11163,3 +11163,6 @@ msgstr "Zungumza na fundi"
 
 msgid "Chat"
 msgstr "Zungumza"
+
+msgid "Call"
+msgstr "Piga simu"

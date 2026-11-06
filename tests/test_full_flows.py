@@ -1202,3 +1202,43 @@ class ChatTests(FlowBase):
         from worker_connect.websocket_consumers import chat_group_name
         self.assertEqual(chat_group_name(5, 9), chat_group_name(9, 5))
         self.assertNotEqual(chat_group_name(5, 9), chat_group_name(7, 9))
+
+    def test_phone_numbers_only_after_accept_in_the_app(self):
+        """Calling uses these numbers, so they follow the same rule as chat."""
+        client_phone, worker_phone = b'711222333', b'744555666'
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        asg = ServiceRequestAssignment.objects.get(service_request=sr, worker=self.wp)
+        worker_urls = ['/api/v1/worker/my-assignments/', '/api/v1/worker/my-assignments/pending/',
+                       f'/api/v1/worker/my-assignments/{asg.id}/', '/api/v1/workers/assigned-jobs/',
+                       '/api/v1/worker/service-requests/', f'/api/v1/worker/service-requests/{sr.id}/detail/']
+        client_urls = ['/api/v1/client/service-requests/', f'/api/v1/client/service-requests/{sr.id}/']
+        for u in worker_urls:
+            r = self.worker_c.get(u)
+            self.assertNotIn(client_phone, r.content, f'before accept, worker sees client phone at {u}')
+            self.assertNotIn(b'Client.One@t.co'.lower(), r.content.lower(), u)
+        for u in client_urls:
+            self.assertNotIn(worker_phone, self.client_c.get(u).content, f'before accept, client sees worker phone at {u}')
+        post_json(self.worker_c, f'/api/v1/worker/my-assignments/{asg.id}/respond/', {'accepted': True})
+        self.assertIn(client_phone, self.worker_c.get(f'/api/v1/worker/my-assignments/{asg.id}/').content)
+        self.assertIn(worker_phone, self.client_c.get(f'/api/v1/client/service-requests/{sr.id}/').content)
+
+    def test_call_button_only_after_accept_web_and_app(self):
+        sr, _ = self.book()
+        asg = self.assign_and_accept(sr)
+        # website: Call button with the other person's number, both ways
+        self.assertContains(self.client_c.get(f'/jobs/conversation/{self.worker_user.id}/'), 'href="tel:0744555666"')
+        self.assertContains(self.worker_c.get(f'/jobs/conversation/{self.client_user.id}/'), 'href="tel:+255711222333"')
+        # app: the number comes with the chat and the chat list
+        r = self.client_c.get(f'/api/messages/{self.worker_user.id}/').json()
+        self.assertEqual(r['other_user']['phone_number'], '0744555666')
+        convs = self.worker_c.get('/api/messages/conversations/').json()['conversations']
+        self.assertEqual(next(c for c in convs if c['id'] == self.client_user.id)['phone_number'], '+255711222333')
+        # support is reached by chat, not by phone
+        self.admin.phone_number = '0700000000'; self.admin.save()
+        self.assertNotContains(self.worker_c.get(f'/jobs/conversation/{self.admin.id}/'), 'tel:0700000000')
+        # job cancelled: no more calling (the old chat stays readable)
+        self.send(self.client_c, self.worker_user, 'see you')
+        ServiceRequestAssignment.objects.filter(pk=asg.pk).update(status='cancelled')
+        self.assertNotContains(self.client_c.get(f'/jobs/conversation/{self.worker_user.id}/'), 'tel:')
+        self.assertEqual(self.client_c.get(f'/api/messages/{self.worker_user.id}/').json()['other_user']['phone_number'], '')

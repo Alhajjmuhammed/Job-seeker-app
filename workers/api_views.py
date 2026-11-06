@@ -240,9 +240,16 @@ def assigned_jobs(request):
             assignments__worker=profile
         ).distinct().select_related('client', 'category').order_by('-created_at')
         
+        # Contact details only for jobs this worker has accepted
+        from jobs.chat_access import OPEN_ASSIGNMENT
+        from jobs.service_request_models import ServiceRequestAssignment
+        accepted_ids = set(ServiceRequestAssignment.objects.filter(
+            worker=profile, status__in=OPEN_ASSIGNMENT).values_list('service_request_id', flat=True))
+
         # Serialize the jobs
         jobs_data = []
         for job in jobs:
+            show = job.id in accepted_ids
             jobs_data.append({
                 'id': job.id,
                 'title': job.title,
@@ -257,8 +264,8 @@ def assigned_jobs(request):
                 'client': {
                     'id': job.client.id,
                     'name': job.client.get_full_name(),
-                    'email': job.client.email,
-                    'phone': job.client.phone_number,
+                    'email': job.client.email if show else '',
+                    'phone': job.client.phone_number if show else '',
                 },
                 'category': {
                     'id': job.category.id if job.category else None,
@@ -361,7 +368,7 @@ def direct_hire_requests(request):
                 'id': req.id,
                 'title': req.title,
                 'client_name': req.client.get_full_name(),
-                'client_phone': req.client.phone_number,
+                'client_phone': '',  # shown only after the worker accepts
                 'job_description': req.description,
                 'offered_rate': str(req.offered_rate),
                 'total_amount': str(req.total_amount),

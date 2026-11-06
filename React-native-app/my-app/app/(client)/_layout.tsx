@@ -63,6 +63,15 @@ export default function ClientLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubbles" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -74,6 +83,7 @@ export default function ClientLayout() {
 
       {/* Hidden screens */}
       <Tabs.Screen name="support" options={{ href: null }} />
+      <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
       <Tabs.Screen name="choose-worker" options={{ href: null }} />
       <Tabs.Screen name="request-service/[id]" options={{ href: null }} />
       <Tabs.Screen name="service-request/[id]" options={{ href: null }} />

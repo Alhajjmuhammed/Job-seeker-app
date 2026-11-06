@@ -35,6 +35,8 @@ def get_conversations(request):
             'is_online': False,
             'about': c['about'],
             'can_send': c['can_send'],
+            # filled only for a worker/client with an accepted job together
+            'phone_number': c['call_phone'],
         })
 
     return Response({'conversations': conversations})
@@ -51,7 +53,7 @@ def get_messages(request, user_id):
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    from .chat_access import can_chat, is_admin
+    from .chat_access import can_chat, is_admin, call_number
     allowed = can_chat(user, other_user)
     messages = (Message.objects.filter(
         Q(sender=user, recipient=other_user) | Q(sender=other_user, recipient=user))
@@ -90,7 +92,8 @@ def get_messages(request, user_id):
             'id': other_user.id,
             'name': name_of(other_user),
             'username': other_user.username if me_admin else name_of(other_user),
-            'user_type': other_user.user_type,
+            'user_type': 'admin' if is_admin(other_user) else other_user.user_type,
+            'phone_number': call_number(user, other_user),
         }
     })
 

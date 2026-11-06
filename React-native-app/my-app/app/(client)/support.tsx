@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import { useTranslation } from 'react-i18next';
@@ -113,7 +114,8 @@ export default function SupportScreen() {
   };
 
   const handleCallSupport = () => {
-    Linking.openURL('tel:+1234567890');
+    // no public support line yet: support answers in Messages
+    router.push('/(client)/messages' as any);
   };
 
   return (
@@ -132,9 +134,9 @@ export default function SupportScreen() {
               <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('support.supportEmail')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.contactButton, { backgroundColor: theme.surface }]} onPress={handleCallSupport}>
-              <Ionicons name="call" size={32} color={theme.primary} />
-              <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('support.callUs')}</Text>
-              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('support.supportPhone')}</Text>
+              <Ionicons name="chatbubbles" size={32} color={theme.primary} />
+              <Text style={[styles.contactButtonText, { color: theme.text }]}>{t('messages.chatSupport')}</Text>
+              <Text style={[styles.contactButtonSubtext, { color: theme.textSecondary }]}>{t('messages.supportReplies')}</Text>
             </TouchableOpacity>
           </View>
         </View>

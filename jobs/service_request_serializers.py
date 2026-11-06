@@ -40,6 +40,16 @@ class AssignmentBasicSerializer(serializers.ModelSerializer):
             'worker_response_at', 'worker_rejection_reason', 'assigned_at'
         ]
 
+    def to_representation(self, obj):
+        # The client gets the worker's phone and e-mail only once the worker
+        # has accepted - the same rule as chat (jobs/chat_access.py).
+        from jobs.chat_access import OPEN_ASSIGNMENT
+        data = super().to_representation(obj)
+        if obj.status not in OPEN_ASSIGNMENT and data.get('worker'):
+            data['worker']['phone_number'] = ''
+            data['worker']['email'] = ''
+        return data
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -444,6 +454,15 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
             'assigned_by', 'worker_response_at', 'work_started_at', 
             'work_completed_at', 'total_hours_worked', 'assigned_at', 'updated_at'
         ]
+
+    def to_representation(self, obj):
+        # The worker gets the client's phone and e-mail only after accepting.
+        from jobs.chat_access import OPEN_ASSIGNMENT
+        data = super().to_representation(obj)
+        if obj.status not in OPEN_ASSIGNMENT:
+            data['client_phone'] = ''
+            data['client_email'] = ''
+        return data
 
 
 class BulkAssignWorkersSerializer(serializers.Serializer):
