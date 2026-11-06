@@ -1,10 +1,10 @@
 from django.urls import path
-from . import views, verification_views
+from . import views, verification_views, dashboard_views
 
 app_name = 'admin_panel'
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    path('', dashboard_views.dashboard, name='dashboard'),
     path('search/', verification_views.admin_search, name='search'),
     path('workers/verification/', verification_views.worker_verification_list, name='worker_verification_list'),
     path('workers/verify/<int:worker_id>/', verification_views.review_worker, name='verify_worker'),

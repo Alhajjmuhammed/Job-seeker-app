@@ -21,56 +21,6 @@ from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
 
 
 @staff_member_required
-def dashboard(request):
-    """Admin dashboard with statistics"""
-    
-    # User statistics
-    total_users = User.objects.count()
-    total_workers = User.objects.filter(user_type='worker').count()
-    total_clients = User.objects.filter(user_type='client').count()
-    
-    # Worker statistics
-    verified_workers = WorkerProfile.objects.filter(verification_status='verified').count()
-    pending_verification = WorkerProfile.objects.filter(verification_status='pending').count()
-    available_workers = WorkerProfile.objects.filter(availability='available').count()
-    
-    # Job statistics (ServiceRequest = new system)
-    total_jobs = ServiceRequest.objects.count()
-    open_jobs = ServiceRequest.objects.filter(status='pending').count()
-    active_jobs = ServiceRequest.objects.filter(status__in=['pending', 'assigned', 'in_progress']).count()
-    completed_jobs = ServiceRequest.objects.filter(status='completed').count()
-    total_applications = JobApplication.objects.count()
-
-    # Recent activities
-    recent_workers = WorkerProfile.objects.order_by('-created_at')[:5]
-    recent_jobs = ServiceRequest.objects.select_related('category', 'client', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
-    pending_documents = WorkerDocument.objects.filter(verification_status='pending')[:10]
-
-    stats = {
-        'total_users': total_users,
-        'total_workers': total_workers,
-        'total_clients': total_clients,
-        'verified_workers': verified_workers,
-        'pending_verification': pending_verification,
-        'available_workers': available_workers,
-        'total_jobs': total_jobs,
-        'open_jobs': open_jobs,
-        'active_jobs': active_jobs,
-        'completed_jobs': completed_jobs,
-        'total_applications': total_applications,
-    }
-
-    context = {
-        'stats': stats,
-        'recent_workers': recent_workers,
-        'recent_jobs': recent_jobs,
-        'pending_documents': pending_documents,
-    }
-
-    return render(request, 'admin_panel/dashboard.html', context)
-
-
-@staff_member_required
 def category_list(request):
     """Manage categories - View, Add, Edit, Delete"""
     

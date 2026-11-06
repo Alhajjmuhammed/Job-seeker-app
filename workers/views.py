@@ -16,13 +16,45 @@ def worker_dashboard(request):
         return redirect('home')
     
     profile, created = WorkerProfile.objects.get_or_create(user=request.user)
-    
+
+    # One home page for workers: jobs waiting for an answer, the job they are
+    # on, earnings, and what is missing before they can be verified. This was
+    # split across "Dashboard" and "SR Dashboard".
+    from datetime import timedelta
+    from django.db.models import Sum
+    from django.utils import timezone
+    from jobs.service_request_models import ServiceRequestAssignment, TimeTracking
+
+    mine = ServiceRequestAssignment.objects.filter(worker=profile).select_related('service_request', 'service_request__category')
+    waiting = list(mine.filter(status='pending').order_by('-assigned_at')[:5])
+    current = mine.filter(status__in=['accepted', 'in_progress']).order_by('-assigned_at').first()
+    clocked_in = bool(current) and TimeTracking.objects.filter(
+        service_request=current.service_request, worker=profile, clock_out__isnull=True).exists()
+    done = mine.filter(status='completed')
+    week = done.filter(work_completed_at__gte=timezone.now() - timedelta(days=7))
+
+    docs = list(profile.documents.all())
+    id_docs = [d for d in docs if d.document_type == 'id']
+    checklist = [
+        ('photo', 'Add a profile photo', bool(profile.profile_image)),
+        ('skills', 'Choose your skills', profile.categories.exists()),
+        ('id', 'Upload your ID', bool(id_docs)),
+        ('location', 'Save your location', profile.latitude is not None),
+        ('bio', 'Write a short introduction', bool(profile.bio)),
+    ]
+
     context = {
         'profile': profile,
-        'recent_documents': profile.documents.all()[:5],
-        'experiences': profile.experiences.all()[:3],
-        'custom_categories': WorkerCustomCategory.objects.filter(worker=profile),
-        'custom_skills': WorkerCustomSkill.objects.filter(worker=profile),
+        'waiting': waiting,
+        'waiting_count': mine.filter(status='pending').count(),
+        'current': current,
+        'clocked_in': clocked_in,
+        'earned_total': done.aggregate(t=Sum('worker_payment'))['t'] or 0,
+        'earned_week': week.aggregate(t=Sum('worker_payment'))['t'] or 0,
+        'jobs_done': done.count(),
+        'id_rejected': next((d for d in id_docs if d.verification_status == 'rejected'), None),
+        'checklist': checklist,
+        'checklist_left': sum(1 for _, _, ok in checklist if not ok),
     }
     return render(request, 'workers/dashboard.html', context)
 

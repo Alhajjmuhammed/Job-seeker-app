@@ -4,6 +4,7 @@ Clients can use web browser to request services and view history
 """
 
 from decimal import Decimal
+from urllib.parse import quote
 
 from clients.booking_validation import (
     clean_workers_needed, check_text_lengths, check_dates)
@@ -23,47 +24,11 @@ from django.utils import timezone
 
 @login_required
 def client_web_dashboard(request):
-    """Client web dashboard - overview of all service requests"""
+    """Folded into the client home page - one dashboard, not two."""
     if request.user.user_type != 'client':
         messages.error(request, 'Only clients can access this page.')
         return redirect('home')
-    
-    # Get statistics
-    total_requests = ServiceRequest.objects.filter(client=request.user).count()
-    pending = ServiceRequest.objects.filter(client=request.user, status='pending').count()
-    in_progress = ServiceRequest.objects.filter(
-        client=request.user, 
-        status__in=['assigned', 'in_progress']
-    ).count()
-    completed = ServiceRequest.objects.filter(client=request.user, status='completed').count()
-    
-    # Total spent. total_price is set at creation time and is what the new
-    # multi-worker assignment flow actually bills; total_amount is a legacy
-    # hourly-billing field only populated by the old single-worker
-    # mark_completed_by_worker() path, so summing it here always reads 0.
-    total_spent = ServiceRequest.objects.filter(
-        client=request.user,
-        status='completed'
-    ).aggregate(total=Sum('total_price'))['total'] or 0
-
-    # Recent requests
-    recent_requests = ServiceRequest.objects.filter(
-        client=request.user
-    ).select_related(
-        'category', 'assigned_worker', 'assigned_worker__user'
-    ).prefetch_related('assignments__worker__user').order_by('-created_at')[:5]
-    
-    context = {
-        'total_requests': total_requests,
-        'pending': pending,
-        'in_progress': in_progress,
-        'completed': completed,
-        'total_spent': total_spent,
-        'recent_requests': recent_requests,
-        'active_menu': 'dashboard'
-    }
-    
-    return render(request, 'service_requests/client/dashboard.html', context)
+    return redirect('clients:dashboard')
 
 
 @login_required
@@ -407,6 +372,10 @@ def client_web_my_requests(request):
         'from_date': from_date,
         'to_date': to_date,
         'search_query': search_query,
+        # the non-status filters, kept on the status tabs and page links
+        'filter_query': ''.join(f'&{key}={quote(value)}' for key, value in (
+            ('search', search_query), ('category', category_filter or ''),
+            ('from_date', from_date or ''), ('to_date', to_date or '')) if value),
         'total_count': total_count,
         'pending_count': pending_count,
         'assigned_count': assigned_count,

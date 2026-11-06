@@ -887,3 +887,51 @@ class ClientPagesTests(FlowBase):
         self.assertNotIn('{#', page)
         self.assertIn('Payment verified', page)
         self.assertIn('TSh 30,000', page)
+
+
+class DashboardTests(FlowBase):
+    def test_admin_dashboard_counts_real_work_and_has_no_made_up_numbers(self):
+        sr, _ = self.book()
+        sr.payment_screenshot = SimpleUploadedFile('p.png', PNG, 'image/png')
+        sr.save()
+        r = self.admin_c.get('/dashboard/')
+        self.assertEqual(r.status_code, 200)
+        page = r.content.decode()
+        for fake in ('+5.8%', '+6.0%', '-2.1%', '15 Oct', '>Send<'):
+            self.assertNotIn(fake, page)
+        counts = {a['label']: a['count'] for a in r.context['attention']}
+        self.assertEqual(counts['Payment proofs to check'], 1)
+        self.assertEqual(counts['Agents to approve'], 0)
+        self.assertEqual(len(r.context['days']), 14)
+
+    def test_one_client_home_and_the_old_one_redirects(self):
+        sr, _ = self.book()
+        page = self.client_c.get('/clients/dashboard/').content.decode()
+        self.assertIn('Leaky tap', page)
+        self.assertIn('upload your payment proof', page)
+        self.assertRedirects(self.client_c.get('/services/client/dashboard/'), '/clients/dashboard/',
+                             fetch_redirect_response=False)
+        self.assertNotIn('SR Dashboard', page)
+
+    def test_worker_home_shows_jobs_waiting_and_what_is_missing(self):
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        page = self.worker_c.get('/workers/dashboard/').content.decode()
+        self.assertIn('Leaky tap', page)
+        self.assertIn('Upload your ID', page)
+        self.assertRedirects(self.worker_c.get('/services/worker/dashboard/'), '/workers/dashboard/',
+                             fetch_redirect_response=False)
+        self.assertIn('header-notification-badge', page)
+
+    def test_my_bookings_keeps_search_when_switching_tabs(self):
+        self.book()
+        r = self.client_c.get('/services/client/my-requests/', {'search': 'Leaky', 'status': 'pending'})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('href="?status=completed&amp;search=Leaky"', r.content.decode())
+
+    def test_new_pages_speak_swahili(self):
+        c = Client()
+        c.cookies['django_language'] = 'sw'
+        page = c.get('/').content.decode()
+        self.assertIn('Pata fundi', page)
+        self.assertIn('Jiunge kama fundi', page)

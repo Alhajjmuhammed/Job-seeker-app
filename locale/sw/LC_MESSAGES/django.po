@@ -6,6 +6,7 @@ msgstr ""
 "Language: sw\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: templates/accounts/agent_register.html:6
 msgid "Agent Registration"
@@ -66,9 +67,11 @@ msgstr ""
 "Wakala ya kipekee kushiriki na wafanyakazi."
 
 #: templates/accounts/agent_register.html:95
-#: templates/accounts/client_register.html:98 templates/accounts/login.html:197
+#: templates/accounts/client_register.html:98
+#: templates/accounts/login.html:197
 #: templates/accounts/worker_register.html:98
-#: templates/admin_panel/user_detail.html:367 templates/agents/workers.html:171
+#: templates/admin_panel/user_detail.html:367
+#: templates/agents/workers.html:171
 msgid "Username"
 msgstr "Jina la Mtumiaji"
 
@@ -154,8 +157,9 @@ msgid "Submit Application"
 msgstr "Wasilisha Maombi"
 
 #: templates/accounts/change_password.html:14
-#: templates/accounts/change_password.html:65 templates/agents/profile.html:116
-#: templates/agents/profile.html:135 templates/clients/base_client.html:755
+#: templates/accounts/change_password.html:65
+#: templates/agents/profile.html:116 templates/agents/profile.html:135
+#: templates/clients/base_client.html:755
 #: templates/workers/base_worker.html:745
 #, fuzzy
 #| msgid "Confirm Password"
@@ -166,7 +170,8 @@ msgstr "Thibitisha Nywila"
 msgid "Update your account password"
 msgstr "Sasisha nenosiri la akaunti yako"
 
-#: templates/accounts/change_password.html:29 templates/agents/profile.html:146
+#: templates/accounts/change_password.html:29
+#: templates/agents/profile.html:146
 #, fuzzy
 #| msgid "Forgot Password?"
 msgid "Current Password"
@@ -258,7 +263,8 @@ msgstr "Usajili wa Mteja"
 #: templates/admin_panel/system_overview.html:453
 #: templates/admin_panel/user_detail.html:287
 #: templates/admin_panel/view_request_workers.html:40
-#: templates/clients/base_client.html:748 templates/emails/job_assigned.html:20
+#: templates/clients/base_client.html:748
+#: templates/emails/job_assigned.html:20
 #: templates/emails/job_completed.html:23
 #: templates/emails/payment_received.html:26
 #: templates/jobs/direct_hire_detail.html:31
@@ -272,7 +278,8 @@ msgstr "Mteja"
 #: templates/accounts/client_register.html:69
 msgid "Post jobs and hire verified skilled workers for any task or project."
 msgstr ""
-"Chapisha kazi na uajiri wafanyakazi walioidhinishwa kwa kazi yoyote au mradi."
+"Chapisha kazi na uajiri wafanyakazi walioidhinishwa kwa kazi yoyote au "
+"mradi."
 
 #: templates/accounts/client_register.html:71
 #: templates/accounts/register_choice.html:160
@@ -296,7 +303,8 @@ msgstr "Jaza maelezo yako ili kuanza kama Mteja"
 msgid "Create Client Account"
 msgstr "Fungua Akaunti ya Mteja"
 
-#: templates/accounts/forgot_password.html:14 templates/accounts/login.html:222
+#: templates/accounts/forgot_password.html:14
+#: templates/accounts/login.html:222
 msgid "Forgot Password?"
 msgstr "Umesahau nenosiri?"
 
@@ -816,10 +824,9 @@ msgstr "Funga"
 
 #: templates/admin/document_verification_dashboard.html:190
 #: templates/admin_panel/document_verification_list.html:205
-#, fuzzy
 #| msgid "Approved"
 msgid "Approve"
-msgstr "Imeidhinishwa"
+msgstr "Idhinisha"
 
 #: templates/admin/document_verification_dashboard.html:193
 #: templates/admin_panel/document_verification_list.html:209
@@ -892,7 +899,7 @@ msgstr "Inasubiri"
 #: templates/admin_panel/worker_verification_list.html:231
 #: templates/agents/profile.html:98 templates/agents/workers.html:34
 msgid "Phone"
-msgstr ""
+msgstr "Simu"
 
 #: templates/admin_panel/agent_detail.html:37
 #: templates/admin_panel/agent_list.html:52 templates/agents/profile.html:36
@@ -910,10 +917,9 @@ msgstr ""
 #: templates/admin_panel/worker_ratings.html:14
 #: templates/agents/profile.html:32 templates/clients/request_service.html:299
 #: templates/service_requests/client/request_service.html:329
-#, fuzzy
 #| msgid "Worker"
 msgid "Workers"
-msgstr "Mfanyakazi"
+msgstr "Mafundi"
 
 #: templates/admin_panel/agent_detail.html:41
 #: templates/admin_panel/agent_list.html:54
@@ -1047,13 +1053,14 @@ msgstr "Mgawo"
 #: templates/service_requests/client/dashboard.html:222
 #: templates/service_requests/client/my_requests.html:141
 #: templates/service_requests/worker/assignments.html:391
-#: templates/workers/dashboard.html:208 templates/workers/profile_edit.html:694
+#: templates/workers/dashboard.html:208
+#: templates/workers/profile_edit.html:694
 #: templates/workers/profile_edit.html:742
 msgid "Pending"
 msgstr "Inasubiri"
 
-#: templates/admin_panel/agent_detail.html:149 templates/agents/workers.html:74
-#: templates/clients/request_service.html:533
+#: templates/admin_panel/agent_detail.html:149
+#: templates/agents/workers.html:74 templates/clients/request_service.html:533
 #: templates/clients/service_request_detail.html:138
 #: templates/service_requests/client/request_service.html:581
 #: templates/service_requests/client/upload_screenshot.html:144
@@ -1400,7 +1407,8 @@ msgstr "Msimamizi"
 
 #: templates/admin_panel/base_admin.html:759
 #: templates/admin_panel/worker_verification_list.html:423
-#: templates/clients/dashboard.html:101 templates/workers/profile_edit.html:455
+#: templates/clients/dashboard.html:101
+#: templates/workers/profile_edit.html:455
 msgid "Profile"
 msgstr "Wasifu"
 
@@ -1579,8 +1587,8 @@ msgstr ""
 
 #: templates/admin_panel/category_list.html:204
 #: templates/admin_panel/edit_user.html:251
-#: templates/admin_panel/manage_users.html:804 templates/agents/profile.html:71
-#: templates/clients/profile_edit.html:259
+#: templates/admin_panel/manage_users.html:804
+#: templates/agents/profile.html:71 templates/clients/profile_edit.html:259
 #: templates/workers/profile_edit.html:773
 msgid "Save Changes"
 msgstr "Hifadhi Mabadiliko"
@@ -2194,7 +2202,8 @@ msgid "New Password (optional)"
 msgstr "Nenosiri"
 
 #: templates/admin_panel/edit_user.html:237
-msgid "Leave blank to keep current password. Minimum 8 characters if changing."
+msgid ""
+"Leave blank to keep current password. Minimum 8 characters if changing."
 msgstr ""
 
 #: templates/admin_panel/job_management.html:310
@@ -2244,10 +2253,9 @@ msgstr "Hali Zote"
 #: templates/service_requests/client/dashboard.html:224
 #: templates/service_requests/client/my_requests.html:142
 #: templates/service_requests/worker/assignments.html:509
-#, fuzzy
 #| msgid "Assignments"
 msgid "Assigned"
-msgstr "Mgawo"
+msgstr "Amepangwa"
 
 #: templates/admin_panel/job_management.html:345
 #: templates/admin_panel/job_management.html:420
@@ -2392,10 +2400,9 @@ msgstr "Kwa Wafanyakazi"
 
 #: templates/admin_panel/manage_users.html:434
 #: templates/admin_panel/manage_users.html:457
-#, fuzzy
 #| msgid "Client"
 msgid "Clients"
-msgstr "Mteja"
+msgstr "Wateja"
 
 #: templates/admin_panel/manage_users.html:442
 #: templates/admin_panel/manage_users.html:466
@@ -2424,7 +2431,8 @@ msgstr "Aina za Huduma"
 msgid "Admins"
 msgstr "Msimamizi"
 
-#: templates/admin_panel/manage_users.html:464 templates/jobs/job_list.html:581
+#: templates/admin_panel/manage_users.html:464
+#: templates/jobs/job_list.html:581
 #, fuzzy
 #| msgid "Status"
 msgid "All Status"
@@ -2445,17 +2453,16 @@ msgstr "Jina la Mtumiaji"
 msgid "Type"
 msgstr "Aina"
 
-#: templates/admin_panel/manage_users.html:493 templates/agents/workers.html:39
-#, fuzzy
+#: templates/admin_panel/manage_users.html:493
+#: templates/agents/workers.html:39
 #| msgid "Join As"
 msgid "Joined"
-msgstr "Jiunge Kama"
+msgstr "Alijiunga"
 
 #: templates/admin_panel/manage_users.html:494
-#, fuzzy
 #| msgid "No activity"
 msgid "Activity"
-msgstr "Hakuna shughuli"
+msgstr "Shughuli"
 
 #: templates/admin_panel/manage_users.html:495
 #: templates/admin_panel/worker_ratings.html:213
@@ -2464,7 +2471,8 @@ msgstr "Hakuna shughuli"
 #: templates/jobs/accept_application.html:31
 #: templates/jobs/direct_hire_complete.html:34
 #: templates/service_requests/client/history.html:159
-#: templates/workers/dashboard.html:76 templates/workers/public_profile.html:40
+#: templates/workers/dashboard.html:76
+#: templates/workers/public_profile.html:40
 msgid "Rating"
 msgstr "Ukadiriaji"
 
@@ -2789,10 +2797,9 @@ msgstr "Dharura"
 #: templates/jobs/job_detail.html:930 templates/jobs/job_list.html:651
 #: templates/service_requests/client/edit_request.html:109
 #: templates/service_requests/client/request_service.html:368
-#, fuzzy
 #| msgid "Agent"
 msgid "Urgent"
-msgstr "Wakala"
+msgstr "Haraka"
 
 #: templates/admin_panel/service_request_detail.html:98
 #: templates/service_requests/client/cancel_confirm.html:40
@@ -2831,10 +2838,9 @@ msgstr "Jumla ya Mapato"
 #: templates/workers/profile_edit.html:553
 #: templates/workers/profile_setup.html:93
 #: templates/workers/public_profile.html:58
-#, fuzzy
 #| msgid "Notifications"
 msgid "Location"
-msgstr "Arifa"
+msgstr "Mahali"
 
 #: templates/admin_panel/service_request_detail.html:128
 #: templates/service_requests/client/edit_request.html:139
@@ -3641,7 +3647,7 @@ msgstr "Rudi Nyumbani"
 
 #: templates/admin_panel/verify_worker.html:40
 msgid "years"
-msgstr ""
+msgstr "miaka"
 
 #: templates/admin_panel/verify_worker.html:52
 msgid "Identity document"
@@ -3809,10 +3815,9 @@ msgid "View Ratings"
 msgstr "Ukadiriaji"
 
 #: templates/admin_panel/worker_verification_list.html:164
-#, fuzzy
 #| msgid "Verified"
 msgid "Verify"
-msgstr "Imethibitishwa"
+msgstr "Thibitisha"
 
 #: templates/admin_panel/worker_verification_list.html:203
 #: templates/workers/cv_template.html:204 templates/workers/cv_view.html:82
@@ -3952,8 +3957,8 @@ msgstr "Nambari ya Wakala"
 
 #: templates/agents/dashboard.html:24
 msgid ""
-"Share this code with workers during their registration so they are linked to "
-"you automatically."
+"Share this code with workers during their registration so they are linked to"
+" you automatically."
 msgstr ""
 
 #: templates/agents/dashboard.html:77
@@ -4063,7 +4068,8 @@ msgstr "Ongeza kwenye Timu"
 
 #: templates/agents/search_workers.html:93
 msgid ""
-"Workers may already be linked to another agent, or no matching worker exists."
+"Workers may already be linked to another agent, or no matching worker "
+"exists."
 msgstr ""
 
 #: templates/agents/workers.html:10
@@ -4225,7 +4231,7 @@ msgstr "Arifa"
 
 #: templates/clients/base_client.html:726
 msgid "Search services..."
-msgstr ""
+msgstr "Tafuta huduma..."
 
 #: templates/clients/browse_services.html:63
 #, fuzzy
@@ -4343,10 +4349,9 @@ msgstr "Ombi Jipya"
 
 #: templates/clients/dashboard.html:190
 #: templates/service_requests/worker/assignments.html:503
-#, fuzzy
 #| msgid "Total Services"
 msgid "Service"
-msgstr "Jumla ya Huduma"
+msgstr "Huduma"
 
 #: templates/clients/dashboard.html:192 templates/jobs/job_detail.html:997
 #: templates/service_requests/client/request_detail.html:255
@@ -4610,7 +4615,7 @@ msgstr ""
 #: templates/clients/request_service.html:267
 #: templates/service_requests/client/request_service.html:297
 msgid "Custom"
-msgstr ""
+msgstr "Chagua tarehe"
 
 #: templates/clients/request_service.html:278
 #: templates/service_requests/client/request_service.html:308
@@ -5273,7 +5278,7 @@ msgstr ""
 #: templates/invoices/invoice_template.html:340
 #: templates/service_requests/client/history.html:237
 msgid "Rate"
-msgstr ""
+msgstr "Tathmini"
 
 #: templates/emails/invoice.html:59
 #: templates/invoices/invoice_template.html:364
@@ -5307,7 +5312,8 @@ msgid "View Invoice"
 msgstr "Angalia"
 
 #: templates/emails/invoice.html:96 templates/emails/job_application.html:50
-#: templates/emails/job_assigned.html:52 templates/emails/job_completed.html:60
+#: templates/emails/job_assigned.html:52
+#: templates/emails/job_completed.html:60
 #: templates/emails/job_reminder.html:22
 #: templates/emails/password_reset.html:27
 #: templates/emails/payment_received.html:51
@@ -5351,7 +5357,8 @@ msgid ""
 msgstr ""
 
 #: templates/emails/job_application.html:51
-#: templates/emails/job_assigned.html:53 templates/emails/job_completed.html:61
+#: templates/emails/job_assigned.html:53
+#: templates/emails/job_completed.html:61
 #: templates/emails/job_reminder.html:23
 #: templates/emails/password_reset.html:28
 #: templates/emails/payment_received.html:52
@@ -5386,7 +5393,8 @@ msgstr ""
 msgid "Contact the client to confirm scheduling"
 msgstr ""
 
-#: templates/emails/job_assigned.html:47 templates/emails/job_completed.html:54
+#: templates/emails/job_assigned.html:47
+#: templates/emails/job_completed.html:54
 #, fuzzy
 #| msgid "View Details"
 msgid "View Job Details"
@@ -5490,7 +5498,8 @@ msgstr "Usalama"
 
 #: templates/emails/password_reset.html:23
 msgid ""
-"If the button above doesn't work, copy and paste this link into your browser:"
+"If the button above doesn't work, copy and paste this link into your "
+"browser:"
 msgstr ""
 
 #: templates/emails/payment_received.html:7
@@ -5559,8 +5568,8 @@ msgstr ""
 
 #: templates/emails/welcome.html:11
 msgid ""
-"Whether you're looking to hire skilled workers or offer your services, we're "
-"here to help you succeed."
+"Whether you're looking to hire skilled workers or offer your services, we're"
+" here to help you succeed."
 msgstr ""
 
 #: templates/emails/welcome.html:14 templates/home.html:15
@@ -5677,8 +5686,8 @@ msgstr "Omba Huduma"
 
 #: templates/home.html:12
 msgid ""
-"Get expert help with plumbing, electrical work, cleaning, and more. Our team "
-"assigns qualified workers to handle your requests."
+"Get expert help with plumbing, electrical work, cleaning, and more. Our team"
+" assigns qualified workers to handle your requests."
 msgstr ""
 
 #: templates/home.html:21
@@ -5936,8 +5945,8 @@ msgstr "Jiandikishe na Jenga Wasifu Wako"
 
 #: templates/http_landing.html:518
 msgid ""
-"Workers upload their national ID and skills. Clients set up company details. "
-"Takes just a few minutes to get started."
+"Workers upload their national ID and skills. Clients set up company details."
+" Takes just a few minutes to get started."
 msgstr ""
 "Wafanyakazi wapakua kitambulisho cha taifa na ujuzi. Wateja wanasanidi "
 "maelezo ya kampuni. Inachukua dakika chache kuanza."
@@ -5996,8 +6005,8 @@ msgstr "Ukaguzi Baada ya Kukamilika"
 
 #: templates/http_landing.html:543
 msgid ""
-"Once the job is done, clients rate the worker. Reviews help surface the best "
-"professionals on the platform."
+"Once the job is done, clients rate the worker. Reviews help surface the best"
+" professionals on the platform."
 msgstr ""
 "Kazi ikisha, wateja wanakadiri mfanyakazi. Ukaguzi husaidia kuonyesha "
 "wataalamu bora kwenye jukwaa."
@@ -6017,12 +6026,12 @@ msgstr "Nguvu Kazi Inayokua"
 #: templates/http_landing.html:559
 msgid ""
 "Worker Connect is Tanzania's first dedicated platform bridging the gap "
-"between skilled professionals and the clients who need them — built to solve "
-"a real problem with a real digital solution."
+"between skilled professionals and the clients who need them — built to solve"
+" a real problem with a real digital solution."
 msgstr ""
-"Worker Connect ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu "
-"wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na "
-"suluhisho la kidijitali."
+"Worker Connect ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu"
+" wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na"
+" suluhisho la kidijitali."
 
 #: templates/http_landing.html:564
 msgid "Fully Verified Network"
@@ -6066,7 +6075,8 @@ msgstr "Tayari kwa Simu"
 #: templates/http_landing.html:586
 msgid ""
 "Manage jobs, messages and requests from any device, anywhere in Tanzania."
-msgstr "Simamia kazi, ujumbe na maombi kutoka kifaa chochote, popote Tanzania."
+msgstr ""
+"Simamia kazi, ujumbe na maombi kutoka kifaa chochote, popote Tanzania."
 
 #: templates/http_landing.html:591
 msgid "Join the Platform"
@@ -6132,8 +6142,8 @@ msgid ""
 "Register, upload your documents, get verified by admin and start receiving "
 "job assignments from real clients."
 msgstr ""
-"Jiandikishe, pakia hati zako, thibitishwa na msimamizi na uanze kupokea kazi "
-"kutoka kwa wateja wa kweli."
+"Jiandikishe, pakia hati zako, thibitishwa na msimamizi na uanze kupokea kazi"
+" kutoka kwa wateja wa kweli."
 
 #: templates/http_landing.html:704
 msgid ""
@@ -6230,8 +6240,8 @@ msgstr "Na Worker Connect"
 
 #: templates/http_landing.html:773
 msgid ""
-"Join our network of trusted partners. Get access to a verified workforce, co-"
-"marketing opportunities, and a dedicated partner dashboard."
+"Join our network of trusted partners. Get access to a verified workforce, "
+"co-marketing opportunities, and a dedicated partner dashboard."
 msgstr ""
 "Jiunge na mtandao wetu wa washirika wanaoaminika. Pata ufikiaji wa nguvu "
 "kazi iliyothibitishwa, fursa za masoko ya pamoja, na dashibodi ya washirika "
@@ -6252,7 +6262,7 @@ msgstr "Ankara"
 #: templates/invoices/invoice_template.html:303
 #: templates/jobs/message_detail.html:19
 msgid "From"
-msgstr ""
+msgstr "Kuanzia"
 
 #: templates/invoices/invoice_template.html:308
 msgid "Bill To"
@@ -6733,7 +6743,8 @@ msgstr ""
 msgid "Complete your profile to be considered for jobs."
 msgstr ""
 
-#: templates/jobs/job_detail.html:1108 templates/workers/profile_setup.html:181
+#: templates/jobs/job_detail.html:1108
+#: templates/workers/profile_setup.html:181
 #, fuzzy
 #| msgid "Completed Jobs"
 msgid "Complete Profile"
@@ -6965,8 +6976,8 @@ msgstr "Maombi Yangu"
 
 #: templates/jobs/my_applications.html:591
 msgid ""
-"You haven't applied to any jobs yet. Start browsing available jobs and apply "
-"to ones that match your skills!"
+"You haven't applied to any jobs yet. Start browsing available jobs and apply"
+" to ones that match your skills!"
 msgstr ""
 
 #: templates/jobs/my_applications.html:593
@@ -7163,8 +7174,8 @@ msgstr ""
 
 #: templates/privacy.html:54
 msgid ""
-"We collect location data for job matching, service delivery, and clock-in/"
-"clock-out tracking features."
+"We collect location data for job matching, service delivery, and clock-"
+"in/clock-out tracking features."
 msgstr ""
 
 #: templates/privacy.html:57
@@ -7711,7 +7722,7 @@ msgstr ""
 
 #: templates/service_requests/client/cancel_confirm.html:123
 msgid "No longer needed"
-msgstr ""
+msgstr "Sihitaji tena"
 
 #: templates/service_requests/client/cancel_confirm.html:124
 msgid "Found alternative solution"
@@ -7745,7 +7756,7 @@ msgstr ""
 
 #: templates/service_requests/client/cancel_confirm.html:131
 msgid "Other"
-msgstr ""
+msgstr "Nyingine"
 
 #: templates/service_requests/client/cancel_confirm.html:139
 msgid ""
@@ -8369,8 +8380,8 @@ msgstr ""
 
 #: templates/service_requests/client/request_detail.html:661
 msgid ""
-"If you have questions or concerns about this service request, please contact "
-"our support team."
+"If you have questions or concerns about this service request, please contact"
+" our support team."
 msgstr ""
 
 #: templates/service_requests/client/request_service.html:83
@@ -8924,9 +8935,9 @@ msgstr "Ukaguzi Baada ya Kukamilika"
 
 #: templates/service_requests/worker/complete.html:134
 msgid ""
-"Make sure you have clocked out from any active work session. You cannot mark "
-"a service complete while clocked in. Also ensure all work is finished - you "
-"cannot undo this action."
+"Make sure you have clocked out from any active work session. You cannot mark"
+" a service complete while clocked in. Also ensure all work is finished - you"
+" cannot undo this action."
 msgstr ""
 
 #: templates/service_requests/worker/dashboard.html:4
@@ -9176,8 +9187,8 @@ msgstr "Jumla ya Huduma"
 
 #: templates/terms.html:63
 msgid ""
-"Worker Connect provides a platform connecting clients with verified workers. "
-"Our services include:"
+"Worker Connect provides a platform connecting clients with verified workers."
+" Our services include:"
 msgstr ""
 
 #: templates/terms.html:66
@@ -9297,7 +9308,8 @@ msgid "Verification & Safety"
 msgstr "Arifa"
 
 #: templates/terms.html:116
-msgid "Worker Connect conducts identity verification for all workers. However:"
+msgid ""
+"Worker Connect conducts identity verification for all workers. However:"
 msgstr ""
 
 #: templates/terms.html:119
@@ -9423,8 +9435,8 @@ msgstr ""
 
 #: templates/terms.html:200
 msgid ""
-"By using Worker Connect, you acknowledge that you have read, understood, and "
-"agree to be bound by these Terms & Conditions."
+"By using Worker Connect, you acknowledge that you have read, understood, and"
+" agree to be bound by these Terms & Conditions."
 msgstr ""
 
 #: templates/workers/analytics.html:95
@@ -9950,9 +9962,9 @@ msgstr ""
 #: templates/workers/experience_list.html:417
 #, fuzzy
 #| msgid ""
-#| "Build your professional profile and start getting hired by verified "
-#| "clients."
-msgid "Start building your professional profile by adding your work experience"
+#| "Build your professional profile and start getting hired by verified clients."
+msgid ""
+"Start building your professional profile by adding your work experience"
 msgstr ""
 "Jenga wasifu wako wa kitaaluma na uanze kuajiriwa na wateja walioidhinishwa."
 
@@ -10206,3 +10218,637 @@ msgstr ""
 #: templates/workers/public_profile.html:110
 msgid "No work experience listed yet."
 msgstr ""
+
+msgid "Verified workers in Tanzania"
+msgstr "Mafundi waliothibitishwa Tanzania"
+
+msgid "Verified workers,"
+msgstr "Mafundi waliothibitishwa,"
+
+msgid "when you need them"
+msgstr "unapowahitaji"
+
+msgid ""
+"Book carpenters, masons, electricians, cleaners and more. Every worker is "
+"ID-checked by our team."
+msgstr ""
+"Weka miadi ya maseremala, waashi, mafundi umeme, wasafishaji na zaidi. Kila "
+"fundi amekaguliwa kitambulisho na timu yetu."
+
+msgid ""
+"Book ID-verified carpenters, masons, electricians, cleaners and more in "
+"Tanzania."
+msgstr ""
+"Weka miadi ya maseremala, waashi, mafundi umeme, wasafishaji na wengine "
+"waliothibitishwa Tanzania."
+
+msgid ""
+"Book ID-verified carpenters, masons, electricians, cleaners and more in "
+"Tanzania. Pay with Mixx by YAS."
+msgstr ""
+"Weka miadi ya maseremala, waashi, mafundi umeme, wasafishaji na wengine "
+"waliothibitishwa Tanzania. Lipa kwa Mixx by YAS."
+
+msgid "Book a worker"
+msgstr "Pata fundi"
+
+msgid "Join as a worker"
+msgstr "Jiunge kama fundi"
+
+msgid "verified workers"
+msgstr "mafundi waliothibitishwa"
+
+msgid "kinds of work"
+msgstr "aina za kazi"
+
+msgid "jobs done"
+msgstr "kazi zilizokamilika"
+
+msgid "Popular services"
+msgstr "Huduma maarufu"
+
+msgid "Pick a service to get started."
+msgstr "Chagua huduma ili kuanza."
+
+msgid "verified"
+msgstr "wamethibitishwa"
+
+msgid "Three steps from request to finished job."
+msgstr "Hatua tatu kutoka ombi hadi kazi kukamilika."
+
+msgid "Book"
+msgstr "Weka miadi"
+
+msgid "Choose the service, how many workers, where and when."
+msgstr "Chagua huduma, idadi ya mafundi, mahali na wakati."
+
+msgid "We send a verified worker"
+msgstr "Tunakutumia fundi aliyethibitishwa"
+
+msgid "Pick one yourself, let us choose, or get the nearest."
+msgstr "Mchague mwenyewe, tuachie tuchague, au upate aliye karibu zaidi."
+
+msgid "Track and rate"
+msgstr "Fuatilia na toa tathmini"
+
+msgid "Follow the work in the app and rate it when it's done."
+msgstr "Fuatilia kazi kwenye programu na toa tathmini ikikamilika."
+
+msgid "ID-verified"
+msgstr "Wamethibitishwa kitambulisho"
+
+msgid "Our team checks every worker's ID before they can take a job."
+msgstr "Timu yetu hukagua kitambulisho cha kila fundi kabla ya kupewa kazi."
+
+msgid "Pay with Mixx by YAS"
+msgstr "Lipa kwa Mixx by YAS"
+
+msgid "Pay by mobile money and upload your confirmation."
+msgstr "Lipa kwa pesa ya simu kisha pakia uthibitisho wako."
+
+msgid "Honest reviews"
+msgstr "Tathmini za kweli"
+
+msgid "Only clients who hired a worker can rate them."
+msgstr "Ni wateja waliomtumia fundi pekee wanaoweza kumtathmini."
+
+msgid "Get the app"
+msgstr "Pakua programu"
+
+msgid "Book, track and get notified on your phone. Android now, iPhone soon."
+msgstr ""
+"Weka miadi, fuatilia na upate taarifa kwenye simu yako. Android sasa, iPhone"
+" hivi karibuni."
+
+msgid "Our partners"
+msgstr "Washirika wetu"
+
+msgid "What do you need?"
+msgstr "Unahitaji nini?"
+
+msgid "Choose a service"
+msgstr "Chagua huduma"
+
+msgid "Fewer"
+msgstr "Punguza"
+
+msgid "More"
+msgstr "Ongeza"
+
+msgid "Job title"
+msgstr "Kichwa cha kazi"
+
+msgid "e.g. Fix kitchen cupboard"
+msgstr "mf. Tengeneza kabati la jikoni"
+
+msgid "What should the worker know?"
+msgstr "Fundi anapaswa kujua nini?"
+
+msgid "Where and when?"
+msgstr "Wapi na lini?"
+
+msgid "Street, area or landmark"
+msgstr "Mtaa, eneo au alama ya karibu"
+
+msgid "e.g. Zanzibar"
+msgstr "mf. Zanzibar"
+
+msgid "Time"
+msgstr "Saa"
+
+msgid "How long?"
+msgstr "Kwa muda gani?"
+
+msgid "One day"
+msgstr "Siku moja"
+
+msgid "1 month"
+msgstr "Mwezi 1"
+
+msgid "3 months"
+msgstr "Miezi 3"
+
+msgid "6 months"
+msgstr "Miezi 6"
+
+msgid "1 year"
+msgstr "Mwaka 1"
+
+msgid "To"
+msgstr "Hadi"
+
+msgid "How soon?"
+msgstr "Kwa haraka kiasi gani?"
+
+msgid "Today"
+msgstr "Leo"
+
+msgid "Who should do it?"
+msgstr "Nani aifanye?"
+
+msgid "Choose for me"
+msgstr "Nichagulie"
+
+msgid "Our team picks a verified worker."
+msgstr "Timu yetu itachagua fundi aliyethibitishwa."
+
+msgid "I'll pick a worker"
+msgstr "Nitachagua fundi mwenyewe"
+
+msgid "See profiles and ratings, then choose."
+msgstr "Angalia wasifu na tathmini, kisha chagua."
+
+msgid "Browse workers"
+msgstr "Tazama mafundi"
+
+msgid "Nearest worker"
+msgstr "Fundi aliye karibu zaidi"
+
+msgid "We send the closest available worker."
+msgstr "Tunakutumia fundi aliye karibu zaidi anayepatikana."
+
+msgid "Use my location"
+msgstr "Tumia mahali nilipo"
+
+msgid "Add a note for the worker"
+msgstr "Ongeza ujumbe kwa fundi"
+
+msgid "e.g. call when you arrive"
+msgstr "mf. nipigie ukifika"
+
+msgid "Summary"
+msgstr "Muhtasari"
+
+msgid "Service fee"
+msgstr "Ada ya huduma"
+
+msgid "Choose a service to see the price."
+msgstr "Chagua huduma ili kuona bei."
+
+msgid "Pay and book"
+msgstr "Lipa na weka miadi"
+
+msgid "We'll notify you when your worker is confirmed."
+msgstr "Tutakujulisha fundi wako akithibitishwa."
+
+msgid "Cancel booking"
+msgstr "Ghairi miadi"
+
+msgid "Cancel this booking?"
+msgstr "Ghairi miadi hii?"
+
+msgid "Work has already started, so you may be charged for the time worked."
+msgstr "Kazi imeshaanza, hivyo unaweza kutozwa kwa muda uliofanyiwa kazi."
+
+msgid "Free to cancel. Your worker will be told."
+msgstr "Unaweza kughairi bila malipo. Fundi wako atajulishwa."
+
+msgid "Free to cancel."
+msgstr "Unaweza kughairi bila malipo."
+
+msgid "Why are you cancelling?"
+msgstr "Kwa nini unaghairi?"
+
+msgid "Choose a reason"
+msgstr "Chagua sababu"
+
+msgid "Add details (optional)"
+msgstr "Ongeza maelezo (si lazima)"
+
+msgid "I understand I may be charged for work already done."
+msgstr "Ninaelewa kuwa naweza kutozwa kwa kazi iliyokwisha fanyika."
+
+msgid "Keep booking"
+msgstr "Endelea na miadi"
+
+msgid "Found someone else"
+msgstr "Nimepata mtu mwingine"
+
+msgid "Timing changed"
+msgstr "Muda umebadilika"
+
+msgid "Too expensive"
+msgstr "Ni ghali mno"
+
+msgid "Concern about the worker"
+msgstr "Wasiwasi kuhusu fundi"
+
+msgid "Booking"
+msgstr "Miadi"
+
+msgid "Mark as finished"
+msgstr "Weka kama imekamilika"
+
+msgid "Mark this job as finished?"
+msgstr "Weka kazi hii kama imekamilika?"
+
+msgid "Rate the worker"
+msgstr "Mtathmini fundi"
+
+msgid "Replace payment proof"
+msgstr "Badilisha uthibitisho wa malipo"
+
+msgid "Upload payment proof"
+msgstr "Pakia uthibitisho wa malipo"
+
+msgid "Message worker"
+msgstr "Mtumie fundi ujumbe"
+
+msgid "Edit booking"
+msgstr "Hariri miadi"
+
+msgid "Progress"
+msgstr "Maendeleo"
+
+msgid "Booked"
+msgstr "Miadi imewekwa"
+
+msgid "Payment verified"
+msgstr "Malipo yamethibitishwa"
+
+msgid "Proof received, checking"
+msgstr "Uthibitisho umepokelewa, unakaguliwa"
+
+msgid "Waiting for your proof"
+msgstr "Tunasubiri uthibitisho wako"
+
+msgid "Work started"
+msgstr "Kazi imeanza"
+
+msgid "Finished"
+msgstr "Imekamilika"
+
+msgid "Need help?"
+msgstr "Unahitaji msaada?"
+
+msgid "Price per worker:"
+msgstr "Bei kwa kila fundi:"
+
+msgid "Service fee:"
+msgstr "Ada ya huduma:"
+
+msgid "Hi %(name)s"
+msgstr "Habari %(name)s"
+
+msgid "What do you need done today?"
+msgstr "Ungependa kufanyiwa nini leo?"
+
+msgid "how did it go? Rate your worker."
+msgstr "ilikwendaje? Mtathmini fundi wako."
+
+msgid "upload your payment proof so we can confirm your booking."
+msgstr "pakia uthibitisho wa malipo ili tuthibitishe miadi yako."
+
+msgid "Upload proof"
+msgstr "Pakia uthibitisho"
+
+msgid "waiting for a worker"
+msgstr "zinasubiri fundi"
+
+msgid "in progress"
+msgstr "zinaendelea"
+
+msgid "spent"
+msgstr "umetumia"
+
+msgid "Your bookings"
+msgstr "Miadi yako"
+
+msgid "See all"
+msgstr "Ona zote"
+
+msgid "Book again"
+msgstr "Weka miadi tena"
+
+msgid "All services"
+msgstr "Huduma zote"
+
+msgid "My bookings"
+msgstr "Miadi yangu"
+
+msgid "Waiting"
+msgstr "Zinasubiri"
+
+msgid "In progress"
+msgstr "Zinaendelea"
+
+msgid "Search your bookings"
+msgstr "Tafuta miadi yako"
+
+msgid "More filters"
+msgstr "Vichujio zaidi"
+
+msgid "Apply"
+msgstr "Tumia"
+
+msgid "No worker yet"
+msgstr "Bado hakuna fundi"
+
+msgid "No bookings match these filters."
+msgstr "Hakuna miadi inayolingana na vichujio hivi."
+
+msgid "Clear filters"
+msgstr "Ondoa vichujio"
+
+msgid "You have no bookings yet."
+msgstr "Bado huna miadi."
+
+msgid "BOOKINGS"
+msgstr "MIADI"
+
+msgid "History"
+msgstr "Historia"
+
+msgid "Upload your ID so we can verify you and send you jobs."
+msgstr "Pakia kitambulisho chako ili tukuthibitishe na kukutumia kazi."
+
+msgid "Upload ID"
+msgstr "Pakia kitambulisho"
+
+msgid ""
+"We're checking your ID. You'll get a notification when you're verified."
+msgstr "Tunakagua kitambulisho chako. Utapata taarifa ukithibitishwa."
+
+msgid "Your ID was not accepted:"
+msgstr "Kitambulisho chako hakikukubaliwa:"
+
+msgid "Upload again"
+msgstr "Pakia tena"
+
+msgid ""
+"Your account was not approved. Check your notifications for the reason, "
+"update your details and contact support."
+msgstr ""
+"Akaunti yako haikuidhinishwa. Angalia taarifa zako kwa sababu, sasisha "
+"taarifa zako kisha wasiliana na huduma kwa wateja."
+
+msgid "Answer"
+msgstr "Jibu"
+
+msgid "You're clocked in on"
+msgstr "Umeingia kazini kwenye"
+
+msgid "Your current job"
+msgstr "Kazi yako ya sasa"
+
+msgid "Clock out"
+msgstr "Toka kazini"
+
+msgid "Open job"
+msgstr "Fungua kazi"
+
+msgid "No jobs right now. We'll notify you when a client books you."
+msgstr "Hakuna kazi kwa sasa. Tutakujulisha mteja akikuchagua."
+
+msgid "rating"
+msgstr "tathmini"
+
+msgid "earned this week"
+msgstr "mapato wiki hii"
+
+msgid "earned in total"
+msgstr "mapato yote"
+
+msgid "Finish your profile"
+msgstr "Kamilisha wasifu wako"
+
+msgid "Edit profile"
+msgstr "Hariri wasifu"
+
+msgid "Complete profiles get more jobs."
+msgstr "Wasifu uliokamilika hupata kazi zaidi."
+
+msgid "Add a profile photo"
+msgstr "Weka picha ya wasifu"
+
+msgid "Choose your skills"
+msgstr "Chagua ujuzi wako"
+
+msgid "Upload your ID"
+msgstr "Pakia kitambulisho chako"
+
+msgid "Save your location"
+msgstr "Hifadhi mahali ulipo"
+
+msgid "Write a short introduction"
+msgstr "Andika utangulizi mfupi"
+
+msgid "Get jobs near you"
+msgstr "Pata kazi karibu nawe"
+
+msgid ""
+"Save your location so clients nearby can be matched with you automatically. "
+"Tap the button where you usually work."
+msgstr ""
+"Hifadhi mahali ulipo ili wateja walio karibu waweze kuunganishwa nawe moja "
+"kwa moja. Bonyeza kitufe ukiwa mahali unapofanyia kazi kwa kawaida."
+
+msgid "Save my location"
+msgstr "Hifadhi mahali nilipo"
+
+msgid "Location is not available in this browser. Please try from your phone."
+msgstr ""
+"Mahali hapapatikani kwenye kivinjari hiki. Tafadhali jaribu kwa simu yako."
+
+msgid "Getting your location..."
+msgstr "Inatafuta mahali ulipo..."
+
+msgid "Location saved. Clients near you can now be matched with you."
+msgstr ""
+"Mahali pamehifadhiwa. Wateja walio karibu sasa wanaweza kuunganishwa nawe."
+
+msgid "Could not save your location. Please try again."
+msgstr "Imeshindwa kuhifadhi mahali ulipo. Tafadhali jaribu tena."
+
+msgid "Please allow location access in your browser and try again."
+msgstr "Tafadhali ruhusu kivinjari kutumia mahali ulipo kisha jaribu tena."
+
+msgid "JOBS"
+msgstr "KAZI"
+
+msgid "Waiting for my answer"
+msgstr "Zinasubiri jibu langu"
+
+msgid "My jobs"
+msgstr "Kazi zangu"
+
+msgid "Earnings"
+msgstr "Mapato"
+
+msgid "Needs your attention"
+msgstr "Inahitaji hatua yako"
+
+msgid "All caught up"
+msgstr "Hakuna kinachosubiri"
+
+msgid "Workers to verify"
+msgstr "Mafundi wa kuthibitisha"
+
+msgid "Documents waiting"
+msgstr "Nyaraka zinazosubiri"
+
+msgid "Payment proofs to check"
+msgstr "Uthibitisho wa malipo wa kukagua"
+
+msgid "Paid, waiting for a worker"
+msgstr "Imelipwa, inasubiri fundi"
+
+msgid "Agents to approve"
+msgstr "Mawakala wa kuidhinisha"
+
+msgid "total"
+msgstr "jumla"
+
+msgid "clients"
+msgstr "wateja"
+
+msgid "bookings this month"
+msgstr "miadi mwezi huu"
+
+msgid "active"
+msgstr "zinazoendelea"
+
+msgid "jobs completed"
+msgstr "kazi zilizokamilika"
+
+msgid "paid"
+msgstr "imelipwa"
+
+msgid "Sign-ups, last %(n)s days"
+msgstr "Waliojisajili, siku %(n)s zilizopita"
+
+msgid "Daily sign-ups"
+msgstr "Usajili kwa siku"
+
+msgid "New workers"
+msgstr "Mafundi wapya"
+
+msgid "No workers yet."
+msgstr "Bado hakuna mafundi."
+
+msgid "Latest bookings"
+msgstr "Miadi ya hivi karibuni"
+
+msgid "No bookings yet."
+msgstr "Bado hakuna miadi."
+
+msgid "Review worker"
+msgstr "Kagua fundi"
+
+msgid "Approve ID & verify"
+msgstr "Idhinisha kitambulisho na thibitisha"
+
+msgid "Needs an ID document"
+msgstr "Kinahitajika kitambulisho"
+
+msgid "Reason (sent to the worker)"
+msgstr "Sababu (itatumwa kwa fundi)"
+
+msgid "Back to pending"
+msgstr "Rudisha kwenye zinazosubiri"
+
+msgid ""
+"No ID document uploaded yet - the worker can't be verified until they upload"
+" one."
+msgstr ""
+"Bado hakuna kitambulisho kilichopakiwa - fundi hawezi kuthibitishwa hadi "
+"apakie kimoja."
+
+msgid "GPS saved"
+msgstr "Mahali pamehifadhiwa"
+
+msgid "profile"
+msgstr "wasifu"
+
+msgid "workers waiting for review"
+msgstr "mafundi wanasubiri kukaguliwa"
+
+msgid "Open file"
+msgstr "Fungua faili"
+
+msgid "e.g. photo is blurry"
+msgstr "mf. picha haionekani vizuri"
+
+msgid "No documents uploaded yet."
+msgstr "Bado hakuna nyaraka zilizopakiwa."
+
+msgid "Any documents"
+msgstr "Nyaraka zozote"
+
+msgid "No documents yet"
+msgstr "Bado hakuna nyaraka"
+
+msgid "Name, phone, email or city"
+msgstr "Jina, simu, barua pepe au mji"
+
+msgid "No workers match these filters."
+msgstr "Hakuna mafundi wanaolingana na vichujio hivi."
+
+msgid "None"
+msgstr "Hakuna"
+
+msgid "waiting"
+msgstr "zinasubiri"
+
+msgid "Search people or bookings..."
+msgstr "Tafuta watu au miadi..."
+
+msgid "Name, phone, email, city, booking number or payment reference"
+msgstr "Jina, simu, barua pepe, mji, namba ya miadi au kumbukumbu ya malipo"
+
+msgid "results for"
+msgstr "matokeo ya"
+
+msgid "Nothing found. Try a phone number or part of a name."
+msgstr "Hakuna kilichopatikana. Jaribu namba ya simu au sehemu ya jina."
+
+msgid "Bookings"
+msgstr "Miadi"
+
+msgid "Agents"
+msgstr "Mawakala"
+
+msgid "%(n)s job waiting for your answer"
+msgid_plural "%(n)s jobs waiting for your answer"
+msgstr[0] "Kazi %(n)s inasubiri jibu lako"
+msgstr[1] "Kazi %(n)s zinasubiri jibu lako"

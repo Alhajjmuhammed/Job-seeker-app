@@ -645,7 +645,12 @@
             border-color: #334155 !important;
             color: #e2e8f0 !important;
         }
-    </style>
+    
+        /* brand colour for tab-style filters (Bootstrap's default is blue) */
+        .nav-pills .nav-link { color: #0f766e; }
+        .nav-pills .nav-link.active, .nav-pills .show > .nav-link { background-color: #14b8a6; color: #fff; }
+        .nav-pills .nav-link.active .badge { background-color: rgba(255,255,255,.25) !important; color: #fff !important; }
+</style>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -659,32 +664,26 @@
         
         <nav class="sidebar-nav">
             <a href="{% url 'clients:dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i> 
-                <span class="nav-text">{% trans "Dashboard" %}</span>
-            </a>
-            
-            <div class="sidebar-section-title section-title">{% trans "WORKERS" %}</div>
-            <a href="{% url 'clients:browse_services' %}" class="sidebar-nav-item {% if 'browse_services' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-search"></i>
-                <span class="nav-text">{% trans "Browse Services" %}</span>
-            </a>
-            
-            <div class="sidebar-section-title section-title">{% trans "SERVICE REQUESTS" %}</div>
-            <a href="{% url 'service_requests_web:client_dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_dashboard' and request.resolver_match.namespace == 'service_requests_web' %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i>
-                <span class="nav-text">{% trans "SR Dashboard" %}</span>
+                <i class="bi bi-house"></i>
+                <span class="nav-text">{% trans "Home" %}</span>
             </a>
             <a href="{% url 'service_requests_web:client_request_service' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_request_service' %}active{% endif %}">
                 <i class="bi bi-plus-circle"></i>
-                <span class="nav-text">{% trans "Request Service" %}</span>
+                <span class="nav-text">{% trans "Book a worker" %}</span>
             </a>
+
+            <div class="sidebar-section-title section-title">{% trans "BOOKINGS" %}</div>
             <a href="{% url 'service_requests_web:client_my_requests' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_my_requests' or request.resolver_match.url_name == 'client_request_detail' %}active{% endif %}">
                 <i class="bi bi-list-check"></i>
-                <span class="nav-text">{% trans "My Requests" %}</span>
+                <span class="nav-text">{% trans "My bookings" %}</span>
             </a>
             <a href="{% url 'service_requests_web:client_history' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'client_history' %}active{% endif %}">
                 <i class="bi bi-clock-history"></i>
-                <span class="nav-text">{% trans "Request History" %}</span>
+                <span class="nav-text">{% trans "History" %}</span>
+            </a>
+            <a href="{% url 'clients:browse_services' %}" class="sidebar-nav-item {% if 'browse_services' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-grid"></i>
+                <span class="nav-text">{% trans "All services" %}</span>
             </a>
             
             <div class="sidebar-section-title section-title">{% trans "COMMUNICATION" %}</div>

@@ -116,285 +116,100 @@
 </style>
 {% endblock %}
 
+{% block page_title %}{% trans "My bookings" %}{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{% trans "📋 My Service Requests" %}</h2>
-        <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> {% trans "New Request" %}
-        </a>
+{% with q=filter_query %}
+<div class="container-fluid py-3" style="max-width: 1100px;">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <ul class="nav nav-pills gap-1">
+      <li class="nav-item"><a class="nav-link {% if not status_filter %}active{% endif %}" href="?{{ q }}">{% trans "All" %} <span class="badge bg-secondary">{{ total_count }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if status_filter == 'pending' %}active{% endif %}" href="?status=pending{{ q }}">{% trans "Waiting" %} <span class="badge bg-warning text-dark">{{ pending_count }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if status_filter == 'assigned' %}active{% endif %}" href="?status=assigned{{ q }}">{% trans "Assigned" %} <span class="badge bg-info text-dark">{{ assigned_count }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if status_filter == 'in_progress' %}active{% endif %}" href="?status=in_progress{{ q }}">{% trans "In progress" %} <span class="badge bg-primary">{{ in_progress_count }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if status_filter == 'completed' %}active{% endif %}" href="?status=completed{{ q }}">{% trans "Completed" %} <span class="badge bg-success">{{ completed_count }}</span></a></li>
+    </ul>
+    <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {% trans "Book a worker" %}</a>
+  </div>
+
+  <form method="get" class="mb-3">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <div class="input-group">
+      <input type="search" name="search" class="form-control" value="{{ search_query }}" placeholder="{% trans 'Search your bookings' %}">
+      <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
     </div>
-    
-    <!-- Filters Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">{% trans "Search" %}</label>
-                    <input type="text" name="search" class="form-control" placeholder="Title, description, location..." value="{{ search_query }}" aria-label="{% trans "Search service requests by title, description or location" %}">
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">{% trans "Status" %}</label>
-                    <select name="status" class="form-select">
-                        <option value="">{% trans "All Statuses" %}</option>
-                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
-                        <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>{% trans "Assigned" %}</option>
-                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>{% trans "In Progress" %}</option>
-                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
-                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">{% trans "Category" %}</label>
-                    <select name="category" class="form-select">
-                        <option value="">{% trans "All Categories" %}</option>
-                        {% for category in categories %}
-                        <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
-                            {{ category.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">{% trans "From Date" %}</label>
-                    <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">{% trans "To Date" %}</label>
-                    <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
-                </div>
-                
-                <div class="col-md-1 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100" aria-label="Apply filters">
-                        <i class="bi bi-filter"></i>
-                    </button>
-                </div>
-                
-                {% if status_filter or category_filter or from_date or to_date or search_query %}
-                <div class="col-md-1 d-flex align-items-end">
-                    <a href="{% url 'service_requests_web:client_my_requests' %}" class="btn btn-outline-secondary w-100" title="{% trans "Clear Filters" %}" aria-label="{% trans "Clear all active filters" %}">
-                        <i class="bi bi-x-circle"></i>
-                    </a>
-                </div>
-                {% endif %}
-            </form>
+    <details class="mt-2" {% if category_filter or from_date or to_date %}open{% endif %}>
+      <summary class="small text-primary" style="cursor:pointer">{% trans "More filters" %}</summary>
+      <div class="row g-2 mt-1">
+        <div class="col-md-4">
+          <select name="category" class="form-select form-select-sm">
+            <option value="">{% trans "All services" %}</option>
+            {% for category in categories %}<option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>{% endfor %}
+          </select>
         </div>
-    </div>
-    
-    <!-- Quick Status Buttons -->
-    <div class="d-flex flex-wrap gap-1 mb-4">
-        <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            All ({{ total_count }})
-        </a>
-        <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-outline-primary active{% else %}btn-outline-secondary{% endif %}">
-            Pending ({{ pending_count }})
-        </a>
-        <a href="?status=assigned" class="btn btn-sm {% if status_filter == 'assigned' %}btn-outline-primary active{% else %}btn-outline-secondary{% endif %}">
-            Assigned ({{ assigned_count }})
-        </a>
-        <a href="?status=in_progress" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            In Progress ({{ in_progress_count }})
-        </a>
-        <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            Completed ({{ completed_count }})
-        </a>
-    </div>
-    
-    <!-- Requests Table -->
-    {% if requests %}
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{% trans "SN" %}</th>
-                            <th>{% trans "Title & Category" %}</th>
-                            <th>{% trans "Status" %}</th>
-                            <th>{% trans "Urgency" %}</th>
-                            <th>{% trans "Location" %}</th>
-                            <th>{% trans "Duration" %}</th>
-                            <th>{% trans "Price" %}</th>
-                            <th>{% trans "Worker" %}</th>
-                            <th>{% trans "Created" %}</th>
-                            <th>{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for request in requests %}
-                        <tr>
-                            <td>
-                                <span class="fw-bold text-muted">{{ forloop.counter }}</span>
-                            </td>
-                            <td>
-                                <div class="fw-bold">{{ request.title }}</div>
-                                <small class="text-muted">
-                                    <span class="badge bg-info">{{ request.category.name }}</span>
-                                </small>
-                            </td>
-                            <td>
-                                <span class="badge {% if request.status == 'pending' %}bg-warning text-dark{% elif request.status == 'assigned' %}bg-info{% elif request.status == 'in_progress' %}bg-primary{% elif request.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">
-                                    {{ request.get_status_display }}
-                                </span>
-                                {% if request.work_started_at %}
-                                <br><small class="text-muted">
-                                    <i class="bi bi-play-circle"></i> {{ request.work_started_at|date:"M d" }}
-                                </small>
-                                {% endif %}
-                                {% if request.work_completed_at %}
-                                <br><small class="text-success">
-                                    <i class="bi bi-check-circle"></i> {{ request.work_completed_at|date:"M d" }}
-                                </small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge {% if request.urgency == 'emergency' %}bg-danger{% elif request.urgency == 'urgent' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-                                    {{ request.get_urgency_display }}
-                                </span>
-                            </td>
-                            <td>
-                                <i class="bi bi-geo-alt text-muted"></i> 
-                                <span class="d-block">{{ request.location }}</span>
-                                <small class="text-muted">{{ request.city }}</small>
-                            </td>
-                            <td>
-                                {{ request.duration_type_display|default:request.estimated_duration_hours|default:"N/A" }}
-                                {% if request.duration_days %}
-                                <br><small class="text-muted">({{ request.duration_days }} days)</small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if request.total_price %}
-                                <span class="price-display">TSH {{ request.total_price|floatformat:2 }}</span>
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% with accepted_assignments=request.assignments.all %}
-                                {% if accepted_assignments %}
-                                    {% for assignment in accepted_assignments %}
-                                        {% if assignment.worker_accepted %}
-                                        <i class="bi bi-person-check text-success"></i>
-                                        <span class="d-block">{{ assignment.worker.user.get_full_name }}</span>
-                                        {% if assignment.assignment_number > 1 or request.workers_needed > 1 %}
-                                        <small class="badge bg-secondary">Worker #{{ assignment.assignment_number }}</small>
-                                        {% endif %}
-                                        {% elif assignment.status == 'pending' %}
-                                        <i class="bi bi-hourglass-split text-warning"></i>
-                                        <small class="text-muted d-block">{{ assignment.worker.user.get_full_name }}</small>
-                                        <small class="badge bg-warning text-dark">{% trans "Awaiting Response" %}</small>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% elif request.assigned_worker %}
-                                    {% if request.worker_accepted %}
-                                    <i class="bi bi-person-check text-success"></i>
-                                    <span class="d-block">{{ request.assigned_worker.user.get_full_name }}</span>
-                                    {% else %}
-                                    <i class="bi bi-hourglass-split text-warning"></i>
-                                    <small class="text-muted d-block">{{ request.assigned_worker.user.get_full_name }}</small>
-                                    <small class="badge bg-warning text-dark">{% trans "Awaiting Response" %}</small>
-                                    {% endif %}
-                                {% else %}
-                                <i class="bi bi-person-x text-muted"></i>
-                                <small class="text-muted">{% trans "Not assigned" %}</small>
-                                {% endif %}
-                                {% endwith %}
-                            </td>
-                            <td>
-                                <i class="bi bi-calendar text-muted"></i>
-                                <span class="d-block">{{ request.created_at|naturaltime }}</span>
-                            </td>
-                            <td>
-                                <div class="btn-group-vertical btn-group-sm">
-                                    <a href="{% url 'service_requests_web:client_request_detail' request.id %}" 
-                                       class="btn btn-primary btn-sm">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    {% if request.status == 'pending' or request.status == 'assigned' %}
-                                    <a href="{% url 'service_requests_web:client_cancel_request' request.id %}" 
-                                       class="btn btn-danger btn-sm">
-                                        <i class="bi bi-x-circle"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="col-6 col-md-3"><input type="date" name="from_date" class="form-control form-control-sm" value="{{ from_date }}" aria-label="{% trans 'From' %}"></div>
+        <div class="col-6 col-md-3"><input type="date" name="to_date" class="form-control form-control-sm" value="{{ to_date }}" aria-label="{% trans 'To' %}"></div>
+        <div class="col-md-2 d-flex gap-1">
+          <button class="btn btn-sm btn-primary flex-grow-1">{% trans "Apply" %}</button>
+          <a href="?" class="btn btn-sm btn-outline-secondary" title="{% trans 'Clear' %}"><i class="bi bi-x"></i></a>
+        </div>
+      </div>
+    </details>
+  </form>
+
+  {% if requests %}
+  <div class="card border-0 shadow-sm">
+    <div class="list-group list-group-flush">
+      {% for request in requests %}
+      <a href="{% url 'service_requests_web:client_request_detail' request.id %}" class="list-group-item list-group-item-action py-3">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div class="text-truncate">
+            <div class="fw-semibold text-truncate">{{ request.title }}</div>
+            <small class="text-muted">{{ request.category.name }} · {{ request.city|default:request.location }} · {{ request.created_at|date:"d M Y" }}</small>
+            <div class="small mt-1">
+              {% with live=request.assignments.all %}
+              {% for a in live %}{% if a.status != 'rejected' and a.status != 'cancelled' %}
+                <span class="me-2"><i class="bi {% if a.worker_accepted %}bi-person-check text-success{% else %}bi-hourglass-split text-warning{% endif %}"></i> {{ a.worker.user.get_full_name }}</span>
+              {% endif %}{% empty %}<span class="text-muted"><i class="bi bi-person-dash"></i> {% trans "No worker yet" %}</span>{% endfor %}
+              {% endwith %}
             </div>
+          </div>
+          <div class="text-end flex-shrink-0">
+            <span class="badge rounded-pill {% if request.status == 'pending' %}bg-warning text-dark{% elif request.status == 'assigned' %}bg-info text-dark{% elif request.status == 'in_progress' %}bg-primary{% elif request.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">{{ request.get_status_display }}</span>
+            {% if request.total_price %}<div class="fw-bold mt-1">TSh {{ request.total_price|floatformat:0|intcomma }}</div>{% endif %}
+          </div>
         </div>
+      </a>
+      {% endfor %}
     </div>
-    
-    <!-- Pagination -->
-    {% if requests.has_other_pages %}
-    <nav aria-label="Service requests pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% if requests.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ requests.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}" title="Previous page">
-                    <i class="bi bi-chevron-left"></i> {% trans "Previous" %}
-                </a>
-            </li>
-            {% else %}
-            <li class="page-item disabled">
-                <span class="page-link"><i class="bi bi-chevron-left"></i> {% trans "Previous" %}</span>
-            </li>
-            {% endif %}
-            
-            {% for num in requests.paginator.page_range %}
-            {% if num == requests.number %}
-            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-            {% elif num > requests.number|add:'-3' and num < requests.number|add:'3' %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}">
-                    {{ num }}
-                </a>
-            </li>
-            {% endif %}
-            {% endfor %}
-            
-            {% if requests.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ requests.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}" title="{% trans "Next page" %}">
-                    {% trans "Next" %} <i class="bi bi-chevron-right"></i>
-                </a>
-            </li>
-            {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">{% trans "Next" %} <i class="bi bi-chevron-right"></i></span>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
-    
-    {% else %}
-    <!-- Empty State -->
-    <div class="card text-center py-5">
-        <div class="card-body">
-            <i class="bi bi-table" style="font-size: 4rem; color: #ccc;"></i>
-            <h4 class="mt-3">{% trans "No Service Requests Found" %}</h4>
-            {% if status_filter or category_filter or from_date or to_date %}
-            <p class="text-muted">{% trans "No requests match your current filters. Try adjusting your search criteria." %}</p>
-            <a href="?" class="btn btn-outline-secondary me-2">
-                <i class="bi bi-x-circle"></i> {% trans "Clear Filters" %}
-            </a>
-            {% else %}
-            <p class="text-muted">{% trans "You haven't created any service requests yet. Get started by creating your first request!" %}</p>
-            {% endif %}
-            <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> {% trans "Create Your First Request" %}
-            </a>
-        </div>
+  </div>
+
+  {% if requests.has_other_pages %}
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if requests.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ requests.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{{ q }}">‹</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ requests.number }} / {{ requests.paginator.num_pages }}</span></li>
+      {% if requests.has_next %}<li class="page-item"><a class="page-link" href="?page={{ requests.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{{ q }}">›</a></li>{% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="card border-0 shadow-sm text-center py-5">
+    <div class="card-body">
+      <i class="bi bi-calendar-plus fs-1 text-muted"></i>
+      {% if status_filter or category_filter or from_date or to_date or search_query %}
+      <p class="text-muted mt-2">{% trans "No bookings match these filters." %}</p>
+      <a href="?" class="btn btn-outline-secondary">{% trans "Clear filters" %}</a>
+      {% else %}
+      <p class="text-muted mt-2">{% trans "You have no bookings yet." %}</p>
+      <a href="{% url 'service_requests_web:client_request_service' %}" class="btn btn-primary">{% trans "Book a worker" %}</a>
+      {% endif %}
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
 </div>
+{% endwith %}
 {% endblock %}
 
 {% block extra_js %}

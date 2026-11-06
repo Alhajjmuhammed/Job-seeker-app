@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Avg, Count, Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
 from workers.models import WorkerProfile, Category
@@ -19,44 +19,46 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def client_dashboard(request):
-    """Client dashboard view"""
+    """
+    The client's one home page: what needs doing, their bookings, and
+    services to book. There used to be two client dashboards ("Dashboard"
+    and "SR Dashboard") showing overlapping parts of this.
+    """
     if not request.user.is_client:
         messages.error(request, 'Access denied. Clients only.')
         return redirect('home')
-    
-    profile, created = ClientProfile.objects.get_or_create(user=request.user)
-    
-    # Get available service categories with stats
-    categories_with_stats = []
-    for category in Category.objects.filter(is_active=True)[:8]:
-        available_workers = WorkerProfile.objects.filter(
-            categories=category,
-            verification_status='verified',
-            availability='available'
-        ).exclude(
-            service_assignments__status__in=['pending', 'accepted', 'in_progress']
-        ).distinct().count()
-        
-        completed_projects = ServiceRequest.objects.filter(
-            category=category,
-            status='completed'
-        ).count()
-        
-        categories_with_stats.append({
-            'category': category,
-            'available_workers': available_workers,
-            'completed_projects': completed_projects,
-        })
-    
-    # Get recent service requests
-    recent_requests = ServiceRequest.objects.filter(
-        client=request.user
-    ).select_related('category', 'assigned_worker', 'assigned_worker__user').order_by('-created_at')[:5]
-    
+
+    ClientProfile.objects.get_or_create(user=request.user)
+    mine = ServiceRequest.objects.filter(client=request.user)
+    no_proof = Q(payment_screenshot='') | Q(payment_screenshot__isnull=True)
+
+    counts = {
+        'waiting': mine.filter(status='pending').count(),
+        'active': mine.filter(status__in=['assigned', 'in_progress']).count(),
+        'completed': mine.filter(status='completed').count(),
+        'spent': mine.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0,
+    }
+    to_do = (list(mine.filter(no_proof, payment_verified=False).exclude(status='cancelled')
+                  .order_by('-created_at')[:3]) +
+             list(mine.filter(status='completed', client_rating__isnull=True).order_by('-created_at')[:3]))
+
+    recent = list(mine.select_related('category').prefetch_related('assignments__worker__user')
+                  .order_by('-created_at')[:5])
+    for r in recent:
+        live = [a for a in r.assignments.all() if a.status not in ('rejected', 'cancelled')]
+        r.worker_names = ', '.join(a.worker.user.get_full_name() for a in live)
+
+    from worker_connect.home_views import _icon, _stats
+    services = [c for c in _stats()['categories'] if c.verified_workers][:6]
+    for c in services:
+        c.bi = _icon(c.name)
+
     context = {
-        'profile': profile,
-        'categories_with_stats': categories_with_stats,
-        'recent_requests': recent_requests,
+        'counts': counts,
+        'to_do': to_do,
+        'recent_requests': recent,
+        'services': services,
+        'has_bookings': mine.exists(),
     }
     return render(request, 'clients/dashboard.html', context)
 
