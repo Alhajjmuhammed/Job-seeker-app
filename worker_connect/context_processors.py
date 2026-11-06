@@ -78,19 +78,11 @@ def admin_counts(request):
             context['pending_service_requests_count'] = 0
 
 
-            # Unread messages from admin
-            admin_user = request.user.__class__.objects.filter(
-                Q(is_staff=True) | Q(user_type='admin')
-            ).first()
-            
-            if admin_user:
-                context['unread_messages_count'] = Message.objects.filter(
-                    sender=admin_user,
-                    recipient=request.user,
-                    is_read=False
-                ).count()
-            else:
-                context['unread_messages_count'] = 0
+            # Unread chat messages - from support and from workers/clients they work with
+            context['unread_messages_count'] = Message.objects.filter(
+                recipient=request.user,
+                is_read=False
+            ).count()
     else:
         context['pending_workers_count'] = 0
         context['pending_documents_count'] = 0

@@ -3580,7 +3580,7 @@ msgstr "Nyaraka"
 
 #: templates/admin_panel/verify_document.html:16
 msgid "uploaded"
-msgstr ""
+msgstr "zimepakiwa"
 
 #: templates/admin_panel/verify_document.html:24
 #, fuzzy
@@ -6632,10 +6632,9 @@ msgid "After completion, you can rate and pay"
 msgstr ""
 
 #: templates/jobs/inbox.html:199
-#, fuzzy
 #| msgid "No payments yet"
 msgid "No messages yet"
-msgstr "Hakuna malipo bado"
+msgstr "Bado hakuna ujumbe"
 
 #: templates/jobs/inbox.html:200
 msgid "Your conversations will appear here"
@@ -6702,10 +6701,9 @@ msgstr "Hariri Wasifu"
 #: templates/jobs/job_detail.html:1025 templates/jobs/message_detail.html:4
 #: templates/jobs/send_message.html:207
 #: templates/service_requests/client/request_detail.html:336
-#, fuzzy
 #| msgid "Messages"
 msgid "Message"
-msgstr "Ujumbe"
+msgstr "Tuma ujumbe"
 
 #: templates/jobs/job_detail.html:1049
 msgid "Project Budget"
@@ -11059,3 +11057,100 @@ msgstr "Hakuna kategoria inayolingana."
 
 msgid "Worker pay (TSh)"
 msgstr "Malipo ya fundi (TSh)"
+
+msgid "Chats"
+msgstr "Mazungumzo"
+
+msgid "Search chats"
+msgstr "Tafuta mazungumzo"
+
+msgid "Support"
+msgstr "Msaada"
+
+msgid "Worker Connect support"
+msgstr "Msaada wa Worker Connect"
+
+msgid "Worker Connect support team"
+msgstr "Timu ya msaada ya Worker Connect"
+
+msgid "Say hello"
+msgstr "Sema habari"
+
+msgid "No chats yet."
+msgstr "Bado hakuna mazungumzo."
+
+msgid "No chat matches your search."
+msgstr "Hakuna mazungumzo yanayolingana."
+
+msgid "Back to chats"
+msgstr "Rudi kwenye mazungumzo"
+
+msgid "Write the first message below."
+msgstr "Andika ujumbe wa kwanza hapa chini."
+
+msgid "Type a message"
+msgstr "Andika ujumbe"
+
+msgid "Enter to send · Shift+Enter for a new line"
+msgstr "Enter kutuma · Shift+Enter kwa mstari mpya"
+
+msgid ""
+"This chat is closed - the job is no longer active. You can still read the "
+"messages."
+msgstr ""
+"Mazungumzo haya yamefungwa - kazi haiendelei tena. Bado unaweza kusoma "
+"ujumbe."
+
+msgid "Choose a chat"
+msgstr "Chagua mazungumzo"
+
+msgid "Pick a conversation on the left to read and reply."
+msgstr "Chagua mazungumzo upande wa kushoto ili kusoma na kujibu."
+
+msgid "Support is always here to help."
+msgstr "Msaada upo wakati wote kukusaidia."
+
+msgid "A worker and a client can chat as soon as the worker accepts the job."
+msgstr "Fundi na mteja wanaweza kuzungumza mara fundi anapokubali kazi."
+
+msgid "Yesterday"
+msgstr "Jana"
+
+msgid "Back to the list"
+msgstr "Rudi kwenye orodha"
+
+msgid "ID uploaded"
+msgstr "Kitambulisho kimepakiwa"
+
+msgid "The worker sent an ID document"
+msgstr "Fundi ametuma kitambulisho"
+
+msgid "ID approved"
+msgstr "Kitambulisho kimekubaliwa"
+
+msgid "Ready to verify"
+msgstr "Tayari kuthibitishwa"
+
+msgid "Waiting for your check"
+msgstr "Kinasubiri ukaguzi wako"
+
+msgid "Nothing to approve yet"
+msgstr "Bado hakuna cha kukubali"
+
+msgid "No GPS yet - nearest-job matching is off"
+msgstr "Bado hakuna GPS - kulinganisha na kazi za karibu kumezimwa"
+
+msgid ""
+"The worker has to upload an ID (National ID, passport or driving licence) "
+"from their profile before you can verify them. Send them a message to remind"
+" them."
+msgstr ""
+"Fundi anatakiwa kupakia kitambulisho (Kitambulisho cha Taifa, pasipoti au "
+"leseni ya udereva) kutoka kwenye wasifu wake kabla hujamthibitisha. Mtumie "
+"ujumbe kumkumbusha."
+
+#, python-format
+msgid "%(n)s chat"
+msgid_plural "%(n)s chats"
+msgstr[0] "Mazungumzo %(n)s"
+msgstr[1] "Mazungumzo %(n)s"

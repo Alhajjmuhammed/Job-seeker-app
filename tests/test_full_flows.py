@@ -20,6 +20,7 @@ from accounts.models import User
 from agents.models import AgentProfile
 from clients.models import ClientProfile, PaymentTransaction
 from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
+from jobs.models import Message
 from workers.models import Category, WorkerDocument, WorkerProfile
 
 PW = 'Str0ng-pass-2026'
@@ -372,6 +373,8 @@ class PrivacyTests(FlowBase):
             self.assertEqual(Client().get(url + '?sig=forged').status_code, 403)
 
     def test_user_search_never_returns_emails(self):
+        sr, _ = self.book()
+        self.assign_and_accept(sr)  # the client may only find workers they work with
         r = self.client_c.get('/api/messages/search-users/', {'q': 'admin'})
         self.assertNotIn(b'admin@t.co', r.content)
         r = self.client_c.get('/api/messages/search-users/', {'q': 'Wor'})
@@ -1038,3 +1041,88 @@ class MissingFileTests(FlowBase):
         for c, url in [(self.admin_c, '/dashboard/'), (self.client_c, '/clients/dashboard/'), (self.worker_c, '/workers/dashboard/')]:
             # versioned so browsers never keep an old copy (static files are cached 30 days)
             self.assertRegex(c.get(url).content.decode(), r'css/ui\.css\?v=[0-9a-f]{8}', url)
+
+
+class ChatTests(FlowBase):
+    """Workers and clients chat only once the worker has accepted the job; everyone can reach support."""
+
+    def send(self, c, to, text='hello'):
+        return c.post(f'/jobs/conversation/{to.id}/', {'message': text})
+
+    def test_no_chat_before_the_worker_accepts(self):
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        # assigned but not accepted yet: no chat either way, web or app
+        self.send(self.client_c, self.worker_user)
+        self.send(self.worker_c, self.client_user)
+        self.assertFalse(Message.objects.filter(sender__in=[self.client_user, self.worker_user]).exists())
+        r = self.client_c.get(f'/jobs/conversation/{self.worker_user.id}/')
+        self.assertRedirects(r, '/jobs/inbox/', fetch_redirect_response=False)
+        r = post_json(self.worker_c, '/api/messages/send/', {'recipient_id': self.client_user.id, 'message': 'hi'})
+        self.assertEqual(r.status_code, 403)
+        self.assertNotContains(self.client_c.get('/jobs/inbox/'), 'Wor Ker')
+
+    def test_chat_opens_after_accept_both_ways(self):
+        sr, _ = self.book()
+        self.assign_and_accept(sr)
+        inbox = self.client_c.get('/jobs/inbox/')
+        self.assertContains(inbox, 'Wor Ker')
+        self.assertContains(inbox, 'Leaky tap')
+        self.send(self.client_c, self.worker_user, 'When can you come?')
+        r = self.worker_c.get(f'/jobs/conversation/{self.client_user.id}/')
+        self.assertContains(r, 'When can you come?')
+        self.assertContains(r, 'name="message"')
+        r = post_json(self.worker_c, '/api/messages/send/', {'recipient_id': self.client_user.id, 'message': 'At 9'})
+        self.assertEqual(r.status_code, 200, r.content)
+        convs = self.client_c.get('/api/messages/conversations/').json()['conversations']
+        row = next(c for c in convs if c['id'] == self.worker_user.id)
+        self.assertEqual(row['last_message'], 'At 9')
+        self.assertEqual(row['unread_count'], 1)
+        self.assertTrue(row['can_send'])
+
+    def test_chat_closes_when_the_job_is_cancelled_but_history_stays(self):
+        sr, _ = self.book()
+        asg = self.assign_and_accept(sr)
+        self.send(self.client_c, self.worker_user, 'first')
+        ServiceRequestAssignment.objects.filter(pk=asg.pk).update(status='cancelled')
+        r = self.client_c.get(f'/jobs/conversation/{self.worker_user.id}/')
+        self.assertContains(r, 'first')
+        self.assertContains(r, 'This chat is closed')
+        self.assertNotContains(r, 'name="message"')
+        self.send(self.client_c, self.worker_user, 'second')
+        self.assertFalse(Message.objects.filter(message='second').exists())
+
+    def test_other_people_stay_out(self):
+        sr, _ = self.book()
+        self.assign_and_accept(sr)
+        other = Client(); other.force_login(self.other_client)
+        w2 = Client(); w2.force_login(self.worker2_user)
+        for c, to in ((other, self.worker_user), (w2, self.client_user), (self.worker_c, self.worker2_user),
+                      (self.client_c, self.other_client)):
+            self.assertEqual(post_json(c, '/api/messages/send/', {'recipient_id': to.id, 'message': 'x'}).status_code, 403)
+            self.send(c, to, 'x')
+        self.assertFalse(Message.objects.filter(message='x').exists())
+
+    def test_everyone_can_reach_support_and_admin_can_reach_everyone(self):
+        inbox = self.worker_c.get('/jobs/inbox/')
+        self.assertContains(inbox, 'Worker Connect support')
+        self.send(self.worker_c, self.admin, 'need help')
+        self.send(self.admin_c, self.other_client, 'hello from admin')
+        self.assertTrue(Message.objects.filter(message='need help', recipient=self.admin).exists())
+        self.assertTrue(Message.objects.filter(message='hello from admin').exists())
+        r = self.admin_c.get(f'/jobs/conversation/{self.worker_user.id}/')
+        self.assertContains(r, 'need help')
+        self.assertEqual(Message.objects.get(message='need help').is_read, True)
+        self.assertContains(self.admin_c.get('/jobs/inbox/'), 'Wor Ker')
+
+    def test_direct_booking_accept_opens_chat(self):
+        from jobs.models import DirectHireRequest
+        b = DirectHireRequest.objects.create(client=self.client_user, worker=self.wp2, title='Paint wall',
+                                             description='x', location='Dar', duration_value=1,
+                                             start_datetime=timezone.now(), offered_rate=D('1000'),
+                                             total_amount=D('1000'))
+        self.assertEqual(post_json(self.client_c, '/api/messages/send/',
+                                   {'recipient_id': self.worker2_user.id, 'message': 'y'}).status_code, 403)
+        DirectHireRequest.objects.filter(pk=b.pk).update(status='accepted')
+        self.assertEqual(post_json(self.client_c, '/api/messages/send/',
+                                   {'recipient_id': self.worker2_user.id, 'message': 'y'}).status_code, 200)

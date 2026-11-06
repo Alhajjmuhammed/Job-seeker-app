@@ -347,167 +347,158 @@ def reject_application(request, pk):
 
 # Messaging Views
 
+def _chat_base_template(user):
+    from .chat_access import is_admin
+    if is_admin(user):
+        return 'admin_panel/base_admin.html'
+    return 'workers/base_worker.html' if hasattr(user, 'worker_profile') else 'clients/base_client.html'
+
+
+def _conversation_list(user):
+    """
+    Everyone this user has a chat with, newest first: people they have
+    messages with, plus (for workers and clients) support and every
+    worker/client whose job was accepted - even before the first message.
+    """
+    from .chat_access import is_admin, chat_partners, support_user
+
+    admin_view = is_admin(user)
+    partners = {} if admin_view else chat_partners(user)
+    convs = {}
+
+    def entry(other):
+        if other.id not in convs:
+            convs[other.id] = {'user': other, 'last_message': None, 'unread_count': 0,
+                               'about': partners.get(other.id, ''),
+                               'is_support': is_admin(other),
+                               'can_send': admin_view or is_admin(other) or other.id in partners}
+        return convs[other.id]
+
+    msgs = (Message.objects.filter(Q(sender=user) | Q(recipient=user))
+            .select_related('sender', 'recipient').order_by('-created_at'))
+    for msg in msgs:
+        other = msg.recipient if msg.sender_id == user.id else msg.sender
+        if other.id == user.id:
+            continue
+        c = entry(other)
+        if c['last_message'] is None:
+            c['last_message'] = msg
+        if msg.recipient_id == user.id and not msg.is_read:
+            c['unread_count'] += 1
+
+    if not admin_view:
+        support = support_user()
+        if support and not any(c['is_support'] for c in convs.values()):
+            entry(support)
+        if partners:
+            for other in User.objects.filter(id__in=partners.keys(), is_active=True):
+                entry(other)
+
+    today = timezone.localdate()
+    for c in convs.values():
+        m = c['last_message']
+        c['time_label'] = _day_label(m.created_at, today, short=True) if m else ''
+
+    def order(c):
+        m = c['last_message']
+        return (m is not None, m.created_at if m else timezone.now())
+    return sorted(convs.values(), key=order, reverse=True)
+
+
+def _day_label(when, today, short=False):
+    from django.utils.translation import gettext as _
+    from django.utils.formats import date_format
+    local = timezone.localtime(when)
+    d = local.date()
+    if d == today:
+        return local.strftime('%H:%M') if short else _('Today')
+    if (today - d).days == 1:
+        return _('Yesterday')
+    return date_format(local, 'j M' if short else 'l, j F Y')
+
+
 @login_required
 def inbox(request):
-    """View inbox messages - WhatsApp style conversation list"""
-    from django.db.models import Q, Max, Count
-    
-    # For workers and clients, they only see conversations with admin
-    # For admin, they see all conversations with workers and clients
-    
-    if request.user.is_staff or request.user.user_type == 'admin':
-        # Admin sees all messages involving them
-        all_messages = Message.objects.filter(
-            Q(sender=request.user) | Q(recipient=request.user)
-        )
-        
-        # Group by conversation partner
-        conversations = {}
-        for msg in all_messages:
-            # Determine the other person in conversation
-            other_user = msg.recipient if msg.sender == request.user else msg.sender
-            
-            if other_user.id not in conversations:
-                conversations[other_user.id] = {
-                    'user': other_user,
-                    'messages': [],
-                    'unread_count': 0,
-                }
-            
-            conversations[other_user.id]['messages'].append(msg)
-            
-            # Count unread messages from this person
-            if msg.recipient == request.user and not msg.is_read:
-                conversations[other_user.id]['unread_count'] += 1
-        
-        # Sort messages in each conversation and get last message
-        conversation_list = []
-        for conv_data in conversations.values():
-            conv_data['messages'].sort(key=lambda x: x.created_at, reverse=True)
-            conv_data['last_message'] = conv_data['messages'][0]
-            conv_data['total_messages'] = len(conv_data['messages'])
-            conversation_list.append(conv_data)
-        
-        # Sort conversations by last message time
-        conversation_list.sort(key=lambda x: x['last_message'].created_at, reverse=True)
-    else:
-        # Workers and clients only see conversation with admin
-        # Get admin user (first staff user)
-        admin_user = User.objects.filter(Q(is_staff=True) | Q(user_type='admin')).first()
-        
-        if admin_user:
-            all_messages = Message.objects.filter(
-                Q(sender=request.user, recipient=admin_user) |
-                Q(sender=admin_user, recipient=request.user)
-            ).order_by('-created_at')
-            
-            unread_count = all_messages.filter(
-                recipient=request.user,
-                is_read=False
-            ).count()
-            
-            conversation_list = [{
-                'user': admin_user,
-                'messages': list(all_messages),
-                'unread_count': unread_count,
-                'last_message': all_messages.first() if all_messages.exists() else None,
-                'total_messages': all_messages.count(),
-            }] if all_messages.exists() or True else []  # Always show admin conversation
-        else:
-            conversation_list = []
-    
-    # Determine which base template to use
-    if request.user.is_staff or request.user.user_type == 'admin':
-        base_template = 'admin_panel/base_admin.html'
-    else:
-        base_template = 'workers/base_worker.html' if hasattr(request.user, 'worker_profile') else 'clients/base_client.html'
-    
-    context = {
-        'conversations': conversation_list,
-        'base_template': base_template,
-    }
-    return render(request, 'jobs/inbox.html', context)
+    """Chat list. On a wide screen the empty right pane explains who you can chat with."""
+    from .chat_access import is_admin
+    return render(request, 'jobs/inbox.html', {
+        'conversations': _conversation_list(request.user),
+        'base_template': _chat_base_template(request.user),
+        'other_user': None,
+        'me_admin': is_admin(request.user),
+    })
 
 
 @login_required
 def send_message(request, recipient_id):
-    """Send a message to another user - redirects to conversation"""
-    # Workers and clients can only message admin
-    # Admins can message anyone
-    
-    if request.user.is_staff or request.user.user_type == 'admin':
-        # Admin can message the specified recipient
-        recipient = get_object_or_404(User, pk=recipient_id)
-        return redirect('jobs:conversation', user_id=recipient_id)
-    else:
-        # Workers and clients always redirect to admin conversation
-        admin_user = User.objects.filter(Q(is_staff=True) | Q(user_type='admin')).first()
-        if admin_user:
-            return redirect('jobs:conversation', user_id=admin_user.id)
-        else:
-            messages.error(request, 'No admin available to contact.')
-            return redirect('jobs:inbox')
+    """Old "send message" links: open the chat with that person if allowed, else support."""
+    from .chat_access import can_chat, support_user
+    other = get_object_or_404(User, pk=recipient_id)
+    if can_chat(request.user, other):
+        return redirect('jobs:conversation', user_id=other.id)
+    support = support_user()
+    if support and support.pk != request.user.pk:
+        return redirect('jobs:conversation', user_id=support.id)
+    messages.error(request, 'No admin available to contact.')
+    return redirect('jobs:inbox')
 
 
 @login_required
 def conversation(request, user_id):
-    """View conversation thread with a specific user (WhatsApp style)"""
-    
+    """One chat thread, shown next to the chat list."""
+    from .chat_access import can_chat, is_admin, CLOSED_REASON
+
     other_user = get_object_or_404(User, pk=user_id)
-    
-    # Security check: Workers and clients can only chat with admin
-    if not (request.user.is_staff or request.user.user_type == 'admin'):
-        # Non-admin users can only chat with admin
-        if not (other_user.is_staff or other_user.user_type == 'admin'):
-            # Redirect to admin conversation instead
-            admin_user = User.objects.filter(Q(is_staff=True) | Q(user_type='admin')).first()
-            if admin_user:
-                messages.warning(request, 'You can only message the admin. Direct messaging between workers and clients is not allowed.')
-                return redirect('jobs:conversation', user_id=admin_user.id)
-            else:
-                messages.error(request, 'No admin available to contact.')
-                return redirect('jobs:inbox')
-    
-    # Get all messages between current user and other user
-    messages_list = Message.objects.filter(
-        Q(sender=request.user, recipient=other_user) |
-        Q(sender=other_user, recipient=request.user)
-    ).order_by('created_at')
-    
-    # Mark all messages from other user as read
-    Message.objects.filter(
-        sender=other_user,
-        recipient=request.user,
-        is_read=False
-    ).update(is_read=True)
-    
-    # Handle new message submission
+    if other_user.pk == request.user.pk:
+        return redirect('jobs:inbox')
+
+    messages_list = (Message.objects.filter(
+        Q(sender=request.user, recipient=other_user) | Q(sender=other_user, recipient=request.user))
+        .select_related('sender').order_by('created_at'))
+    allowed = can_chat(request.user, other_user)
+
+    if not allowed and not messages_list.exists() and request.method == 'GET':
+        messages.warning(request, CLOSED_REASON)
+        return redirect('jobs:inbox')
+
+    Message.objects.filter(sender=other_user, recipient=request.user, is_read=False).update(
+        is_read=True, read_at=timezone.now())
+
     if request.method == 'POST':
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.recipient = other_user
-            message.save()
-            
-            messages.success(request, 'Message sent!')
+        if not allowed:
+            messages.error(request, CLOSED_REASON)
             return redirect('jobs:conversation', user_id=user_id)
-    else:
-        form = MessageForm()
-    
-    # Determine which base template to use
-    if request.user.is_staff or request.user.user_type == 'admin':
-        base_template = 'admin_panel/base_admin.html'
-    else:
-        base_template = 'workers/base_worker.html' if hasattr(request.user, 'worker_profile') else 'clients/base_client.html'
-    
-    context = {
+        text = (request.POST.get('message') or '').strip()
+        if text:
+            msg = Message.objects.create(sender=request.user, recipient=other_user, message=text[:5000])
+            try:
+                from worker_connect.notification_service import NotificationService
+                NotificationService.notify_message_received(msg, request.user, other_user)
+            except Exception:  # a failed notification must never lose the message
+                import logging
+                logging.getLogger(__name__).exception('message notification failed')
+        return redirect('jobs:conversation', user_id=user_id)
+
+    thread = list(messages_list)
+    today, last_day = timezone.localdate(), None
+    for msg in thread:
+        day = timezone.localtime(msg.created_at).date()
+        msg.day_label = _day_label(msg.created_at, today) if day != last_day else ''
+        last_day = day
+    conversations = _conversation_list(request.user)
+    current = next((c for c in conversations if c['user'].id == other_user.id), None)
+    return render(request, 'jobs/inbox.html', {
+        'conversations': conversations,
+        'base_template': _chat_base_template(request.user),
         'other_user': other_user,
-        'messages_list': messages_list,
-        'form': form,
-        'base_template': base_template,
-    }
-    return render(request, 'jobs/conversation.html', context)
+        'other_is_admin': is_admin(other_user),
+        'current': current,
+        'messages_list': thread,
+        'thread_sig': f"{len(thread)}-{sum(1 for m in thread if m.is_read)}",
+        'me_admin': is_admin(request.user),
+        'can_send': allowed,
+        'closed_reason': CLOSED_REASON,
+    })
 
 
 @login_required

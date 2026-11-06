@@ -6,26 +6,80 @@
 
 {% block content %}
 <style>
-  .rv-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; display: flex; align-items: center;
-               justify-content: center; font-size: 1.75rem; font-weight: 700; background: var(--bs-secondary-bg); }
-  .rv-facts dt { font-weight: 500; color: var(--bs-secondary-color); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
-  .rv-facts dd { margin-bottom: .75rem; }
-  .rv-doc { border: 1px solid var(--bs-border-color); border-radius: 12px; overflow: hidden; }
-  .rv-doc-preview { background: var(--bs-tertiary-bg); height: 220px; display: flex; align-items: center; justify-content: center; }
-  .rv-doc-preview img { max-width: 100%; max-height: 220px; object-fit: contain; cursor: zoom-in; }
-  .rv-sticky { position: sticky; top: 1rem; z-index: 5; }
+  .rv-top { position: sticky; top: .75rem; z-index: 5; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+            border-radius: 14px; box-shadow: 0 4px 18px rgba(15, 23, 42, .05); }
+  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: .9rem 1.1rem; }
+  .rv-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: flex; align-items: center;
+               justify-content: center; font-size: 1.35rem; font-weight: 700; color: #fff; background: #0f766e; }
+  .rv-name { font-size: 1.05rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .rv-meta { font-size: .8rem; color: var(--bs-secondary-color); display: flex; flex-wrap: wrap; gap: .25rem .9rem; margin-top: .15rem; }
+  .rv-meta i { margin-right: .2rem; }
+  .rv-pill { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: .2rem .55rem; border-radius: 999px; }
+  .rv-pill.pending { background: #fef3c7; color: #92400e; } .rv-pill.verified { background: #d1fae5; color: #065f46; } .rv-pill.rejected { background: #fee2e2; color: #991b1b; }
+  .rv-actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+  .rv-actions .btn { border-radius: 9px; font-weight: 600; font-size: .82rem; }
+  .rv-queue { font-size: .74rem; color: var(--bs-secondary-color); padding: .45rem 1.1rem; border-top: 1px solid var(--bs-border-color);
+              display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  /* checklist */
+  .rv-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+  .rv-step { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 12px; padding: .75rem .9rem; display: flex; gap: .65rem; align-items: flex-start; }
+  .rv-step-ico { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+  .rv-step.ok .rv-step-ico { background: #d1fae5; color: #059669; }
+  .rv-step.no .rv-step-ico { background: #fee2e2; color: #dc2626; }
+  .rv-step.wait .rv-step-ico { background: #fef3c7; color: #d97706; }
+  .rv-step-t { font-size: .82rem; font-weight: 600; line-height: 1.25; }
+  .rv-step-s { font-size: .72rem; color: var(--bs-secondary-color); }
+  .rv-bar { height: 5px; border-radius: 5px; background: var(--bs-tertiary-bg); overflow: hidden; margin-top: .35rem; }
+  .rv-bar span { display: block; height: 100%; background: #10b981; }
+  /* panels */
+  .rv-panel { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 14px; height: 100%; }
+  .rv-panel-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .85rem 1.1rem; border-bottom: 1px solid var(--bs-border-color); }
+  .rv-panel-head h2 { font-size: .92rem; font-weight: 700; margin: 0; }
+  .rv-panel-head small { color: var(--bs-secondary-color); font-size: .74rem; }
+  .rv-facts { padding: .35rem 1.1rem .6rem; margin: 0; }
+  .rv-fact { display: flex; gap: .75rem; padding: .6rem 0; border-bottom: 1px dashed var(--bs-border-color); }
+  .rv-fact:last-child { border-bottom: 0; }
+  .rv-fact > i { color: #0f766e; font-size: .95rem; margin-top: .1rem; width: 18px; text-align: center; }
+  .rv-fact dt { font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); margin: 0; }
+  .rv-fact dd { margin: 0; font-size: .86rem; word-break: break-word; }
+  .rv-skill { display: inline-block; font-size: .74rem; padding: .15rem .55rem; margin: .15rem .2rem 0 0; border-radius: 999px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .rv-docs { padding: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .9rem; }
+  .rv-doc { border: 1px solid var(--bs-border-color); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .rv-doc-preview { background: var(--bs-tertiary-bg); height: 190px; display: flex; align-items: center; justify-content: center; }
+  .rv-doc-preview img { max-width: 100%; max-height: 190px; object-fit: contain; cursor: zoom-in; }
+  .rv-doc-body { padding: .75rem .85rem; display: flex; flex-direction: column; flex: 1; }
+  .rv-empty { padding: 2.5rem 1.5rem; text-align: center; }
+  .rv-empty .ico { width: 60px; height: 60px; border-radius: 16px; margin: 0 auto .8rem; display: flex; align-items: center; justify-content: center;
+                   font-size: 1.6rem; background: #fef3c7; color: #d97706; }
+  .rv-empty h3 { font-size: .98rem; font-weight: 700; margin-bottom: .3rem; }
+  .rv-empty p { font-size: .83rem; color: var(--bs-secondary-color); max-width: 420px; margin: 0 auto 1rem; }
+  [data-bs-theme="dark"] .rv-skill { background: rgba(16, 185, 129, .12); color: #6ee7b7; border-color: rgba(16, 185, 129, .3); }
+  @media (max-width: 991.98px) { .rv-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 575.98px) { .rv-actions { margin-left: 0; width: 100%; } .rv-top { position: static; } }
 </style>
 
-{# ---------- decision bar ---------- #}
-<div class="card border-0 shadow-sm mb-3 rv-sticky">
-  <div class="card-body d-flex flex-wrap align-items-center gap-2 py-2">
-    <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-sm btn-link px-1"><i class="bi bi-arrow-left"></i></a>
-    <strong class="me-1">{{ worker.user.get_full_name|default:worker.user.username }}</strong>
-    {% if worker.verification_status == 'verified' %}<span class="badge bg-success">{% trans "Verified" %}</span>
-    {% elif worker.verification_status == 'rejected' %}<span class="badge bg-danger">{% trans "Rejected" %}</span>
-    {% else %}<span class="badge bg-warning text-dark">{% trans "Pending" %}</span>{% endif %}
+{% with name=worker.user.get_full_name|default:worker.user.username %}
+{# ---------- who + decision ---------- #}
+<div class="rv-top mb-3">
+  <div class="rv-top-main">
+    <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-sm btn-light" title="{% trans 'Back to the list' %}"><i class="bi bi-arrow-left"></i></a>
+    {% if worker.photo_url %}<img src="{{ worker.photo_url }}" class="rv-avatar" alt="">
+    {% else %}<div class="rv-avatar">{{ name|first|upper }}</div>{% endif %}
+    <div style="min-width:0">
+      <h1 class="rv-name">{{ name }}
+        {% if worker.verification_status == 'verified' %}<span class="rv-pill verified">{% trans "Verified" %}</span>
+        {% elif worker.verification_status == 'rejected' %}<span class="rv-pill rejected">{% trans "Rejected" %}</span>
+        {% else %}<span class="rv-pill pending">{% trans "Pending" %}</span>{% endif %}
+      </h1>
+      <div class="rv-meta">
+        <span><i class="bi bi-briefcase"></i>{{ worker.get_worker_type_display }}</span>
+        {% if worker.city %}<span><i class="bi bi-geo-alt"></i>{{ worker.city }}</span>{% endif %}
+        <span><i class="bi bi-calendar3"></i>{% trans "Joined" %} {{ worker.user.date_joined|date:"d M Y" }}</span>
+      </div>
+    </div>
 
-    <div class="ms-auto d-flex flex-wrap gap-2">
+    <div class="rv-actions">
+      <a href="{% url 'jobs:conversation' worker.user.id %}" class="btn btn-sm btn-light"><i class="bi bi-chat-dots"></i> {% trans "Message" %}</a>
       {% if worker.verification_status != 'verified' %}
         {% if id_approved %}
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="verify"><input type="hidden" name="then" value="next">
@@ -34,7 +88,8 @@
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="approve_id_and_verify"><input type="hidden" name="then" value="next">
           <button class="btn btn-sm btn-success"><i class="bi bi-check2-all"></i> {% trans "Approve ID & verify" %}</button></form>
         {% else %}
-        <button class="btn btn-sm btn-success" disabled title="{% trans 'Needs an ID document' %}"><i class="bi bi-check2-circle"></i> {% trans "Verify" %}</button>
+        <span class="d-inline-block" tabindex="0" title="{% trans 'Needs an ID document' %}">
+          <button class="btn btn-sm btn-success" disabled><i class="bi bi-check2-circle"></i> {% trans "Verify" %}</button></span>
         {% endif %}
         {% if worker.verification_status != 'rejected' %}
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#rejectWorker"><i class="bi bi-x-circle"></i> {% trans "Reject" %}</button>
@@ -42,62 +97,83 @@
       {% endif %}
       {% if worker.verification_status != 'pending' %}
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="reopen">
-          <button class="btn btn-sm btn-outline-secondary">{% trans "Back to pending" %}</button></form>
+          <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Back to pending" %}</button></form>
       {% endif %}
       {% if next_worker %}
-        <a href="{% url 'admin_panel:verify_worker' next_worker.id %}" class="btn btn-sm btn-outline-primary">{% trans "Next" %} <i class="bi bi-chevron-right"></i></a>
+        <a href="{% url 'admin_panel:verify_worker' next_worker.id %}" class="btn btn-sm btn-outline-success">{% trans "Next" %} <i class="bi bi-chevron-right"></i></a>
       {% endif %}
     </div>
   </div>
   <div class="collapse" id="rejectWorker">
-    <form method="post" class="card-body border-top d-flex flex-wrap gap-2 pt-2">{% csrf_token %}
+    <form method="post" class="d-flex flex-wrap gap-2 px-3 pb-3">{% csrf_token %}
       <input type="hidden" name="action" value="reject"><input type="hidden" name="then" value="next">
       <input name="reason" class="form-control form-control-sm flex-grow-1" style="min-width:240px" required
              placeholder="{% trans 'Reason (sent to the worker)' %}">
       <button class="btn btn-sm btn-danger">{% trans "Reject worker" %}</button>
     </form>
   </div>
+  <div class="rv-queue">
+    <span><i class="bi bi-hourglass-split"></i> {{ queue_left }} {% trans "workers waiting for review" %}</span>
+    {% if next_worker %}<span>{% trans "Next" %}: {{ next_worker.user.get_full_name|default:next_worker.user.username }}</span>{% endif %}
+  </div>
 </div>
 
-{% if not has_id %}
-<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle"></i> {% trans "No ID document uploaded yet - the worker can't be verified until they upload one." %}</div>
-{% endif %}
+{# ---------- what is needed to verify ---------- #}
+<div class="rv-steps mb-3">
+  <div class="rv-step {% if has_id %}ok{% else %}no{% endif %}">
+    <div class="rv-step-ico"><i class="bi {% if has_id %}bi-check-lg{% else %}bi-x-lg{% endif %}"></i></div>
+    <div><div class="rv-step-t">{% trans "ID uploaded" %}</div>
+      <div class="rv-step-s">{% if has_id %}{% trans "The worker sent an ID document" %}{% else %}{% trans "No ID document uploaded yet - the worker can't be verified until they upload one." %}{% endif %}</div></div>
+  </div>
+  <div class="rv-step {% if id_approved %}ok{% elif id_pending %}wait{% else %}no{% endif %}">
+    <div class="rv-step-ico"><i class="bi {% if id_approved %}bi-check-lg{% elif id_pending %}bi-hourglass{% else %}bi-x-lg{% endif %}"></i></div>
+    <div><div class="rv-step-t">{% trans "ID approved" %}</div>
+      <div class="rv-step-s">{% if id_approved %}{% trans "Ready to verify" %}{% elif id_pending %}{% trans "Waiting for your check" %}{% else %}{% trans "Nothing to approve yet" %}{% endif %}</div></div>
+  </div>
+  <div class="rv-step {% if worker.profile_completion_percentage >= 80 %}ok{% else %}wait{% endif %}">
+    <div class="rv-step-ico"><i class="bi bi-person-lines-fill"></i></div>
+    <div class="flex-grow-1"><div class="rv-step-t">{% trans "Profile" %} {{ worker.profile_completion_percentage }}%</div>
+      <div class="rv-bar"><span style="width: {{ worker.profile_completion_percentage }}%"></span></div></div>
+  </div>
+  <div class="rv-step {% if worker.latitude %}ok{% else %}wait{% endif %}">
+    <div class="rv-step-ico"><i class="bi bi-geo-alt"></i></div>
+    <div><div class="rv-step-t">{% trans "Location" %}</div>
+      <div class="rv-step-s">{% if worker.latitude %}{% trans "GPS saved" %}{% else %}{% trans "No GPS yet - nearest-job matching is off" %}{% endif %}</div></div>
+  </div>
+</div>
 
 <div class="row g-3">
   {# ---------- profile ---------- #}
   <div class="col-lg-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-3 mb-3">
-          {% if worker.photo_url %}<img src="{{ worker.photo_url }}" class="rv-avatar" alt="">
-          {% else %}<div class="rv-avatar">{{ worker.user.first_name|first|upper|default:"?" }}</div>{% endif %}
-          <div>
-            <div class="fw-bold">{{ worker.user.get_full_name|default:worker.user.username }}</div>
-            <div class="small text-muted">{{ worker.get_worker_type_display }}</div>
-          </div>
-        </div>
-        <dl class="rv-facts mb-0">
-          <dt>{% trans "Phone" %}</dt><dd>{% if worker.user.phone_number %}<a href="tel:{{ worker.user.phone_number }}">{{ worker.user.phone_number }}</a>{% else %}—{% endif %}</dd>
-          <dt>{% trans "Email" %}</dt><dd class="text-break">{{ worker.user.email }}</dd>
-          <dt>{% trans "Location" %}</dt><dd>{{ worker.city|default:"—" }}{% if worker.address %}<br><small class="text-muted">{{ worker.address }}</small>{% endif %}{% if worker.latitude %}<br><small class="text-success"><i class="bi bi-geo-alt"></i> {% trans "GPS saved" %}</small>{% endif %}</dd>
-          <dt>{% trans "Skills" %}</dt>
-          <dd>{% for c in worker.categories.all %}<span class="badge bg-light text-dark border me-1">{{ c.name }}</span>{% empty %}—{% endfor %}</dd>
-          <dt>{% trans "Experience" %}</dt><dd>{{ worker.experience_years|default:0 }} {% trans "years" %}</dd>
-          {% if worker.agent %}<dt>{% trans "Agent" %}</dt><dd>{{ worker.agent.user.get_full_name }}</dd>{% endif %}
-          <dt>{% trans "Joined" %}</dt><dd>{{ worker.user.date_joined|date:"d M Y" }} · {{ worker.profile_completion_percentage }}% {% trans "profile" %}</dd>
-          {% if worker.bio %}<dt>{% trans "About" %}</dt><dd class="small">{{ worker.bio|truncatewords:60 }}</dd>{% endif %}
-        </dl>
-      </div>
+    <div class="rv-panel">
+      <div class="rv-panel-head"><h2>{% trans "Details" %}</h2></div>
+      <dl class="rv-facts">
+        <div class="rv-fact"><i class="bi bi-telephone"></i><div><dt>{% trans "Phone" %}</dt>
+          <dd>{% if worker.user.phone_number %}<a href="tel:{{ worker.user.phone_number }}">{{ worker.user.phone_number }}</a>{% else %}—{% endif %}</dd></div></div>
+        <div class="rv-fact"><i class="bi bi-envelope"></i><div><dt>{% trans "Email" %}</dt>
+          <dd>{% if worker.user.email %}<a href="mailto:{{ worker.user.email }}">{{ worker.user.email }}</a>{% else %}—{% endif %}</dd></div></div>
+        <div class="rv-fact"><i class="bi bi-geo-alt"></i><div><dt>{% trans "Location" %}</dt>
+          <dd>{{ worker.city|default:"—" }}{% if worker.address %}<br><small class="text-muted">{{ worker.address }}</small>{% endif %}</dd></div></div>
+        <div class="rv-fact"><i class="bi bi-tools"></i><div><dt>{% trans "Skills" %}</dt>
+          <dd>{% for c in worker.categories.all %}<span class="rv-skill">{{ c.name }}</span>{% empty %}—{% endfor %}</dd></div></div>
+        <div class="rv-fact"><i class="bi bi-award"></i><div><dt>{% trans "Experience" %}</dt>
+          <dd>{{ worker.experience_years|default:0 }} {% trans "years" %}</dd></div></div>
+        {% if worker.agent %}<div class="rv-fact"><i class="bi bi-person-badge"></i><div><dt>{% trans "Agent" %}</dt>
+          <dd>{{ worker.agent.user.get_full_name }}</dd></div></div>{% endif %}
+        {% if worker.bio %}<div class="rv-fact"><i class="bi bi-chat-quote"></i><div><dt>{% trans "About" %}</dt>
+          <dd class="small">{{ worker.bio|truncatewords:60 }}</dd></div></div>{% endif %}
+      </dl>
     </div>
-    <p class="small text-muted mt-2 mb-0">{{ queue_left }} {% trans "workers waiting for review" %}</p>
   </div>
 
   {# ---------- documents ---------- #}
   <div class="col-lg-8">
-    <div class="row g-3">
-      {% for doc in documents %}
-      <div class="col-md-6">
-        <div class="rv-doc h-100 d-flex flex-column">
+    <div class="rv-panel">
+      <div class="rv-panel-head"><h2>{% trans "Documents" %}</h2><small>{{ documents|length }} {% trans "uploaded" %}</small></div>
+      {% if documents %}
+      <div class="rv-docs">
+        {% for doc in documents %}
+        <div class="rv-doc">
           <div class="rv-doc-preview">
             {% if doc.file_missing %}
               <div class="text-center text-muted small px-3"><i class="bi bi-exclamation-octagon fs-3 d-block text-warning"></i>
@@ -109,12 +185,12 @@
                 <i class="bi bi-file-earmark-{% if doc.is_pdf %}pdf{% else %}text{% endif %} fs-3 d-block"></i>{% trans "Open file" %}</a>
             {% endif %}
           </div>
-          <div class="p-3 d-flex flex-column flex-grow-1">
-            <div class="d-flex justify-content-between align-items-start mb-1">
-              <strong>{{ doc.get_document_type_display|cut:" (Required)"|cut:" (Optional)" }}</strong>
-              {% if doc.verification_status == 'approved' %}<span class="badge bg-success">{% trans "Approved" %}</span>
-              {% elif doc.verification_status == 'rejected' %}<span class="badge bg-danger">{% trans "Rejected" %}</span>
-              {% else %}<span class="badge bg-warning text-dark">{% trans "Waiting" %}</span>{% endif %}
+          <div class="rv-doc-body">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+              <strong class="small">{{ doc.get_document_type_display|cut:" (Required)"|cut:" (Optional)" }}</strong>
+              {% if doc.verification_status == 'approved' %}<span class="rv-pill verified">{% trans "Approved" %}</span>
+              {% elif doc.verification_status == 'rejected' %}<span class="rv-pill rejected">{% trans "Rejected" %}</span>
+              {% else %}<span class="rv-pill pending">{% trans "Waiting" %}</span>{% endif %}
             </div>
             <div class="small text-muted mb-2">{{ doc.title }} · {{ doc.uploaded_at|date:"d M Y" }}</div>
             {% if doc.verification_status == 'rejected' and doc.rejection_reason %}
@@ -143,13 +219,18 @@
             </form>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% empty %}
-      <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-body text-center text-muted py-5">
-        <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>{% trans "No documents uploaded yet." %}
-      </div></div></div>
-      {% endfor %}
+      {% else %}
+      <div class="rv-empty">
+        <div class="ico"><i class="bi bi-folder2-open"></i></div>
+        <h3>{% trans "No documents uploaded yet." %}</h3>
+        <p>{% trans "The worker has to upload an ID (National ID, passport or driving licence) from their profile before you can verify them. Send them a message to remind them." %}</p>
+        <a href="{% url 'jobs:conversation' worker.user.id %}" class="btn btn-sm btn-success"><i class="bi bi-chat-dots"></i> {% trans "Message" %} {{ worker.user.first_name|default:name }}</a>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
+{% endwith %}
 {% endblock %}

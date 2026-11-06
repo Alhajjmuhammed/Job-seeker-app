@@ -16,48 +16,23 @@ from accounts.models import User
 @permission_classes([IsAuthenticated])
 def get_conversations(request):
     """Get list of conversations for the current user"""
-    user = request.user
-    
-    # Get all users the current user has conversations with
-    sent_to = Message.objects.filter(sender=user).values_list('recipient', flat=True).distinct()
-    received_from = Message.objects.filter(recipient=user).values_list('sender', flat=True).distinct()
-    
-    # Combine and get unique user IDs
-    conversation_user_ids = set(list(sent_to) + list(received_from))
-    
+    from .views import _conversation_list
     conversations = []
-    for user_id in conversation_user_ids:
-        try:
-            other_user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            continue
-        
-        # Get last message
-        last_message = Message.objects.filter(
-            Q(sender=user, recipient=other_user) | Q(sender=other_user, recipient=user)
-        ).order_by('-created_at').first()
-        
-        # Count unread messages
-        unread_count = Message.objects.filter(
-            sender=other_user,
-            recipient=user,
-            is_read=False
-        ).count()
-        
+    for c in _conversation_list(request.user):
+        other, last = c['user'], c['last_message']
         conversations.append({
-            'id': other_user.id,
-            'name': other_user.get_full_name() or other_user.username,
-            'username': other_user.username,
-            'user_type': other_user.user_type,
-            'last_message': last_message.message if last_message else '',
-            'last_message_time': last_message.created_at.isoformat() if last_message else None,
-            'unread_count': unread_count,
-            'is_online': False,  # TODO: Implement online status
+            'id': other.id,
+            'name': other.get_full_name() or other.username,
+            'username': other.username,
+            'user_type': 'admin' if c['is_support'] else other.user_type,
+            'last_message': last.message if last else '',
+            'last_message_time': last.created_at.isoformat() if last else None,
+            'unread_count': c['unread_count'],
+            'is_online': False,
+            'about': c['about'],
+            'can_send': c['can_send'],
         })
-    
-    # Sort by last message time
-    conversations.sort(key=lambda x: x['last_message_time'] or '', reverse=True)
-    
+
     return Response({'conversations': conversations})
 
 
@@ -72,6 +47,7 @@ def get_messages(request, user_id):
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
+    from .chat_access import can_chat
     # Get all messages between these two users
     messages = Message.objects.filter(
         Q(sender=user, recipient=other_user) | Q(sender=other_user, recipient=user)
@@ -102,6 +78,7 @@ def get_messages(request, user_id):
     
     return Response({
         'messages': messages_data,
+        'can_send': can_chat(user, other_user),
         'other_user': {
             'id': other_user.id,
             'name': other_user.get_full_name() or other_user.username,
@@ -131,7 +108,11 @@ def send_message_api(request):
         recipient = User.objects.get(id=recipient_id)
     except User.DoesNotExist:
         return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
-    
+
+    from .chat_access import can_chat, CLOSED_REASON
+    if not can_chat(user, recipient):
+        return Response({'error': CLOSED_REASON}, status=status.HTTP_403_FORBIDDEN)
+
     # Create message
     message = Message.objects.create(
         sender=user,
@@ -217,6 +198,11 @@ def search_users(request):
 
     if user_type:
         users = users.filter(user_type=user_type)
+
+    # Workers and clients may only find support and the people whose job was accepted.
+    if not is_staff:
+        from .chat_access import chat_partners
+        users = users.filter(Q(is_staff=True) | Q(user_type='admin') | Q(id__in=list(chat_partners(user).keys())))
 
     users = users[:20]  # Limit to 20 results
 

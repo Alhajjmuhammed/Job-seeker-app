@@ -689,7 +689,7 @@
             </a>
             
             <div class="sidebar-section-title section-title">{% trans "COMMUNICATION" %}</div>
-            <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
+            <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' or request.resolver_match.url_name == 'conversation' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> 
                 <span class="nav-text">{% trans "Messages" %}</span>
                 {% if unread_messages_count > 0 %}
