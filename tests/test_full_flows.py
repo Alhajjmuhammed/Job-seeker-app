@@ -853,13 +853,21 @@ class NotificationLinkTests(FlowBase):
 
 class ClientPagesTests(FlowBase):
     def test_home_page_shows_real_numbers_and_right_buttons(self):
-        page = Client().get('/').content.decode()
-        self.assertNotIn('500+', page)
-        self.assertIn('/accounts/register/client/', page)
-        self.assertIn('/accounts/register/worker/', page)
-        self.assertIn('Plumber', page)  # a real category with verified workers
-        self.assertIn('/services/client/request-service/',
+        r = Client().get('/')
+        page = r.content.decode()
+        for fake in ('500+', '300+', '50+', '98%'):
+            self.assertNotIn(f'>{fake}<', page)
+        self.assertEqual(r.context['verified_workers'], 2)
+        self.assertEqual(r.context['registered_workers'], 2)
+        self.assertIn(f'<div class="hero-stat-num">{r.context["verified_workers"]}</div>', page)
+        self.assertIn('href="/accounts/register/client/" class="btn-hero-outline"', page)  # Request Service
+        self.assertIn('href="/services/client/request-service/" class="btn-hero-outline"',
                       self.client_c.get('/').content.decode())  # signed-in client books directly
+
+    def test_menu_links_have_no_underline_or_border(self):
+        page = Client().get('/').content.decode()
+        self.assertIn('#navbarNav .btn-nav-signup { text-decoration: none !important; }', page)
+        self.assertIn('#navbarNav .btn-nav-signup { border: none !important; }', page)
 
     def test_booking_page_prices_per_request_like_the_server(self):
         page = self.client_c.get('/services/client/request-service/').content.decode()
@@ -930,11 +938,10 @@ class DashboardTests(FlowBase):
         self.assertIn('href="?status=completed&amp;search=Leaky"', r.content.decode())
 
     def test_new_pages_speak_swahili(self):
-        c = Client()
-        c.cookies['django_language'] = 'sw'
-        page = c.get('/').content.decode()
-        self.assertIn('Pata fundi', page)
-        self.assertIn('Jiunge kama fundi', page)
+        self.client_c.cookies['django_language'] = 'sw'
+        page = self.client_c.get('/services/client/request-service/').content.decode()
+        self.assertIn('Unahitaji nini?', page)
+        self.assertIn('Lipa na weka miadi', page)
 
 
 class WorkerJobPageTests(FlowBase):

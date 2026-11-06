@@ -8,8 +8,13 @@ from django.shortcuts import render
 from django.urls import reverse
 
 
+# the partner logos shown on the home page (Yas & Mixx, EzeeMoney, Azam Pesa,
+# Equity Bank, Mobile Money, Tracksol, Zati, Zato, Mozeti)
+PARTNER_COUNT = 9
+
+
 def _stats():
-    stats = cache.get('home_stats')
+    stats = cache.get('home_stats_v2')
     if stats is None:
         from jobs.service_request_models import ServiceRequest
         from workers.models import Category, WorkerProfile
@@ -18,12 +23,17 @@ def _stats():
         categories = list(Category.objects.filter(is_active=True)
                           .annotate(verified_workers=Count('workers', filter=verified, distinct=True))
                           .order_by('-verified_workers', 'name'))
+        from workers.cities import city_key
+        cities = {city_key(c) for c in WorkerProfile.objects.filter(user__is_active=True)
+                  .exclude(city='').values_list('city', flat=True)} - {''}
         stats = {
             'verified_workers': WorkerProfile.objects.filter(verification_status='verified', user__is_active=True).count(),
+            'registered_workers': WorkerProfile.objects.filter(user__is_active=True).count(),
+            'cities_served': len(cities),
             'categories': categories,
             'jobs_done': ServiceRequest.objects.filter(status='completed').count(),
         }
-        cache.set('home_stats', stats, 600)  # ten minutes is fresh enough for a front page
+        cache.set('home_stats_v2', stats, 600)  # ten minutes is fresh enough for a front page
     return stats
 
 
@@ -62,6 +72,9 @@ def home(request):
         category.bi = _icon(category.name)
     return render(request, 'http_landing.html', {
         'verified_workers': stats['verified_workers'],
+        'registered_workers': stats['registered_workers'],
+        'cities_served': stats['cities_served'],
+        'partner_count': PARTNER_COUNT,
         'category_count': len(stats['categories']),
         'jobs_done': stats['jobs_done'],
         'popular_categories': popular,

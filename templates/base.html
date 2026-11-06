@@ -249,6 +249,21 @@
             transform: translateY(-1px);
             color: white !important;
         }
+        /* Menu links: no underline and no outline border, on every page and in
+           the mobile menu - only the hover background and Sign Up's fill. */
+        .main-nav a,
+        .main-nav .nav-link,
+        .main-nav .btn-nav-login,
+        .main-nav .btn-nav-signup,
+        #navbarNav .nav-link,
+        #navbarNav .btn-nav-login,
+        #navbarNav .btn-nav-signup { text-decoration: none !important; }
+        .main-nav .btn-nav-login,
+        .main-nav .btn-nav-login:hover,
+        #navbarNav .btn-nav-login,
+        #navbarNav .btn-nav-login:hover,
+        .main-nav .btn-nav-signup,
+        #navbarNav .btn-nav-signup { border: none !important; }
         /* Theme toggle */
         .main-nav #theme-toggle {
             color: rgba(255,255,255,0.7);
