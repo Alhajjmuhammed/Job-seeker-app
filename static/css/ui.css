@@ -17,9 +17,9 @@
 }
 
 /* ---------- text: one scale ---------- */
-html { font-size: 14.5px; }
-.page-title-header { font-size: 1.2rem !important; }
-.sidebar-nav-item { font-size: .95rem !important; }
+html { font-size: 13.5px; }
+.page-title-header { font-size: 1.1rem !important; }
+.sidebar-nav-item, .agent-sidebar .nav-link { font-size: .92rem !important; }
 .sidebar-section-title { font-size: .7rem !important; letter-spacing: .06em; }
 
 :is(.admin-content, .client-content, .worker-content, .agent-content) :is(h1, .h1) { font-size: 1.4rem; font-weight: 700; }
@@ -248,7 +248,7 @@ a:not(.btn):not(.nav-link):not(.sidebar-nav-item):not(.list-group-item):not(.dro
     border-radius: 10px !important;
     background: #fff !important;
 }
-:is(.sidebar-brand-text, .brand-text) { line-height: 1.15; font-size: 1.05rem; font-weight: 800; color: #fff; }
+:is(.sidebar-brand-text, .brand-text) { line-height: 1.15; font-size: .98rem; font-weight: 800; color: #fff; }
 :is(.sidebar-brand-text, .brand-text) em { font-style: normal; color: var(--ui-side-accent); }
 :is(.sidebar-brand-text, .brand-text) small { display: block; font-size: .72rem; font-weight: 500; color: var(--ui-side-muted); margin-top: 2px; }
 
@@ -346,7 +346,7 @@ a:not(.btn):not(.nav-link):not(.sidebar-nav-item):not(.list-group-item):not(.dro
     gap: 1rem;
 }
 .ui-hero-eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ui-side-accent); }
-:is(.admin-content, .client-content, .worker-content, .agent-content) .ui-hero-title { font-size: 1.6rem !important; font-weight: 800; color: #fff !important; margin: .35rem 0 .2rem; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .ui-hero-title { font-size: 1.4rem !important; font-weight: 800; color: #fff !important; margin: .35rem 0 .2rem; }
 .ui-hero-sub { margin: 0; color: rgba(255, 255, 255, .7); font-size: .92rem; }
 .ui-hero-btn {
     background: #fff; color: #0b3d33 !important; font-weight: 700; border-radius: 10px;
@@ -382,7 +382,7 @@ a.ui-stat:hover { border-color: #a7f3d0; box-shadow: 0 4px 14px rgba(15, 23, 42,
 .ui-tone-orange { background: #ffedd5; color: #c2410c; }
 .ui-tone-blue   { background: #dbeafe; color: #1d4ed8; }
 .ui-tone-red    { background: #fee2e2; color: #b91c1c; }
-.ui-stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.1; margin-top: .35rem; letter-spacing: -.01em; }
+.ui-stat-value { font-size: 1.5rem; font-weight: 800; line-height: 1.1; margin-top: .35rem; letter-spacing: -.01em; }
 .ui-stat-sub { font-size: .78rem; color: var(--ui-muted); margin-top: .3rem; }
 
 /* older number boxes follow the same label style */
@@ -406,3 +406,42 @@ a.ui-stat:hover { border-color: #a7f3d0; box-shadow: 0 4px 14px rgba(15, 23, 42,
 :is(.admin-content, .client-content, .worker-content, .agent-content) :is(.card, .ad-card, .ch-card, .wh-card):has(.table) > :is(.card-header, .card-footer) { border-radius: 0 !important; }
 :is(.admin-content, .client-content, .worker-content, .agent-content) .table :is(th, td).ui-sn { width: 52px; text-align: center; color: var(--ui-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 :is(.admin-content, .client-content, .worker-content, .agent-content) :has(> .table-responsive > .table) { border-radius: 0 !important; }
+
+/* ---------- scrolling: sidebar and page scroll separately ---------- */
+/* The sidebar itself never scrolls; only its menu list does, and it never hands
+   the scroll on to the page (or the page to it). Logo and "signed in as" stay put. */
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) {
+    overflow: hidden !important;
+    height: 100vh;
+    height: 100dvh;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar) > .sidebar-nav,
+.agent-sidebar > ul {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .18) transparent;
+    flex-wrap: nowrap !important;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar) > .sidebar-nav::-webkit-scrollbar,
+.agent-sidebar > ul::-webkit-scrollbar { width: 5px; }
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar) > .sidebar-nav::-webkit-scrollbar-thumb,
+.agent-sidebar > ul::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .18); border-radius: 6px; }
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar) > .sidebar-nav::-webkit-scrollbar-track,
+.agent-sidebar > ul::-webkit-scrollbar-track { background: transparent; }
+.ui-side-user { margin-top: .5rem; }
+/* phone: while the menu is open, the page behind it stays still */
+body:has(:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar).show) { overflow: hidden; }
+html, body { overscroll-behavior-y: none; }
+
+/* ---------- finishing touches ---------- */
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+:is(.admin-header, .client-header, .worker-header, .agent-header) { box-shadow: 0 1px 0 var(--bs-border-color), 0 1px 8px rgba(15, 23, 42, .03); }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table > tbody > tr:hover > td { background: #f0fdf9; }
+[data-bs-theme="dark"] :is(.admin-content, .client-content, .worker-content, .agent-content) .table > tbody > tr:hover > td { background: rgba(52, 211, 153, .06); }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table > tbody > tr:last-child > td { border-bottom: 0; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table-hover > tbody > tr:hover > * { --bs-table-bg-state: #f0fdf9; --bs-table-hover-bg: #f0fdf9; }
+[data-bs-theme="dark"] :is(.admin-content, .client-content, .worker-content, .agent-content) .table-hover > tbody > tr:hover > * { --bs-table-bg-state: rgba(52, 211, 153, .06); }

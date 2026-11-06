@@ -6,3 +6,15 @@
     <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
     <span class="ui-side-user-role">{{ role }}</span>
 </div>
+<script>
+/* Wheel over the sidebar scrolls only its menu, never the page behind it. */
+(function () {
+    var side = document.currentScript.parentElement;
+    var menu = side.querySelector(':scope > .sidebar-nav, :scope > ul');
+    side.addEventListener('wheel', function (e) {
+        if (!menu || !menu.contains(e.target)) { e.preventDefault(); return; }
+        var max = menu.scrollHeight - menu.clientHeight;
+        if (max <= 0 || (e.deltaY < 0 && menu.scrollTop <= 0) || (e.deltaY > 0 && menu.scrollTop >= max - 1)) e.preventDefault();
+    }, { passive: false });
+})();
+</script>

@@ -1,5 +1,5 @@
 {% extends 'admin_panel/base_admin.html' %}
-{% load i18n %}
+{% load i18n humanize %}
 {% load static %}
 
 {% block title %}Manage Categories - Admin Panel{% endblock %}
@@ -25,129 +25,101 @@
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h2 class="h4 mb-1">
-            <i class="bi bi-grid-3x3-gap"></i> {% trans "Category Management" %}
-        </h2>
-        <p class="text-muted mb-0">{% trans "Manage job categories and skills" %}</p>
+<style>
+  .cat-icon { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+              background: #d1fae5; color: #047857; flex-shrink: 0; }
+  .cat-desc { max-width: 320px; min-width: 0; }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h2 class="h5 mb-0">{% trans "Category Management" %}</h2>
+        <p class="text-muted small mb-0">{% trans "Manage job categories and skills" %}</p>
     </div>
-    <div class="col-md-4 text-end">
+    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="bi bi-plus-lg"></i> {% trans "Add New Category" %}
+    </button>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-4">{% trans "Total categories" as l %}{% trans "in the system" as sub %}
+        {% include "partials/stat.html" with label=l value=categories.count sub=sub icon="bi-grid-3x3-gap" tone="green" %}</div>
+    <div class="col-6 col-md-4">{% trans "Active categories" as l %}{% trans "open for booking" as sub %}
+        {% include "partials/stat.html" with label=l value=active_categories sub=sub icon="bi-check2-circle" tone="purple" %}</div>
+    <div class="col-12 col-md-4">{% trans "Workers using" as l %}{% trans "at least one category" as sub %}
+        {% include "partials/stat.html" with label=l value=total_workers_using sub=sub icon="bi-people" tone="blue" %}</div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    {% if categories %}
+    <div class="card-body d-flex flex-wrap gap-2 py-2 border-bottom">
+        <input type="search" id="catSearch" class="form-control form-control-sm" style="max-width:280px"
+               placeholder="{% trans 'Search categories...' %}">
+        <select id="catFee" class="form-select form-select-sm" style="max-width:200px">
+            <option value="">{% trans "All categories" %}</option>
+            <option value="nofee">{% trans "No service fee" %}</option>
+            <option value="noworkers">{% trans "No workers" %}</option>
+        </select>
+        <span class="small text-muted align-self-center ms-auto" id="catCount"></span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" id="catTable">
+            <thead class="table-light">
+                <tr>
+                    <th class="ui-sn">{% trans "SN" %}</th>
+                    <th>{% trans "Category" %}</th>
+                    <th class="text-end">{% trans "Workers" %}</th>
+                    <th class="text-end">{% trans "Worker is paid" %}</th>
+                    <th class="text-end">{% trans "Service fee" %}</th>
+                    <th class="text-end">{% trans "Client pays (1 worker)" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th class="text-end">{% trans "Action" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr data-name="{{ category.name|lower }} {{ category.description|lower|truncatewords:20 }}"
+                    data-nofee="{% if not category.service_fee %}1{% endif %}" data-noworkers="{% if not category.worker_count %}1{% endif %}">
+                    <td class="ui-sn">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="cat-icon"><i class="bi bi-{{ category.icon|default:'briefcase' }}"></i></span>
+                            <div class="cat-desc">
+                                <div class="fw-semibold">{{ category.name }}</div>
+                                {% if category.description %}<small class="text-muted d-block text-truncate">{{ category.description }}</small>{% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-end">{{ category.worker_count }}</td>
+                    <td class="text-end text-nowrap">TSh {{ category.daily_rate|floatformat:0|intcomma }}</td>
+                    <td class="text-end text-nowrap">
+                        {% if category.service_fee %}TSh {{ category.service_fee|floatformat:0|intcomma }}
+                        {% else %}<span class="text-danger" title="{% trans 'No fee set - this category earns you nothing' %}"><i class="bi bi-exclamation-triangle"></i> TSh 0</span>{% endif %}
+                    </td>
+                    <td class="text-end text-nowrap fw-bold">TSh {{ category.total_for_one_worker|floatformat:0|intcomma }}</td>
+                    <td>{% if category.is_active %}<span class="badge bg-success">{% trans "Active" %}</span>{% else %}<span class="badge bg-secondary">{% trans "Inactive" %}</span>{% endif %}</td>
+                    <td class="text-end text-nowrap">
+                        <button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ category.id }}" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ category.id }}" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="catNone" style="display:none"><td colspan="8" class="text-center text-muted py-4">{% trans "No categories match." %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center py-5">
+        <i class="bi bi-grid-3x3-gap fs-1 text-muted"></i>
+        <p class="text-muted mt-3">{% trans "No categories found" %}</p>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-            <i class="bi bi-plus-lg"></i> {% trans "Add New Category" %}
+            <i class="bi bi-plus-lg"></i> {% trans "Add Your First Category" %}
         </button>
     </div>
+    {% endif %}
 </div>
 
-<!-- Statistics -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h3 class="text-primary mb-1">{{ categories.count }}</h3>
-                <small class="text-muted">{% trans "Total Categories" %}</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h3 class="text-success mb-1">{{ active_categories }}</h3>
-                <small class="text-muted">{% trans "Active Categories" %}</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h3 class="text-info mb-1">{{ total_workers_using }}</h3>
-                <small class="text-muted">{% trans "Workers Using" %}</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Categories Grid -->
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
-        {% if categories %}
-        <div class="row g-4">
-            {% for category in categories %}
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 hover-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
-                                <i class="bi bi-{{ category.icon|default:'briefcase' }} fs-4"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">{{ category.name }}</h5>
-                                <p class="text-muted small mb-0">
-                                    <i class="bi bi-people"></i> {{ category.worker_count }} workers
-                                </p>
-                            </div>
-                        </div>
-                        
-                        {% if category.description %}
-                        <p class="card-text text-muted small mb-3">{{ category.description|truncatewords:15 }}</p>
-                        {% endif %}
-                        
-                        <!-- Pricing -->
-                        <div class="mb-3 bg-light rounded p-2">
-                            <small class="text-muted d-block mb-1">
-                                <i class="bi bi-cash-coin"></i> {% trans "Pricing (per request)" %}
-                            </small>
-                            <div class="d-flex justify-content-between">
-                                <small>{% trans "Worker is paid" %}</small>
-                                <span class="fw-bold">TSH {{ category.daily_rate|floatformat:0 }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <small>{% trans "Your service fee" %}</small>
-                                <span class="fw-bold {% if category.service_fee %}text-success{% else %}text-danger{% endif %}">
-                                    TSH {{ category.service_fee|floatformat:0 }}
-                                </span>
-                            </div>
-                            <hr class="my-1">
-                            <div class="d-flex justify-content-between">
-                                <small class="fw-bold">{% trans "Client pays (1 worker)" %}</small>
-                                <span class="fw-bold text-success">TSH {{ category.total_for_one_worker|floatformat:0 }}</span>
-                            </div>
-                            {% if not category.service_fee %}
-                            <small class="text-danger d-block mt-1">
-                                <i class="bi bi-exclamation-triangle"></i> {% trans "No fee set - this category earns you nothing" %}
-                            </small>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Skills -->
-                        {% if category.skills.exists %}
-                        <div class="mb-3">
-                            <small class="text-muted d-block mb-1">{% trans "Related Skills:" %}</small>
-                            <div class="d-flex flex-wrap gap-1">
-                                {% for skill in category.skills.all|slice:":5" %}
-                                <span class="badge bg-light text-dark">{{ skill.name }}</span>
-                                {% endfor %}
-                                {% if category.skills.count > 5 %}
-                                <span class="badge bg-light text-dark">+{{ category.skills.count|add:"-5" }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="d-flex gap-2 mt-3">
-                            <button type="button" class="btn btn-sm btn-outline-primary flex-fill" 
-                                    data-bs-toggle="modal" data-bs-target="#editModal{{ category.id }}">
-                                <i class="bi bi-pencil"></i> {% trans "Edit" %}
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ category.id }}">
-                                <i class="bi bi-trash"></i> {% trans "Delete" %}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
+{% for category in categories %}
             <!-- Edit Modal -->
             <div class="modal fade" id="editModal{{ category.id }}" tabindex="-1">
                 <div class="modal-dialog">
@@ -173,7 +145,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="daily_rate{{ category.id }}" class="form-label">
-                                        {% trans "Daily Rate ($)" %} <span class="text-danger">*</span>
+                                        {% trans "Worker pay (TSh)" %} <span class="text-danger">*</span>
                                     </label>
                                     <input type="number" class="form-control" id="daily_rate{{ category.id }}" 
                                            name="daily_rate" value="{{ category.daily_rate|default:'25.00' }}" 
@@ -238,19 +210,27 @@
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-grid-3x3-gap fs-1 text-muted"></i>
-            <p class="text-muted mt-3">{% trans "No categories found" %}</p>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                <i class="bi bi-plus-lg"></i> {% trans "Add Your First Category" %}
-            </button>
-        </div>
-        {% endif %}
-    </div>
-</div>
+{% endfor %}
+
+<script>
+(function () {
+    var q = document.getElementById('catSearch'), fee = document.getElementById('catFee');
+    if (!q) return;
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#catTable tbody tr[data-name]'));
+    var count = document.getElementById('catCount'), none = document.getElementById('catNone');
+    function apply() {
+        var t = q.value.trim().toLowerCase(), f = fee.value, n = 0;
+        rows.forEach(function (r) {
+            var show = (!t || r.dataset.name.indexOf(t) !== -1) && (!f || r.dataset[f] === '1');
+            r.style.display = show ? '' : 'none';
+            if (show) { n += 1; r.cells[0].textContent = n; }
+        });
+        none.style.display = n ? 'none' : '';
+        count.textContent = n + ' / ' + rows.length;
+    }
+    q.addEventListener('input', apply); fee.addEventListener('change', apply); apply();
+})();
+</script>
 
 <!-- Add Category Modal -->
 <div class="modal fade" id="addCategoryModal" tabindex="-1">

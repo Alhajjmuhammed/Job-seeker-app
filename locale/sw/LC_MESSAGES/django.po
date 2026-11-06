@@ -11023,3 +11023,39 @@ msgstr "tangu mwanzo"
 
 msgid "need a worker"
 msgstr "yanahitaji fundi"
+
+msgid "Total categories"
+msgstr "Kategoria zote"
+
+msgid "in the system"
+msgstr "kwenye mfumo"
+
+msgid "Active categories"
+msgstr "Kategoria hai"
+
+msgid "open for booking"
+msgstr "zinapatikana kwa maombi"
+
+msgid "Workers using"
+msgstr "Mafundi wanaotumia"
+
+msgid "at least one category"
+msgstr "angalau kategoria moja"
+
+msgid "Search categories..."
+msgstr "Tafuta kategoria..."
+
+msgid "All categories"
+msgstr "Kategoria zote"
+
+msgid "No service fee"
+msgstr "Hakuna ada ya huduma"
+
+msgid "No workers"
+msgstr "Hakuna mafundi"
+
+msgid "No categories match."
+msgstr "Hakuna kategoria inayolingana."
+
+msgid "Worker pay (TSh)"
+msgstr "Malipo ya fundi (TSh)"
