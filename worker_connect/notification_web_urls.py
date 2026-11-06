@@ -4,6 +4,7 @@ URL patterns for notification center web interface
 from django.urls import path
 from .notification_web_views import (
     notification_center,
+    open_notification,
     mark_notification_read_web,
     mark_all_read_web,
     delete_notification_web,
@@ -15,6 +16,7 @@ urlpatterns = [
     path('', notification_center, name='notification_center'),
     
     # Mark notifications as read
+    path('<int:notification_id>/open/', open_notification, name='open_notification'),
     path('<int:notification_id>/mark-read/', mark_notification_read_web, name='mark_notification_read_web'),
     path('mark-all-read/', mark_all_read_web, name='mark_all_read_web'),
     

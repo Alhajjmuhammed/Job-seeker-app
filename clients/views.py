@@ -71,7 +71,12 @@ def browse_services(request):
     # Get all active categories with statistics
     services = []
     categories = Category.objects.filter(is_active=True).order_by('name')
-    
+
+    # the header search box sends ?q= here
+    q = request.GET.get('q', '').strip()
+    if q:
+        categories = categories.filter(Q(name__icontains=q) | Q(description__icontains=q))
+
     for category in categories:
         available_workers = WorkerProfile.objects.filter(
             categories=category,
@@ -105,6 +110,7 @@ def browse_services(request):
     
     context = {
         'services': services,
+        'q': q,
     }
     return render(request, 'clients/browse_services.html', context)
 

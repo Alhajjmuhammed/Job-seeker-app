@@ -378,7 +378,7 @@ def worker_clock_out_assignment(request, assignment_id):
     # Log MY activity
     WorkerActivity.log_activity(
         worker=worker_profile,
-        activity_type='clocked_out',
+        activity_type='paused',  # a valid type, so it shows under the Paused filter
         description=f'Clocked out from: {assignment.service_request.title} ({hours_worked:.2f} hours)',
         service_request=assignment.service_request,
         location=location

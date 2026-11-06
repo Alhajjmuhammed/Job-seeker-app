@@ -64,6 +64,35 @@ class Notification(models.Model):
             self.read_at = timezone.now()
             self.save(update_fields=['is_read', 'read_at'])
 
+    @property
+    def target_url(self):
+        """
+        Where this notification leads on the website, so it can be tapped.
+        Built from what the sender stored in extra_data; None when there is
+        nothing more to open.
+        """
+        from django.urls import NoReverseMatch, reverse
+
+        data = self.extra_data if isinstance(self.extra_data, dict) else {}
+        user = self.recipient
+        request_id = data.get('service_request_id') or data.get('request_id')
+        try:
+            if data.get('action') == 'open_documents' and getattr(user, 'user_type', '') == 'worker':
+                return reverse('workers:document_list')
+            if self.notification_type == 'message_received':
+                return reverse('workers:inbox') if user.user_type == 'worker' else None
+            if user.is_staff and request_id:
+                return reverse('admin_panel:service_request_detail', args=[request_id])
+            if user.user_type == 'worker' and data.get('assignment_id'):
+                return reverse('service_requests_web:worker_assignment_detail', args=[data['assignment_id']])
+            if user.user_type == 'worker' and request_id:
+                return reverse('service_requests_web:worker_assignments')
+            if user.user_type == 'client' and request_id:
+                return reverse('service_requests_web:client_request_detail', args=[request_id])
+        except (NoReverseMatch, TypeError, ValueError):
+            return None
+        return None
+
 
 class NotificationPreference(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wc_notification_preferences')

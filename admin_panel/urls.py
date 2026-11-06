@@ -1,16 +1,17 @@
 from django.urls import path
-from . import views
+from . import views, verification_views
 
 app_name = 'admin_panel'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
-    path('workers/verification/', views.worker_verification_list, name='worker_verification_list'),
-    path('workers/verify/<int:worker_id>/', views.verify_worker, name='verify_worker'),
+    path('search/', verification_views.admin_search, name='search'),
+    path('workers/verification/', verification_views.worker_verification_list, name='worker_verification_list'),
+    path('workers/verify/<int:worker_id>/', verification_views.review_worker, name='verify_worker'),
     path('workers/<int:worker_id>/rate/', views.rate_worker, name='rate_worker'),
     path('workers/<int:worker_id>/ratings/', views.worker_ratings, name='worker_ratings'),
-    path('documents/', views.document_verification_list, name='document_verification_list'),
-    path('documents/verify/<int:doc_id>/', views.verify_document, name='verify_document'),
+    path('documents/', verification_views.document_verification_list, name='document_verification_list'),
+    path('documents/verify/<int:doc_id>/', verification_views.verify_document, name='verify_document'),
     path('categories/', views.category_list, name='category_list'),
     path('reports/', views.reports, name='reports'),
     

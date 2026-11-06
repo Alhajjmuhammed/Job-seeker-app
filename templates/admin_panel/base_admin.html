@@ -652,14 +652,14 @@
             </a>
             
             <div class="sidebar-section-title section-title">{% trans "VERIFICATION" %}</div>
-            <a href="{% url 'admin_panel:worker_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'worker_verification_list' %}active{% endif %}">
+            <a href="{% url 'admin_panel:worker_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'worker_verification_list' and request.GET.docs != 'waiting' or request.resolver_match.url_name == 'verify_worker' %}active{% endif %}">
                 <i class="bi bi-person-check"></i> 
                 <span class="nav-text">{% trans "Worker Verifications" %}</span>
                 {% if pending_workers_count > 0 %}
                 <span class="stat-badge">{{ pending_workers_count }}</span>
                 {% endif %}
             </a>
-            <a href="{% url 'admin_panel:document_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'document_verification_list' %}active{% endif %}">
+            <a href="{% url 'admin_panel:worker_verification_list' %}?status=all&docs=waiting" class="sidebar-nav-item {% if request.GET.docs == 'waiting' %}active{% endif %}">
                 <i class="bi bi-file-earmark-check"></i> 
                 <span class="nav-text">{% trans "Document Reviews" %}</span>
                 {% if pending_documents_count > 0 %}
@@ -727,16 +727,16 @@
                 <!-- Right Side -->
                 <div class="header-right">
                     <!-- Search -->
-                    <div class="header-search d-none d-md-block">
+                    <form class="header-search d-none d-md-block" method="get" action="{% url 'admin_panel:search' %}" role="search">
                         <i class="bi bi-search"></i>
-                        <input type="text" class="form-control" placeholder="{% trans "Search..." %}">
-                    </div>
+                        <input type="search" name="q" class="form-control" value="{{ request.GET.q|default:'' }}" placeholder="{% trans "Search people or bookings..." %}">
+                    </form>
                     
                     <!-- Notifications -->
-                    <button type="button" class="header-notifications">
+                    <a href="{% url 'notification_center' %}" class="header-notifications position-relative" title="{% trans "Notifications" %}" aria-label="{% trans "Notifications" %}">
                         <i class="bi bi-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
+                        <span class="notification-badge" id="header-notification-badge" style="display:none;">0</span>
+                    </a>
                     
                     <!-- Theme Toggle -->
                     <button id="theme-toggle" class="header-notifications" title="{% trans "Toggle Dark Mode" %}" aria-label="{% trans "Toggle Dark Mode" %}">
@@ -957,5 +957,6 @@
     </form>
 </div>
 
+{% include 'partials/notification_badge.html' %}
 </body>
 </html>

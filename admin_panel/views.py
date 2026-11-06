@@ -71,144 +71,6 @@ def dashboard(request):
 
 
 @staff_member_required
-def worker_verification_list(request):
-    """List workers pending verification"""
-    workers = WorkerProfile.objects.all().order_by('-created_at')
-    
-    # Get counts for statistics
-    pending_count = workers.filter(verification_status='pending').count()
-    verified_count = workers.filter(verification_status='verified').count()
-    rejected_count = workers.filter(verification_status='rejected').count()
-    
-    context = {
-        'workers': workers,
-        'pending_count': pending_count,
-        'verified_count': verified_count,
-        'rejected_count': rejected_count,
-    }
-    return render(request, 'admin_panel/worker_verification_list.html', context)
-
-
-@staff_member_required
-def verify_worker(request, worker_id):
-    """Verify a worker - Only ID document required for basic verification"""
-    worker = get_object_or_404(WorkerProfile, pk=worker_id)
-    
-    # Check if worker has ID document
-    has_id = worker.has_id_document
-    id_approved = worker.documents.filter(document_type='id', verification_status='approved').exists()
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        
-        if action in ['verify', 'approve']:
-            # Check if ID is uploaded and approved
-            if not has_id:
-                messages.error(request, f'Cannot verify {worker.user.get_full_name()} - ID document not uploaded.')
-            elif not id_approved:
-                messages.warning(request, f'Cannot verify {worker.user.get_full_name()} - ID document needs to be approved first.')
-            else:
-                worker.verification_status = 'verified'
-                worker.save()
-                messages.success(request, f'Worker {worker.user.get_full_name()} has been verified! (ID document approved - other documents are optional)')
-        elif action == 'reject':
-            worker.verification_status = 'rejected'
-            reason = request.POST.get('reason', '')
-            worker.save()
-            messages.warning(request, f'Worker {worker.user.get_full_name()} has been rejected.')
-        
-        # Check if we came from document verification page
-        referer = request.META.get('HTTP_REFERER', '')
-        if 'documents/verification' in referer:
-            return redirect('admin_panel:document_verification_list')
-        else:
-            return redirect('admin_panel:worker_verification_list')
-    
-    context = {
-        'worker': worker,
-        'has_id': has_id,
-        'id_approved': id_approved,
-    }
-    return render(request, 'admin_panel/verify_worker.html', context)
-
-
-@staff_member_required
-def document_verification_list(request):
-    """List documents grouped by worker"""
-    # Get selected worker from query params
-    selected_worker_id = request.GET.get('worker')
-    
-    # Get counts for statistics
-    pending_count = WorkerDocument.objects.filter(verification_status='pending').count()
-    approved_count = WorkerDocument.objects.filter(verification_status='approved').count()
-    rejected_count = WorkerDocument.objects.filter(verification_status='rejected').count()
-    total_count = WorkerDocument.objects.count()
-    
-    if selected_worker_id:
-        # Show documents for selected worker
-        selected_worker = get_object_or_404(WorkerProfile, id=selected_worker_id)
-        documents = WorkerDocument.objects.filter(
-            worker=selected_worker
-        ).order_by('-uploaded_at')
-        
-        context = {
-            'documents': documents,
-            'selected_worker': selected_worker,
-            'pending_count': pending_count,
-            'approved_count': approved_count,
-            'rejected_count': rejected_count,
-            'total_count': total_count,
-        }
-    else:
-        # Show list of workers with document counts
-        from django.db.models import Count, Q
-        
-        workers_with_docs = WorkerProfile.objects.filter(
-            documents__isnull=False
-        ).distinct().annotate(
-            total_docs=Count('documents'),
-            pending_docs=Count('documents', filter=Q(documents__verification_status='pending')),
-            approved_docs=Count('documents', filter=Q(documents__verification_status='approved')),
-            rejected_docs=Count('documents', filter=Q(documents__verification_status='rejected'))
-        ).order_by('user__first_name')
-        
-        context = {
-            'workers_with_docs': workers_with_docs,
-            'selected_worker': None,
-            'pending_count': pending_count,
-            'approved_count': approved_count,
-            'rejected_count': rejected_count,
-            'total_count': total_count,
-        }
-    
-    return render(request, 'admin_panel/document_verification_list.html', context)
-
-
-@staff_member_required
-def verify_document(request, doc_id):
-    """Verify a document"""
-    document = get_object_or_404(WorkerDocument, pk=doc_id)
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        
-        if action == 'approve':
-            document.verification_status = 'approved'
-            document.verified_at = timezone.now()
-            document.save()
-            messages.success(request, 'Document approved.')
-        elif action == 'reject':
-            document.verification_status = 'rejected'
-            document.rejection_reason = request.POST.get('reason', '')
-            document.save()
-            messages.warning(request, 'Document rejected.')
-        
-        return redirect('admin_panel:document_verification_list')
-    
-    return render(request, 'admin_panel/verify_document.html', {'document': document})
-
-
-@staff_member_required
 def category_list(request):
     """Manage categories - View, Add, Edit, Delete"""
     
@@ -530,6 +392,8 @@ def manage_users(request):
         users = users.filter(user_type='worker')
     elif user_type == 'client':
         users = users.filter(user_type='client')
+    elif user_type == 'agent':
+        users = users.filter(user_type='agent')
     elif user_type == 'admin':
         users = users.filter(Q(user_type='admin') | Q(is_staff=True))
     
@@ -542,6 +406,7 @@ def manage_users(request):
     if search:
         users = users.filter(
             Q(email__icontains=search) |
+            Q(username__icontains=search) |
             Q(first_name__icontains=search) |
             Q(last_name__icontains=search) |
             Q(phone_number__icontains=search)
@@ -1509,11 +1374,12 @@ def service_request_list(request):
         requests = requests.filter(category_id=category_filter)
     if payment_filter:
         if payment_filter == 'verified':
-            requests = requests.filter(payment_screenshot__isnull=False, payment_verified=True)
+            requests = requests.filter(payment_verified=True)
         elif payment_filter == 'pending':
-            requests = requests.filter(payment_screenshot__isnull=False, payment_verified=False)
+            # an empty FileField is stored as '' - isnull alone never excluded it
+            requests = requests.exclude(Q(payment_screenshot='') | Q(payment_screenshot__isnull=True)).filter(payment_verified=False)
         elif payment_filter == 'none':
-            requests = requests.filter(payment_screenshot__isnull=True)
+            requests = requests.filter(Q(payment_screenshot='') | Q(payment_screenshot__isnull=True))
     if search_query:
         requests = requests.filter(
             Q(title__icontains=search_query) |

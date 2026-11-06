@@ -66,6 +66,14 @@ def notification_center(request):
 
 
 @login_required
+def open_notification(request, notification_id):
+    """Tapping a notification: mark it read and go to what it is about."""
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.mark_as_read()
+    return redirect(notification.target_url or 'notification_center')
+
+
+@login_required
 def mark_notification_read_web(request, notification_id):
     """Mark a notification as read (web version)"""
     notification = get_object_or_404(

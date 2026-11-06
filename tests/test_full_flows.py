@@ -690,3 +690,162 @@ class CityMatchingTests(FlowBase):
         sr.save()
         self.admin_c.post(f'/dashboard/service-requests/{sr.id}/verify-payment/')
         self.assertEqual(set(sr.assignments.values_list('worker_id', flat=True)), {self.wp.id})
+
+
+class VerificationQueueTests(FlowBase):
+    """One page to review a worker and their documents; filters that filter."""
+
+    def setUp(self):
+        super().setUp()
+        from worker_connect.notification_models import Notification
+        self.Notification = Notification
+        self.pending_user = User.objects.create_user(
+            email='pend@t.co', username='pendy', password=PW, user_type='worker',
+            first_name='Pendo', last_name='Ali', phone_number='0777123456')
+        self.pending = WorkerProfile.objects.create(user=self.pending_user, verification_status='pending', city='Zanzibar')
+        self.id_doc = WorkerDocument.objects.create(worker=self.pending, document_type='id', title='ID',
+                                                    file=SimpleUploadedFile('id.png', PNG))
+        self.rejected_user = User.objects.create_user(email='rej@t.co', username='rejy', password=PW,
+                                                      user_type='worker', first_name='Rajab')
+        WorkerProfile.objects.create(user=self.rejected_user, verification_status='rejected')
+
+    def names(self, **params):
+        r = self.admin_c.get('/dashboard/workers/verification/', params)
+        self.assertEqual(r.status_code, 200)
+        return {w.user.first_name for w in r.context['page']}
+
+    def test_status_filters_and_search(self):
+        self.assertEqual(self.names(status='pending'), {'Pendo'})
+        self.assertEqual(self.names(), {'Pendo'})  # pending is the default queue
+        self.assertEqual(self.names(status='rejected'), {'Rajab'})
+        self.assertEqual(self.names(status='verified'), {'Wor', 'Two'})
+        self.assertEqual(self.names(status='all'), {'Pendo', 'Rajab', 'Wor', 'Two'})
+        self.assertEqual(self.names(status='all', q='0777123'), {'Pendo'})
+        self.assertEqual(self.names(status='all', q='zanzibar'), {'Pendo'})
+        self.assertEqual(self.names(status='all', docs='waiting'), {'Pendo'})
+        self.assertEqual(self.names(status='all', docs='none'), {'Rajab', 'Wor', 'Two'})
+
+    def test_non_staff_cannot_open_the_queue(self):
+        self.assertNotEqual(self.client_c.get('/dashboard/workers/verification/').status_code, 200)
+        self.assertNotEqual(self.client_c.get(f'/dashboard/workers/verify/{self.pending.id}/').status_code, 200)
+
+    def test_review_page_shows_profile_and_documents(self):
+        page = self.admin_c.get(f'/dashboard/workers/verify/{self.pending.id}/').content.decode()
+        self.assertIn('Pendo Ali', page)
+        self.assertIn('0777123456', page)
+        self.assertIn(self.id_doc.file.url, page)
+        self.assertIn('Approve ID', page)
+
+    def test_approve_id_and_verify_in_one_click_notifies_the_worker(self):
+        r = self.admin_c.post(f'/dashboard/workers/verify/{self.pending.id}/', {'action': 'approve_id_and_verify'})
+        self.assertEqual(r.status_code, 302)
+        self.pending.refresh_from_db()
+        self.id_doc.refresh_from_db()
+        self.assertEqual((self.pending.verification_status, self.id_doc.verification_status), ('verified', 'approved'))
+        self.assertTrue(self.Notification.objects.filter(recipient=self.pending_user, title__startswith='You are verified').exists())
+
+    def test_cannot_verify_without_an_approved_id(self):
+        self.admin_c.post(f'/dashboard/workers/verify/{self.pending.id}/', {'action': 'verify'})
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.verification_status, 'pending')
+
+    def test_document_decisions_on_the_same_page(self):
+        url = f'/dashboard/workers/verify/{self.pending.id}/'
+        # a rejection needs a reason, and the worker hears it
+        self.admin_c.post(url, {'action': 'reject_doc', 'doc_id': self.id_doc.id})
+        self.id_doc.refresh_from_db()
+        self.assertEqual(self.id_doc.verification_status, 'pending')
+        r = self.admin_c.post(url, {'action': 'reject_doc', 'doc_id': self.id_doc.id, 'reason': 'photo is blurry'})
+        self.assertRedirects(r, url, fetch_redirect_response=False)
+        self.id_doc.refresh_from_db()
+        self.assertEqual((self.id_doc.verification_status, self.id_doc.rejection_reason), ('rejected', 'photo is blurry'))
+        n = self.Notification.objects.get(recipient=self.pending_user, title='Document needs attention')
+        self.assertIn('photo is blurry', n.message)
+        self.admin_c.post(url, {'action': 'approve_doc', 'doc_id': self.id_doc.id})
+        self.id_doc.refresh_from_db()
+        self.assertEqual(self.id_doc.verification_status, 'approved')
+        # another worker's document cannot be decided from this page
+        other = WorkerDocument.objects.create(worker=self.wp, document_type='cv', title='CV',
+                                              file=SimpleUploadedFile('cv.pdf', b'%PDF-1.4'))
+        self.assertEqual(self.admin_c.post(url, {'action': 'approve_doc', 'doc_id': other.id}).status_code, 404)
+
+    def test_reject_worker_needs_reason_and_goes_to_next(self):
+        url = f'/dashboard/workers/verify/{self.pending.id}/'
+        self.admin_c.post(url, {'action': 'reject'})
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.verification_status, 'pending')
+        nxt_user = User.objects.create_user(email='nx@t.co', username='nexty', password=PW, user_type='worker', first_name='Next')
+        nxt = WorkerProfile.objects.create(user=nxt_user, verification_status='pending')
+        r = self.admin_c.post(url, {'action': 'reject', 'reason': 'fake ID', 'then': 'next'})
+        self.assertRedirects(r, f'/dashboard/workers/verify/{nxt.id}/', fetch_redirect_response=False)
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.verification_status, 'rejected')
+        self.assertIn('fake ID', self.Notification.objects.get(recipient=self.pending_user, title='Verification not approved').message)
+
+    def test_old_document_pages_lead_to_the_review_page(self):
+        self.assertRedirects(self.admin_c.get('/dashboard/documents/'),
+                             '/dashboard/workers/verification/?status=all&docs=waiting', fetch_redirect_response=False)
+        r = self.admin_c.post(f'/dashboard/documents/verify/{self.id_doc.id}/', {'action': 'approve'})
+        self.assertRedirects(r, f'/dashboard/workers/verify/{self.pending.id}/', fetch_redirect_response=False)
+        self.id_doc.refresh_from_db()
+        self.assertEqual(self.id_doc.verification_status, 'approved')
+
+
+class AdminSearchAndFilterTests(FlowBase):
+    def test_header_search_finds_people_and_bookings(self):
+        sr, _ = self.book()
+        for q, expected in [('0744555666', 'Wor Ker'), ('Cli One', 'Cli'), (f'#{sr.id}', 'Leaky tap'), ('clientone', 'Cli')]:
+            r = self.admin_c.get('/dashboard/search/', {'q': q})
+            self.assertEqual(r.status_code, 200)
+            self.assertIn(expected, r.content.decode(), q)
+        self.assertNotEqual(self.client_c.get('/dashboard/search/', {'q': 'a'}).status_code, 200)
+        self.assertIn('name="q"', self.admin_c.get('/dashboard/').content.decode())
+
+    def test_payment_filter_tells_no_proof_from_waiting(self):
+        no_proof, _ = self.book()
+        with_proof, _ = self.book()
+        with_proof.payment_screenshot = SimpleUploadedFile('p.png', PNG, 'image/png')
+        with_proof.save()
+
+        def ids(payment):
+            r = self.admin_c.get('/dashboard/service-requests/', {'payment': payment})
+            return {req.id for req in r.context['page_obj']}
+        self.assertEqual(ids('none'), {no_proof.id})
+        self.assertEqual(ids('pending'), {with_proof.id})
+        self.admin_c.post(f'/dashboard/service-requests/{with_proof.id}/verify-payment/')
+        self.assertEqual(ids('verified'), {with_proof.id})
+
+    def test_users_filter_agents_and_search_usernames(self):
+        r = self.admin_c.get('/dashboard/users/', {'type': 'agent'})
+        emails = {u['user'].email for u in r.context['users_page']}
+        self.assertEqual(emails, {'agent@t.co'})
+        r = self.admin_c.get('/dashboard/users/', {'search': 'workertwo'})
+        self.assertEqual({u['user'].email for u in r.context['users_page']}, {'worker2@t.co'})
+
+
+class NotificationLinkTests(FlowBase):
+    def test_bells_show_live_counts_and_notifications_open_their_page(self):
+        from worker_connect.notification_models import Notification
+        from worker_connect.notification_service import NotificationService
+        sr, _ = self.book()
+        for c in (self.admin_c, self.client_c):
+            page = c.get('/dashboard/' if c is self.admin_c else '/clients/dashboard/', follow=True).content.decode()
+            self.assertIn('header-notification-badge', page)
+            self.assertNotIn('<span class="notification-badge">3</span>', page)
+        NotificationService.create_notification(recipient=self.client_user, title='Worker assigned', message='x',
+                                                notification_type='job_assigned', extra_data={'service_request_id': sr.id})
+        n = Notification.objects.filter(recipient=self.client_user, title='Worker assigned').latest('id')
+        self.assertEqual(self.client_c.get('/notifications/unread-count/').json()['count'],
+                         Notification.objects.filter(recipient=self.client_user, is_read=False).count())
+        r = self.client_c.get(f'/notifications/{n.id}/open/')
+        self.assertRedirects(r, f'/services/client/request/{sr.id}/', fetch_redirect_response=False)
+        n.refresh_from_db()
+        self.assertTrue(n.is_read)
+        # someone else's notification cannot be opened
+        self.assertEqual(self.worker_c.get(f'/notifications/{n.id}/open/').status_code, 404)
+        self.assertIn(f'/notifications/{n.id}/open/', self.client_c.get('/notifications/').content.decode())
+
+    def test_client_header_search_filters_services(self):
+        Category.objects.create(name='Electrician', daily_rate=D('30000'), service_fee=D('5000'))
+        r = self.client_c.get('/clients/services/', {'q': 'plumb'})
+        self.assertEqual([s['name'] for s in r.context['services']], ['Plumber'])

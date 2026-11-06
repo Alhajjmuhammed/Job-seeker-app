@@ -1,0 +1,23 @@
+{# Live unread count for the header bell (and sidebar badge, if the page has one). #}
+<script>
+(function () {
+    const ids = ['header-notification-badge', 'sidebar-notification-badge'];
+    function show(count) {
+        ids.forEach(function (id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = count > 99 ? '99+' : count;
+            el.style.display = count > 0 ? '' : 'none';
+        });
+    }
+    function refresh() {
+        fetch('{% url "get_unread_count" %}', {credentials: 'same-origin'})
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d) show(d.count || 0); })
+            .catch(function () {});
+    }
+    refresh();
+    setInterval(refresh, 60000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+})();
+</script>
