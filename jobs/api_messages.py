@@ -123,8 +123,8 @@ def send_message_api(request):
 
     # Notify the recipient in real time (websocket + email) - this is the
     # live send endpoint the mobile app actually calls.
-    from worker_connect.notification_service import NotificationService
-    NotificationService.notify_message_received(message, user, recipient)
+    from .chat_access import notify_new_message
+    notify_new_message(message)
 
     return Response({
         'success': True,

@@ -11154,3 +11154,12 @@ msgid "%(n)s chat"
 msgid_plural "%(n)s chats"
 msgstr[0] "Mazungumzo %(n)s"
 msgstr[1] "Mazungumzo %(n)s"
+
+msgid "Chat with client"
+msgstr "Zungumza na mteja"
+
+msgid "Chat with worker"
+msgstr "Zungumza na fundi"
+
+msgid "Chat"
+msgstr "Zungumza"

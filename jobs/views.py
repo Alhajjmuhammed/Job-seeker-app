@@ -351,6 +351,8 @@ def _chat_base_template(user):
     from .chat_access import is_admin
     if is_admin(user):
         return 'admin_panel/base_admin.html'
+    if getattr(user, 'user_type', '') == 'agent':
+        return 'agents/base_agents.html'
     return 'workers/base_worker.html' if hasattr(user, 'worker_profile') else 'clients/base_client.html'
 
 
@@ -470,13 +472,8 @@ def conversation(request, user_id):
             return redirect('jobs:conversation', user_id=user_id)
         text = (request.POST.get('message') or '').strip()
         if text:
-            msg = Message.objects.create(sender=request.user, recipient=other_user, message=text[:5000])
-            try:
-                from worker_connect.notification_service import NotificationService
-                NotificationService.notify_message_received(msg, request.user, other_user)
-            except Exception:  # a failed notification must never lose the message
-                import logging
-                logging.getLogger(__name__).exception('message notification failed')
+            from .chat_access import notify_new_message
+            notify_new_message(Message.objects.create(sender=request.user, recipient=other_user, message=text[:5000]))
         return redirect('jobs:conversation', user_id=user_id)
 
     thread = list(messages_list)

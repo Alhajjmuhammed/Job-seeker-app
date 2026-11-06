@@ -69,3 +69,22 @@ def can_chat(user, other):
 
 CLOSED_REASON = ('You can chat with a worker or client only after the worker has accepted '
                  'your job. Contact support if you need help.')
+
+
+def notify_new_message(msg):
+    """
+    Bell + email for a new chat message - but only for the first one the
+    recipient hasn't read yet. A lively chat used to send one email per line;
+    now the next alert comes after they've opened the chat.
+    """
+    from .models import Message
+    earlier_unread = (Message.objects.filter(sender_id=msg.sender_id, recipient_id=msg.recipient_id, is_read=False)
+                      .exclude(pk=msg.pk).exists())
+    if earlier_unread:
+        return
+    try:
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_message_received(msg, msg.sender, msg.recipient)
+    except Exception:  # a failed alert must never lose the message
+        import logging
+        logging.getLogger(__name__).exception('message notification failed')

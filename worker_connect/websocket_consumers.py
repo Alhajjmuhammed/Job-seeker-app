@@ -289,7 +289,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         
         # Get conversation ID from URL
         self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
-        self.room_group_name = f'chat_{self.conversation_id}'
+        # One group per PAIR of people. Keyed by the other person's id alone,
+        # everyone who ever messaged that person shared a group and saw each
+        # other's typing signals.
+        self.room_group_name = chat_group_name(self.user.id, self.conversation_id)
         
         # Verify user is part of conversation
         if not await self.user_in_conversation():
@@ -387,7 +390,12 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             from jobs.models import Message
             from django.db.models import Q
-            other_user_id = self.conversation_id
+            from accounts.models import User
+            from jobs.chat_access import can_chat
+            other_user_id = int(self.conversation_id)
+            other = User.objects.filter(pk=other_user_id).first()
+            if other and can_chat(self.user, other):
+                return True
             return Message.objects.filter(
                 Q(sender_id=self.user.id, recipient_id=other_user_id) |
                 Q(sender_id=other_user_id, recipient_id=self.user.id)
@@ -397,13 +405,18 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             return False
 
 
-def send_chat_message(conversation_id: int, message_data: dict):
+def chat_group_name(user_a_id, user_b_id):
+    a, b = sorted((int(user_a_id), int(user_b_id)))
+    return f'chat_{a}_{b}'
+
+
+def send_chat_message(user_a_id: int, user_b_id: int, message_data: dict):
     """
     Send chat message to all users in a conversation via WebSocket.
     
     Usage:
         from worker_connect.websocket_consumers import send_chat_message
-        send_chat_message(conversation_id, {
+        send_chat_message(message.sender_id, message.recipient_id, {
             'id': message.id,
             'sender_id': message.sender.id,
             'sender_name': message.sender.get_full_name(),
@@ -417,7 +430,7 @@ def send_chat_message(conversation_id: int, message_data: dict):
     channel_layer = get_channel_layer()
     if channel_layer:
         async_to_sync(channel_layer.group_send)(
-            f'chat_{conversation_id}',
+            chat_group_name(user_a_id, user_b_id),
             {
                 'type': 'chat_message',
                 'data': message_data,

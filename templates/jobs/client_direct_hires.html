@@ -63,6 +63,9 @@
                         <td class="text-end">
                             <a href="{% url 'jobs:direct_hire_detail' hire.pk %}"
                                class="btn btn-sm btn-outline-primary">{% trans "View" %}</a>
+                            {% if hire.status == 'accepted' or hire.status == 'completed' %}
+                            <a href="{% url 'jobs:conversation' hire.worker.user_id %}" class="btn btn-sm btn-success" title="{% trans 'Chat' %}"><i class="bi bi-chat-dots"></i></a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

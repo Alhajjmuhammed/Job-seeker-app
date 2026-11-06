@@ -215,7 +215,8 @@
     var grow = function () { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; };
     input.addEventListener('input', grow);
     input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      /* computer: Enter sends. Phone keyboard: Enter is a new line, the green button sends. */
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !window.matchMedia('(pointer: coarse)').matches) {
         e.preventDefault();
         if (input.value.trim()) { document.getElementById('chatSend').disabled = true; form.submit(); }
       }

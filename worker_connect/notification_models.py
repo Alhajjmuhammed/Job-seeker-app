@@ -80,7 +80,10 @@ class Notification(models.Model):
             if data.get('action') == 'open_documents' and getattr(user, 'user_type', '') == 'worker':
                 return reverse('workers:document_list')
             if self.notification_type == 'message_received':
-                return reverse('workers:inbox') if user.user_type == 'worker' else None
+                # straight into the chat with whoever wrote
+                if data.get('sender_id'):
+                    return reverse('jobs:conversation', args=[data['sender_id']])
+                return reverse('jobs:inbox')
             if user.is_staff and request_id:
                 return reverse('admin_panel:service_request_detail', args=[request_id])
             if user.user_type == 'worker' and data.get('assignment_id'):

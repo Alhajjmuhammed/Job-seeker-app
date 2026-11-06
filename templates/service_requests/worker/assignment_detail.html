@@ -102,6 +102,9 @@
       <strong>{{ service_request.client.get_full_name|default:service_request.client.username }}</strong>
       {% if assignment.status == 'accepted' or assignment.status == 'in_progress' %}
         {% if service_request.client.phone_number %}<a class="small" href="tel:{{ service_request.client.phone_number }}"><i class="bi bi-telephone"></i> {{ service_request.client.phone_number }}</a>{% endif %}
+      {% endif %}
+      {% if assignment.status == 'accepted' or assignment.status == 'in_progress' or assignment.status == 'completed' %}
+        <div class="mt-2"><a class="btn btn-sm btn-success py-1" href="{% url 'jobs:conversation' service_request.client_id %}"><i class="bi bi-chat-dots"></i> {% trans "Chat with client" %}</a></div>
       {% elif assignment.status == 'pending' %}<small>{% trans "Contact details show after you accept." %}</small>{% endif %}
     </div></div>
     {% if service_request.description %}

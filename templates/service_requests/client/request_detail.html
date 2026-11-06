@@ -328,6 +328,10 @@
                             </span>
                             {% endif %}
                             
+                            {% if assignment.status == 'accepted' or assignment.status == 'in_progress' or assignment.status == 'completed' %}
+                            <div class="mt-2"><a class="btn btn-sm btn-success" href="{% url 'jobs:conversation' assignment.worker.user_id %}"><i class="bi bi-chat-dots"></i> {% trans "Chat with worker" %}</a></div>
+                            {% endif %}
+
                             {% if assignment.accepted_at %}
                             <p class="text-muted small mt-1 mb-0">
                                 <i class="bi bi-calendar-check"></i> Accepted on {{ assignment.accepted_at|date:"M d, Y g:i A" }}

@@ -1126,3 +1126,41 @@ class ChatTests(FlowBase):
         DirectHireRequest.objects.filter(pk=b.pk).update(status='accepted')
         self.assertEqual(post_json(self.client_c, '/api/messages/send/',
                                    {'recipient_id': self.worker2_user.id, 'message': 'y'}).status_code, 200)
+
+    def test_accepting_on_the_website_opens_chat_and_shows_chat_buttons(self):
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        asg = ServiceRequestAssignment.objects.get(service_request=sr, worker=self.wp)
+        page = self.worker_c.get(f'/services/worker/assignment/{asg.id}/').content.decode()
+        self.assertNotIn('Chat with client', page)
+        self.worker_c.post(f'/services/worker/assignment/{asg.id}/respond/', {'action': 'accept'})
+        self.assertContains(self.worker_c.get(f'/services/worker/assignment/{asg.id}/'),
+                            f'/jobs/conversation/{self.client_user.id}/')
+        self.assertContains(self.client_c.get(f'/services/client/request/{sr.id}/'),
+                            f'/jobs/conversation/{self.worker_user.id}/')
+        self.send(self.worker_c, self.client_user, 'from the website')
+        self.assertTrue(Message.objects.filter(message='from the website').exists())
+
+    def test_one_alert_per_unread_batch_and_it_opens_the_chat(self):
+        from worker_connect.notification_models import Notification
+        before = Notification.objects.filter(recipient=self.admin).count()
+        for t in ('a', 'b', 'c'):
+            self.send(self.worker_c, self.admin, t)
+        notes = Notification.objects.filter(recipient=self.admin).order_by('-id')
+        self.assertEqual(notes.count() - before, 1)
+        self.assertEqual(notes.first().target_url, f'/jobs/conversation/{self.worker_user.id}/')
+        self.admin_c.get(f'/jobs/conversation/{self.worker_user.id}/')  # reads them
+        self.send(self.worker_c, self.admin, 'd')
+        self.assertEqual(Notification.objects.filter(recipient=self.admin).count() - before, 2)
+
+    def test_agent_messages_page_uses_the_agent_layout(self):
+        ag = Client(); ag.force_login(self.agent_user)
+        r = ag.get('/jobs/inbox/')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'agent-sidebar')
+        self.assertContains(r, 'Worker Connect support')
+
+    def test_chat_socket_groups_are_per_pair(self):
+        from worker_connect.websocket_consumers import chat_group_name
+        self.assertEqual(chat_group_name(5, 9), chat_group_name(9, 5))
+        self.assertNotEqual(chat_group_name(5, 9), chat_group_name(7, 9))
