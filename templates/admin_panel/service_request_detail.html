@@ -1,8 +1,9 @@
 {% extends "admin_panel/base_admin.html" %}
-{% load i18n %}
+{% load i18n humanize %}
 {% load static %}
 
 {% block title %}Service Request #{{ service_request.id }} - Admin Panel{% endblock %}
+{% block page_title %}{% trans "Booking" %} #{{ service_request.id }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -110,8 +111,8 @@
                             </p>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small">{% trans "Estimated Duration" %}</label>
-                            <p class="mb-0"><strong>{{ service_request.estimated_duration_hours }} hours</strong></p>
+                            <label class="text-muted small">{% trans "Duration" %}</label>
+                            <p class="mb-0"><strong>{{ service_request.duration_type_display|default:"—" }}</strong>{% if service_request.workers_needed > 1 %} · {{ service_request.workers_needed }} {% trans "workers" %}{% endif %}</p>
                         </div>
                         <div class="col-12">
                             <label class="text-muted small">{% trans "Description" %}</label>
@@ -130,6 +131,7 @@
                                 <i class="bi bi-calendar me-1"></i>
                                 {% if service_request.preferred_date %}
                                 {{ service_request.preferred_date|date:"M d, Y" }}
+                                {% else %}<span class="text-muted">{% trans "Not set" %}</span>
                                 {% endif %}
                                 {% if service_request.preferred_time %}
                                 at {{ service_request.preferred_time|time:"g:i A" }}
@@ -208,7 +210,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small">{% trans "Amount" %}</label>
-                            <p class="mb-0"><strong class="text-success">TSH {{ service_request.total_price|floatformat:2 }}</strong></p>
+                            <p class="mb-0"><strong class="text-success">TSh {{ service_request.total_price|floatformat:0|intcomma }}</strong>
+                                <small class="text-muted d-block">TSh {{ service_request.daily_rate|floatformat:0|intcomma }} × {{ service_request.workers_needed }} + {% trans "fee" %} TSh {{ service_request.service_fee|floatformat:0|intcomma }}</small></p>
                         </div>
                         {% if service_request.payment_method %}
                         <div class="col-md-6">
@@ -398,7 +401,7 @@
                                 {% endif %}
                                 {% if assignment.worker_payment %}
                                 <div class="col-6">
-                                    <strong>{% trans "Payment:" %}</strong> TSH {{ assignment.worker_payment }}
+                                    <strong>{% trans "Payment:" %}</strong> TSh {{ assignment.worker_payment|floatformat:0|intcomma }}
                                 </div>
                                 {% endif %}
                             </div>

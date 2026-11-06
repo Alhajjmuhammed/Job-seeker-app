@@ -4318,10 +4318,9 @@ msgstr "Jumla ya Huduma"
 
 # User Types
 #: templates/clients/dashboard.html:143
-#, fuzzy
 #| msgid "Worker"
 msgid "workers"
-msgstr "Mfanyakazi"
+msgstr "mafundi"
 
 #: templates/clients/dashboard.html:145
 #, fuzzy
@@ -4669,7 +4668,7 @@ msgstr "Maelezo ya Ziada"
 #: templates/service_requests/client/request_service.html:401
 #: templates/service_requests/worker/clock_out.html:74
 msgid "Note:"
-msgstr ""
+msgstr "Ujumbe:"
 
 #: templates/clients/request_service.html:380
 #: templates/service_requests/client/request_service.html:410
@@ -6579,7 +6578,7 @@ msgstr ""
 
 #: templates/jobs/direct_hire_reject.html:39
 msgid "Decline job"
-msgstr ""
+msgstr "Kataa kazi"
 
 #: templates/jobs/direct_hire_request_form.html:60
 #, fuzzy
@@ -8823,7 +8822,7 @@ msgstr ""
 #: templates/service_requests/worker/pending.html:46
 #: templates/service_requests/worker/respond.html:59
 msgid "hours"
-msgstr ""
+msgstr "saa"
 
 #: templates/service_requests/worker/clock_out.html:102
 #, fuzzy
@@ -10852,3 +10851,66 @@ msgid "%(n)s job waiting for your answer"
 msgid_plural "%(n)s jobs waiting for your answer"
 msgstr[0] "Kazi %(n)s inasubiri jibu lako"
 msgstr[1] "Kazi %(n)s zinasubiri jibu lako"
+
+msgid "Can you take this job?"
+msgstr "Unaweza kuchukua kazi hii?"
+
+msgid "I can't take it"
+msgstr "Siwezi kuichukua"
+
+msgid "Why? (optional)"
+msgstr "Kwa nini? (si lazima)"
+
+msgid "Clocked in since"
+msgstr "Umeingia kazini tangu"
+
+msgid "Clock in"
+msgstr "Ingia kazini"
+
+msgid "Job finished"
+msgstr "Kazi imekamilika"
+
+msgid "Job completed. Well done!"
+msgstr "Kazi imekamilika. Hongera!"
+
+msgid "This job is closed."
+msgstr "Kazi hii imefungwa."
+
+msgid "You earn"
+msgstr "Utapata"
+
+msgid "Date to be agreed"
+msgstr "Tarehe itakubaliwa"
+
+msgid "Open in maps"
+msgstr "Fungua kwenye ramani"
+
+msgid "Contact details show after you accept."
+msgstr "Mawasiliano yataonekana baada ya kukubali."
+
+msgid "Time worked"
+msgstr "Muda uliofanya kazi"
+
+msgid "now"
+msgstr "sasa"
+
+msgid "Not set"
+msgstr "Haijawekwa"
+
+msgid "fee"
+msgstr "ada"
+
+msgid "Your skills and experience"
+msgstr "Ujuzi na uzoefu wako"
+
+msgid "Search, e.g. carpenter"
+msgstr "Tafuta, mf. seremala"
+
+msgid "Search categories"
+msgstr "Tafuta aina za kazi"
+
+msgid "No category matches. Add your own below after saving."
+msgstr "Hakuna inayolingana. Ongeza yako hapa chini baada ya kuhifadhi."
+
+msgid "Notification settings"
+msgstr "Mipangilio ya taarifa"

@@ -935,3 +935,53 @@ class DashboardTests(FlowBase):
         page = c.get('/').content.decode()
         self.assertIn('Pata fundi', page)
         self.assertIn('Jiunge kama fundi', page)
+
+
+class WorkerJobPageTests(FlowBase):
+    def test_worker_sees_their_pay_and_client_phone_only_after_accepting(self):
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        asg = ServiceRequestAssignment.objects.get(service_request=sr, worker=self.wp)
+        url = f'/services/worker/assignment/{asg.id}/'
+        page = self.worker_c.get(url).content.decode()
+        self.assertIn('TSh 25,000', page)          # what the worker earns
+        self.assertNotIn('TSh 30,000', page)       # not the client's total with the fee
+        self.assertNotIn(self.client_user.phone_number, page)
+        self.assertIn('Accept job', page)
+        post_json(self.worker_c, f'/api/v1/worker/my-assignments/{asg.id}/respond/', {'accepted': True})
+        page = self.worker_c.get(url).content.decode()
+        self.assertIn(f'tel:{self.client_user.phone_number}', page)
+        self.assertIn('Clock in', page)
+        self.assertIn('google.com/maps', page)
+
+    def test_profile_edit_has_category_search(self):
+        page = self.worker_c.get('/workers/profile/edit/').content.decode()
+        self.assertIn('id="categorySearch"', page)
+        self.assertNotIn('experience, and rates', page)
+
+    def test_admin_booking_page_shows_price_breakdown(self):
+        sr, _ = self.book()
+        page = self.admin_c.get(f'/dashboard/service-requests/{sr.id}/').content.decode()
+        self.assertIn('TSh 30,000', page)
+        self.assertNotIn('None hours', page)
+
+
+class TemplateHygieneTests(TestCase):
+    def test_no_template_has_a_multiline_hash_comment(self):
+        # {# #} only works on one line; a multi-line one is printed on the page
+        import re
+        from pathlib import Path
+        from django.conf import settings
+        bad = []
+        for path in Path(settings.BASE_DIR, 'templates').rglob('*.html'):
+            text = path.read_text(encoding='utf-8', errors='ignore')
+            for m in re.finditer(r'\{#(?:(?!#\}).)*?\n', text, re.S):
+                bad.append(f'{path.name}:{text[:m.start()].count(chr(10)) + 1}')
+        self.assertEqual(bad, [])
+
+    def test_emails_have_real_contact_details(self):
+        from django.template.loader import render_to_string
+        html = render_to_string('emails/generic_notification.html', {'title': 't', 'message': 'm'})
+        self.assertNotIn('Business Street', html)
+        self.assertNotIn('href="#"', html)
+        self.assertIn('sales@easyfix.co.tz', html)

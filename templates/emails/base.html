@@ -24,7 +24,7 @@
         
         /* Header */
         .email-header {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
             padding: 30px 40px;
             text-align: center;
         }
@@ -63,7 +63,7 @@
         .btn {
             display: inline-block;
             padding: 14px 28px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
             color: #ffffff !important;
             text-decoration: none;
             border-radius: 8px;
@@ -73,7 +73,7 @@
         }
         
         .btn:hover {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
         }
         
         .btn-secondary {
@@ -82,15 +82,15 @@
         
         /* Info box */
         .info-box {
-            background-color: #f0f9ff;
-            border-left: 4px solid #2563eb;
+            background-color: #f0fdfa;
+            border-left: 4px solid #14b8a6;
             padding: 20px;
             margin: 20px 0;
             border-radius: 0 8px 8px 0;
         }
         
         .info-box h3 {
-            color: #1e40af;
+            color: #115e59;
             margin-top: 0;
             margin-bottom: 10px;
             font-size: 16px;
@@ -217,16 +217,12 @@
         
         <!-- Footer -->
         <div class="email-footer">
-            <div class="social-links">
-                <a href="#">{% trans "Facebook" %}</a>
-                <a href="#">{% trans "Twitter" %}</a>
-                <a href="#">{% trans "LinkedIn" %}</a>
-            </div>
-            <p>{% trans "Worker Connect, Inc." %}</p>
-            <p>{% trans "123 Business Street, City, State 12345" %}</p>
+            {% comment %}Real contact details - this used to be a template placeholder with a made-up street address and dead links.{% endcomment %}
+            <p><strong>Worker Connect</strong> · EasyFix Company Limited</p>
+            <p>Fumba Road, Zanzibar, Tanzania</p>
+            <p><a href="mailto:sales@easyfix.co.tz" style="color:#0f766e;">sales@easyfix.co.tz</a> · +255 790 476 113</p>
             <div class="unsubscribe">
-                <a href="{{ unsubscribe_url|default:'#' }}">{% trans "Unsubscribe" %}</a> | 
-                <a href="{{ preferences_url|default:'#' }}">{% trans "Email Preferences" %}</a>
+                <a href="{{ preferences_url|default:'https://workersearch.co.tz/notifications/' }}">{% trans "Notification settings" %}</a>
             </div>
         </div>
     </div>

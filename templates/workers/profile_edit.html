@@ -636,7 +636,7 @@
                     </div>
                     <div class="section-title">
                         <h2>{% trans "Professional Details" %}</h2>
-                        <p>{% trans "Your skills, experience, and rates" %}</p>
+                        <p>{% trans "Your skills and experience" %}</p>
                     </div>
                 </div>
 
@@ -668,14 +668,35 @@
                     </div>
                 </div>
 
-                <div class="checkbox-grid">
+                {# 200+ categories: searchable, chosen ones first, the list scrolls #}
+                <input type="search" id="categorySearch" class="form-control mb-2" placeholder="{% trans 'Search, e.g. carpenter' %}" aria-label="{% trans 'Search categories' %}">
+                <div class="checkbox-grid" id="categoryList" style="max-height: 320px; overflow-y: auto;">
                     {% for checkbox in form.categories %}
-                        <div class="checkbox-item">
+                        <div class="checkbox-item" data-name="{{ checkbox.choice_label|lower }}">
                             {{ checkbox.tag }}
                             <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
                         </div>
                     {% endfor %}
                 </div>
+                <p class="small text-muted mt-1 mb-0" id="categoryNone" style="display:none;">{% trans "No category matches. Add your own below after saving." %}</p>
+                <script>
+                (function () {
+                    const list = document.getElementById('categoryList');
+                    const items = Array.from(list.querySelectorAll('.checkbox-item'));
+                    // the worker's own categories first
+                    items.filter(i => i.querySelector('input').checked).reverse().forEach(i => list.prepend(i));
+                    document.getElementById('categorySearch').addEventListener('input', function () {
+                        const q = this.value.trim().toLowerCase();
+                        let shown = 0;
+                        items.forEach(i => {
+                            const hit = !q || i.dataset.name.includes(q) || i.querySelector('input').checked;
+                            i.style.display = hit ? '' : 'none';
+                            if (hit) shown++;
+                        });
+                        document.getElementById('categoryNone').style.display = shown ? 'none' : '';
+                    });
+                })();
+                </script>
                 
                 <!-- Custom Categories -->
                 {% if custom_categories %}
