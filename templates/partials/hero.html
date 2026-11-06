@@ -1,0 +1,14 @@
+{% load i18n %}{% comment %}
+  Dark green greeting banner at the top of each home page.
+  Include with: subtitle="..." and optionally action_url / action_label / action_icon.
+{% endcomment %}
+<div class="ui-hero">
+    <div>
+        <div class="ui-hero-eyebrow">{% trans "Dashboard" %} · {% now "F Y" %}</div>
+        <h1 class="ui-hero-title">{% blocktrans with name=request.user.first_name|default:request.user.username %}Hello, {{ name }}{% endblocktrans %} 👋</h1>
+        {% if subtitle %}<p class="ui-hero-sub">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if action_url %}
+    <a href="{{ action_url }}" class="ui-hero-btn"><i class="bi {{ action_icon|default:'bi-plus-lg' }}"></i> {{ action_label }}</a>
+    {% endif %}
+</div>

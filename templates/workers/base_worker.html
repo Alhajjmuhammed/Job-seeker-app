@@ -641,7 +641,7 @@
     <aside class="worker-sidebar" id="workerSidebar">
         <a href="{% url 'workers:dashboard' %}" class="sidebar-brand">
             <img src="{% static 'images/logo.png' %}" alt="Worker Connect">
-            <span class="sidebar-brand-text">{% trans "Worker Panel" %}</span>
+            <span class="sidebar-brand-text">Worker <em>Connect</em><small>{% trans "Worker Panel" %}</small></span>
         </a>
         
         <nav class="sidebar-nav">
@@ -696,6 +696,7 @@
                 <span class="stat-badge notification-badge" id="sidebar-notification-badge" style="display: none;">0</span>
             </a>
         </nav>
+        {% trans "Worker" as side_role %}{% include "partials/sidebar_user.html" with role=side_role %}
     </aside>
     
     <!-- Sidebar Overlay (Mobile) -->
@@ -710,7 +711,7 @@
                     <button type="button" class="sidebar-toggle-btn" id="sidebarToggle">
                         <i class="bi bi-list"></i>
                     </button>
-                    <h1 class="page-title-header" id="pageTitleHeader">{% block page_title %}{% endblock %}</h1>
+                    <div class="ui-header-titles"><h1 class="page-title-header" id="pageTitleHeader">{% block page_title %}{% endblock %}</h1><span class="ui-today d-none d-sm-inline">{% now "l, j F Y" %}</span></div>
                 </div>
                 
                 <!-- Right Side -->

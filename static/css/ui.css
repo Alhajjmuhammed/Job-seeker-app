@@ -205,3 +205,204 @@ a:not(.btn):not(.nav-link):not(.sidebar-nav-item):not(.list-group-item):not(.dro
 :is(.admin-content, .client-content, .worker-content, .agent-content) .btn-group .btn,
 :is(.admin-content, .client-content, .worker-content, .agent-content) .d-flex.gap-1 > .btn,
 :is(.admin-content, .client-content, .worker-content, .agent-content) .d-flex.gap-2 > .btn-sm { font-size: .85rem; }
+
+/* =====================================================================
+ * Sidebar + cards: the EasyFix dashboard design (dark green sidebar,
+ * light-green active item with a left bar, "signed in as" box, number
+ * cards with an uppercase label and a tinted icon square).
+ * ===================================================================== */
+:root {
+    --ui-side-bg: #0b3d33;
+    --ui-side-bg-2: #062a23;
+    --ui-side-text: rgba(255, 255, 255, .78);
+    --ui-side-muted: rgba(255, 255, 255, .42);
+    --ui-side-active: rgba(52, 211, 153, .16);
+    --ui-side-accent: #34d399;
+}
+
+/* ---------- sidebar shell ---------- */
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) {
+    background-color: var(--ui-side-bg) !important;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+        linear-gradient(180deg, var(--ui-side-bg) 0%, var(--ui-side-bg-2) 100%) !important;
+    background-size: 14px 14px, 100% 100% !important;
+    border-right: 0 !important;
+    display: flex;
+    flex-direction: column;
+    color: var(--ui-side-text);
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar)::-webkit-scrollbar { width: 6px; }
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar)::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .18) !important; border-radius: 6px; }
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar)::-webkit-scrollbar-track { background: transparent !important; }
+
+/* brand */
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-brand, .brand) {
+    color: #fff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .08) !important;
+    padding: 1.25rem 1.25rem !important;
+    flex-shrink: 0;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-brand, .brand) img {
+    width: 40px !important; height: 40px !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+}
+:is(.sidebar-brand-text, .brand-text) { line-height: 1.15; font-size: 1.05rem; font-weight: 800; color: #fff; }
+:is(.sidebar-brand-text, .brand-text) em { font-style: normal; color: var(--ui-side-accent); }
+:is(.sidebar-brand-text, .brand-text) small { display: block; font-size: .72rem; font-weight: 500; color: var(--ui-side-muted); margin-top: 2px; }
+
+/* section labels */
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-section-title, .section-title) {
+    color: var(--ui-side-muted) !important;
+    font-size: .68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .1em !important;
+    padding: 1.1rem 1.5rem .45rem !important;
+}
+
+/* items */
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-nav-item, .nav-link) {
+    color: var(--ui-side-text) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    margin: 2px .75rem !important;
+    padding: .6rem .9rem !important;
+    font-weight: 500 !important;
+    position: relative;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-nav-item, .nav-link) i { color: inherit !important; opacity: .9; }
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-nav-item, .nav-link):hover {
+    background: rgba(255, 255, 255, .06) !important;
+    color: #fff !important;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-nav-item, .nav-link).active {
+    background: var(--ui-side-active) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-nav-item, .nav-link).active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--ui-side-accent);
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.sidebar-nav-item, .nav-link).active :is(i, span, .nav-text, .nav-label) { color: #fff !important; }
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) :is(.stat-badge, .nav-badge, .badge) {
+    background: var(--ui-side-accent) !important;
+    color: #053b2f !important;
+}
+:is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) .sidebar-nav { padding: .5rem 0 1rem !important; }
+
+/* "signed in as" */
+.ui-side-user {
+    margin: auto .9rem 1rem;
+    padding: .75rem .9rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .08);
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+.ui-side-user-label { font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ui-side-muted); }
+.ui-side-user strong { color: #fff; font-size: .9rem; margin-top: .2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-side-user-role { color: var(--ui-side-accent); font-size: .78rem; }
+.collapsed .ui-side-user { display: none; }
+
+/* dark mode: same green, a touch deeper */
+[data-bs-theme="dark"] :is(.admin-sidebar, .client-sidebar, .worker-sidebar, .agent-sidebar) { --ui-side-bg: #082e27; --ui-side-bg-2: #041b16; }
+
+/* ---------- top bar: today's date ---------- */
+.ui-today { font-size: .8rem; color: var(--ui-muted); white-space: nowrap; }
+.ui-header-titles { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.ui-header-titles .page-title-header { margin: 0; }
+:is(.admin-header, .client-header, .worker-header, .agent-header) .user-avatar-placeholder {
+    background: var(--ui-side-bg) !important;
+    color: #fff !important;
+}
+
+/* ---------- greeting banner ---------- */
+.ui-hero {
+    background-color: var(--ui-side-bg);
+    background-image:
+        radial-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+        linear-gradient(120deg, #0b3d33 0%, #0f5244 60%, #0b3d33 100%);
+    background-size: 14px 14px, 100% 100%;
+    color: #fff;
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.ui-hero-eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ui-side-accent); }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .ui-hero-title { font-size: 1.6rem !important; font-weight: 800; color: #fff !important; margin: .35rem 0 .2rem; }
+.ui-hero-sub { margin: 0; color: rgba(255, 255, 255, .7); font-size: .92rem; }
+.ui-hero-btn {
+    background: #fff; color: #0b3d33 !important; font-weight: 700; border-radius: 10px;
+    padding: .65rem 1.2rem; text-decoration: none; white-space: nowrap;
+}
+.ui-hero-btn:hover { background: #ecfdf5; }
+
+/* ---------- number card ---------- */
+.ui-stat {
+    display: block;
+    height: 100%;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+    padding: 1rem 1.1rem;
+    color: var(--bs-body-color) !important;
+    text-decoration: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+a.ui-stat:hover { border-color: #a7f3d0; box-shadow: 0 4px 14px rgba(15, 23, 42, .07); }
+.ui-stat-dim .ui-stat-value { color: var(--ui-muted); }
+.ui-stat-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+.ui-stat-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ui-muted); padding-top: .2rem; }
+.ui-stat-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+}
+.ui-tone-green  { background: #d1fae5; color: #047857; }
+.ui-tone-purple { background: #ede9fe; color: #6d28d9; }
+.ui-tone-orange { background: #ffedd5; color: #c2410c; }
+.ui-tone-blue   { background: #dbeafe; color: #1d4ed8; }
+.ui-tone-red    { background: #fee2e2; color: #b91c1c; }
+.ui-stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.1; margin-top: .35rem; letter-spacing: -.01em; }
+.ui-stat-sub { font-size: .78rem; color: var(--ui-muted); margin-top: .3rem; }
+
+/* older number boxes follow the same label style */
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.stat-card, .stats-card, .stat-box) :is(h3, h4, h6, .stat-label, .label, .stat-header, p:not(.stat-value)) {
+    text-transform: uppercase !important;
+    letter-spacing: .08em !important;
+    font-size: .7rem !important;
+    font-weight: 700 !important;
+}
+
+/* ---------- content card heading: title, subtitle, "Details" link ---------- */
+.ui-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-bottom: .75rem; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .ui-card-head h2 { font-size: 1rem !important; font-weight: 700; margin: 0; }
+.ui-card-head p { margin: .1rem 0 0; font-size: .8rem; color: var(--ui-muted); }
+.ui-card-head a { font-size: .82rem; font-weight: 600; white-space: nowrap; text-decoration: none; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.card, .ad-card, .ch-card, .wh-card) { border-radius: 14px; }
+
+/* ---------- tables: square corners, serial number column ---------- */
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.table, .table-responsive, .table > thead > tr > th, .table > tbody > tr > td) { border-radius: 0 !important; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.card, .ad-card, .ch-card, .wh-card, .table-card, .table-container, .table-wrapper):has(.table) { border-radius: 0 !important; overflow: hidden; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :is(.card, .ad-card, .ch-card, .wh-card):has(.table) > :is(.card-header, .card-footer) { border-radius: 0 !important; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) .table :is(th, td).ui-sn { width: 52px; text-align: center; color: var(--ui-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+:is(.admin-content, .client-content, .worker-content, .agent-content) :has(> .table-responsive > .table) { border-radius: 0 !important; }

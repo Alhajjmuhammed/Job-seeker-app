@@ -1,0 +1,12 @@
+{% comment %}
+  One number card, the same on every page.
+  Include with: label, value, sub (optional), icon (bootstrap icon class), tone (green|purple|orange|blue|red), url (optional).
+{% endcomment %}
+{% if url %}<a href="{{ url }}" class="ui-stat ui-stat-link{% if dim %} ui-stat-dim{% endif %}">{% else %}<div class="ui-stat{% if dim %} ui-stat-dim{% endif %}">{% endif %}
+    <div class="ui-stat-top">
+        <span class="ui-stat-label">{{ label }}</span>
+        {% if icon %}<span class="ui-stat-icon ui-tone-{{ tone|default:'green' }}"><i class="bi {{ icon }}"></i></span>{% endif %}
+    </div>
+    <div class="ui-stat-value">{{ value }}</div>
+    {% if sub %}<div class="ui-stat-sub">{{ sub }}</div>{% endif %}
+{% if url %}</a>{% else %}</div>{% endif %}

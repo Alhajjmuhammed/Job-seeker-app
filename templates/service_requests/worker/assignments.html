@@ -500,6 +500,7 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th class="ui-sn">{% trans "SN" %}</th>
                         <th>{% trans "Service" %}</th>
                         <th>{% trans "Category" %}</th>
                         <th>{% trans "Client" %}</th>
@@ -513,6 +514,7 @@
                 <tbody>
                     {% for assignment in assignments %}
                     <tr>
+                        <td class="ui-sn">{{ forloop.counter0|add:assignments.start_index }}</td>
                         <td><strong>{{ assignment.service_request.title }}</strong></td>
                         <td>{{ assignment.service_request.category.name }}</td>
                         <td>{{ assignment.service_request.client.get_full_name }}</td>

@@ -242,7 +242,7 @@
 <nav class="agent-sidebar" id="agentSidebar">
     <a href="{% url 'agents:dashboard' %}" class="brand" style="text-decoration:none">
         <img src="{% static 'images/logo.png' %}" alt="Worker Connect">
-        <span class="brand-text">{% trans "Agent Portal" %}</span>
+        <span class="brand-text">Worker <em>Connect</em><small>{% trans "Agent Portal" %}</small></span>
     </a>
     <ul class="nav flex-column mt-2 pb-4">
         <div class="section-title">{% trans "OVERVIEW" %}</div>
@@ -271,6 +271,7 @@
             </a>
         </li>
     </ul>
+{% trans "Agent" as side_role %}{% include "partials/sidebar_user.html" with role=side_role %}
 </nav>
 
 <!-- Sidebar Overlay (Mobile) -->
@@ -282,7 +283,7 @@
         <button type="button" class="sidebar-toggle-btn" id="sidebarToggle">
             <i class="bi bi-list"></i>
         </button>
-        <h6 class="mb-0 fw-semibold" style="color:#111827">{% block page_title %}Dashboard{% endblock %}</h6>
+        <div class="ui-header-titles"><h6 class="mb-0 fw-semibold page-title-header" style="color:#111827">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</h6><span class="ui-today d-none d-sm-inline">{% now "l, j F Y" %}</span></div>
     </div>
     <div class="d-flex align-items-center gap-3">
         {% if request.user.agent_profile.is_verified %}

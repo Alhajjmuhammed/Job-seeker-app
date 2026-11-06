@@ -904,7 +904,7 @@ msgstr "Simu"
 #: templates/admin_panel/agent_detail.html:37
 #: templates/admin_panel/agent_list.html:52 templates/agents/profile.html:36
 msgid "Commission"
-msgstr ""
+msgstr "Kamisheni"
 
 # User Types
 #: templates/admin_panel/agent_detail.html:39
@@ -3847,10 +3847,9 @@ msgstr ""
 #: templates/admin_panel/worker_verification_list.html:278
 #: templates/clients/worker_detail.html:1056
 #: templates/jobs/application_detail.html:43
-#, fuzzy
 #| msgid "Jobs Completed"
 msgid "Jobs completed"
-msgstr "Kazi Zilizokamilika"
+msgstr "Kazi zilizokamilika"
 
 #: templates/admin_panel/worker_verification_list.html:289
 msgid "Offline"
@@ -4084,7 +4083,7 @@ msgstr ""
 #: templates/service_requests/client/dashboard.html:205
 #: templates/service_requests/client/my_requests.html:215
 msgid "SN"
-msgstr ""
+msgstr "Na."
 
 #: templates/agents/workers.html:85
 msgid "No workers in your team yet."
@@ -10179,10 +10178,9 @@ msgstr ""
 
 # Jobs & Assignments
 #: templates/workers/public_profile.html:44
-#, fuzzy
 #| msgid "Jobs"
 msgid "Jobs done"
-msgstr "Kazi"
+msgstr "Kazi zilizokamilika"
 
 #: templates/workers/public_profile.html:48
 msgid "Years"
@@ -10929,3 +10927,99 @@ msgstr "Faili lako halikupatikana kwenye mfumo wetu. Tafadhali lipakie tena"
 
 msgid "Total spent (TSh)"
 msgstr "Jumla iliyotumika (TSh)"
+
+msgid "Signed in as"
+msgstr "Umeingia kama"
+
+msgid "Hello, %(name)s"
+msgstr "Habari, %(name)s"
+
+msgid "Here is what needs you today."
+msgstr "Haya ndiyo yanayokusubiri leo."
+
+msgid "nothing waiting"
+msgstr "hakuna kinachosubiri"
+
+msgid "Verified workers"
+msgstr "Mafundi waliothibitishwa"
+
+msgid "of %(n)s registered"
+msgstr "kati ya %(n)s waliosajiliwa"
+
+msgid "registered"
+msgstr "wamesajiliwa"
+
+msgid "Bookings this month"
+msgstr "Maombi mwezi huu"
+
+msgid "%(n)s active now"
+msgstr "%(n)s yanaendelea sasa"
+
+msgid "TSh %(n)s paid"
+msgstr "TSh %(n)s zimelipwa"
+
+msgid "Sign-ups"
+msgstr "Usajili"
+
+msgid "Last %(n)s days"
+msgstr "Siku %(n)s zilizopita"
+
+msgid "Latest sign-ups"
+msgstr "Waliojisajili karibuni"
+
+msgid "Most recent first"
+msgstr "Vipya kwanza"
+
+msgid "for a worker"
+msgstr "fundi"
+
+msgid "being worked on"
+msgstr "yanafanyiwa kazi"
+
+msgid "Spent"
+msgstr "Umetumia"
+
+msgid "in total"
+msgstr "kwa jumla"
+
+msgid "You are: %(s)s"
+msgstr "Hali yako: %(s)s"
+
+msgid "out of 5"
+msgstr "kati ya 5"
+
+msgid "This week"
+msgstr "Wiki hii"
+
+msgid "earned"
+msgstr "umepata"
+
+msgid "earned so far"
+msgstr "ulichopata hadi sasa"
+
+msgid "Your workers and commission at a glance."
+msgstr "Mafundi wako na kamisheni kwa haraka."
+
+msgid "Total workers"
+msgstr "Mafundi wote"
+
+msgid "linked to you"
+msgstr "waliounganishwa nawe"
+
+msgid "ready for jobs"
+msgstr "tayari kwa kazi"
+
+msgid "waiting for review"
+msgstr "wanasubiri ukaguzi"
+
+msgid "at %(r)s%%"
+msgstr "kwa %(r)s%%"
+
+msgid "Total requests"
+msgstr "Maombi yote"
+
+msgid "all time"
+msgstr "tangu mwanzo"
+
+msgid "need a worker"
+msgstr "yanahitaji fundi"

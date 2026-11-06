@@ -21,13 +21,8 @@
 </style>
 
 <div class="container-fluid py-3" style="max-width: 1100px;">
-  <div class="ch-hero mb-3">
-    <div>
-      <h1>{% blocktrans with name=user.first_name|default:user.username %}Hi {{ name }}{% endblocktrans %} 👋</h1>
-      <p>{% trans "What do you need done today?" %}</p>
-    </div>
-    <a href="{% url 'service_requests_web:client_request_service' %}" class="btn"><i class="bi bi-plus-lg"></i> {% trans "Book a worker" %}</a>
-  </div>
+  {% trans "What do you need done today?" as hero_sub %}{% trans "Book a worker" as hero_btn %}{% url 'service_requests_web:client_request_service' as hero_url %}
+  {% include "partials/hero.html" with subtitle=hero_sub action_url=hero_url action_label=hero_btn %}
 
   {# ---------- things to do ---------- #}
   {% for r in to_do %}
@@ -47,17 +42,22 @@
   {% if has_bookings %}
   {# ---------- counts ---------- #}
   <div class="row g-3 mb-3">
-    <div class="col-6 col-md-3"><a class="ch-card ch-count d-block text-reset text-decoration-none" href="{% url 'service_requests_web:client_my_requests' %}?status=pending"><div class="n">{{ counts.waiting }}</div><small>{% trans "waiting for a worker" %}</small></a></div>
-    <div class="col-6 col-md-3"><a class="ch-card ch-count d-block text-reset text-decoration-none" href="{% url 'service_requests_web:client_my_requests' %}?status=in_progress"><div class="n">{{ counts.active }}</div><small>{% trans "in progress" %}</small></a></div>
-    <div class="col-6 col-md-3"><a class="ch-card ch-count d-block text-reset text-decoration-none" href="{% url 'service_requests_web:client_history' %}"><div class="n">{{ counts.completed }}</div><small>{% trans "completed" %}</small></a></div>
-    <div class="col-6 col-md-3"><div class="ch-card ch-count"><div class="n">TSh {{ counts.spent|floatformat:0|intcomma }}</div><small>{% trans "spent" %}</small></div></div>
+    {% url 'service_requests_web:client_my_requests' as my_url %}{% url 'service_requests_web:client_history' as hist_url %}
+    <div class="col-6 col-md-3">{% trans "Waiting" as l %}{% trans "for a worker" as sub %}
+      {% include "partials/stat.html" with label=l value=counts.waiting sub=sub icon="bi-hourglass-split" tone="orange" url=my_url|add:"?status=pending" %}</div>
+    <div class="col-6 col-md-3">{% trans "In progress" as l %}{% trans "being worked on" as sub %}
+      {% include "partials/stat.html" with label=l value=counts.active sub=sub icon="bi-tools" tone="purple" url=my_url|add:"?status=in_progress" %}</div>
+    <div class="col-6 col-md-3">{% trans "Completed" as l %}{% trans "jobs done" as sub %}
+      {% include "partials/stat.html" with label=l value=counts.completed sub=sub icon="bi-check2-all" tone="green" url=hist_url %}</div>
+    <div class="col-6 col-md-3">{% trans "Spent" as l %}{% trans "in total" as sub %}{% with v=counts.spent|floatformat:0|intcomma %}
+      {% include "partials/stat.html" with label=l value="TSh "|add:v sub=sub icon="bi-wallet2" tone="blue" %}{% endwith %}</div>
   </div>
 
   {# ---------- recent bookings ---------- #}
   <div class="ch-card mb-3">
-    <div class="d-flex justify-content-between align-items-center px-3 pt-3">
-      <h2 class="h6 fw-bold mb-0">{% trans "Your bookings" %}</h2>
-      <a href="{% url 'service_requests_web:client_my_requests' %}" class="small">{% trans "See all" %}</a>
+    <div class="ui-card-head px-3 pt-3 mb-0">
+      <div><h2>{% trans "Your bookings" %}</h2><p>{% trans "Most recent first" %}</p></div>
+      <a href="{% url 'service_requests_web:client_my_requests' %}">{% trans "Details" %}</a>
     </div>
     <div class="list-group list-group-flush mt-2">
       {% for r in recent_requests %}

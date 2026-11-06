@@ -1001,6 +1001,19 @@ class AdminMenuTests(FlowBase):
         self.assertNotIn('Worker Verifications', page)
         self.assertIn('>Verifications<', page)
 
+    def test_sidebar_shows_who_is_signed_in(self):
+        for c, url in [(self.admin_c, '/dashboard/'), (self.client_c, '/clients/dashboard/'), (self.worker_c, '/workers/dashboard/')]:
+            page = c.get(url).content.decode()
+            self.assertIn('ui-side-user', page, url)
+            self.assertIn('ui-hero', page, url)
+
+    def test_tables_have_a_serial_number_in_the_header_row(self):
+        import re
+        for url in ['/dashboard/workers/verification/?status=all', '/dashboard/users/', '/dashboard/service-requests/']:
+            page = self.admin_c.get(url).content.decode()
+            head = re.search(r'<thead[^>]*>\s*<tr[^>]*>\s*<th class="ui-sn">SN</th>', page)
+            self.assertIsNotNone(head, url)
+
 
 class MissingFileTests(FlowBase):
     def test_review_page_says_when_a_document_file_is_missing(self):

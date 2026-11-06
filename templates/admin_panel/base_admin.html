@@ -649,7 +649,7 @@
     <aside class="admin-sidebar" id="adminSidebar">
         <a href="{% url 'admin_panel:dashboard' %}" class="sidebar-brand">
             <img src="{% static 'images/logo.png' %}" alt="{% trans "Worker Connect" %}">
-            <span class="sidebar-brand-text">{% trans "Admin Panel" %}</span>
+            <span class="sidebar-brand-text">Worker <em>Connect</em><small>{% trans "Admin Panel" %}</small></span>
         </a>
         
         <nav class="sidebar-nav">
@@ -708,6 +708,7 @@
                 <span class="nav-text">{% trans "Reports & Analytics" %}</span>
             </a>
         </nav>
+        {% trans "Administrator" as side_role %}{% include "partials/sidebar_user.html" with role=side_role %}
     </aside>
     
     <!-- Sidebar Overlay (Mobile) -->
@@ -722,7 +723,7 @@
                     <button type="button" class="sidebar-toggle-btn" id="sidebarToggle">
                         <i class="bi bi-list"></i>
                     </button>
-                    <h1 class="page-title-header" id="pageTitleHeader">{% block page_title %}{% endblock %}</h1>
+                    <div class="ui-header-titles"><h1 class="page-title-header" id="pageTitleHeader">{% block page_title %}{% endblock %}</h1><span class="ui-today d-none d-sm-inline">{% now "l, j F Y" %}</span></div>
                 </div>
                 
                 <!-- Right Side -->

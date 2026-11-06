@@ -29,7 +29,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4" style="width:50px">{% trans "SN" %}</th>
+                        <th class="ui-sn ps-4">{% trans "SN" %}</th>
                         <th>{% trans "Worker" %}</th>
                         <th>{% trans "Phone" %}</th>
                         <th>{% trans "City" %}</th>
@@ -43,7 +43,7 @@
                 <tbody>
                     {% for worker in workers %}
                     <tr>
-                        <td class="ps-4 text-muted">{{ forloop.counter }}</td>
+                        <td class="ui-sn ps-4">{{ forloop.counter }}</td>
                         <td>
                             <div class="fw-semibold">{{ worker.user.get_full_name|default:worker.user.username }}</div>
                             <div class="text-muted small">{{ worker.user.email }}</div>

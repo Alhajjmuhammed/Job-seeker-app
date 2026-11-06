@@ -432,6 +432,7 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
+                                    <th class="ui-sn">{% trans "SN" %}</th>
                                     <th>{% trans "Clock In" %}</th>
                                     <th>{% trans "Clock Out" %}</th>
                                     <th>{% trans "Duration" %}</th>
@@ -441,6 +442,7 @@
                             <tbody>
                                 {% for log in time_logs %}
                                 <tr {% if not log.clock_out %}class="table-info"{% endif %}>
+                                    <td class="ui-sn">{{ forloop.counter }}</td>
                                     <td>{{ log.clock_in|date:"M d, Y g:i A" }}</td>
                                     <td>
                                         {% if log.clock_out %}
@@ -462,12 +464,12 @@
                             </tbody>
                             <tfoot class="table-light">
                                 <tr>
-                                    <td colspan="2"><strong><i class="bi bi-clock"></i> {% trans "Total Hours Worked:" %}</strong></td>
+                                    <td colspan="3"><strong><i class="bi bi-clock"></i> {% trans "Total Hours Worked:" %}</strong></td>
                                     <td colspan="2"><strong class="text-primary">{{ service_request.total_hours_worked|default:"0"|floatformat:2 }} hours</strong></td>
                                 </tr>
                                 {% if service_request.total_amount %}
                                 <tr>
-                                    <td colspan="2"><strong><i class="bi bi-currency-dollar"></i> {% trans "Total Amount:" %}</strong></td>
+                                    <td colspan="3"><strong><i class="bi bi-currency-dollar"></i> {% trans "Total Amount:" %}</strong></td>
                                     <td colspan="2"><strong class="text-success fs-5">TSH {{ service_request.total_amount|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}

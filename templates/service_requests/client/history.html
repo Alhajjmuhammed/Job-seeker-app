@@ -149,6 +149,7 @@
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th class="ui-sn">{% trans "SN" %}</th>
                         <th>{% trans "ID" %}</th>
                         <th>{% trans "Title" %}</th>
                         <th>{% trans "Category" %}</th>
@@ -163,6 +164,7 @@
                 <tbody>
                     {% for request in requests %}
                     <tr>
+                        <td class="ui-sn">{{ forloop.counter0|add:requests.start_index }}</td>
                         <td><strong>#{{ request.id }}</strong></td>
                         <td>
                             <div>{{ request.title }}</div>
@@ -261,7 +263,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="6" class="text-end"><strong>{% trans "Total on this page:" %}</strong></td>
+                        <td colspan="7" class="text-end"><strong>{% trans "Total on this page:" %}</strong></td>
                         <td colspan="3">
                             <strong class="text-success">TSH {{ page_total|floatformat:2 }}</strong>
                         </td>

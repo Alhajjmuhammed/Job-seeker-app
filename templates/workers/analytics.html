@@ -411,6 +411,7 @@
                             <table class="table table-hover mb-0">
                                 <thead class="bg-light">
                                     <tr>
+                                        <th class="ui-sn">{% trans "SN" %}</th>
                                         <th class="border-0">{% trans "Category" %}</th>
                                         <th class="border-0">{% trans "Client" %}</th>
                                         <th class="border-0">{% trans "Earned" %}</th>
@@ -420,6 +421,7 @@
                                 <tbody>
                                     {% for job in recent_jobs %}
                                     <tr>
+                                        <td class="ui-sn">{{ forloop.counter }}</td>
                                         <td>
                                             <span class="badge bg-primary bg-opacity-10 text-primary">
                                                 {{ job.category.name|default:"N/A" }}

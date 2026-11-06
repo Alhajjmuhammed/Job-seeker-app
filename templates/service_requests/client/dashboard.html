@@ -202,7 +202,7 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>{% trans "SN" %}</th>
+                            <th class="ui-sn">{% trans "SN" %}</th>
                             <th>{% trans "Title" %}</th>
                             <th>{% trans "Category" %}</th>
                             <th>{% trans "Status" %}</th>
@@ -214,7 +214,7 @@
                     <tbody>
                         {% for request in recent_requests %}
                         <tr>
-                            <td>{{ forloop.counter }}</td>
+                            <td class="ui-sn">{{ forloop.counter }}</td>
                             <td>{{ request.title }}</td>
                             <td><span class="badge bg-info">{{ request.category.name }}</span></td>
                             <td>

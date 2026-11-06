@@ -28,35 +28,47 @@
   @media (max-width: 575px) { .ad-chart-labels span:nth-child(even) { visibility: hidden; } }
 </style>
 
+{% trans "Here is what needs you today." as hero_sub %}
+{% include "partials/hero.html" with subtitle=hero_sub %}
+
 {# ---------- needs attention ---------- #}
-<h2 class="h6 fw-bold mb-2">
-  {% if attention_total %}{% trans "Needs your attention" %}{% else %}{% trans "All caught up" %} ✅{% endif %}
-</h2>
+<div class="ui-card-head"><div><h2>{% if attention_total %}{% trans "Needs your attention" %}{% else %}{% trans "All caught up" %} ✅{% endif %}</h2></div></div>
 <div class="row g-3 mb-4">
   {% for a in attention %}
+  {% cycle 'orange' 'purple' 'blue' 'green' 'red' as tone silent %}
   <div class="col-6 col-md-4 col-xl">
-    <a href="{{ a.url }}" class="ad-card ad-todo {% if not a.count %}zero{% elif a.count >= 10 %}hot{% endif %}">
-      <i class="bi {{ a.icon }}"></i>
-      <div><div class="n">{{ a.count }}</div><small>{% trans a.label %}</small></div>
-    </a>
+    {% trans a.label as a_label %}{% if a.count %}{% trans "waiting" as a_sub %}{% else %}{% trans "nothing waiting" as a_sub %}{% endif %}
+    {% include "partials/stat.html" with label=a_label value=a.count sub=a_sub icon=a.icon tone=tone url=a.url dim=a.count|yesno:",1" %}
   </div>
   {% endfor %}
 </div>
 
 {# ---------- key numbers ---------- #}
 <div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3"><div class="ad-card ad-num"><div class="n">{{ numbers.verified_workers|intcomma }}</div><small>{% trans "verified workers" %} · {{ numbers.workers|intcomma }} {% trans "total" %}</small></div></div>
-  <div class="col-6 col-lg-3"><div class="ad-card ad-num"><div class="n">{{ numbers.clients|intcomma }}</div><small>{% trans "clients" %}</small></div></div>
-  <div class="col-6 col-lg-3"><div class="ad-card ad-num"><div class="n">{{ numbers.bookings_month|intcomma }}</div><small>{% trans "bookings this month" %} · {{ numbers.active_bookings }} {% trans "active" %}</small></div></div>
-  <div class="col-6 col-lg-3"><div class="ad-card ad-num"><div class="n">{{ numbers.completed|intcomma }}</div><small>{% trans "jobs completed" %} · TSh {{ numbers.paid_value|floatformat:0|intcomma }} {% trans "paid" %}</small></div></div>
+  <div class="col-6 col-lg-3">
+    {% trans "Verified workers" as l %}{% blocktrans asvar sub with n=numbers.workers|intcomma %}of {{ n }} registered{% endblocktrans %}
+    {% include "partials/stat.html" with label=l value=numbers.verified_workers|intcomma sub=sub icon="bi-person-check" tone="green" %}
+  </div>
+  <div class="col-6 col-lg-3">
+    {% trans "Clients" as l %}{% trans "registered" as sub %}
+    {% include "partials/stat.html" with label=l value=numbers.clients|intcomma sub=sub icon="bi-people" tone="purple" %}
+  </div>
+  <div class="col-6 col-lg-3">
+    {% trans "Bookings this month" as l %}{% blocktrans asvar sub with n=numbers.active_bookings %}{{ n }} active now{% endblocktrans %}
+    {% include "partials/stat.html" with label=l value=numbers.bookings_month|intcomma sub=sub icon="bi-calendar-check" tone="orange" %}
+  </div>
+  <div class="col-6 col-lg-3">
+    {% trans "Jobs completed" as l %}{% blocktrans asvar sub with n=numbers.paid_value|floatformat:0|intcomma %}TSh {{ n }} paid{% endblocktrans %}
+    {% include "partials/stat.html" with label=l value=numbers.completed|intcomma sub=sub icon="bi-check2-all" tone="blue" %}
+  </div>
 </div>
 
 <div class="row g-3">
   {# ---------- real sign-ups chart ---------- #}
   <div class="col-lg-7">
     <div class="ad-card p-3 h-100">
-      <div class="d-flex flex-wrap justify-content-between align-items-baseline mb-3">
-        <h2 class="h6 fw-bold mb-0">{% blocktrans with n=chart_days %}Sign-ups, last {{ n }} days{% endblocktrans %}</h2>
+      <div class="ui-card-head flex-wrap">
+        <div><h2>{% trans "Sign-ups" %}</h2><p>{% blocktrans with n=chart_days %}Last {{ n }} days{% endblocktrans %}</p></div>
         <small><span class="ad-dot" style="background:#14b8a6"></span>{% trans "Workers" %} {{ new_workers }}
           <span class="ad-dot ms-2" style="background:#6366f1"></span>{% trans "Clients" %} {{ new_clients }}</small>
       </div>
@@ -75,8 +87,8 @@
   {# ---------- latest ---------- #}
   <div class="col-lg-5">
     <div class="ad-card p-3 mb-3">
-      <div class="d-flex justify-content-between mb-2"><h2 class="h6 fw-bold mb-0">{% trans "New workers" %}</h2>
-        <a href="{% url 'admin_panel:worker_verification_list' %}?status=all" class="small">{% trans "All" %}</a></div>
+      <div class="ui-card-head mb-1"><div><h2>{% trans "New workers" %}</h2><p>{% trans "Latest sign-ups" %}</p></div>
+        <a href="{% url 'admin_panel:worker_verification_list' %}?status=all">{% trans "Details" %}</a></div>
       <div class="list-group list-group-flush small">
         {% for w in recent_workers %}
         <a href="{% url 'admin_panel:verify_worker' w.id %}" class="list-group-item list-group-item-action px-0 d-flex justify-content-between">
@@ -89,8 +101,8 @@
       </div>
     </div>
     <div class="ad-card p-3">
-      <div class="d-flex justify-content-between mb-2"><h2 class="h6 fw-bold mb-0">{% trans "Latest bookings" %}</h2>
-        <a href="{% url 'admin_panel:service_request_list' %}" class="small">{% trans "All" %}</a></div>
+      <div class="ui-card-head mb-1"><div><h2>{% trans "Latest bookings" %}</h2><p>{% trans "Most recent first" %}</p></div>
+        <a href="{% url 'admin_panel:service_request_list' %}">{% trans "Details" %}</a></div>
       <div class="list-group list-group-flush small">
         {% for r in recent_bookings %}
         <a href="{% url 'admin_panel:service_request_detail' r.id %}" class="list-group-item list-group-item-action px-0 d-flex justify-content-between">

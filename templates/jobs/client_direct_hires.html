@@ -38,6 +38,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
+                        <th class="ui-sn">{% trans "SN" %}</th>
                         <th class="border-0">{% trans "Worker" %}</th>
                         <th class="border-0">{% trans "Title" %}</th>
                         <th class="border-0">{% trans "Amount" %}</th>
@@ -49,6 +50,7 @@
                 <tbody>
                     {% for hire in hire_requests %}
                     <tr>
+                        <td class="ui-sn">{{ forloop.counter }}</td>
                         <td>{{ hire.worker.user.get_full_name|default:hire.worker.user.username }}</td>
                         <td>{{ hire.title }}</td>
                         <td>TSH {{ hire.total_amount|floatformat:0 }}</td>

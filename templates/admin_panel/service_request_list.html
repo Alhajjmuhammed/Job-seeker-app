@@ -35,66 +35,14 @@
 
     <!-- Statistics Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1">{% trans "Total Requests" %}</p>
-                            <h3 class="mb-0">{{ stats.total }}</h3>
-                        </div>
-                        <div class="fs-2 text-primary">
-                            <i class="bi bi-clipboard-check"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1">{% trans "Pending" %}</p>
-                            <h3 class="mb-0 text-warning">{{ stats.pending }}</h3>
-                        </div>
-                        <div class="fs-2 text-warning">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1">{% trans "In Progress" %}</p>
-                            <h3 class="mb-0 text-info">{{ stats.in_progress }}</h3>
-                        </div>
-                        <div class="fs-2 text-info">
-                            <i class="bi bi-hourglass-split"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1">{% trans "Completed" %}</p>
-                            <h3 class="mb-0 text-success">{{ stats.completed }}</h3>
-                        </div>
-                        <div class="fs-2 text-success">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="col-6 col-md-3">{% trans "Total requests" as l %}{% trans "all time" as sub %}
+            {% include "partials/stat.html" with label=l value=stats.total sub=sub icon="bi-clipboard-check" tone="green" %}</div>
+        <div class="col-6 col-md-3">{% trans "Pending" as l %}{% trans "need a worker" as sub %}
+            {% include "partials/stat.html" with label=l value=stats.pending sub=sub icon="bi-clock-history" tone="orange" %}</div>
+        <div class="col-6 col-md-3">{% trans "In Progress" as l %}{% trans "being worked on" as sub %}
+            {% include "partials/stat.html" with label=l value=stats.in_progress sub=sub icon="bi-hourglass-split" tone="purple" %}</div>
+        <div class="col-6 col-md-3">{% trans "Completed" as l %}{% trans "jobs done" as sub %}
+            {% include "partials/stat.html" with label=l value=stats.completed sub=sub icon="bi-check2-all" tone="blue" %}</div>
     </div>
 
     <!-- Filters -->
@@ -168,7 +116,7 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>{% trans "ID" %}</th>
+                            <th class="ui-sn">{% trans "SN" %}</th>
                             <th>{% trans "Title" %}</th>
                             <th>{% trans "Client" %}</th>
                             <th>{% trans "Category" %}</th>
@@ -184,7 +132,7 @@
                     <tbody>
                         {% for request in page_obj %}
                         <tr>
-                            <td><strong>{{ forloop.counter0|add:page_obj.start_index }}</strong></td>
+                            <td class="ui-sn">{{ forloop.counter0|add:page_obj.start_index }}</td>
                             <td>
                                 <div class="fw-semibold">{{ request.title }}</div>
                                 <small class="text-muted">{{ request.description|truncatewords:10 }}</small>

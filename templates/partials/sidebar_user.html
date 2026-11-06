@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}
+  Bottom of every sidebar: who is signed in. Include with role="..." (already translated).
+{% endcomment %}
+<div class="ui-side-user">
+    <span class="ui-side-user-label">{% trans "Signed in as" %}</span>
+    <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+    <span class="ui-side-user-role">{{ role }}</span>
+</div>

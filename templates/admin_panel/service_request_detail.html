@@ -469,6 +469,7 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
+                                    <th class="ui-sn">{% trans "SN" %}</th>
                                     <th>{% trans "Clock In" %}</th>
                                     <th>{% trans "Clock Out" %}</th>
                                     <th>{% trans "Duration" %}</th>
@@ -479,6 +480,7 @@
                             <tbody>
                                 {% for log in time_logs %}
                                 <tr>
+                                    <td class="ui-sn">{{ forloop.counter }}</td>
                                     <td>{{ log.clock_in|date:"M d, Y g:i A" }}</td>
                                     <td>
                                         {% if log.clock_out %}
