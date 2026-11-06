@@ -268,7 +268,7 @@ class LateScreenshotUploadTestCase(TestCase):
         response = self.test_client.get(url)
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Upload Payment Screenshot')
+        self.assertContains(response, 'Upload payment proof')
         # {% url %} renders the path, never the route's name, so asserting on
         # the name could not match no matter how the page behaved.
         self.assertContains(response, 'upload-screenshot')
@@ -285,7 +285,7 @@ class LateScreenshotUploadTestCase(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Payment Screenshot')
-        self.assertContains(response, 'Update Screenshot')
+        self.assertContains(response, 'Replace payment proof')
         self.assertContains(response, 'View Screenshot')
     
     def test_detail_page_shows_verification_status(self):

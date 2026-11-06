@@ -154,13 +154,13 @@ class ActivityTrackingWebTestCase(TestCase):
         self.assertIn('/accounts/login/', response.url)
     
     def test_detail_page_has_activity_button(self):
-        """Test that detail page has 'View Activity Log' button"""
+        """Test that detail page links to the activity log"""
         self.test_client.force_login(self.client_user)
         url = reverse('service_requests_web:client_request_detail', args=[self.service_request.id])
         response = self.test_client.get(url)
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'View Activity Log')
+        self.assertContains(response, '>Activity</a>')
         # {% url %} renders the path, never the route's name, so asserting on
         # the name could not match no matter how the page behaved.
         self.assertContains(response, '/activity/')

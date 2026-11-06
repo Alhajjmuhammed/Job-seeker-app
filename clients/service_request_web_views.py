@@ -447,6 +447,30 @@ def client_web_request_detail(request, pk):
     return render(request, 'service_requests/client/request_detail.html', context)
 
 
+
+from django.utils.translation import gettext_lazy as _
+
+CANCEL_REASONS = (
+    ('no_longer_needed', _('No longer needed')),
+    ('found_alternative', _('Found someone else')),
+    ('timing_issues', _('Timing changed')),
+    ('budget_constraints', _('Too expensive')),
+    ('worker_concerns', _('Concern about the worker')),
+    ('other', _('Other')),
+)
+
+
+def _cancel_context(service_request):
+    return {
+        'service_request': service_request,
+        'reasons': CANCEL_REASONS,
+        'workers': [a.worker for a in service_request.active_assignments],
+        # accepting already makes a request 'in_progress'; work starts at the first clock-in
+        'work_started': bool(service_request.work_started_at),
+        'active_menu': 'my_requests',
+    }
+
+
 @login_required
 def client_web_cancel_request(request, pk):
     """Cancel a service request"""
@@ -466,10 +490,14 @@ def client_web_cancel_request(request, pk):
         cancellation_reason_type = request.POST.get('cancellation_reason_type')
         cancellation_reason = request.POST.get('cancellation_reason', '').strip()
         
-        if not cancellation_reason or len(cancellation_reason) < 10:
-            messages.error(request, 'Please provide a detailed reason for cancellation (at least 10 characters).')
-            context = {'service_request': service_request}
-            return render(request, 'service_requests/client/cancel_confirm.html', context)
+        # The reason from the list is enough; extra details are optional.
+        # A 10-character essay was required on top of the list.
+        reason_labels = dict(CANCEL_REASONS)
+        if cancellation_reason_type not in reason_labels:
+            messages.error(request, 'Please choose a reason.')
+            return render(request, 'service_requests/client/cancel_confirm.html',
+                          _cancel_context(service_request))
+        cancellation_reason = cancellation_reason or str(reason_labels[cancellation_reason_type])
         
         # cancel() releases every active assignment and frees up each
         # worker's availability, and notifies them - a plain status flip
@@ -479,12 +507,7 @@ def client_web_cancel_request(request, pk):
         messages.success(request, '✅ Service request has been cancelled.')
         return redirect('service_requests_web:client_my_requests')
     
-    context = {
-        'service_request': service_request,
-        'active_menu': 'my_requests'
-    }
-    
-    return render(request, 'service_requests/client/cancel_confirm.html', context)
+    return render(request, 'service_requests/client/cancel_confirm.html', _cancel_context(service_request))
 
 
 @login_required

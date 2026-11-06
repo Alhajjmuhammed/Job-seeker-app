@@ -849,3 +849,41 @@ class NotificationLinkTests(FlowBase):
         Category.objects.create(name='Electrician', daily_rate=D('30000'), service_fee=D('5000'))
         r = self.client_c.get('/clients/services/', {'q': 'plumb'})
         self.assertEqual([s['name'] for s in r.context['services']], ['Plumber'])
+
+
+class ClientPagesTests(FlowBase):
+    def test_home_page_shows_real_numbers_and_right_buttons(self):
+        page = Client().get('/').content.decode()
+        self.assertNotIn('500+', page)
+        self.assertIn('/accounts/register/client/', page)
+        self.assertIn('/accounts/register/worker/', page)
+        self.assertIn('Plumber', page)  # a real category with verified workers
+        self.assertIn('/services/client/request-service/',
+                      self.client_c.get('/').content.decode())  # signed-in client books directly
+
+    def test_booking_page_prices_per_request_like_the_server(self):
+        page = self.client_c.get('/services/client/request-service/').content.decode()
+        self.assertIn('data-service-fee="5000', page)
+        self.assertNotIn('durationDays * dailyRate', page)
+        self.assertNotIn('Workers × Days', page)
+
+    def test_cancel_needs_only_a_reason_from_the_list(self):
+        sr, _ = self.book()
+        url = f'/services/client/request/{sr.id}/cancel/'
+        page = self.client_c.get(url).content.decode()
+        self.assertIn('Cancel this booking?', page)
+        self.client_c.post(url, {'cancellation_reason_type': 'made_up'})
+        sr.refresh_from_db()
+        self.assertNotEqual(sr.status, 'cancelled')
+        r = self.client_c.post(url, {'cancellation_reason_type': 'no_longer_needed'})
+        self.assertEqual(r.status_code, 302)
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'cancelled')
+        self.assertIn('No longer needed', sr.cancellation_reason)
+
+    def test_booking_detail_shows_progress_and_no_leaked_comment(self):
+        sr, _ = self.book()
+        page = self.client_c.get(f'/services/client/request/{sr.id}/').content.decode()
+        self.assertNotIn('{#', page)
+        self.assertIn('Payment verified', page)
+        self.assertIn('TSh 30,000', page)

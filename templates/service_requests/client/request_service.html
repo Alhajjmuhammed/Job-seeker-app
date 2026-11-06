@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}Request Service - Worker Connect{% endblock %}
-{% block page_title %}Request Service{% endblock %}
+{% block page_title %}{% trans "Book a worker" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -73,354 +73,199 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4 px-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-plus-circle me-2"></i>
-                        {% trans "📝 Request a Service" %}
-                    </h5>
+<style>
+  .bk { max-width: 1100px; margin: 0 auto; }
+  .bk-step { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .bk-step > h2 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+  .bk-step > h2 .n { width: 28px; height: 28px; border-radius: 50%; background: #14b8a6; color: #fff; font-size: .85rem;
+                      display: inline-flex; align-items: center; justify-content: center; }
+  .bk-mode { display: flex; gap: .75rem; align-items: flex-start; border: 1px solid var(--bs-border-color); border-radius: 10px;
+             padding: .75rem .9rem; margin-bottom: .5rem; cursor: pointer; }
+  .bk-mode:has(input:checked) { border-color: #14b8a6; background: rgba(20,184,166,.06); }
+  .bk-mode input:checked { background-color: #14b8a6; border-color: #14b8a6; }
+  .bk a.btn-link { text-decoration: none; }
+  .bk-mode input { margin-top: .25rem; flex-shrink: 0; }
+  .bk-mode small { display: block; color: var(--bs-secondary-color); }
+  .bk-summary { position: sticky; top: 90px; }
+  .bk-summary .total { font-size: 1.75rem; font-weight: 800; }
+  .bk-line { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: .35rem; }
+  .duration-btn, .urgency-btn { padding: .5rem .25rem; font-size: .875rem; }
+</style>
+
+<div class="container-fluid mt-3 px-3 px-lg-4">
+  <div class="bk">
+    <form method="post" id="serviceRequestForm">
+      {% csrf_token %}
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+      <input type="hidden" id="preferred_worker" name="preferred_worker">
+
+      <div class="row g-3">
+        <div class="col-lg-8">
+
+          {# ---------- 1. what ---------- #}
+          <section class="bk-step">
+            <h2><span class="n">1</span>{% trans "What do you need?" %}</h2>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label for="category" class="form-label">{% trans "Service" %}</label>
+                <select class="form-select" id="category" name="category" required>
+                  <option value="">{% trans "Choose a service" %}</option>
+                  {% for cat in categories %}
+                  <option value="{{ cat.id }}" {% if cat.id == selected_category_id %}selected{% endif %}
+                          data-daily-rate="{{ cat.daily_rate }}"
+                          data-service-fee="{{ cat.service_fee|default:0 }}"
+                          data-available-workers="{{ cat.available_workers|default:0 }}"
+                          data-category-name="{{ cat.name }}">{{ cat.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="workers_needed" class="form-label">{% trans "Workers" %}</label>
+                <div class="input-group">
+                  <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(-1)" aria-label="{% trans 'Fewer' %}"><i class="bi bi-dash"></i></button>
+                  <input type="number" class="form-control text-center" id="workers_needed" name="workers_needed" value="1" min="1" max="100" required>
+                  <button class="btn btn-outline-secondary" type="button" onclick="adjustWorkers(1)" aria-label="{% trans 'More' %}"><i class="bi bi-plus"></i></button>
                 </div>
-                <div class="card-body p-4">
-                    <!-- Service Info -->
-                    <div class="alert alert-info mb-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-12">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
-                                    <div>
-                                        <strong>{% trans "Service Request" %}</strong><br>
-                                        <small>{% trans "Fill out the form below to request a service. Our team will assign a qualified worker and notify you within 2-4 hours." %}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Request Form -->
-                    <form method="post" id="serviceRequestForm">
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <!-- Left Column - Basic Info -->
-                            <div class="col-lg-6">
-                                <div class="mb-3">
-                                    <label for="category" class="form-label">{% trans "Service Category *" %}</label>
-                                    <select class="form-select" id="category" name="category" required>
-                                        <option value="">{% trans "-- Select Category --" %}</option>
-                                        {% for cat in categories %}
-                                        <option value="{{ cat.id }}" {% if cat.id == selected_category_id %}selected{% endif %}
-                                                data-daily-rate="{{ cat.daily_rate }}"
-                                                data-available-workers="{{ cat.available_workers|default:0 }}"
-                                                data-category-name="{{ cat.name }}">
-                                            {% if cat.icon %}{{ cat.icon }}{% endif %} {{ cat.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                
-                                <!-- Worker Availability Warning -->
-                                <div id="availabilityWarning" class="alert d-none mb-3" role="alert">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
-                                        <div id="availabilityBannerMessage"></div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">{% trans "Service Title *" %}</label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="title" 
-                                           name="title" 
-                                           required
-                                           placeholder="{% trans "Brief description of what you need" %}">
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">{% trans "Detailed Description *" %}</label>
-                                    <textarea class="form-control" 
-                                              id="description" 
-                                              name="description" 
-                                              rows="4" 
-                                              required
-                                              placeholder="Provide detailed information about your needs..."></textarea>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="location" class="form-label">{% trans "Service Location *" %}</label>
-                                        <input type="text"
-                                               class="form-control"
-                                               id="location"
-                                               name="location"
-                                               required
-                                               placeholder="{% trans "Where should the service be performed?" %}">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="city" class="form-label">{% trans "City *" %}</label>
-                                        <input type="text"
-                                               class="form-control"
-                                               id="city"
-                                               name="city"
-                                               required
-                                               placeholder="{% trans "City name" %}">
-                                    </div>
-                                </div>
-
-                                <!-- How should we pick your worker? -->
-                                <input type="hidden" id="latitude" name="latitude">
-                                <input type="hidden" id="longitude" name="longitude">
-                                <input type="hidden" id="preferred_worker" name="preferred_worker">
-
-                                <div class="mb-3">
-                                    <label class="form-label d-block">{% trans "How should we pick your worker?" %}</label>
-
-                                    <div class="form-check border rounded p-2 mb-2">
-                                        <input class="form-check-input" type="radio" name="assignment_mode" id="modeAdmin" value="admin_choice" checked onchange="onAssignmentModeChange()">
-                                        <label class="form-check-label" for="modeAdmin">
-                                            <strong>{% trans "Let admin choose" %}</strong>
-                                            <div class="text-muted small">{% trans "Our team picks a qualified worker for you" %}</div>
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check border rounded p-2 mb-2">
-                                        <input class="form-check-input" type="radio" name="assignment_mode" id="modeClient" value="client_choice" onchange="onAssignmentModeChange()">
-                                        <label class="form-check-label" for="modeClient">
-                                            <strong>{% trans "I'll pick myself" %}</strong>
-                                            <div class="text-muted small">{% trans "Browse worker profiles and choose &mdash; admin still confirms" %}</div>
-                                        </label>
-                                    </div>
-                                    <div id="clientChoiceDetail" class="d-none ms-4 mb-2">
-                                        <div id="preferredWorkerChosen" class="d-none alert alert-light border d-flex justify-content-between align-items-center py-2">
-                                            <span><i class="bi bi-person-circle"></i> <span id="preferredWorkerName"></span></span>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearPreferredWorker()">{% trans "Change" %}</button>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="browseWorkersBtn" onclick="browseWorkers()">
-                                            <i class="bi bi-people"></i> {% trans "Browse workers and pick one" %}
-                                        </button>
-                                    </div>
-
-                                    <div class="form-check border rounded p-2 mb-2">
-                                        <input class="form-check-input" type="radio" name="assignment_mode" id="modeAuto" value="auto_nearest" onchange="onAssignmentModeChange()">
-                                        <label class="form-check-label" for="modeAuto">
-                                            <strong>{% trans "Auto-assign nearest worker" %}</strong>
-                                            <div class="text-muted small">{% trans "We assign the closest available worker as soon as your payment is verified" %}</div>
-                                        </label>
-                                    </div>
-                                    <div id="autoNearestDetail" class="d-none ms-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="useMyLocation()" id="locateBtn">
-                                            <i class="bi bi-geo-alt"></i> {% trans "Share my exact location" %}
-                                        </button>
-                                        <span id="locateStatus" class="text-muted small ms-2"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Preferred Date & Time -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="preferred_date" class="form-label">{% trans "Preferred Date" %}</label>
-                                        <input type="date" 
-                                               class="form-control" 
-                                               id="preferred_date" 
-                                               name="preferred_date">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="preferred_time" class="form-label">{% trans "Preferred Time" %}</label>
-                                        <input type="time" 
-                                               class="form-control" 
-                                               id="preferred_time" 
-                                               name="preferred_time">
-                                    </div>
-                                </div>
-
-                                <!-- Number of Workers Needed -->
-                                <div class="mb-3">
-                                    <label for="workers_needed" class="form-label">{% trans "Number of Workers Needed" %}</label>
-                                    <div class="d-flex align-items-center gap-2" style="max-width: 180px;">
-                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adjustWorkers(-1)">
-                                            <i class="bi bi-dash"></i>
-                                        </button>
-                                        <input type="number" 
-                                               class="form-control form-control-sm text-center" 
-                                               id="workers_needed" 
-                                               name="workers_needed" 
-                                               value="1" 
-                                               min="1" 
-                                               max="100"
-                                               required
-                                               style="width: 60px;">
-                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adjustWorkers(1)">
-                                            <i class="bi bi-plus"></i>
-                                        </button>
-                                        <span class="text-muted small ms-1">workers</span>
-                                    </div>
-                                    <small class="text-muted d-block mt-1">{% trans "💡 Each worker multiplies the total cost" %}</small>
-                                </div>
-                            </div>
-
-                            <!-- Right Column - Duration & Pricing -->
-                            <div class="col-lg-6">
-                                <!-- Duration Type Selection -->
-                                <div class="mb-4">
-                                    <label class="form-label">{% trans "Service Duration *" %}</label>
-                                    <div class="row g-2">
-                                        <div class="col-4">
-                                            <button type="button" class="btn duration-btn w-100" data-duration="daily">
-                                                {% trans "Daily" %}
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn duration-btn w-100" data-duration="monthly">
-                                                {% trans "Monthly" %}
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn duration-btn w-100" data-duration="3_months">
-                                                {% trans "3 Months" %}
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn duration-btn w-100" data-duration="6_months">
-                                                {% trans "6 Months" %}
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn duration-btn w-100" data-duration="yearly">
-                                                {% trans "Yearly" %}
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn duration-btn w-100" data-duration="custom">
-                                                {% trans "Custom" %}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" name="duration_type" id="duration_type" required>
-                                </div>
-
-                                <!-- Custom Date Range (shown when Custom is selected) -->
-                                <div id="customDateRange" class="mb-4" style="display: none;">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="service_start_date" class="form-label">{% trans "Start Date *" %}</label>
-                                            <input type="date" 
-                                                   class="form-control" 
-                                                   id="service_start_date" 
-                                                   name="service_start_date">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="service_end_date" class="form-label">{% trans "End Date *" %}</label>
-                                            <input type="date" 
-                                                   class="form-control" 
-                                                   id="service_end_date" 
-                                                   name="service_end_date">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Price Display -->
-                                <div id="priceDisplay" class="price-card p-3 mb-4" style="display: none;">
-                                    <h6 class="mb-3"><i class="bi bi-calculator me-2"></i>{% trans "Price Calculation" %}</h6>
-                                    <div class="row">
-                                        <div class="col-3 text-center">
-                                            <div class="text-muted small">{% trans "Workers" %}</div>
-                                            <div id="workersDisplay" class="price-value">1</div>
-                                        </div>
-                                        <div class="col-3 text-center">
-                                            <div class="text-muted small">{% trans "Duration" %}</div>
-                                            <div id="durationDays" class="price-value">-</div>
-                                            <div class="text-muted small">days</div>
-                                        </div>
-                                        <div class="col-3 text-center">
-                                            <div class="text-muted small">{% trans "Rate/Day" %}</div>
-                                            <div id="dailyRate" class="price-value">-</div>
-                                        </div>
-                                        <div class="col-3 text-center">
-                                            <div class="text-muted small">{% trans "Total" %}</div>
-                                            <div id="totalPrice" class="price-value">-</div>
-                                        </div>
-                                    </div>
-                                    <div class="text-center mt-2">
-                                        <small class="text-muted">
-                                            <i class="bi bi-info-circle"></i> 
-                                            <span id="calcFormula">{% trans "Workers × Days × Daily Rate" %}</span>
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <!-- Urgency Level -->
-                                <div class="mb-4">
-                                    <label class="form-label">{% trans "Urgency Level" %}</label>
-                                    <div class="row g-2">
-                                        <div class="col-4">
-                                            <button type="button" class="btn urgency-btn normal w-100" data-urgency="normal">
-                                                <i class="bi bi-clock"></i>
-                                                <div class="small">{% trans "Normal" %}</div>
-                                                <small class="d-block">{% trans "1 week" %}</small>
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn urgency-btn urgent w-100" data-urgency="urgent">
-                                                <i class="bi bi-clock-history"></i>
-                                                <div class="small">{% trans "Urgent" %}</div>
-                                                <small class="d-block">{% trans "2-3 days" %}</small>
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn urgency-btn emergency w-100" data-urgency="emergency">
-                                                <i class="bi bi-exclamation-triangle"></i>
-                                                <div class="small">{% trans "Emergency" %}</div>
-                                                <small class="d-block">{% trans "Same day" %}</small>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" name="urgency" id="urgency" value="normal">
-                                </div>
-
-                                <!-- Additional Notes -->
-                                <div class="mb-3">
-                                    <label for="client_notes" class="form-label">{% trans "Additional Notes" %}</label>
-                                    <textarea class="form-control" 
-                                              id="client_notes" 
-                                              name="client_notes" 
-                                              rows="3"
-                                              placeholder="Any additional requirements or special instructions..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bottom Section -->
-                        <div class="row mt-4">
-                            <div class="col-md-8">
-                                <div class="alert alert-warning mb-3">
-                                    <small>
-                                        <i class="bi bi-info-circle"></i>
-                                        <strong>{% trans "Note:" %}</strong> After submission, our team will review your request and assign a qualified worker. 
-                                        You'll be notified within 2-4 hours with the assigned worker's contact details.
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid gap-2">
-                                    <button type="button" id="submitBtn" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-credit-card"></i>
-                                        {% trans "Pay and Submit Request" %}
-                                    </button>
-                                    <a href="{% url 'service_requests_web:client_dashboard' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-left"></i>
-                                        {% trans "Cancel" %}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+              </div>
             </div>
+
+            <div id="availabilityWarning" class="alert d-none mt-3 mb-0" role="alert">
+              <div class="d-flex align-items-center"><i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i><div id="availabilityBannerMessage"></div></div>
+            </div>
+
+            <div class="mt-3">
+              <label for="title" class="form-label">{% trans "Job title" %}</label>
+              <input type="text" class="form-control" id="title" name="title" required placeholder="{% trans 'e.g. Fix kitchen cupboard' %}">
+            </div>
+            <div class="mt-3">
+              <label for="description" class="form-label">{% trans "Details" %}</label>
+              <textarea class="form-control" id="description" name="description" rows="3" required
+                        placeholder="{% trans 'What should the worker know?' %}"></textarea>
+            </div>
+          </section>
+
+          {# ---------- 2. where and when ---------- #}
+          <section class="bk-step">
+            <h2><span class="n">2</span>{% trans "Where and when?" %}</h2>
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label for="location" class="form-label">{% trans "Address" %}</label>
+                <input type="text" class="form-control" id="location" name="location" required placeholder="{% trans 'Street, area or landmark' %}">
+              </div>
+              <div class="col-md-5">
+                <label for="city" class="form-label">{% trans "City" %}</label>
+                <input type="text" class="form-control" id="city" name="city" required placeholder="{% trans 'e.g. Zanzibar' %}">
+              </div>
+              <div class="col-6">
+                <label for="preferred_date" class="form-label">{% trans "Date" %}</label>
+                <input type="date" class="form-control" id="preferred_date" name="preferred_date">
+              </div>
+              <div class="col-6">
+                <label for="preferred_time" class="form-label">{% trans "Time" %}</label>
+                <input type="time" class="form-control" id="preferred_time" name="preferred_time">
+              </div>
+            </div>
+
+            <label class="form-label mt-3">{% trans "How long?" %}</label>
+            <div class="row g-2">
+              <div class="col-4"><button type="button" class="btn duration-btn w-100" data-duration="daily">{% trans "One day" %}</button></div>
+              <div class="col-4"><button type="button" class="btn duration-btn w-100" data-duration="monthly">{% trans "1 month" %}</button></div>
+              <div class="col-4"><button type="button" class="btn duration-btn w-100" data-duration="3_months">{% trans "3 months" %}</button></div>
+              <div class="col-4"><button type="button" class="btn duration-btn w-100" data-duration="6_months">{% trans "6 months" %}</button></div>
+              <div class="col-4"><button type="button" class="btn duration-btn w-100" data-duration="yearly">{% trans "1 year" %}</button></div>
+              <div class="col-4"><button type="button" class="btn duration-btn w-100" data-duration="custom">{% trans "Custom" %}</button></div>
+            </div>
+            <input type="hidden" name="duration_type" id="duration_type" required>
+            <div id="customDateRange" class="row g-3 mt-1" style="display: none;">
+              <div class="col-6">
+                <label for="service_start_date" class="form-label">{% trans "From" %}</label>
+                <input type="date" class="form-control" id="service_start_date" name="service_start_date">
+              </div>
+              <div class="col-6">
+                <label for="service_end_date" class="form-label">{% trans "To" %}</label>
+                <input type="date" class="form-control" id="service_end_date" name="service_end_date">
+              </div>
+            </div>
+
+            <label class="form-label mt-3">{% trans "How soon?" %}</label>
+            <div class="row g-2">
+              <div class="col-4"><button type="button" class="btn urgency-btn normal w-100" data-urgency="normal"><i class="bi bi-clock"></i> {% trans "Normal" %}</button></div>
+              <div class="col-4"><button type="button" class="btn urgency-btn urgent w-100" data-urgency="urgent"><i class="bi bi-clock-history"></i> {% trans "Urgent" %}</button></div>
+              <div class="col-4"><button type="button" class="btn urgency-btn emergency w-100" data-urgency="emergency"><i class="bi bi-exclamation-triangle"></i> {% trans "Today" %}</button></div>
+            </div>
+            <input type="hidden" name="urgency" id="urgency" value="normal">
+          </section>
+
+          {# ---------- 3. who ---------- #}
+          <section class="bk-step">
+            <h2><span class="n">3</span>{% trans "Who should do it?" %}</h2>
+
+            <label class="bk-mode" for="modeAdmin">
+              <input class="form-check-input" type="radio" name="assignment_mode" id="modeAdmin" value="admin_choice" checked onchange="onAssignmentModeChange()">
+              <span><strong>{% trans "Choose for me" %}</strong><small>{% trans "Our team picks a verified worker." %}</small></span>
+            </label>
+
+            <label class="bk-mode" for="modeClient">
+              <input class="form-check-input" type="radio" name="assignment_mode" id="modeClient" value="client_choice" onchange="onAssignmentModeChange()">
+              <span><strong>{% trans "I'll pick a worker" %}</strong><small>{% trans "See profiles and ratings, then choose." %}</small></span>
+            </label>
+            <div id="clientChoiceDetail" class="d-none ms-4 mb-2">
+              <div id="preferredWorkerChosen" class="d-none alert alert-light border d-flex justify-content-between align-items-center py-2 mb-2">
+                <span><i class="bi bi-person-circle"></i> <span id="preferredWorkerName"></span></span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearPreferredWorker()">{% trans "Change" %}</button>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm" id="browseWorkersBtn" onclick="browseWorkers()">
+                <i class="bi bi-people"></i> {% trans "Browse workers" %}
+              </button>
+            </div>
+
+            <label class="bk-mode" for="modeAuto">
+              <input class="form-check-input" type="radio" name="assignment_mode" id="modeAuto" value="auto_nearest" onchange="onAssignmentModeChange()">
+              <span><strong>{% trans "Nearest worker" %}</strong><small>{% trans "We send the closest available worker." %}</small></span>
+            </label>
+            <div id="autoNearestDetail" class="d-none ms-4">
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="useMyLocation()" id="locateBtn">
+                <i class="bi bi-geo-alt"></i> {% trans "Use my location" %}
+              </button>
+              <span id="locateStatus" class="text-muted small ms-2"></span>
+            </div>
+
+            <details class="mt-3">
+              <summary class="text-primary small" style="cursor:pointer">{% trans "Add a note for the worker" %}</summary>
+              <textarea class="form-control mt-2" id="client_notes" name="client_notes" rows="2"
+                        placeholder="{% trans 'e.g. call when you arrive' %}"></textarea>
+            </details>
+          </section>
         </div>
-    </div>
+
+        {# ---------- summary ---------- #}
+        <div class="col-lg-4">
+          <aside class="bk-step bk-summary">
+            <h2 class="mb-3">{% trans "Summary" %}</h2>
+            <div id="priceDisplay" style="display: none;">
+              <div class="bk-line"><span id="summaryService">-</span><span id="dailyRate">-</span></div>
+              <div class="bk-line"><span>{% trans "Workers" %}</span><span>× <span id="workersDisplay">1</span></span></div>
+              <div class="bk-line"><span>{% trans "Service fee" %}</span><span id="serviceFee">-</span></div>
+              <hr class="my-2">
+              <div class="d-flex justify-content-between align-items-baseline">
+                <span class="fw-semibold">{% trans "Total" %}</span><span class="total" id="totalPrice">-</span>
+              </div>
+              <div class="small text-muted mt-1" id="calcFormula"></div>
+            </div>
+            <p id="pricePlaceholder" class="text-muted small mb-0">{% trans "Choose a service to see the price." %}</p>
+
+            <div class="d-grid gap-2 mt-3">
+              <button type="button" id="submitBtn" class="btn btn-primary btn-lg"><i class="bi bi-check2-circle"></i> {% trans "Pay and book" %}</button>
+              <a href="{% url 'service_requests_web:client_dashboard' %}" class="btn btn-link text-muted">{% trans "Cancel" %}</a>
+            </div>
+            <p class="small text-muted mb-0"><i class="bi bi-bell"></i> {% trans "We'll notify you when your worker is confirmed." %}</p>
+          </aside>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 </div>
 
 <!-- Payment Modal -->
@@ -801,12 +646,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (startDateInput) startDateInput.min = today;
     
     // Category change triggers price update
-    document.getElementById('category').addEventListener('change', function() {
-        const durationType = document.getElementById('duration_type').value;
-        if (durationType) {
-            calculatePrice(durationType);
-        }
-    });
+    document.getElementById('category').addEventListener('change', updatePriceCalculation);
+    document.getElementById('workers_needed').addEventListener('input', updatePriceCalculation);
     
     // Workers change triggers price update
     document.getElementById('workers_needed').addEventListener('change', updatePriceCalculation);
@@ -839,53 +680,40 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function calculatePrice(durationType) {
-    // Get daily rate from selected category
+    // Same formula as the server (ServiceRequest.quote): the category amount
+    // per worker, plus one service fee. Duration only sets the schedule. This
+    // used to multiply by days, so a month showed 30x the real price and the
+    // payment amount never matched the booking.
     const categorySelect = document.getElementById('category');
     const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-    const dailyRate = parseFloat(selectedOption.getAttribute('data-daily-rate') || 0);
-    
-    if (!dailyRate) {
+    const rate = parseFloat(selectedOption.getAttribute('data-daily-rate') || 0);
+    const fee = parseFloat(selectedOption.getAttribute('data-service-fee') || 0);
+
+    if (!rate) {
         document.getElementById('priceDisplay').style.display = 'none';
+        document.getElementById('pricePlaceholder').style.display = '';
         return;
     }
-    
-    let durationDays = 1;
-    
-    switch(durationType) {
-        case 'daily': durationDays = 1; break;
-        case 'monthly': durationDays = 30; break;
-        case '3_months': durationDays = 90; break;
-        case '6_months': durationDays = 180; break;
-        case 'yearly': durationDays = 365; break;
-        case 'custom':
-            const startDate = document.getElementById('service_start_date').value;
-            const endDate = document.getElementById('service_end_date').value;
-            if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                durationDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-            }
-            break;
-    }
-    
+
     const workersNeeded = parseInt(document.getElementById('workers_needed').value) || 1;
-    const totalPrice = durationDays * dailyRate * workersNeeded;
+    const totalPrice = rate * workersNeeded + fee;
     currentTotalPrice = totalPrice;
-    
-    // Update price display
+
+    const tsh = n => `TSh ${Math.round(n).toLocaleString()}`;
+    document.getElementById('summaryService').textContent = selectedOption.getAttribute('data-category-name') || '';
     document.getElementById('workersDisplay').textContent = workersNeeded;
-    document.getElementById('durationDays').textContent = durationDays;
-    document.getElementById('dailyRate').textContent = `TSH ${dailyRate.toLocaleString()}`;
-    document.getElementById('totalPrice').textContent = `TSH ${totalPrice.toLocaleString()}`;
-    document.getElementById('calcFormula').textContent = `${workersNeeded} × ${durationDays} × TSH ${dailyRate.toLocaleString()} = TSH ${totalPrice.toLocaleString()}`;
+    document.getElementById('dailyRate').textContent = tsh(rate);
+    document.getElementById('serviceFee').textContent = tsh(fee);
+    document.getElementById('totalPrice').textContent = tsh(totalPrice);
+    document.getElementById('calcFormula').textContent = `${tsh(rate)} × ${workersNeeded} + ${tsh(fee)}`;
     document.getElementById('priceDisplay').style.display = 'block';
+    document.getElementById('pricePlaceholder').style.display = 'none';
 }
 
 function updatePriceCalculation() {
-    const durationType = document.getElementById('duration_type').value;
-    if (durationType) {
-        calculatePrice(durationType);
-    }
+    // the price no longer depends on the duration, so show it as soon as a
+    // service is chosen
+    calculatePrice(document.getElementById('duration_type').value);
 }
 
 function showPaymentModal() {

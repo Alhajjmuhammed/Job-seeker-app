@@ -11,6 +11,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from .health_views import health_check, health_check_detailed, readiness_check, liveness_check
 from .media_views import private_media, PRIVATE_MEDIA_DIRS
+from . import home_views
 from jobs.service_request_urls import admin_urlpatterns, worker_urlpatterns, client_urlpatterns
 from .download_views import download_app
 
@@ -56,7 +57,7 @@ urlpatterns = [
     # Redirect admin login to custom system login
     path('admin/login/', RedirectView.as_view(pattern_name='accounts:login', query_string=True), name='admin_login_redirect'),
     path('admin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name='http_landing.html'), name='home'),
+    path('', home_views.home, name='home'),
     
     # Legal Pages
     path('terms/', TemplateView.as_view(template_name='terms.html'), name='terms'),

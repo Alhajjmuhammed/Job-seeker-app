@@ -1,228 +1,58 @@
 {% extends "clients/base_client.html" %}
-{% load i18n %}
-{% load humanize %}
+{% load i18n humanize %}
 
-{% block title %}Cancel Request #{{ service_request.id }}{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Teal System Colors */
-    .btn-primary { background-color: #14b8a6; border-color: #14b8a6; }
-    .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
-    .text-primary { color: #14b8a6 !important; }
-    .text-success { color: #10b981 !important; }
-    .bg-info { background-color: #06b6d4 !important; }
-</style>
-{% endblock %}
+{% block title %}{% trans "Cancel booking" %} #{{ service_request.id }}{% endblock %}
+{% block page_title %}{% trans "Cancel booking" %}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">
-                        <i class="bi bi-exclamation-triangle"></i> {% trans "Cancel Service Request" %}
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <!-- Warning Message -->
-                    <div class="alert alert-warning" role="alert">
-                        <h5 class="alert-heading">
-                            <i class="bi bi-info-circle"></i> {% trans "Are you sure you want to cancel this request?" %}
-                        </h5>
-                        <p class="mb-0">{% trans "This action cannot be undone. Please review the details below before confirming." %}</p>
-                    </div>
-                    
-                    <!-- Request Summary -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title">{% trans "Request Details" %}</h5>
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">{% trans "Request ID:" %}</dt>
-                                <dd class="col-sm-8">#{{ service_request.id }}</dd>
-                                
-                                <dt class="col-sm-4">{% trans "Title:" %}</dt>
-                                <dd class="col-sm-8">{{ service_request.title }}</dd>
-                                
-                                <dt class="col-sm-4">{% trans "Category:" %}</dt>
-                                <dd class="col-sm-8">{{ service_request.category.name }}</dd>
-                                
-                                <dt class="col-sm-4">{% trans "Status:" %}</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge {% if service_request.status == 'pending' %}bg-warning text-dark{% elif service_request.status == 'assigned' %}bg-info{% else %}bg-primary{% endif %}">
-                                        {{ service_request.get_status_display }}
-                                    </span>
-                                </dd>
-                                
-                                {% with accepted_assignments=service_request.assignments.all %}
-                                {% if accepted_assignments %}
-                                <dt class="col-sm-4">Assigned Worker{{ accepted_assignments|length|pluralize }}:</dt>
-                                <dd class="col-sm-8">
-                                    {% for assignment in accepted_assignments %}{{ assignment.worker.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                                </dd>
-                                {% elif service_request.assigned_worker %}
-                                <dt class="col-sm-4">{% trans "Assigned Worker:" %}</dt>
-                                <dd class="col-sm-8">
-                                    {{ service_request.assigned_worker.user.get_full_name }}
-                                </dd>
-                                {% endif %}
-                                {% endwith %}
-                                
-                                {% if service_request.total_price %}
-                                <dt class="col-sm-4">{% trans "Total Price:" %}</dt>
-                                <dd class="col-sm-8">
-                                    <strong class="text-success">TSH {{ service_request.total_price|floatformat:2 }}</strong>
-                                </dd>
-                                {% endif %}
-                                
-                                <dt class="col-sm-4">{% trans "Created:" %}</dt>
-                                <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y g:i A" }}</dd>
-                            </dl>
-                        </div>
-                    </div>
-                    
-                    <!-- Cancellation Policy -->
-                    <div class="card mb-4 border-info">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0">
-                                <i class="bi bi-file-text"></i> {% trans "Cancellation Policy" %}
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <ul class="mb-0">
-                                {% if service_request.status == 'pending' %}
-                                <li>{% trans "Your request is still" %} <strong>pending</strong> {% trans "assignment. You can cancel without penalty." %}</li>
-                                <li>{% trans "No charges will be applied." %}</li>
-                                {% elif service_request.status == 'assigned' and not service_request.work_started_at %}
-                                <li>{% trans "A worker has been" %} <strong>assigned</strong> {% trans "but work hasn't started yet." %}</li>
-                                <li>{% trans "The worker will be notified of the cancellation." %}</li>
-                                <li>{% trans "No cancellation fees apply at this stage." %}</li>
-                                {% elif service_request.status == 'assigned' or service_request.status == 'in_progress' %}
-                                <li class="text-warning"><strong>{% trans "Work has already started" %}</strong> {% trans "on this request." %}</li>
-                                <li>{% trans "Cancelling now may incur charges for work already completed." %}</li>
-                                <li>{% trans "The worker will be compensated for time already worked." %}</li>
-                                <li>You may be charged for {{ service_request.total_hours_worked|default:"0" }} hours of work.</li>
-                                {% endif %}
-                                <li>{% trans "Once cancelled, you will need to create a new request if you change your mind." %}</li>
-                                <li>{% trans "Our team may contact you to understand the reason for cancellation." %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <!-- Cancellation Form -->
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <label for="cancellation_reason" class="form-label">
-                                <strong>{% trans "Reason for Cancellation" %}</strong> <span class="text-danger">*</span>
-                            </label>
-                            <select name="cancellation_reason_type" id="cancellation_reason_type" class="form-select mb-2" required>
-                                <option value="">{% trans "-- Select a reason --" %}</option>
-                                <option value="no_longer_needed">{% trans "No longer needed" %}</option>
-                                <option value="found_alternative">{% trans "Found alternative solution" %}</option>
-                                <option value="timing_issues">{% trans "Timing/scheduling issues" %}</option>
-                                <option value="budget_constraints">{% trans "Budget constraints" %}</option>
-                                <option value="worker_concerns">{% trans "Concerns about assigned worker" %}</option>
-                                <option value="service_quality">{% trans "Service quality concerns" %}</option>
-                                <option value="personal_reasons">{% trans "Personal reasons" %}</option>
-                                <option value="emergency">{% trans "Emergency situation" %}</option>
-                                <option value="other">{% trans "Other" %}</option>
-                            </select>
-                            
-                            <textarea 
-                                name="cancellation_reason" 
-                                id="cancellation_reason" 
-                                class="form-control" 
-                                rows="4" 
-                                placeholder="{% trans "Please provide more details about why you're cancelling this request. This helps us improve our service." %}"
-                                required
-                            ></textarea>
-                            <small class="form-text text-muted">
-                                {% trans "Please be specific. This information helps us improve our services and may be shared with the assigned worker." %}
-                            </small>
-                        </div>
-                        
-                        {% if service_request.status == 'in_progress' or service_request.work_started_at %}
-                        <div class="alert alert-danger">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="acknowledge_charges" name="acknowledge_charges" required>
-                                <label class="form-check-label" for="acknowledge_charges">
-                                    <strong>{% trans "I understand that I may be charged for work already completed" %}</strong>
-                                </label>
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="confirm_cancellation" name="confirm_cancellation" required>
-                            <label class="form-check-label" for="confirm_cancellation">
-                                {% trans "I confirm that I want to cancel this service request and understand that this action cannot be undone." %}
-                            </label>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-danger flex-grow-1" aria-label="{% trans "Confirm cancellation of service request" %}">
-                                <i class="bi bi-x-circle"></i> {% trans "Yes, Cancel Request" %}
-                            </button>
-                            <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-secondary flex-grow-1" aria-label="{% trans "Go back to request details without cancelling" %}">
-                                <i class="bi bi-arrow-left"></i> {% trans "No, Go Back" %}
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Additional Information -->
-            <div class="card mt-4 border-primary">
-                <div class="card-body">
-                    <h6 class="text-primary">
-                        <i class="bi bi-lightbulb"></i> {% trans "Need to make changes instead?" %}
-                    </h6>
-                    <p class="mb-2">{% trans "If you need to modify your request rather than cancel it, consider these options:" %}</p>
-                    <ul class="mb-3">
-                        <li>{% trans "Contact the assigned worker to discuss adjustments" %}</li>
-                        <li>{% trans "Reach out to our support team for assistance" %}</li>
-                        <li>{% trans "Check if rescheduling is possible" %}</li>
-                    </ul>
-                    <a href="mailto:sales@easyfix.co.tz" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-headset"></i> {% trans "Contact Support" %}
-                    </a>
-                </div>
-            </div>
+<div class="container py-4" style="max-width: 560px;">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <h1 class="h4 fw-bold mb-3">{% trans "Cancel this booking?" %}</h1>
+
+      <div class="d-flex justify-content-between align-items-start border rounded-3 p-3 mb-3">
+        <div>
+          <div class="fw-semibold">#{{ service_request.id }} {{ service_request.title }}</div>
+          <small class="text-muted">{{ service_request.category.name }}{% if workers %} · {% for w in workers %}{{ w.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</small>
         </div>
+        {% if service_request.total_price %}<strong class="text-nowrap ms-2">TSh {{ service_request.total_price|floatformat:0|intcomma }}</strong>{% endif %}
+      </div>
+
+      {% if work_started %}
+        <div class="alert alert-warning py-2 small mb-3"><i class="bi bi-exclamation-triangle"></i>
+          {% trans "Work has already started, so you may be charged for the time worked." %}</div>
+      {% elif workers %}
+        <p class="small text-muted mb-3"><i class="bi bi-info-circle"></i> {% trans "Free to cancel. Your worker will be told." %}</p>
+      {% else %}
+        <p class="small text-muted mb-3"><i class="bi bi-info-circle"></i> {% trans "Free to cancel." %}</p>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <label for="cancellation_reason_type" class="form-label">{% trans "Why are you cancelling?" %}</label>
+        <select name="cancellation_reason_type" id="cancellation_reason_type" class="form-select" required>
+          <option value="">{% trans "Choose a reason" %}</option>
+          {% for value, label in reasons %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+
+        <details class="mt-2">
+          <summary class="small text-primary" style="cursor:pointer">{% trans "Add details (optional)" %}</summary>
+          <textarea name="cancellation_reason" id="cancellation_reason" class="form-control mt-2" rows="2"></textarea>
+        </details>
+
+        {% if work_started %}
+        <div class="form-check mt-3">
+          <input class="form-check-input" type="checkbox" id="acknowledge_charges" name="acknowledge_charges" required>
+          <label class="form-check-label small" for="acknowledge_charges">{% trans "I understand I may be charged for work already done." %}</label>
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-danger flex-grow-1">{% trans "Cancel booking" %}</button>
+          <a href="{% url 'service_requests_web:client_request_detail' service_request.id %}" class="btn btn-outline-secondary flex-grow-1">{% trans "Keep booking" %}</a>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
-
-<script>
-// Auto-expand "Other" details when selected
-document.getElementById('cancellation_reason_type').addEventListener('change', function() {
-    const textarea = document.getElementById('cancellation_reason');
-    if (this.value === 'other') {
-        textarea.focus();
-    }
-});
-
-// Confirm before submission
-document.querySelector('form').addEventListener('submit', function(e) {
-    const confirmed = document.getElementById('confirm_cancellation').checked;
-    if (!confirmed) {
-        e.preventDefault();
-        alert('Please confirm that you want to cancel this request by checking the confirmation box.');
-        return false;
-    }
-    
-    const reason = document.getElementById('cancellation_reason').value.trim();
-    if (reason.length < 10) {
-        e.preventDefault();
-        alert('Please provide a more detailed reason for cancellation (at least 10 characters).');
-        document.getElementById('cancellation_reason').focus();
-        return false;
-    }
-    
-    return confirm('Are you absolutely sure you want to cancel this service request? This action cannot be undone.');
-});
-</script>
 {% endblock %}
