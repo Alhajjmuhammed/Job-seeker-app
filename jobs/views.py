@@ -380,9 +380,9 @@ def _conversation_list(user):
     # rebuilt every few seconds while a chat page is open).
     from django.db.models import Case, When, F, Max, Count, IntegerField
     rows = (Message.objects.filter(Q(sender=user) | Q(recipient=user))
+            .exclude(sender=F('recipient'))  # notes to self are not a chat
             .annotate(other=Case(When(sender=user, then=F('recipient_id')), default=F('sender_id'),
                                  output_field=IntegerField()))
-            .exclude(other=user.id)
             .values('other')
             .annotate(last_id=Max('id'), unread=Count('id', filter=Q(recipient=user, is_read=False))))
     rows = list(rows)
