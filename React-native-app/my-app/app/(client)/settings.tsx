@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { confirmExportMyData } from '../../services/exportMyData';
 import apiService from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -48,41 +49,15 @@ export default function ClientSettingsScreen() {
       await apiService.updatePrivacySettings({ [key]: value });
     } catch (error) {
       console.error(`Error updating ${key}:`, error);
+      // put the switch back so it shows what is really saved
+      const revert = { email_notifications: setEmailNotifications, push_notifications: setPushNotifications,
+                       sms_notifications: setSmsNotifications }[key];
+      revert(!value);
       Alert.alert(t('common.error'), 'Failed to update setting. Please try again.');
     }
   };
 
-  const handleExportData = () => {
-    Alert.alert(
-      'Export My Data',
-      'We will prepare a complete export of all your data and email it to you. This may take a few minutes.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: async () => {
-            try {
-              setExportingData(true);
-              await apiService.exportUserData();
-              Alert.alert(
-                'Export Started',
-                'Your data export has been started. You will receive an email with a download link shortly.',
-                [{ text: 'OK' }]
-              );
-            } catch (error: any) {
-              console.error('Error exporting data:', error);
-              Alert.alert(
-                'Export Error',
-                error.response?.data?.error || 'Failed to start data export. Please try again.'
-              );
-            } finally {
-              setExportingData(false);
-            }
-          },
-        },
-      ]
-    );
-  };
+  const handleExportData = () => confirmExportMyData(setExportingData);
 
   const handleDeleteAccount = async () => {
     try {
@@ -223,7 +198,7 @@ export default function ClientSettingsScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomColor: theme.border }]}
+            style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
             onPress={() => router.push('/(client)/payment-methods')}
           >
             <Ionicons name="card-outline" size={22} color={theme.primary} style={styles.menuIcon} />
@@ -231,14 +206,6 @@ export default function ClientSettingsScreen() {
             <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomColor: 'transparent' }]}
-            onPress={() => Alert.alert('Saved Addresses', 'Address management will be available in the next update.')}
-          >
-            <Ionicons name="location-outline" size={22} color={theme.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}>{t('client.savedAddresses')}</Text>
-            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
-          </TouchableOpacity>
         </View>
 
         {/* Security */}

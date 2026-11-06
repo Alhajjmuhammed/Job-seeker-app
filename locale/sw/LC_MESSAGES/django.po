@@ -161,10 +161,9 @@ msgstr "Wasilisha Maombi"
 #: templates/agents/profile.html:116 templates/agents/profile.html:135
 #: templates/clients/base_client.html:755
 #: templates/workers/base_worker.html:745
-#, fuzzy
 #| msgid "Confirm Password"
 msgid "Change Password"
-msgstr "Thibitisha Nywila"
+msgstr "Badilisha Nywila"
 
 #: templates/accounts/change_password.html:15
 msgid "Update your account password"
@@ -11166,3 +11165,6 @@ msgstr "Zungumza"
 
 msgid "Call"
 msgstr "Piga simu"
+
+msgid "Chat with support"
+msgstr "Zungumza na msaada"

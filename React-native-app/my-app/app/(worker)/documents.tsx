@@ -223,9 +223,7 @@ export default function DocumentsScreen() {
       {/* Header Component */}
       <Header 
         showNotifications 
-        showSearch 
-        onNotificationPress={() => Alert.alert(t('settings.notifications'), t('nav.notifications'))}
-        onSearchPress={() => Alert.alert(t('client.search'), 'Search coming soon')}
+        onNotificationPress={() => router.push('/(worker)/notifications' as any)}
       />
 
       {loading ? (

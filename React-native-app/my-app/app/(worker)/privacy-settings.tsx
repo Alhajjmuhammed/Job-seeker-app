@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { confirmExportMyData } from '../../services/exportMyData';
 import apiService from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -80,28 +81,7 @@ export default function PrivacySettingsScreen() {
     router.push('/(worker)/data-retention' as any);
   };
 
-  const handleExportData = async () => {
-    try {
-      Alert.alert(
-        t('privacy.exportData') || 'Export My Data',
-        'We will prepare a complete export of all your data and email it to you. This may take a few minutes.',
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: 'Export',
-            onPress: () => {
-              Alert.alert(
-                'Export Started',
-                'Your data export has been initiated. You will receive an email shortly.'
-              );
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+  const handleExportData = () => confirmExportMyData();
 
   if (loading) {
     return (

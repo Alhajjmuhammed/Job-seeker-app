@@ -198,6 +198,7 @@ def document_upload(request):
             document = form.save(commit=False)
             document.worker = profile
             document.save()
+            profile.reopen_review()
             messages.success(request, 'Document uploaded successfully! Awaiting verification.')
             return redirect('workers:document_list')
     else:

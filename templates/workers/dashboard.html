@@ -21,7 +21,9 @@
 
   {# ---------- verification ---------- #}
   {% if profile.verification_status == 'rejected' %}
-  <div class="alert alert-danger py-2 small"><i class="bi bi-x-circle"></i> {% trans "Your account was not approved. Check your notifications for the reason, update your details and contact support." %}</div>
+  <div class="alert alert-danger py-2 small d-flex flex-wrap align-items-center gap-2"><span class="flex-grow-1"><i class="bi bi-x-circle"></i> {% trans "Your account was not approved. Check your notifications for the reason, update your details and contact support." %}</span>
+    <a href="{% url 'workers:document_upload' %}" class="btn btn-sm btn-outline-danger">{% trans "Upload again" %}</a>
+    <a href="{% url 'jobs:inbox' %}" class="btn btn-sm btn-danger"><i class="bi bi-chat-dots"></i> {% trans "Chat with support" %}</a></div>
   {% elif profile.verification_status != 'verified' %}
     {% if id_rejected %}
     <div class="alert alert-warning py-2 small d-flex flex-wrap align-items-center gap-2"><span class="flex-grow-1"><i class="bi bi-exclamation-triangle"></i> {% trans "Your ID was not accepted:" %} {{ id_rejected.rejection_reason }}</span>

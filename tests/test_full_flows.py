@@ -1242,3 +1242,69 @@ class ChatTests(FlowBase):
         ServiceRequestAssignment.objects.filter(pk=asg.pk).update(status='cancelled')
         self.assertNotContains(self.client_c.get(f'/jobs/conversation/{self.worker_user.id}/'), 'tel:')
         self.assertEqual(self.client_c.get(f'/api/messages/{self.worker_user.id}/').json()['other_user']['phone_number'], '')
+
+
+class GapFixTests(FlowBase):
+    """Gaps found in the Nov 2026 website review."""
+
+    def test_admin_created_from_manage_users_can_open_the_admin_panel(self):
+        r = self.admin_c.post('/dashboard/users/create/', {
+            'email': 'new.admin@t.co', 'password': PW, 'first_name': 'New', 'last_name': 'Admin',
+            'phone_number': '+255700000001', 'user_type': 'admin', 'is_active': 'on'})
+        self.assertEqual(r.status_code, 302)
+        new = User.objects.get(email='new.admin@t.co')
+        self.assertTrue(new.is_staff)
+        c = Client(); c.force_login(new)
+        self.assertEqual(c.get('/dashboard/', secure=True).status_code, 200)
+
+    def test_staff_cannot_edit_or_delete_a_superuser(self):
+        staff = User.objects.create_user(email='staff@t.co', username='staff', password=PW,
+                                         user_type='admin', is_staff=True)
+        c = Client(); c.force_login(staff)
+        c.post(f'/dashboard/users/{self.admin.id}/edit/', {
+            'email': 'hijack@t.co', 'first_name': 'X', 'last_name': 'Y',
+            'phone_number': '1', 'password': 'Hijacked-2026'})
+        c.post(f'/dashboard/users/{self.admin.id}/delete/')
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.email, 'admin@t.co')
+        self.assertTrue(self.admin.check_password(PW))
+
+    def test_rejected_worker_goes_back_to_review_after_new_upload(self):
+        self.wp.verification_status = 'rejected'; self.wp.save()
+        r = self.worker_c.post('/api/workers/documents/upload/', {
+            'document_type': 'id', 'file': SimpleUploadedFile('id.png', PNG, 'image/png')})
+        self.assertEqual(r.status_code, 201, r.content)
+        self.wp.refresh_from_db()
+        self.assertEqual(self.wp.verification_status, 'pending')
+
+    def test_job_list_ignores_unknown_sort(self):
+        for sort in ('foo', 'client__password', '-budget'):
+            self.assertEqual(self.worker_c.get('/jobs/', {'sort': sort}, secure=True).status_code, 200, sort)
+
+    def test_worker_can_open_an_open_job_from_browse_without_private_details(self):
+        sr, _ = self.book()
+        r = self.worker_c.get(f'/api/jobs/jobs/{sr.id}/')
+        self.assertEqual(r.status_code, 200, r.content)
+        body = r.json()
+        self.assertEqual(body['title'], 'Leaky tap')
+        for private in ('location', 'client_phone', 'client_email', 'payment_transaction_id', 'admin_notes'):
+            self.assertNotIn(private, body)
+        # another client still cannot read it
+        other = Client(); other.force_login(self.other_client)
+        self.assertEqual(other.get(f'/api/jobs/jobs/{sr.id}/').status_code, 404)
+
+    def test_direct_booking_notifies_worker_then_client(self):
+        from jobs.models import DirectHireRequest
+        from worker_connect.notification_models import Notification
+        b = DirectHireRequest.objects.create(client=self.client_user, worker=self.wp, title='Paint wall',
+                                             description='x', location='Dar', duration_value=1,
+                                             start_datetime=timezone.now(), offered_rate=D('1000'),
+                                             total_amount=D('1000'))
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_direct_hire(b)
+        self.assertIn(b.id, [n.extra_data.get('direct_hire_id')
+                             for n in Notification.objects.filter(recipient=self.worker_user)])
+        r = post_json(self.worker_c, f'/api/jobs/worker/direct-hire-requests/{b.id}/accept/')
+        self.assertEqual(r.status_code, 200, r.content)
+        n = Notification.objects.get(recipient=self.client_user, notification_type='job_accepted')
+        self.assertEqual(n.target_url, f'/jobs/direct-hire/{b.id}/')

@@ -398,7 +398,7 @@
                     </div>
                     {% else %}
                     <div class="alert alert-warning mt-2 mb-2" style="font-size: 0.875rem;">
-                        <i class="bi bi-info-circle"></i> {% trans "This document was rejected. Please contact support for more details." %}
+                        <i class="bi bi-info-circle"></i> {% trans "This document was rejected. Please contact support for more details." %} <a href="{% url 'jobs:inbox' %}" class="alert-link">{% trans "Chat with support" %}</a>
                     </div>
                     {% endif %}
                 {% endif %}

@@ -88,10 +88,11 @@ def app_version(request):
 @permission_classes([AllowAny])
 def contact_info(request):
     """Get contact information"""
+    # Same details the website shows in its footer (templates/base.html).
     return Response({
         'email': 'sales@easyfix.co.tz',
-        'phone': '+1-555-0123',
-        'address': '123 Worker Connect St, Tech City, TC 12345',
-        'business_hours': 'Monday-Friday 9AM-6PM EST',
-        'support_hours': '24/7 for urgent matters'
+        'phone': '+255 790 476 113',
+        'address': 'Fumba Road, Zanzibar',
+        'business_hours': '',
+        'support_hours': '',
     })

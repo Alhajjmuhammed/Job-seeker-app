@@ -460,6 +460,7 @@ def upload_document(request):
             profile.has_uploaded_national_id = True
             profile.save(update_fields=['has_uploaded_national_id'])
         profile.recalculate_completion()
+        profile.reopen_review()
         
         return Response({
             'id': document.id,

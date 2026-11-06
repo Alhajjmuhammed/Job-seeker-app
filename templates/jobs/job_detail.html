@@ -1080,7 +1080,7 @@
                     </div>
                     <div class="client-details">
                         <h4>{{ job.client.get_full_name }}</h4>
-                        <p>{{ job.client.email }}</p>
+                        {# No email here: contact details are shared only after a job is accepted (chat/call). #}
                         <div class="client-stats">
                             <span class="client-stat">
                                 <strong>{{ job.client.client_profile.total_jobs_posted }}</strong> {% trans "jobs posted" %}

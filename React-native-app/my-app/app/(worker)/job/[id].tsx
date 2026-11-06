@@ -28,7 +28,8 @@ interface JobDetail {
   category_name: string;
   client_name: string;
   total_price: number;
-  location: string;
+  location?: string;
+  city?: string;
   duration_type_display: string;
   duration_days: number;
   created_at: string;
@@ -383,7 +384,7 @@ export default function JobDetailScreen() {
             <Ionicons name="location-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>{t('jobs.location')}</Text>
-              <Text style={styles.infoValue}>{job.location}</Text>
+              <Text style={styles.infoValue}>{job.location || job.city}</Text>
             </View>
           </View>
 

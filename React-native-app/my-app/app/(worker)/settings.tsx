@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
+import { confirmExportMyData } from '../../services/exportMyData';
 import apiService from '../../services/api';
 import { SUPPORTED_LANGUAGES, changeLanguage } from '../../services/i18n';
 
@@ -237,37 +238,7 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleExportData = () => {
-    Alert.alert(
-      'Export My Data',
-      'We will prepare a complete export of all your data and email it to you. This may take a few minutes.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await apiService.exportUserData();
-              Alert.alert(
-                'Export Started',
-                'Your data export has been started. You will receive an email with a download link shortly.',
-                [{ text: 'OK' }]
-              );
-            } catch (error: any) {
-              console.error('Error exporting data:', error);
-              Alert.alert(
-                'Export Error',
-                error.response?.data?.error || 'Failed to start data export. Please try again.'
-              );
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
-  };
+  const handleExportData = () => confirmExportMyData(setLoading);
 
   const handleLanguageChange = () => {
     setShowLanguageModal(true);

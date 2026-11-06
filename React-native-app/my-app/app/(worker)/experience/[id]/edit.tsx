@@ -41,9 +41,10 @@ export default function EditExperienceScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  // This screen stays mounted between visits: reload whenever a different item is opened.
   useEffect(() => {
     loadExperience();
-  }, []);
+  }, [id]);
 
   const loadExperience = async () => {
     try {

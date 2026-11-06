@@ -84,6 +84,8 @@ class Notification(models.Model):
                 if data.get('sender_id'):
                     return reverse('jobs:conversation', args=[data['sender_id']])
                 return reverse('jobs:inbox')
+            if data.get('direct_hire_id'):
+                return reverse('jobs:direct_hire_detail', args=[data['direct_hire_id']])
             if user.is_staff and request_id:
                 return reverse('admin_panel:service_request_detail', args=[request_id])
             if user.user_type == 'worker' and data.get('assignment_id'):

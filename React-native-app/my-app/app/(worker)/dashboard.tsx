@@ -640,7 +640,7 @@ export default function WorkerDashboard() {
   const fetchDashboardData = async (isMounted = () => true) => {
     try {
       setLoading(true);
-      const [assignedJobsData, pendingAssignmentsData] = await Promise.all([
+      const [assignedJobsData, pendingAssignmentsData, directHires, profileData] = await Promise.all([
         apiService.getWorkerAssignments().catch(err => {
           console.log('Error fetching assigned jobs:', err);
           return { results: [] };
@@ -649,6 +649,10 @@ export default function WorkerDashboard() {
           console.log('Error fetching pending assignments:', err);
           return { results: [] };
         }),
+        // Clients' direct booking requests waiting for this worker's answer.
+        apiService.getDirectHireRequests().catch(() => []),
+        // Real availability, so the switch below starts in the right position.
+        apiService.getWorkerProfile().catch(() => null),
       ]);
       
       // Only update state if component is still mounted
@@ -657,6 +661,8 @@ export default function WorkerDashboard() {
         const assignmentsList = assignedJobsData?.results || (Array.isArray(assignedJobsData) ? assignedJobsData : []);
         setAssignedJobs(assignmentsList);
         setPendingAssignments(pendingAssignmentsData?.results || pendingAssignmentsData || []);
+        setPendingRequests(Array.isArray(directHires) ? directHires : (directHires?.results || []));
+        if (profileData?.availability) setIsAvailable(profileData.availability === 'available');
 
         // Calculate stats directly from assignments data (more reliable than separate API call)
         const computedStats = {
@@ -753,7 +759,7 @@ export default function WorkerDashboard() {
       <Header 
         showNotifications 
         showSearch 
-        onNotificationPress={() => Alert.alert(t('settings.notifications'), t('nav.notifications'))}
+        onNotificationPress={() => router.push('/(worker)/notifications' as any)}
         onSearchPress={() => router.push('/(worker)/jobs')}
       />
 

@@ -47,6 +47,8 @@ def job_list(request):
     
     # Sort
     sort_by = request.GET.get('sort', '-created_at')
+    if sort_by not in ('-created_at', 'created_at', '-budget', 'budget'):
+        sort_by = '-created_at'  # anything else would error out or order by a hidden field
     jobs = jobs.order_by(sort_by)
     
     categories = Category.objects.all()
@@ -563,6 +565,8 @@ def request_worker_directly(request, worker_id):
             direct_hire.client = request.user
             direct_hire.worker = worker
             direct_hire.save()
+            from worker_connect.notification_service import NotificationService
+            NotificationService.notify_direct_hire(direct_hire)
             
             messages.success(request, f'Request sent to {worker.user.get_full_name()}! They will be notified.')
             return redirect('jobs:direct_hire_detail', pk=direct_hire.pk)
@@ -620,6 +624,8 @@ def worker_accept_direct_hire(request, pk):
         # Update worker availability
         hire_request.worker.availability = 'busy'
         hire_request.worker.save()
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_direct_hire(hire_request)
         
         messages.success(request, 'Request accepted! The client will be notified.')
         return redirect('jobs:direct_hire_detail', pk=pk)
@@ -649,6 +655,8 @@ def worker_reject_direct_hire(request, pk):
         hire_request.worker_response_message = reason
         hire_request.responded_at = timezone.now()
         hire_request.save()
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_direct_hire(hire_request)
         
         messages.info(request, 'Request declined.')
         return redirect('jobs:direct_hire_detail', pk=pk)

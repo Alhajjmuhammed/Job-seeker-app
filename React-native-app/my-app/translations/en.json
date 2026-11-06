@@ -20,7 +20,9 @@
     "no": "No",
     "ok": "OK",
     "retry": "Retry",
-    "search": "Search"
+    "search": "Search",
+    "connecting": "Connecting...",
+    "offline": "You are offline"
   },
   "nav": {
     "home": "Home",
@@ -117,7 +119,16 @@
     "invalidResetToken": "Invalid reset token",
     "fillAllFieldsError": "Please fill in all fields",
     "passwordMinLength": "Password must be at least 8 characters long",
-    "loginIdentifier": "Email, username or phone number"
+    "loginIdentifier": "Email, username or phone number",
+    "loginFailed": "Login failed. Please check your details and try again.",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "registerFailed": "Registration failed. Please try again.",
+    "resetInstructions": "Enter your email address and we'll send you a link to reset your password.",
+    "emailPlaceholder": "Enter your email",
+    "checkYourEmail": "Check your email",
+    "resetLinkSent": "If an account uses this email, we have sent it a password reset link. Please check your inbox.",
+    "useWebsite": "This app is for workers and clients. Agents and admins please use the website: workersearch.co.tz"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -713,7 +724,11 @@
     "privacyImportant": "Your privacy is important to us. These settings help you control how your data is used and who can see your information. Learn more in our Privacy Policy.",
     "failedLoadPrivacySettings": "Failed to load privacy settings. Using default values.",
     "exportError": "Export Error",
-    "failedStartExport": "Failed to start data export"
+    "failedStartExport": "Failed to start data export",
+    "exportData": "Export My Data",
+    "exportFailed": "Could not export your data. Please try again.",
+    "exportExplain": "We will put together a copy of your account data. You can then save it or send it to yourself.",
+    "exportNow": "Export"
   },
   "payout": {
     "payoutMethods": "Payout Methods",
@@ -1027,5 +1042,23 @@
     "uploadScreenshot": "Upload Screenshot",
     "skipTitle": "Skip Screenshot Upload?",
     "skipMsg": "Your request will be submitted without payment proof. Admin may require verification before assigning a worker."
+  },
+  "rating": {
+    "rateWorker": "Rate Worker",
+    "howWasYourExperience": "How was your experience with",
+    "yourWorker": "Your Worker",
+    "selectRating": "Please select a rating",
+    "terrible": "Terrible",
+    "poor": "Poor",
+    "okay": "Okay",
+    "good": "Good",
+    "excellent": "Excellent",
+    "leaveReview": "Leave a review (optional)",
+    "reviewPlaceholder": "Share details about your experience...",
+    "submit": "Submit Rating",
+    "skipForNow": "Skip for now",
+    "thankYou": "Thank You!",
+    "submitted": "Your rating has been submitted.",
+    "submitFailed": "Could not submit the rating. Please try again."
   }
 }

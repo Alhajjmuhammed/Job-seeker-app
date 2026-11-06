@@ -35,7 +35,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert(t('error'), t('fillAllFields') || 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields') || 'Please fill in all fields');
       return;
     }
     setLoading(true);
@@ -43,8 +43,8 @@ export default function LoginScreen() {
       await login(email.trim().toLowerCase(), password);
     } catch (error: any) {
       Alert.alert(
-        t('error'),
-        error.message || t('loginFailed') || 'Login failed. Please check your credentials.',
+        t('common.error'),
+        error.message || t('auth.loginFailed') || 'Login failed. Please check your credentials.',
       );
     } finally {
       setLoading(false);
@@ -88,10 +88,10 @@ export default function LoginScreen() {
         {/* Form card */}
         <View style={[styles.card, { backgroundColor: cardBg }]}>
           <Text style={[styles.heading, { color: textPrimary }]}>
-            {t('welcomeBack') || 'Welcome back!'}
+            {t('auth.welcomeBack') || 'Welcome back!'}
           </Text>
           <Text style={[styles.subheading, { color: textSec }]}>
-            {t('loginSubtitle') || 'Sign in to your account to continue'}
+            {t('auth.signInToContinue') || 'Sign in to your account to continue'}
           </Text>
 
           {/* Email */}
@@ -140,7 +140,7 @@ export default function LoginScreen() {
             </View>
             <TextInput
               style={[styles.fieldInput, { color: textPrimary }]}
-              placeholder={t('password') || 'Password'}
+              placeholder={t('auth.password') || 'Password'}
               placeholderTextColor={textSec}
               value={password}
               onChangeText={setPassword}
@@ -160,7 +160,7 @@ export default function LoginScreen() {
             onPress={() => router.push('/(auth)/forgot-password')}
           >
             <Text style={[styles.forgotText, { color: TEAL }]}>
-              {t('forgotPassword') || 'Forgot password?'}
+              {t('auth.forgotPassword') || 'Forgot password?'}
             </Text>
           </TouchableOpacity>
 
@@ -175,7 +175,7 @@ export default function LoginScreen() {
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <>
-                <Text style={styles.signInText}>{t('signIn') || 'Sign In'}</Text>
+                <Text style={styles.signInText}>{t('auth.signIn') || 'Sign In'}</Text>
                 <View style={styles.arrowCircle}>
                   <Ionicons name="arrow-forward" size={16} color={TEAL} />
                 </View>
@@ -186,11 +186,11 @@ export default function LoginScreen() {
           {/* Register */}
           <View style={styles.registerRow}>
             <Text style={[styles.registerLabel, { color: textSec }]}>
-              {t('noAccount') || "Don't have an account?"}
+              {t('auth.noAccount') || "Don't have an account?"}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
               <Text style={[styles.registerLink, { color: TEAL }]}>
-                {'  '}{t('createAccount') || 'Create one'}
+                {'  '}{t('auth.createAccount') || 'Create one'}
               </Text>
             </TouchableOpacity>
           </View>

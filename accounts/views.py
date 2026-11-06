@@ -359,6 +359,8 @@ def change_password(request):
                 return redirect('workers:dashboard')
             elif request.user.is_client:
                 return redirect('clients:dashboard')
+            elif request.user.is_admin_user:
+                return redirect('admin_panel:dashboard')
             else:
                 return redirect('accounts:profile')
     else:

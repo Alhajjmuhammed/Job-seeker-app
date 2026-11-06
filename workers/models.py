@@ -200,6 +200,13 @@ class WorkerProfile(models.Model):
         """Worker can accept direct hire requests if they have ID and are verified"""
         return self.has_id_document and self.verification_status == 'verified'
     
+    def reopen_review(self):
+        """A rejected worker who sends new documents goes back into the
+        admin's review queue (the queue lists 'pending' workers)."""
+        if self.verification_status == 'rejected':
+            self.verification_status = 'pending'
+            self.save(update_fields=['verification_status'])
+
     def recalculate_completion(self, save=True):
         """Work out how complete this profile is, and whether it is usable.
 

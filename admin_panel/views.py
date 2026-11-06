@@ -561,7 +561,10 @@ def create_user(request):
                 last_name=last_name,
                 phone_number=phone_number,
                 user_type=user_type,
-                is_active=is_active
+                is_active=is_active,
+                # The admin panel is staff-only; an "Admin" without the staff
+                # flag could log in but every admin page would bounce them.
+                is_staff=(user_type == 'admin'),
             )
             
             # Create related profile based on user type
@@ -584,6 +587,10 @@ def create_user(request):
 def edit_user(request, user_id):
     """Edit an existing user"""
     user = get_object_or_404(User, pk=user_id)
+    
+    if user.is_superuser and not request.user.is_superuser:
+        messages.error(request, 'Only a superuser can change or delete a superuser account.')
+        return redirect('admin_panel:manage_users')
     
     if request.method == 'POST':
         # Get form data
@@ -629,6 +636,10 @@ def edit_user(request, user_id):
 def delete_user(request, user_id):
     """Delete a user"""
     user = get_object_or_404(User, pk=user_id)
+    
+    if user.is_superuser and not request.user.is_superuser:
+        messages.error(request, 'Only a superuser can change or delete a superuser account.')
+        return redirect('admin_panel:manage_users')
     
     if request.method == 'POST':
         # Don't allow deleting self

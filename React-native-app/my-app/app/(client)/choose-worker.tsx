@@ -35,9 +35,10 @@ export default function ChooseWorkerScreen() {
   const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState<BrowseWorker[]>([]);
 
+  // Reload when the client comes back with a different category or location.
   useEffect(() => {
     loadWorkers();
-  }, []);
+  }, [params.categoryId, params.latitude, params.longitude]);
 
   const loadWorkers = async () => {
     try {

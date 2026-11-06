@@ -57,7 +57,18 @@
     "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
     "deleteAccount": "Supprimer le compte",
     "deleteWarning": "Cette action est irréversible !",
-    "loginIdentifier": "E-mail, nom d'utilisateur ou numéro de téléphone"
+    "loginIdentifier": "E-mail, nom d'utilisateur ou numéro de téléphone",
+    "loginFailed": "Login failed. Please check your details and try again.",
+    "createAccount": "Create Account",
+    "fillAllFields": "Please fill in all required fields",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "registerFailed": "Registration failed. Please try again.",
+    "resetInstructions": "Enter your email address and we'll send you a link to reset your password.",
+    "emailPlaceholder": "Enter your email",
+    "checkYourEmail": "Check your email",
+    "resetLinkSent": "If an account uses this email, we have sent it a password reset link. Please check your inbox.",
+    "useWebsite": "This app is for workers and clients. Agents and admins please use the website: workersearch.co.tz"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -247,5 +258,29 @@
     "chatAfterAccept": "You can chat and call once the worker accepts the job. Support is always here to help.",
     "chatSupport": "Chat with support",
     "supportReplies": "We reply in Messages"
+  },
+  "privacy": {
+    "exportData": "Export My Data",
+    "exportFailed": "Could not export your data. Please try again.",
+    "exportExplain": "We will put together a copy of your account data. You can then save it or send it to yourself.",
+    "exportNow": "Export"
+  },
+  "rating": {
+    "rateWorker": "Rate Worker",
+    "howWasYourExperience": "How was your experience with",
+    "yourWorker": "Your Worker",
+    "selectRating": "Please select a rating",
+    "terrible": "Terrible",
+    "poor": "Poor",
+    "okay": "Okay",
+    "good": "Good",
+    "excellent": "Excellent",
+    "leaveReview": "Leave a review (optional)",
+    "reviewPlaceholder": "Share details about your experience...",
+    "submit": "Submit Rating",
+    "skipForNow": "Skip for now",
+    "thankYou": "Thank You!",
+    "submitted": "Your rating has been submitted.",
+    "submitFailed": "Could not submit the rating. Please try again."
   }
 }

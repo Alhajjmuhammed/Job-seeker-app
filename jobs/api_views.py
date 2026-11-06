@@ -58,6 +58,8 @@ def accept_direct_hire_request(request, request_id):
         # hire booking, which the web flow correctly prevents.
         worker_profile.availability = 'busy'
         worker_profile.save()
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_direct_hire(hire_request)
 
         return Response({'message': 'Request accepted successfully'})
     except DirectHireRequest.DoesNotExist:
@@ -78,6 +80,8 @@ def reject_direct_hire_request(request, request_id):
         hire_request.status = 'rejected'
         hire_request.responded_at = timezone.now()
         hire_request.save()
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_direct_hire(hire_request)
         return Response({'message': 'Request rejected successfully'})
     except DirectHireRequest.DoesNotExist:
         return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -347,6 +351,12 @@ def job_detail(request, job_id):
             or job.assigned_worker_id == getattr(user.worker_profile, 'id', None)
         )
         if not (user.is_staff or is_owner or is_assigned_worker):
+            # Browse Jobs lists open (pending) requests to every worker with
+            # the public serializer - opening one must show the same public
+            # view, not a 404. Nothing private (contact details, exact
+            # address, payment data) is in it.
+            if job.status == 'pending' and hasattr(user, 'worker_profile'):
+                return Response(ServiceRequestPublicSerializer(job).data)
             return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ServiceRequestSerializer(job)

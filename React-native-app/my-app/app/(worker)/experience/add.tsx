@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
@@ -38,6 +38,15 @@ export default function AddExperienceScreen() {
   // Date picker visibility
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  // The screen stays mounted: start with an empty form on every visit.
+  useFocusEffect(
+    useCallback(() => {
+      setJobTitle(''); setCompany(''); setLocation('');
+      setStartDate(new Date()); setEndDate(new Date());
+      setIsCurrent(false); setDescription('');
+    }, [])
+  );
 
   const handleSave = async () => {
     // Validation

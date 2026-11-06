@@ -198,7 +198,7 @@
 
                 <div class="col-md-6">
                     <label for="id_phone_number" class="form-label">{% trans "Phone Number" %}</label>
-                    <input type="text" name="phone_number" id="id_phone_number" class="form-control" value="{{ request.user.phone_number|default:'' }}" placeholder="+249123456789">
+                    <input type="text" name="phone_number" id="id_phone_number" class="form-control" value="{{ request.user.phone_number|default:'' }}" placeholder="+255 7XX XXX XXX">
                     <div class="help-text">{% trans "Enter your phone number with country code" %}</div>
                 </div>
             </div>

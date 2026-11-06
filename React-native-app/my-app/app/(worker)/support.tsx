@@ -126,15 +126,9 @@ export default function SupportScreen() {
     router.push('/(worker)/messages' as any);
   };
 
-  const handleOpenTerms = () => {
-    Alert.alert(t('terms.termsOfService'), t('support.termsWebView'));
-    // TODO: Implement WebView to show terms
-  };
+  const handleOpenTerms = () => router.push('/terms' as any);
 
-  const handleOpenPrivacy = () => {
-    Alert.alert(t('auth.privacyPolicy'), t('support.privacyWebView'));
-    // TODO: Implement WebView to show privacy policy
-  };
+  const handleOpenPrivacy = () => router.push('/terms?tab=privacy' as any);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>

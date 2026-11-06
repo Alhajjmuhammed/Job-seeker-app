@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -40,9 +40,12 @@ export default function ActiveService() {
   const [loading, setLoading] = useState(true);
   const [assignment, setAssignment] = useState<CurrentAssignment | null>(null);
 
-  useEffect(() => {
-    loadCurrentAssignment();
-  }, []);
+  // Reload on every visit: the active job changes as work is started and finished.
+  useFocusEffect(
+    useCallback(() => {
+      loadCurrentAssignment();
+    }, [])
+  );
 
   const loadCurrentAssignment = async () => {
     try {
@@ -54,9 +57,8 @@ export default function ActiveService() {
       const response = await apiService.getCurrentAssignment();
       const current = response.results?.[0];
 
-      if (current) {
-        setAssignment(current);
-      } else {
+      setAssignment(current || null);
+      if (!current) {
         Alert.alert(t('assignments.noActiveService'), 'You don\'t have any active service assignment', [
           { text: 'OK', onPress: () => router.back() }
         ]);
@@ -103,7 +105,18 @@ export default function ActiveService() {
   }
 
   if (!assignment) {
-    return null;
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Header title="Active Service" showBack />
+        <View style={styles.centerContainer}>
+          <Ionicons name="briefcase-outline" size={48} color={theme.textSecondary} />
+          <Text style={{ color: theme.textSecondary, marginTop: 12, fontFamily: 'Poppins_400Regular' }}>
+            {t('assignments.noActiveService')}
+          </Text>
+        </View>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+      </View>
+    );
   }
 
   const urgencyConfig = getUrgencyConfig(assignment.urgency);

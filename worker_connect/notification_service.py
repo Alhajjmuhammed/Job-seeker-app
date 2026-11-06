@@ -163,6 +163,35 @@ class NotificationService:
         )
     
     @staticmethod
+    def notify_direct_hire(hire):
+        """Booking made straight with a worker: tell the other side what changed.
+        pending -> the worker hears about the new request;
+        accepted/rejected -> the client hears the worker's answer.
+        Never breaks the booking itself if the notification fails."""
+        try:
+            worker_user = hire.worker.user
+            if hire.status == 'pending':
+                recipient, ntype = worker_user, 'job_assigned'
+                title = "New booking request"
+                message = f"{hire.client.get_full_name() or 'A client'} wants to book you."
+            elif hire.status in ('accepted', 'rejected'):
+                recipient = hire.client
+                ntype = 'job_accepted' if hire.status == 'accepted' else 'job_rejected'
+                who = worker_user.get_full_name() or 'The worker'
+                title = "Booking accepted" if hire.status == 'accepted' else "Booking declined"
+                message = (f"{who} accepted your booking. You can now chat and call."
+                           if hire.status == 'accepted' else f"{who} declined your booking.")
+            else:
+                return None
+            return NotificationService.create_notification(
+                recipient=recipient, title=title, message=message,
+                notification_type=ntype, content_object=hire,
+                extra_data={'direct_hire_id': hire.id})
+        except Exception:
+            logger.exception('direct hire notification failed for %s', getattr(hire, 'pk', None))
+            return None
+
+    @staticmethod
     def notify_message_received(conversation, sender, recipient):
         """Notify about new message"""
         return NotificationService.create_notification(

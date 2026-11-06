@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authService, User } from '../services/auth';
 import apiService from '../services/api';
@@ -61,6 +62,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await authService.login(email, password);
+      // The app has screens for workers and clients only. Agents and admins
+      // work on the website - sign them out again with a clear message
+      // instead of leaving them on the login screen with no feedback.
+      const kind = response.user?.userType;
+      if (kind !== 'worker' && kind !== 'client') {
+        await authService.logout().catch(() => {});
+        throw new Error(i18next.t('auth.useWebsite'));
+      }
       setUser(response.user);
       
       // Navigate based on user type

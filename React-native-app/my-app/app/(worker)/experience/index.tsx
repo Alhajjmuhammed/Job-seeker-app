@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Header from '../../../components/Header';
@@ -36,9 +36,12 @@ export default function ExperienceListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [experiences, setExperiences] = useState<WorkExperience[]>([]);
 
-  useEffect(() => {
-    loadExperiences();
-  }, []);
+  // Reload on every visit so items just added or edited show up.
+  useFocusEffect(
+    useCallback(() => {
+      loadExperiences();
+    }, [])
+  );
 
   const loadExperiences = async () => {
     try {

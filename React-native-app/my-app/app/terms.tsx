@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 ﻿import React, { useState } from 'react';
 import {
   View,
@@ -338,7 +339,9 @@ const sectionStyles = StyleSheet.create({
 
 export default function TermsScreen() {
   const { theme, isDark } = useTheme();
-  const [activeTab, setActiveTab] = useState<'terms' | 'privacy'>('terms');
+  // /terms?tab=privacy opens straight on the privacy policy
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<'terms' | 'privacy'>(tab === 'privacy' ? 'privacy' : 'terms');
 
   const isTerms = activeTab === 'terms';
   const accentColor = isTerms ? '#14b8a6' : '#10b981';

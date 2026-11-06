@@ -57,7 +57,18 @@
     "logoutConfirm": "Je, una uhakika unataka kutoka?",
     "deleteAccount": "Futa Akaunti",
     "deleteWarning": "Hatua hii haiwezi kutenduliwa!",
-    "loginIdentifier": "Barua pepe, jina la mtumiaji au namba ya simu"
+    "loginIdentifier": "Barua pepe, jina la mtumiaji au namba ya simu",
+    "loginFailed": "Imeshindikana kuingia. Hakiki taarifa zako kisha jaribu tena.",
+    "createAccount": "Fungua Akaunti",
+    "fillAllFields": "Tafadhali jaza sehemu zote zinazohitajika",
+    "passwordMismatch": "Nywila hazilingani",
+    "passwordTooShort": "Nywila lazima iwe na herufi 8 au zaidi",
+    "registerFailed": "Usajili umeshindikana. Tafadhali jaribu tena.",
+    "resetInstructions": "Weka barua pepe yako na tutakutumia kiungo cha kubadilisha nywila.",
+    "emailPlaceholder": "Weka barua pepe yako",
+    "checkYourEmail": "Angalia barua pepe yako",
+    "resetLinkSent": "Ikiwa kuna akaunti yenye barua pepe hii, tumeitumia kiungo cha kubadilisha nywila. Tafadhali angalia barua pepe zako.",
+    "useWebsite": "Programu hii ni ya mafundi na wateja. Mawakala na wasimamizi tafadhali tumieni tovuti: workersearch.co.tz"
   },
   "dashboard": {
     "title": "Dashibodi",
@@ -255,5 +266,29 @@
     "chatAfterAccept": "Unaweza kuzungumza na kupiga simu mara fundi anapokubali kazi. Msaada upo wakati wote.",
     "chatSupport": "Zungumza na msaada",
     "supportReplies": "Tunajibu kwenye Ujumbe"
+  },
+  "privacy": {
+    "exportData": "Pakua Taarifa Zangu",
+    "exportFailed": "Imeshindikana kupakua taarifa zako. Tafadhali jaribu tena.",
+    "exportExplain": "Tutaandaa nakala ya taarifa za akaunti yako. Kisha unaweza kuihifadhi au kujitumia.",
+    "exportNow": "Pakua"
+  },
+  "rating": {
+    "rateWorker": "Mpe Fundi Alama",
+    "howWasYourExperience": "Huduma ilikuwaje kutoka kwa",
+    "yourWorker": "Fundi Wako",
+    "selectRating": "Tafadhali chagua alama",
+    "terrible": "Mbaya sana",
+    "poor": "Mbaya",
+    "okay": "Wastani",
+    "good": "Nzuri",
+    "excellent": "Bora kabisa",
+    "leaveReview": "Andika maoni (si lazima)",
+    "reviewPlaceholder": "Eleza huduma ilivyokuwa...",
+    "submit": "Tuma Alama",
+    "skipForNow": "Ruka kwa sasa",
+    "thankYou": "Asante!",
+    "submitted": "Alama yako imetumwa.",
+    "submitFailed": "Imeshindikana kutuma alama. Tafadhali jaribu tena."
   }
 }

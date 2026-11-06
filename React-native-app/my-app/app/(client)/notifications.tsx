@@ -85,18 +85,19 @@ export default function ClientNotificationsScreen() {
     // NotificationService.notify_service_assigned/_accepted/_completed in
     // worker_connect/notification_service.py) - not 'request_id'.
     const d = n.extra_data || {};
-    if ((n.notification_type === 'job_assigned' || n.notification_type === 'job_completed') && d.service_request_id) {
+    const requestTypes = ['job_assigned', 'job_accepted', 'job_completed'];
+    if (requestTypes.includes(n.notification_type) && d.service_request_id) {
       router.push(`/(client)/service-request/${d.service_request_id}` as any);
     } else if (n.notification_type === 'message_received') {
-      // No messaging/chat screen exists yet under (client)/ - navigating
-      // here would be a guaranteed dead route. Notification is marked
-      // read above; leave it at that until a client chat screen exists.
+      // notify_message_received puts the sender in extra_data.sender_id
+      router.push((d.sender_id ? `/(client)/conversation/${d.sender_id}` : '/(client)/messages') as any);
     }
   };
 
   const getIcon = (type: string): any => {
     switch (type) {
       case 'job_assigned': return 'person-add';
+      case 'job_accepted':
       case 'job_completed': return 'checkmark-circle';
       case 'payment_received': return 'cash';
       case 'review_received': return 'star';
