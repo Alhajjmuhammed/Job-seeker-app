@@ -13,7 +13,29 @@ def script_prefix(request):
     subpath, e.g. /wc) so inline JS can build correct absolute paths
     instead of hardcoding root-relative ones.
     """
-    return {'SCRIPT_PREFIX': request.META.get('SCRIPT_NAME', '')}
+    return {'SCRIPT_PREFIX': request.META.get('SCRIPT_NAME', ''), 'UI_VERSION': _ui_version()}
+
+
+_UI_VERSION = None
+
+
+def _ui_version():
+    """
+    Short fingerprint of static/css/ui.css. The web server tells browsers to keep
+    static files for 30 days, so the layouts link ui.css?v=<this>: a new version
+    of the file gets a new address and every browser fetches it at once.
+    """
+    global _UI_VERSION
+    if _UI_VERSION is None:
+        import hashlib
+        from pathlib import Path
+        from django.conf import settings
+        try:
+            data = (Path(settings.BASE_DIR) / 'static' / 'css' / 'ui.css').read_bytes()
+            _UI_VERSION = hashlib.md5(data).hexdigest()[:8]
+        except OSError:
+            _UI_VERSION = '1'
+    return _UI_VERSION
 
 
 def admin_counts(request):

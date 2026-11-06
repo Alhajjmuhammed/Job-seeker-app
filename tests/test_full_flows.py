@@ -1036,4 +1036,5 @@ class MissingFileTests(FlowBase):
 
     def test_all_signed_in_layouts_load_the_shared_design(self):
         for c, url in [(self.admin_c, '/dashboard/'), (self.client_c, '/clients/dashboard/'), (self.worker_c, '/workers/dashboard/')]:
-            self.assertIn('css/ui.css', c.get(url).content.decode(), url)
+            # versioned so browsers never keep an old copy (static files are cached 30 days)
+            self.assertRegex(c.get(url).content.decode(), r'css/ui\.css\?v=[0-9a-f]{8}', url)

@@ -234,7 +234,7 @@
     </style>
     {% block extra_css %}{% endblock %}
     {# one look for every signed-in page - loaded last so it wins #}
-    <link rel="stylesheet" href="{% static 'css/ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ui.css' %}?v={{ UI_VERSION }}">
 </head>
 <body>
 
