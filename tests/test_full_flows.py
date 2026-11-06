@@ -992,3 +992,11 @@ class TemplateHygieneTests(TestCase):
         self.assertNotIn('Business Street', html)
         self.assertNotIn('href="#"', html)
         self.assertIn('sales@easyfix.co.tz', html)
+
+
+class AdminMenuTests(FlowBase):
+    def test_one_menu_entry_for_workers_and_documents(self):
+        page = self.admin_c.get('/dashboard/').content.decode()
+        self.assertNotIn('Document Reviews', page)
+        self.assertNotIn('Worker Verifications', page)
+        self.assertIn('>Verifications<', page)

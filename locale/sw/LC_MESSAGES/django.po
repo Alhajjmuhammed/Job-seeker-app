@@ -10914,3 +10914,6 @@ msgstr "Hakuna inayolingana. Ongeza yako hapa chini baada ya kuhifadhi."
 
 msgid "Notification settings"
 msgstr "Mipangilio ya taarifa"
+
+msgid "Verifications"
+msgstr "Uthibitishaji"

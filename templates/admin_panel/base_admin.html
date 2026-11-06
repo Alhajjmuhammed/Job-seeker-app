@@ -657,18 +657,12 @@
             </a>
             
             <div class="sidebar-section-title section-title">{% trans "VERIFICATION" %}</div>
-            <a href="{% url 'admin_panel:worker_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'worker_verification_list' and request.GET.docs != 'waiting' or request.resolver_match.url_name == 'verify_worker' %}active{% endif %}">
-                <i class="bi bi-person-check"></i> 
-                <span class="nav-text">{% trans "Worker Verifications" %}</span>
+            {# One place for workers and their documents: the queue and each worker's review page #}
+            <a href="{% url 'admin_panel:worker_verification_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'worker_verification_list' or request.resolver_match.url_name == 'verify_worker' %}active{% endif %}">
+                <i class="bi bi-person-check"></i>
+                <span class="nav-text">{% trans "Verifications" %}</span>
                 {% if pending_workers_count > 0 %}
                 <span class="stat-badge">{{ pending_workers_count }}</span>
-                {% endif %}
-            </a>
-            <a href="{% url 'admin_panel:worker_verification_list' %}?status=all&docs=waiting" class="sidebar-nav-item {% if request.GET.docs == 'waiting' %}active{% endif %}">
-                <i class="bi bi-file-earmark-check"></i> 
-                <span class="nav-text">{% trans "Document Reviews" %}</span>
-                {% if pending_documents_count > 0 %}
-                <span class="stat-badge">{{ pending_documents_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'admin_panel:agent_list' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'agent_list' or request.resolver_match.url_name == 'agent_detail' %}active{% endif %}">
