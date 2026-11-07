@@ -1397,3 +1397,52 @@ class WorkerTypeTests(FlowBase):
         r = Client().get('/api/search/filters/')
         self.assertEqual(r.status_code, 200, r.content[:300])
         self.assertIn('Plumber', [c['name'] for c in r.json()['filters']['categories']])
+
+
+class ProfileSetupTests(FlowBase):
+    """'Why do I always get Profile Setup?' - the ID was on file, but city/trades
+    added afterwards never re-marked the profile complete."""
+
+    def setUp(self):
+        super().setUp()
+        self.new = User.objects.create_user(email='fresh@t.co', username='fresh', password=PW, user_type='worker',
+                                            first_name='Fre', last_name='Sh')
+        self.np = WorkerProfile.objects.create(user=self.new)
+        self.c = Client(); self.c.force_login(self.new)
+
+    def login(self):
+        r = post_json(Client(), '/api/auth/login/', {'email': 'fresh@t.co', 'password': PW})
+        self.assertEqual(r.status_code, 200, r.content)
+        return r.json()['user']
+
+    def test_setup_only_until_the_id_is_uploaded(self):
+        self.assertTrue(self.login()['needsSetup'])
+        r = self.c.post('/api/workers/documents/upload/', {
+            'document_type': 'id', 'file': SimpleUploadedFile('id.png', PNG, 'image/png')})
+        self.assertEqual(r.status_code, 201, r.content)
+        u = self.login()
+        self.assertFalse(u['needsSetup'])          # ID on file -> dashboard
+        self.assertFalse(u['isProfileComplete'])   # still missing city + trades
+
+    def test_adding_city_and_trades_after_the_id_completes_the_profile(self):
+        self.c.post('/api/workers/documents/upload/', {
+            'document_type': 'id', 'file': SimpleUploadedFile('id.png', PNG, 'image/png')})
+        r = patch_json(self.c, '/api/workers/profile/update/', {'city': 'Dar', 'category_ids': [self.cat.id]})
+        self.assertEqual(r.status_code, 200, r.content)
+        self.np.refresh_from_db()
+        self.assertTrue(self.np.is_profile_complete)
+        self.assertTrue(self.login()['isProfileComplete'])
+
+    def test_website_profile_edit_also_recalculates(self):
+        self.c.post('/api/workers/documents/upload/', {
+            'document_type': 'id', 'file': SimpleUploadedFile('id.png', PNG, 'image/png')})
+        r = self.c.post('/workers/profile/edit/', {'categories': [self.cat.id], 'experience_years': 1,
+                                                   'availability': 'available', 'country': 'Tanzania',
+                                                   'city': 'Dar'}, secure=True)
+        self.assertEqual(r.status_code, 302)
+        self.np.refresh_from_db()
+        self.assertTrue(self.np.is_profile_complete)
+
+    def test_clients_never_need_setup(self):
+        r = post_json(Client(), '/api/auth/login/', {'email': 'Client.One@t.co', 'password': PW})
+        self.assertFalse(r.json()['user']['needsSetup'])

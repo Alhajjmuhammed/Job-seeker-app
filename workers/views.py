@@ -72,6 +72,7 @@ def profile_setup(request):
         form = WorkerProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
+            profile.recalculate_completion()
             messages.success(request, 'Profile created successfully!')
             return redirect('workers:dashboard')
     else:
@@ -95,6 +96,7 @@ def profile_edit(request):
         
         if form.is_valid():
             form.save()
+            profile.recalculate_completion()
             # Update phone number in User model
             if phone_number:
                 request.user.phone_number = phone_number

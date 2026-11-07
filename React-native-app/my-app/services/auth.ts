@@ -12,6 +12,7 @@ export interface User {
   profileCompletionPercentage?: number;
   // Worker-specific fields
   workerType?: 'professional' | 'non_academic';
+  needsSetup?: boolean; // worker with no ID on file yet (sent by login/register)
   verificationStatus?: 'pending' | 'verified' | 'rejected';
   availability?: 'available' | 'busy' | 'offline';
   averageRating?: number;

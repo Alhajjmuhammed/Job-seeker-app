@@ -1,58 +1,33 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useWebSocket } from '../contexts/WebSocketContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Red "You are offline" bar - only when the phone really has no internet.
+ *
+ * It used to follow the live-updates WebSocket instead, so whenever that one
+ * channel dropped (or a network blocked it) the bar said "offline" while the
+ * app itself worked fine: every screen still loads and refreshes over normal
+ * requests. Losing instant updates is not being offline.
+ */
 export default function ConnectionStatus() {
-  const { connected, connectionState } = useWebSocket();
-  const { theme } = useTheme();
   const { t } = useTranslation();
+  const net = useNetInfo();
 
-  // WebSocket is now enabled - show connection status when not connected
-  const getStatusColor = () => {
-    switch (connectionState) {
-      case 'connecting':
-        return '#F59E0B'; // Yellow/orange
-      case 'disconnected':
-        return '#EF4444'; // Red
-      default:
-        return theme.textSecondary;
-    }
-  };
-
-  const getStatusText = () => {
-    switch (connectionState) {
-      case 'connecting':
-        return t('common.connecting');
-      case 'disconnected':
-        return t('common.offline');
-      default:
-        return '';
-    }
-  };
-
-  const getStatusIcon = () => {
-    switch (connectionState) {
-      case 'connecting':
-        return 'sync-outline';
-      case 'disconnected':
-        return 'cloud-offline-outline';
-      default:
-        return 'cloud-done-outline';
-    }
-  };
-
-  // Only show when not connected (to avoid clutter when everything is working)
-  if (connectionState === 'connected' || connectionState === 'idle') {
+  // null = not known yet: say nothing rather than flash a false alarm.
+  // isInternetReachable is not used: its probe (a Google URL) can be blocked
+  // in browsers and on some networks, which would show a false "offline".
+  const offline = net.isConnected === false;
+  if (!offline) {
     return null;
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: getStatusColor() }]}>
-      <Ionicons name={getStatusIcon() as any} size={14} color="#FFFFFF" />
-      <Text style={styles.text}>{getStatusText()}</Text>
+    <View style={[styles.container, { backgroundColor: '#EF4444' }]}>
+      <Ionicons name="cloud-offline-outline" size={14} color="#FFFFFF" />
+      <Text style={styles.text}>{t('common.offline')}</Text>
     </View>
   );
 }

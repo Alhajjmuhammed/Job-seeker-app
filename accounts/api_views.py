@@ -58,11 +58,15 @@ def login_view(request):
     is_complete = True
     completion_percentage = 100
     worker_type = None
+    needs_setup = False
     if user.user_type == 'worker' and hasattr(user, 'worker_profile'):
         is_complete = user.worker_profile.is_profile_complete
         completion_percentage = user.worker_profile.profile_completion_percentage
         # the app shows Browse Jobs to professionals only - it needs this right away
         worker_type = user.worker_profile.worker_type
+        # Profile Setup is for uploading the ID; once it is on file the worker
+        # goes to the dashboard (which shows anything else still missing)
+        needs_setup = not user.worker_profile.has_id_document
     
     return Response({
         'token': token.key,
@@ -76,6 +80,7 @@ def login_view(request):
             'isProfileComplete': is_complete,
             'profileCompletionPercentage': completion_percentage,
             'workerType': worker_type,
+            'needsSetup': needs_setup,
         }
     })
 
@@ -96,11 +101,15 @@ def register_view(request):
     is_complete = True
     completion_percentage = 100
     worker_type = None
+    needs_setup = False
     if user.user_type == 'worker' and hasattr(user, 'worker_profile'):
         is_complete = user.worker_profile.is_profile_complete
         completion_percentage = user.worker_profile.profile_completion_percentage
         # the app shows Browse Jobs to professionals only - it needs this right away
         worker_type = user.worker_profile.worker_type
+        # Profile Setup is for uploading the ID; once it is on file the worker
+        # goes to the dashboard (which shows anything else still missing)
+        needs_setup = not user.worker_profile.has_id_document
     
     return Response({
         'token': token.key,
@@ -114,6 +123,7 @@ def register_view(request):
             'isProfileComplete': is_complete,
             'profileCompletionPercentage': completion_percentage,
             'workerType': worker_type,
+            'needsSetup': needs_setup,
         }
     }, status=status.HTTP_201_CREATED)
 

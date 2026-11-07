@@ -76,7 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Navigate based on user type
       if (response.user.userType === 'worker') {
         // Check if profile is complete (for first-time login)
-        if (!response.user.isProfileComplete) {
+        // Setup is for uploading the ID. needsSetup comes from the server (no ID
+        // on file yet); older servers don't send it, then fall back to the old rule.
+        if (response.user.needsSetup ?? !response.user.isProfileComplete) {
           router.replace('/(worker)/profile-setup');
         } else {
           router.replace('/(worker)/dashboard');
@@ -97,7 +99,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Navigate based on user type
       if (response.user.userType === 'worker') {
         // Check if profile is complete
-        if (!response.user.isProfileComplete) {
+        // Setup is for uploading the ID. needsSetup comes from the server (no ID
+        // on file yet); older servers don't send it, then fall back to the old rule.
+        if (response.user.needsSetup ?? !response.user.isProfileComplete) {
           router.replace('/(worker)/profile-setup');
         } else {
           router.replace('/(worker)/dashboard');

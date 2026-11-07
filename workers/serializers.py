@@ -104,7 +104,12 @@ class WorkerProfileSerializer(SanitizedSerializerMixin, serializers.ModelSeriali
         # Update skills if provided
         if skill_ids is not None:
             instance.skills.set(skill_ids)
-        
+
+        # City / trades decide whether the profile is complete. This used to be
+        # recalculated only on document upload, so a worker who uploaded the ID
+        # first and then added city + trades stayed "incomplete" for ever and
+        # was sent to Profile Setup at every login.
+        instance.recalculate_completion()
         return instance
 
 
