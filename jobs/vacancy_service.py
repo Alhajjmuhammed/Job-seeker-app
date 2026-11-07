@@ -58,10 +58,13 @@ def relationship_open(contract):
 
 
 def with_counts(qs):
-    """Annotate places / applicant counts so lists don't run a query per row."""
-    return qs.annotate(
+    """Annotate places / applicant counts so lists don't run a query per row.
+    Django drops Meta.ordering on grouped queries, so keep newest-first unless
+    the caller already chose an order (otherwise pages repeat or skip rows)."""
+    qs = qs.annotate(
         hired_n=Count('applications', filter=Q(applications__status='hired'), distinct=True),
         applicant_n=Count('applications', filter=~Q(applications__status='withdrawn'), distinct=True))
+    return qs if qs.query.order_by else qs.order_by('-created_at', '-id')
 
 
 def attach_counts(vacancies):

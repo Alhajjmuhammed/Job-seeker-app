@@ -470,3 +470,13 @@ class ReviewFindingTests(VacancyBase):
         after = {u: count(c, u) for c, u in urls}
         for u in before:
             self.assertLessEqual(after[u] - before[u], 2, (u, before[u], after[u]))
+
+
+class ListOrderTests(VacancyBase):
+    def test_lists_stay_newest_first(self):
+        ids = [self.post_job(title=f'Job {i}').id for i in range(3)]
+        mine = [v['id'] for v in self.client_c.get(f'{API}mine/').json()['results']]
+        self.assertEqual(mine, list(reversed(ids)))
+        from jobs.vacancy_service import with_counts
+        from jobs.vacancy_models import Vacancy
+        self.assertTrue(with_counts(Vacancy.objects.all()).ordered)
