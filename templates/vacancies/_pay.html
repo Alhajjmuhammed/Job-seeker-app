@@ -1,0 +1,1 @@
+{% load humanize vacancy_tags %}TSh {{ v.salary_amount|tsh }}{% if v.salary_max %} – {{ v.salary_max|tsh }}{% endif %} <span class="fw-normal small vc-muted">{{ v.get_pay_period_display }}</span>

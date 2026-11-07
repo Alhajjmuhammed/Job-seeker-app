@@ -1,0 +1,275 @@
+{% extends base_template %}
+{% load i18n humanize %}
+
+{% block title %}{{ v.title }}{% endblock %}
+{% block page_title %}{% if manage %}{% trans "Job post" %}{% else %}{% trans "Job" %}{% endif %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 vc-wrap">
+  <a href="{% if me_admin %}{% url 'vacancies:admin_all' %}{% elif manage %}{% url 'vacancies:mine' %}{% else %}{% url 'vacancies:board' %}{% endif %}" class="small text-decoration-none d-inline-block mb-2"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</a>
+
+  {# ---------- status banner (poster / admin) ---------- #}
+  {% if manage %}
+  <div class="vc-banner {{ v.status }} mb-3">
+    {% if v.status == 'review' %}<i class="bi bi-hourglass-split"></i>
+      <div class="small"><strong>{% trans "Under review" %}</strong> — {% trans "Our team is checking this job. It is not visible to workers yet." %}</div>
+    {% elif v.status == 'changes' %}<i class="bi bi-pencil-square"></i>
+      <div class="small"><strong>{% trans "Changes requested" %}</strong> — {{ v.review_note }}</div>
+    {% elif v.status == 'rejected' %}<i class="bi bi-x-octagon"></i>
+      <div class="small"><strong>{% trans "Not approved" %}</strong> — {{ v.review_note }}</div>
+    {% elif v.status == 'published' %}<i class="bi bi-broadcast"></i>
+      <div class="small"><strong>{% trans "Published" %}</strong> — {% blocktrans with d=v.closing_date|date:"d M Y" %}Workers can apply until {{ d }}.{% endblocktrans %}
+        {% blocktrans count n=v.places_left %}{{ n }} place left.{% plural %}{{ n }} places left.{% endblocktrans %}</div>
+    {% elif v.status == 'filled' %}<i class="bi bi-check2-circle"></i>
+      <div class="small"><strong>{% trans "Filled" %}</strong> — {% trans "All places are filled." %}</div>
+    {% else %}<i class="bi bi-lock"></i>
+      <div class="small"><strong>{% trans "Closed" %}</strong> — {% trans "This job is no longer taking applications." %}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    {# ================= left: the job ================= #}
+    <div class="col-lg-7">
+      <div class="vc-card mb-3">
+        <div class="vc-card-body">
+          <div class="d-flex justify-content-between gap-2 flex-wrap align-items-start">
+            <div style="min-width:0">
+              <h1 class="vc-title">{{ v.title }}</h1>
+              <div class="small vc-muted mt-1">{% if v.kind == 'home' %}<i class="bi bi-house"></i>{% else %}<i class="bi bi-building"></i>{% endif %} {{ v.poster_display_name }}{% if v.category %} · {{ v.category.name }}{% endif %}</div>
+            </div>
+            <span class="vc-st vc-st-{{ v.status }}">{{ v.get_status_display }}</span>
+          </div>
+          <div class="vc-pay mt-2" style="font-size:1.15rem">{% include "vacancies/_pay.html" %}</div>
+          {% if v.kind == 'home' %}<div class="mt-1">
+            {% if v.live_in %}<span class="vc-tag"><i class="bi bi-house-heart"></i> {% trans "Live-in" %}</span>{% endif %}
+            {% if v.food_provided %}<span class="vc-tag"><i class="bi bi-cup-hot"></i> {% trans "Food provided" %}</span>{% endif %}
+            {% if v.room_provided %}<span class="vc-tag"><i class="bi bi-door-closed"></i> {% trans "Room provided" %}</span>{% endif %}
+          </div>{% endif %}
+
+          {% if manage and v.poster == request.user %}
+          <div class="d-flex flex-wrap gap-2 mt-3 vc-actions">
+            {% if v.status == 'review' or v.status == 'changes' or v.status == 'rejected' %}
+            <a href="{% url 'vacancies:edit' v.pk %}" class="btn btn-sm btn-outline-primary vc-btn"><i class="bi bi-pencil"></i> {% if v.status == 'review' %}{% trans "Edit" %}{% else %}{% trans "Edit and send again" %}{% endif %}</a>
+            {% endif %}
+            {% if v.status == 'published' or v.status == 'review' or v.status == 'changes' %}
+            <form method="post" action="{% url 'vacancies:close' v.pk %}" data-confirm="{% trans "Close this job? Workers will no longer be able to apply." %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger vc-btn"><i class="bi bi-lock"></i> {% trans "Close job" %}</button></form>
+            {% endif %}
+          </div>
+          {% elif manage and me_admin and v.status != 'closed' and v.status != 'filled' and v.status != 'rejected' %}
+          <form method="post" action="{% url 'vacancies:close' v.pk %}" class="mt-3" data-confirm="{% trans "Close this job? Workers will no longer be able to apply." %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger vc-btn"><i class="bi bi-lock"></i> {% trans "Close job" %}</button></form>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "About the job" %}</h2></div>
+        <div class="vc-card-body">
+          <p class="mb-0" style="white-space: pre-line">{{ v.description }}</p>
+          {% if v.duties %}<h3 class="h6 fw-bold mt-3 mb-1">{% trans "Duties" %}</h3><p class="mb-0" style="white-space: pre-line">{{ v.duties }}</p>{% endif %}
+          {% if v.requirements %}<h3 class="h6 fw-bold mt-3 mb-1">{% trans "Requirements" %}</h3><p class="mb-0" style="white-space: pre-line">{{ v.requirements }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "Details" %}</h2></div>
+        <div class="vc-card-body py-1">
+          <dl class="vc-facts">
+            <div class="vc-fact"><i class="bi bi-calendar-range"></i><div><dt>{% trans "How long?" %}</dt><dd>{{ v.get_duration_display }}{% if v.trial_period %} · {% trans "Trial" %}: {{ v.trial_period }}{% endif %}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-calendar-event"></i><div><dt>{% trans "Start date" %}</dt><dd>{{ v.start_date|date:"d M Y" }}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-hourglass-split"></i><div><dt>{% trans "Applications close on" %}</dt><dd>{{ v.closing_date|date:"d M Y" }}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-people"></i><div><dt>{% trans "Workers needed" %}</dt><dd>{{ v.workers_needed }} ({% blocktrans count n=v.places_left %}{{ n }} place left{% plural %}{{ n }} places left{% endblocktrans %})</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-mortarboard"></i><div><dt>{% trans "Worker type" %}</dt><dd>{{ v.get_worker_type_needed_display }}</dd></div></div>
+            {% if v.working_days or v.working_hours %}<div class="vc-fact"><i class="bi bi-clock"></i><div><dt>{% trans "Working time" %}</dt><dd>{{ v.working_days }}{% if v.working_days and v.working_hours %} · {% endif %}{{ v.working_hours }}</dd></div></div>{% endif %}
+            {% if v.pay_day %}<div class="vc-fact"><i class="bi bi-wallet2"></i><div><dt>{% trans "Pay day" %}</dt><dd>{{ v.pay_day }}</dd></div></div>{% endif %}
+            <div class="vc-fact"><i class="bi bi-geo-alt"></i><div><dt>{% trans "Place" %}</dt><dd>{% if v.area %}{{ v.area }}, {% endif %}{{ v.city }}
+              {% if private and v.address %}<br><strong>{{ v.address }}</strong>{% elif not private %}<br><span class="small vc-muted">{% trans "The exact address is shown to the workers who are hired." %}</span>{% endif %}</dd></div></div>
+            {% if private and v.poster.phone_number and not manage %}
+            <div class="vc-fact"><i class="bi bi-telephone"></i><div><dt>{% trans "Employer phone" %}</dt><dd><a href="tel:{{ v.poster.phone_number }}">{{ v.poster.phone_number }}</a></dd></div></div>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+
+    </div>
+
+    {# ================= right: actions ================= #}
+    <div class="col-lg-5">
+
+      {# ----- worker: apply / my application ----- #}
+      {% if not manage %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "Apply" %}</h2></div>
+        <div class="vc-card-body">
+          {% if my_application and my_application.status != 'withdrawn' %}
+            <div class="d-flex align-items-center gap-2 mb-2"><span class="small">{% trans "Your application:" %}</span>
+              <span class="vc-st vc-st-{{ my_application.status }}">{{ my_application.get_status_display }}</span></div>
+            {% if my_application.status == 'applied' %}<p class="small vc-muted mb-2">{% trans "The employer has your application. You will get a notification when they decide." %}</p>
+            {% elif my_application.status == 'shortlisted' %}<p class="small vc-muted mb-2">{% trans "Good news - you are on the shortlist. The employer may contact you through our team." %}</p>
+            {% elif my_application.status == 'hired' %}<p class="small mb-2">{% trans "Congratulations, you got this job!" %}</p>
+              {% with c=my_application.contracts.first %}{% if c %}<a href="{% url 'vacancies:contract' c.pk %}" class="btn btn-success btn-sm vc-btn"><i class="bi bi-file-earmark-text"></i> {% trans "Open the contract" %}</a>{% endif %}{% endwith %}
+            {% elif my_application.status == 'not_selected' %}<p class="small vc-muted mb-0">{% trans "You were not selected this time. Keep applying - new jobs are published every week." %}</p>{% endif %}
+            {% if my_application.status == 'applied' or my_application.status == 'shortlisted' %}
+            <form method="post" action="{% url 'vacancies:application_action' my_application.pk 'withdraw' %}" data-confirm="{% trans "Withdraw your application?" %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}
+              <button class="btn btn-sm btn-outline-secondary vc-btn">{% trans "Withdraw application" %}</button></form>
+            {% endif %}
+          {% elif apply_problem %}
+            <div class="vc-banner review"><i class="bi bi-info-circle"></i><div class="small">{{ apply_problem }}</div></div>
+          {% elif apply_form %}
+            <form method="post" action="{% url 'vacancies:apply' v.pk %}">{% csrf_token %}
+              <label class="form-label small fw-semibold" for="{{ apply_form.message.id_for_label }}">{{ apply_form.message.label }}</label>
+              {{ apply_form.message }}
+              <div class="form-text mb-2">{% trans "The employer will see your profile, rating, trades and work history." %}</div>
+              <button class="btn btn-success w-100 vc-btn"><i class="bi bi-send"></i> {% trans "Apply for this job" %}</button>
+            </form>
+          {% else %}
+            <p class="small vc-muted mb-0">{% trans "Only workers can apply for jobs." %}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# ----- admin: review ----- #}
+      {% if me_admin %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2><i class="bi bi-shield-check"></i> {% trans "Review" %}</h2>
+          {% if v.reviewed_by %}<small>{% blocktrans with who=v.reviewed_by.get_full_name|default:v.reviewed_by.username when=v.reviewed_at|date:"d M Y H:i" %}Last: {{ who }}, {{ when }}{% endblocktrans %}</small>{% endif %}</div>
+        <div class="vc-card-body">
+          <dl class="vc-facts mb-2">
+            <div class="vc-fact"><i class="bi bi-person-badge"></i><div><dt>{% trans "Posted by" %}</dt><dd>{{ v.poster.get_full_name|default:v.poster.username }}{% if v.company_name %} · {{ v.company_name }}{% endif %}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-telephone"></i><div><dt>{% trans "Contact" %}</dt><dd>{% if v.poster.phone_number %}<a href="tel:{{ v.poster.phone_number }}">{{ v.poster.phone_number }}</a>{% endif %}{% if v.poster.email %}<br><a href="mailto:{{ v.poster.email }}">{{ v.poster.email }}</a>{% endif %}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-card-text"></i><div><dt>{% trans "ID / TIN / BRELA" %}</dt><dd>{{ v.verification_number|default:"—" }}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-calendar3"></i><div><dt>{% trans "Sent" %}</dt><dd>{{ v.created_at|date:"d M Y H:i" }}</dd></div></div>
+          </dl>
+          <a href="{% url 'jobs:conversation' v.poster_id %}" class="btn btn-sm btn-outline-secondary vc-btn mb-3"><i class="bi bi-chat-dots"></i> {% trans "Message the poster" %}</a>
+          {% if v.status == 'review' or v.status == 'changes' %}
+          <form method="post" action="{% url 'vacancies:review' v.pk %}">{% csrf_token %}
+            <label class="form-label small fw-semibold" for="{{ review_form.note.id_for_label }}">{% trans "Note to the poster (needed when asking for changes or rejecting)" %}</label>
+            {{ review_form.note }}
+            <div class="d-flex flex-wrap gap-2 mt-2 vc-actions">
+              <button name="action" value="publish" class="btn btn-success btn-sm vc-btn"><i class="bi bi-broadcast"></i> {% trans "Publish" %}</button>
+              <button name="action" value="changes" class="btn btn-outline-primary btn-sm vc-btn"><i class="bi bi-pencil-square"></i> {% trans "Ask for changes" %}</button>
+              <button name="action" value="reject" class="btn btn-outline-danger btn-sm vc-btn"><i class="bi bi-x-octagon"></i> {% trans "Reject" %}</button>
+            </div>
+          </form>
+          {% else %}
+          <p class="small vc-muted mb-0">{% trans "This job post is not waiting for review." %}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if not manage %}
+      <details class="vc-card mb-3">
+        <summary class="vc-card-body small fw-semibold text-danger" style="cursor:pointer"><i class="bi bi-flag"></i> {% trans "Report this job" %}</summary>
+        <form method="post" action="{% url 'vacancies:report' v.pk %}" class="vc-card-body pt-0">{% csrf_token %}
+          <p class="small vc-muted">{% trans "Is something wrong or unsafe? Tell our team - your report is private." %}</p>
+          <div class="mb-2"><label class="form-label small fw-semibold" for="{{ report_form.report_type.id_for_label }}">{{ report_form.report_type.label }}</label>{{ report_form.report_type }}</div>
+          <div class="mb-2"><label class="form-label small fw-semibold" for="{{ report_form.description.id_for_label }}">{{ report_form.description.label }}</label>{{ report_form.description }}</div>
+          <button class="btn btn-sm btn-outline-danger vc-btn">{% trans "Send report" %}</button>
+        </form>
+      </details>
+      {% endif %}
+
+      {# ----- poster/admin: contracts of this job ----- #}
+      {% if manage and contracts %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "Hired workers" %}</h2></div>
+        <div class="list-group list-group-flush">
+          {% for c in contracts %}
+          <a href="{% url 'vacancies:contract' c.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-2">
+            <span class="small"><strong>{{ c.worker.user.get_full_name|default:c.worker.user.username }}</strong><br>
+              <span class="vc-muted">{{ c.start_date|date:"d M Y" }} – {% if c.end_date %}{{ c.end_date|date:"d M Y" }}{% else %}{% trans "permanent" %}{% endif %}</span></span>
+            <span class="vc-st vc-st-{{ c.status }}">{{ c.get_status_display }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ================= applicants (poster / admin) ================= #}
+  {% if manage and v.published_at %}
+  <div class="vc-card mb-4">
+    <div class="vc-card-head">
+      <h2>{% trans "Applicants" %}</h2>
+      <div class="vc-tabs">
+        <a href="?" class="{% if not status_filter %}active{% endif %}">{% trans "All" %}</a>
+        <a href="?status=applied" class="{% if status_filter == 'applied' %}active{% endif %}">{% trans "New" %} ({{ counts.applied }})</a>
+        <a href="?status=shortlisted" class="{% if status_filter == 'shortlisted' %}active{% endif %}">{% trans "Shortlist" %} ({{ counts.shortlisted }})</a>
+        <a href="?status=hired" class="{% if status_filter == 'hired' %}active{% endif %}">{% trans "Hired" %} ({{ counts.hired }})</a>
+        <a href="?status=not_selected" class="{% if status_filter == 'not_selected' %}active{% endif %}">{% trans "Not selected" %} ({{ counts.not_selected }})</a>
+      </div>
+    </div>
+    {% for a in applications %}
+    {% with w=a.worker %}
+    <div class="vc-app">
+      <div class="d-flex gap-3 align-items-start flex-wrap">
+        <div class="vc-avatar">{{ w.user.get_full_name|default:w.user.username|first|upper }}</div>
+        <div class="flex-grow-1" style="min-width: 200px">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <strong>{{ w.user.get_full_name|default:w.user.username }}</strong>
+            {% if w.verification_status == 'verified' %}<span class="vc-tag"><i class="bi bi-patch-check-fill"></i> {% trans "Verified" %}</span>{% endif %}
+            <span class="vc-st vc-st-{{ a.status }}">{{ a.get_status_display }}</span>
+          </div>
+          <div class="vc-meta mt-1">
+            <span><i class="bi bi-mortarboard"></i>{{ w.get_worker_type_display }}</span>
+            <span class="vc-stars"><i class="bi bi-star-fill" style="color:#f59e0b"></i>{{ w.average_rating|floatformat:1 }}</span>
+            <span><i class="bi bi-briefcase"></i>{% blocktrans count n=w.experience_years %}{{ n }} year experience{% plural %}{{ n }} years experience{% endblocktrans %}</span>
+            <span><i class="bi bi-check2-all"></i>{% blocktrans count n=w.completed_jobs %}{{ n }} job done{% plural %}{{ n }} jobs done{% endblocktrans %}</span>
+            {% with n=a.worker_contracts %}{% if n %}<span><i class="bi bi-file-earmark-text"></i>{% blocktrans count n=n %}{{ n }} contract{% plural %}{{ n }} contracts{% endblocktrans %}</span>{% endif %}{% endwith %}
+            {% if w.city %}<span><i class="bi bi-geo-alt"></i>{{ w.city }}</span>{% endif %}
+          </div>
+          <div class="mt-1">{% for c in w.categories.all %}<span class="vc-tag alt">{{ c.name }}</span>{% endfor %}</div>
+          {% if a.message %}<div class="vc-msg">{{ a.message }}</div>{% endif %}
+          <div class="small vc-muted mt-1">{% trans "Applied" %} {{ a.created_at|naturaltime }}</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 vc-actions">
+          {% if a.status == 'applied' or a.status == 'shortlisted' %}
+            {% if a.status == 'applied' %}
+            <form method="post" action="{% url 'vacancies:application_action' a.pk 'shortlist' %}">{% csrf_token %}
+              <button class="btn btn-sm btn-outline-primary vc-btn"><i class="bi bi-star"></i> {% trans "Shortlist" %}</button></form>
+            {% endif %}
+            {% if v.status == 'published' %}
+            <button class="btn btn-sm btn-success vc-btn" type="button" data-bs-toggle="collapse" data-bs-target="#hire{{ a.pk }}"><i class="bi bi-person-check"></i> {% trans "Hire" %}</button>
+            {% endif %}
+            <form method="post" action="{% url 'vacancies:application_action' a.pk 'reject' %}" data-confirm="{% trans "Tell this worker they were not selected?" %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger vc-btn"><i class="bi bi-x"></i> {% trans "Not selected" %}</button></form>
+          {% elif a.status == 'hired' %}
+            {% with c=a.contracts.first %}{% if c %}<a href="{% url 'vacancies:contract' c.pk %}" class="btn btn-sm btn-outline-success vc-btn"><i class="bi bi-file-earmark-text"></i> {% trans "Contract" %}</a>{% endif %}{% endwith %}
+          {% endif %}
+        </div>
+      </div>
+      {% if a.status == 'applied' or a.status == 'shortlisted' %}{% if v.status == 'published' %}
+      <div class="collapse mt-3" id="hire{{ a.pk }}">
+        <form method="post" action="{% url 'vacancies:application_action' a.pk 'hire' %}" class="vc-msg">{% csrf_token %}
+          <div class="row g-2">
+            <div class="col-sm-4"><label class="form-label small fw-semibold" for="hs{{ a.pk }}">{% trans "Start date" %}</label>
+              <input type="date" name="start_date" id="hs{{ a.pk }}" class="form-control form-control-sm" value="{{ v.start_date|date:'Y-m-d' }}"></div>
+            <div class="col-sm-8"><label class="form-label small fw-semibold" for="ht{{ a.pk }}">{% trans "Agreed terms (optional)" %}</label>
+              <textarea name="terms" id="ht{{ a.pk }}" rows="2" class="form-control form-control-sm" placeholder="{% trans 'e.g. Sunday off, salary paid on the 30th' %}"></textarea></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+            <span class="small vc-muted">{% trans "After hiring you can chat and call each other." %}</span>
+            <button class="btn btn-success btn-sm vc-btn"><i class="bi bi-person-check"></i> {% trans "Confirm hire" %}</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}{% endif %}
+    </div>
+    {% endwith %}
+    {% empty %}
+    <div class="vc-empty">
+      <div class="ico"><i class="bi bi-people"></i></div>
+      <h3>{% trans "No applicants yet" %}</h3>
+      <p>{% if v.status == 'published' %}{% trans "Matching workers were told about this job. Applications will appear here." %}{% else %}{% trans "Workers can apply once the job is published." %}{% endif %}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

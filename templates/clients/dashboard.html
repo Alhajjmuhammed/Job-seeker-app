@@ -18,11 +18,40 @@
   .ch-svc { display: flex; align-items: center; gap: .6rem; padding: .75rem .9rem; text-decoration: none; color: inherit; }
   .ch-svc:hover { border-color: #14b8a6; color: inherit; }
   .ch-svc i { color: #0f766e; font-size: 1.2rem; }
+  .ch-way { display: flex; align-items: center; gap: .9rem; padding: 1rem 1.1rem; text-decoration: none; color: inherit; height: 100%; transition: border-color .15s, box-shadow .15s; }
+  .ch-way:hover { border-color: #14b8a6; box-shadow: 0 4px 16px rgba(15, 118, 110, .1); color: inherit; }
+  .ch-way small { color: var(--bs-secondary-color); }
+  .ch-way-ico { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+                font-size: 1.35rem; background: #ecfdf5; color: #0f766e; }
+  .ch-way-ico.alt { background: #eff6ff; color: #1d4ed8; }
+  [data-bs-theme="dark"] .ch-way-ico { background: rgba(16, 185, 129, .14); color: #5eead4; }
+  [data-bs-theme="dark"] .ch-way-ico.alt { background: rgba(59, 130, 246, .16); color: #93c5fd; }
 </style>
 
 <div class="container-fluid py-3" style="max-width: 1100px;">
   {% trans "What do you need done today?" as hero_sub %}{% trans "Book a worker" as hero_btn %}{% url 'service_requests_web:client_request_service' as hero_url %}
   {% include "partials/hero.html" with subtitle=hero_sub action_url=hero_url action_label=hero_btn %}
+
+  {# ---------- two ways to use the platform ---------- #}
+  <h2 class="h6 fw-bold mt-3 mb-2">{% trans "What do you need?" %}</h2>
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <a href="{% url 'service_requests_web:client_request_service' %}" class="ch-card ch-way">
+        <span class="ch-way-ico"><i class="bi bi-tools"></i></span>
+        <span><strong>{% trans "Quick service" %}</strong><br>
+          <small>{% trans "Fix one thing - a plumber, an electrician, a cleaner. Choose the service, pick the worker or let us choose." %}</small></span>
+        <i class="bi bi-chevron-right ms-auto"></i>
+      </a>
+    </div>
+    <div class="col-md-6">
+      <a href="{% url 'vacancies:post' %}" class="ch-card ch-way">
+        <span class="ch-way-ico alt"><i class="bi bi-megaphone"></i></span>
+        <span><strong>{% trans "Post a job" %}</strong><br>
+          <small>{% trans "Long-term work or a vacancy - a house girl, a guard, a driver, staff for 3 or 6 months. We check it, then workers apply." %}</small></span>
+        <i class="bi bi-chevron-right ms-auto"></i>
+      </a>
+    </div>
+  </div>
 
   {# ---------- things to do ---------- #}
   {% for r in to_do %}

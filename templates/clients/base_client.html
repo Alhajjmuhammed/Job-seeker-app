@@ -687,6 +687,20 @@
                 <i class="bi bi-grid"></i>
                 <span class="nav-text">{% trans "All services" %}</span>
             </a>
+
+            <div class="sidebar-section-title section-title">{% trans "JOBS" %}</div>
+            <a href="{% url 'vacancies:post' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'post' or request.resolver_match.url_name == 'edit' %}active{% endif %}{% endif %}">
+                <i class="bi bi-megaphone"></i>
+                <span class="nav-text">{% trans "Post a job" %}</span>
+            </a>
+            <a href="{% url 'vacancies:mine' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'mine' or request.resolver_match.url_name == 'detail' %}active{% endif %}{% endif %}">
+                <i class="bi bi-briefcase"></i>
+                <span class="nav-text">{% trans "My job posts" %}</span>
+            </a>
+            <a href="{% url 'vacancies:contracts' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'contracts' or request.resolver_match.url_name == 'contract' %}active{% endif %}{% endif %}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="nav-text">{% trans "Contracts" %}</span>
+            </a>
             
             <div class="sidebar-section-title section-title">{% trans "COMMUNICATION" %}</div>
             <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' or request.resolver_match.url_name == 'conversation' %}active{% endif %}">

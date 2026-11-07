@@ -312,3 +312,10 @@ def log_activity(user_id, activity_type, title, description='', related_object_t
         logger.info(f"Logged activity for user {user_id}: {activity_type}")
     except Exception as e:
         logger.error(f"Error logging activity: {e}")
+
+
+@shared_task(ignore_result=True)
+def vacancy_daily():
+    """Job posts upkeep - see jobs/vacancy_service.daily_maintenance."""
+    from .vacancy_service import daily_maintenance
+    return daily_maintenance()

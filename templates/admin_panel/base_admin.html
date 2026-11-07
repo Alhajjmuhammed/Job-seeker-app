@@ -688,6 +688,21 @@
                 <span class="stat-badge">{{ pending_service_requests_count }}</span>
                 {% endif %}
             </a>
+            <a href="{% url 'vacancies:review_queue' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'review_queue' %}active{% endif %}{% endif %}">
+                <i class="bi bi-shield-check"></i>
+                <span class="nav-text">{% trans "Jobs to review" %}</span>
+                {% if pending_vacancies_count > 0 %}
+                <span class="stat-badge">{{ pending_vacancies_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'vacancies:admin_all' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'admin_all' or request.resolver_match.url_name == 'detail' %}active{% endif %}{% endif %}">
+                <i class="bi bi-megaphone"></i>
+                <span class="nav-text">{% trans "All job posts" %}</span>
+            </a>
+            <a href="{% url 'vacancies:contracts' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'contracts' or request.resolver_match.url_name == 'contract' %}active{% endif %}{% endif %}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="nav-text">{% trans "Contracts" %}</span>
+            </a>
             <a href="{% url 'jobs:inbox' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'inbox' or request.resolver_match.url_name == 'conversation' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> 
                 <span class="nav-text">{% trans "Messages" %}</span>

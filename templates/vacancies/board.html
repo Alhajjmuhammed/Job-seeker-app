@@ -1,0 +1,82 @@
+{% extends base_template %}
+{% load i18n %}
+
+{% block title %}{% trans "Find jobs" %}{% endblock %}
+{% block page_title %}{% trans "Find jobs" %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 vc-wrap">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="vc-title">{% trans "Jobs you can apply for" %}</h1>
+      <div class="small vc-muted">{% trans "Long-term work and vacancies from homes and companies. Every job is checked by our team before it appears here." %}</div>
+    </div>
+    {% if profile %}<a href="{% url 'vacancies:my_applications' %}" class="btn btn-outline-success btn-sm vc-btn"><i class="bi bi-send-check"></i> {% trans "My applications" %}</a>{% endif %}
+  </div>
+
+  {% if profile and profile.verification_status != 'verified' %}
+  <div class="vc-banner review mb-3"><i class="bi bi-shield-exclamation"></i>
+    <div class="small">{% trans "Only verified workers can apply. Upload your ID so our team can verify you." %}
+      <a href="{% url 'workers:document_upload' %}" class="fw-semibold">{% trans "Upload ID" %}</a></div></div>
+  {% endif %}
+
+  <form method="get" class="vc-card vc-card-body mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <label class="form-label small mb-1" for="f_q">{% trans "Search" %}</label>
+        <input type="search" id="f_q" name="q" value="{{ params.q }}" class="form-control" placeholder="{% trans 'e.g. house girl, guard, cook' %}">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1" for="f_cat">{% trans "Type of work" %}</label>
+        <select id="f_cat" name="category" class="form-select">
+          <option value="">{% trans "All" %}</option>
+          {% for c in categories %}<option value="{{ c.id }}" {% if params.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1" for="f_city">{% trans "City" %}</label>
+        <input id="f_city" name="city" value="{{ params.city }}" class="form-control" placeholder="{% trans 'Any' %}">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1" for="f_dur">{% trans "How long?" %}</label>
+        <select id="f_dur" name="duration" class="form-select">
+          <option value="">{% trans "Any" %}</option>
+          {% for val, label in durations %}<option value="{{ val }}" {% if params.duration == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small mb-1" for="f_kind">{% trans "Employer" %}</label>
+        <select id="f_kind" name="kind" class="form-select">
+          <option value="">{% trans "Any" %}</option>
+          <option value="home" {% if params.kind == 'home' %}selected{% endif %}>{% trans "Home / household" %}</option>
+          <option value="business" {% if params.kind == 'business' %}selected{% endif %}>{% trans "Company / business" %}</option>
+        </select>
+      </div>
+      <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        {% if profile %}<div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" name="only_mine" value="1" id="f_mine" {% if params.only_mine %}checked{% endif %}>
+          <label class="form-check-label small" for="f_mine">{% trans "Only jobs for my worker type" %}</label>
+        </div>{% else %}<span></span>{% endif %}
+        <div class="d-flex gap-2">
+          <a href="{% url 'vacancies:board' %}" class="btn btn-light btn-sm vc-btn">{% trans "Clear" %}</a>
+          <button class="btn btn-success btn-sm vc-btn"><i class="bi bi-search"></i> {% trans "Search" %}</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if jobs.object_list %}
+  <div class="row g-3">
+    {% for v in jobs %}<div class="col-12 col-md-6 col-xl-4">{% include "vacancies/_job_card.html" %}</div>{% endfor %}
+  </div>
+  {% include "vacancies/_pager.html" with page=jobs %}
+  {% else %}
+  <div class="vc-card vc-empty">
+    <div class="ico"><i class="bi bi-briefcase"></i></div>
+    <h3>{% trans "No jobs found" %}</h3>
+    <p>{% trans "There are no open jobs that match right now. We will send you a notification when a job in your trade and city is published." %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

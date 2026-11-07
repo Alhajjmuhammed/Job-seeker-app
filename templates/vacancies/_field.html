@@ -1,0 +1,14 @@
+{% if field.field.widget.input_type == 'checkbox' %}
+<div class="form-check{% if wrap_id %}{% endif %}" {% if wrap_id %}id="{{ wrap_id }}"{% endif %}>
+  {{ field }}
+  <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {% for e in field.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+</div>
+{% else %}
+<div {% if wrap_id %}id="{{ wrap_id }}"{% endif %}>
+  <label class="form-label small fw-semibold mb-1" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+  {{ field }}
+  {% if hint %}<div class="form-text">{{ hint }}</div>{% endif %}
+  {% for e in field.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,73 @@
+{% extends base_template %}
+{% load i18n humanize %}
+
+{% block title %}{% if queue %}{% trans "Jobs to review" %}{% else %}{% trans "All job posts" %}{% endif %}{% endblock %}
+{% block page_title %}{% if queue %}{% trans "Jobs to review" %}{% else %}{% trans "All job posts" %}{% endif %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 vc-wrap" style="max-width: 1250px;">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="vc-title">{% if queue %}{% trans "Jobs to review" %}{% else %}{% trans "All job posts" %}{% endif %}</h1>
+      <div class="small vc-muted">{% if queue %}{% trans "Check each job is real and safe, then publish it. Oldest first." %}{% else %}{% trans "Every job post from homes and companies." %}{% endif %}</div>
+    </div>
+    <div class="vc-tabs">
+      <a href="{% url 'vacancies:review_queue' %}" class="{% if queue %}active{% endif %}">{% trans "To review" %}</a>
+      <a href="{% url 'vacancies:admin_all' %}" class="{% if not queue %}active{% endif %}">{% trans "All" %}</a>
+      <a href="{% url 'vacancies:contracts' %}">{% trans "Contracts" %}</a>
+    </div>
+  </div>
+
+  {% if not queue %}
+  <form method="get" class="vc-card vc-card-body mb-3 d-flex flex-wrap gap-2 align-items-end">
+    <div class="flex-grow-1" style="min-width:200px">
+      <label class="form-label small mb-1" for="aq">{% trans "Search" %}</label>
+      <input type="search" id="aq" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="{% trans 'Title, company, city or poster' %}">
+    </div>
+    <div style="min-width:170px">
+      <label class="form-label small mb-1" for="as">{% trans "Status" %}</label>
+      <select id="as" name="status" class="form-select">
+        <option value="">{% trans "All" %}</option>
+        {% for val, label in statuses %}<option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-success vc-btn"><i class="bi bi-search"></i> {% trans "Filter" %}</button>
+  </form>
+  {% endif %}
+
+  {% if posts.object_list %}
+  <div class="vc-card">
+    <div class="table-responsive">
+      <table class="table vc-table mb-0">
+        <thead><tr>
+          <th>{% trans "Job" %}</th><th>{% trans "Posted by" %}</th><th>{% trans "Place" %}</th>
+          <th>{% trans "Pay" %}</th><th>{% trans "Sent" %}</th><th>{% trans "Status" %}</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% for v in posts %}
+        <tr>
+          <td style="min-width:180px"><a href="{% url 'vacancies:detail' v.pk %}" class="fw-semibold text-decoration-none">{{ v.title }}</a>
+            <div class="small vc-muted">{{ v.get_kind_display }}{% if v.category %} · {{ v.category.name }}{% endif %} · {{ v.get_duration_display }}</div></td>
+          <td>{{ v.poster_display_name }}<div class="small vc-muted">{{ v.poster.phone_number }}</div></td>
+          <td class="small">{% if v.area %}{{ v.area }}, {% endif %}{{ v.city }}</td>
+          <td class="small text-nowrap">{% include "vacancies/_pay.html" %}</td>
+          <td class="small text-nowrap">{{ v.created_at|naturaltime }}</td>
+          <td><span class="vc-st vc-st-{{ v.status }}">{{ v.get_status_display }}</span></td>
+          <td><a href="{% url 'vacancies:detail' v.pk %}" class="btn btn-sm {% if v.status == 'review' %}btn-success{% else %}btn-outline-secondary{% endif %} vc-btn">{% if v.status == 'review' or v.status == 'changes' %}{% trans "Review" %}{% else %}{% trans "Open" %}{% endif %}</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include "vacancies/_pager.html" with page=posts %}
+  {% else %}
+  <div class="vc-card vc-empty">
+    <div class="ico"><i class="bi bi-inbox"></i></div>
+    <h3>{% if queue %}{% trans "Nothing to review" %}{% else %}{% trans "No job posts" %}{% endif %}</h3>
+    <p>{% if queue %}{% trans "New job posts appear here. You also get a notification for each one." %}{% else %}{% trans "No job post matches." %}{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

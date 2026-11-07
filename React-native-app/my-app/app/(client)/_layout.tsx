@@ -95,6 +95,12 @@ export default function ClientLayout() {
       <Tabs.Screen name="privacy-settings" options={{ href: null }} />
       <Tabs.Screen name="data-retention" options={{ href: null }} />
       <Tabs.Screen name="edit-service-request/[id]" options={{ href: null }} />
+      {/* job posts (vacancies) */}
+      <Tabs.Screen name="post-job" options={{ href: null }} />
+      <Tabs.Screen name="my-jobs" options={{ href: null }} />
+      <Tabs.Screen name="vacancy/[id]" options={{ href: null }} />
+      <Tabs.Screen name="contracts" options={{ href: null }} />
+      <Tabs.Screen name="contract/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

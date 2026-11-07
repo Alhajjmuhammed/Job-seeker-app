@@ -1,0 +1,48 @@
+{% extends base_template %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "My applications" %}{% endblock %}
+{% block page_title %}{% trans "My applications" %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 vc-wrap">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="vc-title">{% trans "My applications" %}</h1>
+      <div class="small vc-muted">{% trans "Applied → Shortlisted → Hired. You get a notification every time something changes." %}</div>
+    </div>
+    <a href="{% url 'vacancies:board' %}" class="btn btn-success btn-sm vc-btn"><i class="bi bi-search"></i> {% trans "Find jobs" %}</a>
+  </div>
+
+  {% if applications.object_list %}
+  <div class="vc-card">
+    {% for a in applications %}
+    <div class="vc-app d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div style="min-width:0">
+        <a href="{% url 'vacancies:detail' a.vacancy.pk %}" class="fw-semibold text-decoration-none">{{ a.vacancy.title }}</a>
+        <div class="vc-meta mt-1">
+          <span><i class="bi bi-person-badge"></i>{{ a.vacancy.poster_display_name }}</span>
+          <span><i class="bi bi-geo-alt"></i>{{ a.vacancy.city }}</span>
+          <span><i class="bi bi-calendar-range"></i>{{ a.vacancy.get_duration_display }}</span>
+          <span><i class="bi bi-clock-history"></i>{{ a.created_at|naturaltime }}</span>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="vc-st vc-st-{{ a.status }}">{{ a.get_status_display }}</span>
+        {% if a.status == 'hired' %}{% with c=a.contracts.first %}{% if c %}<a href="{% url 'vacancies:contract' c.pk %}" class="btn btn-sm btn-outline-success vc-btn">{% trans "Contract" %}</a>{% endif %}{% endwith %}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% include "vacancies/_pager.html" with page=applications %}
+  {% else %}
+  <div class="vc-card vc-empty">
+    <div class="ico"><i class="bi bi-send"></i></div>
+    <h3>{% trans "No applications yet" %}</h3>
+    <p>{% trans "Find a job that fits you and apply with one tap. The employer sees your profile, rating and work history." %}</p>
+    <a href="{% url 'vacancies:board' %}" class="btn btn-success vc-btn">{% trans "Find jobs" %}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

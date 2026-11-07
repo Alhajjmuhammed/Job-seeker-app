@@ -91,6 +91,9 @@ export default function NotificationsScreen() {
     // sends: the payload field is extra_data (not data), and the vocabulary is
     // the notification_type choices on the Notification model.
     const data = notification.extra_data || {};
+    // job posts first: a contract, else the job post itself
+    if (data.contract_id) { router.push(`/(worker)/contract/${data.contract_id}` as any); return; }
+    if (data.vacancy_id) { router.push(`/(worker)/vacancy/${data.vacancy_id}` as any); return; }
     const assignmentId = data.assignment_id;
     switch (notification.notification_type) {
       case 'job_assigned':

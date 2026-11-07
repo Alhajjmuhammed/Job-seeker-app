@@ -36,7 +36,8 @@ class NotificationService:
         message,
         notification_type,
         content_object=None,
-        extra_data=None
+        extra_data=None,
+        send_email=True,
     ):
         """Create a new notification and broadcast via WebSocket"""
         notification_data = {
@@ -56,8 +57,11 @@ class NotificationService:
         # Broadcast via WebSocket
         NotificationService._broadcast_notification(notification)
 
-        # Email (respects the recipient's per-category preference)
-        NotificationService._email_notification(notification)
+        # Email (respects the recipient's per-category preference). Alerts sent
+        # to many people at once (new job published) skip it - one SMTP round
+        # trip per worker inside a request would make the admin wait.
+        if send_email:
+            NotificationService._email_notification(notification)
 
         return notification
 

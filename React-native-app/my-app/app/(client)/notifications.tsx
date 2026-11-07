@@ -85,6 +85,9 @@ export default function ClientNotificationsScreen() {
     // NotificationService.notify_service_assigned/_accepted/_completed in
     // worker_connect/notification_service.py) - not 'request_id'.
     const d = n.extra_data || {};
+    // job posts first: a contract, else the job post itself
+    if (d.contract_id) { router.push(`/(client)/contract/${d.contract_id}` as any); return; }
+    if (d.vacancy_id) { router.push(`/(client)/vacancy/${d.vacancy_id}` as any); return; }
     const requestTypes = ['job_assigned', 'job_accepted', 'job_completed'];
     if (requestTypes.includes(n.notification_type) && d.service_request_id) {
       router.push(`/(client)/service-request/${d.service_request_id}` as any);

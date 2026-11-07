@@ -66,6 +66,10 @@ def admin_counts(request):
                 status='pending'
             ).count()
 
+            # Job posts waiting for review
+            from jobs.vacancy_models import Vacancy
+            context['pending_vacancies_count'] = Vacancy.objects.filter(status='review').count()
+
             # Unread messages for admin
             context['unread_messages_count'] = Message.objects.filter(
                 recipient=request.user,

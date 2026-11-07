@@ -84,6 +84,11 @@ class Notification(models.Model):
                 if data.get('sender_id'):
                     return reverse('jobs:conversation', args=[data['sender_id']])
                 return reverse('jobs:inbox')
+            # job posts: a contract first, then the job itself
+            if data.get('contract_id'):
+                return reverse('vacancies:contract', args=[data['contract_id']])
+            if data.get('vacancy_id'):
+                return reverse('vacancies:detail', args=[data['vacancy_id']])
             if data.get('direct_hire_id'):
                 return reverse('jobs:direct_hire_detail', args=[data['direct_hire_id']])
             if user.is_staff and request_id:

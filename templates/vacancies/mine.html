@@ -1,0 +1,40 @@
+{% extends base_template %}
+{% load i18n %}
+
+{% block title %}{% trans "My job posts" %}{% endblock %}
+{% block page_title %}{% trans "My job posts" %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 vc-wrap">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="vc-title">{% trans "My job posts" %}</h1>
+      <div class="small vc-muted">{% trans "Long-term jobs and vacancies you posted. Each one is checked by our team before workers see it." %}</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'vacancies:contracts' %}" class="btn btn-outline-success btn-sm vc-btn"><i class="bi bi-file-earmark-text"></i> {% trans "Contracts" %}</a>
+      <a href="{% url 'vacancies:post' %}" class="btn btn-success btn-sm vc-btn"><i class="bi bi-plus-lg"></i> {% trans "Post a job" %}</a>
+    </div>
+  </div>
+
+  {% if posts.object_list %}
+  <div class="row g-3">
+    {% for v in posts %}
+    <div class="col-12 col-md-6 col-xl-4">
+      {% include "vacancies/_job_card.html" with show_status=True %}
+      {% if v.status == 'changes' or v.status == 'rejected' %}<div class="small mt-1 px-1 text-danger"><i class="bi bi-chat-left-text"></i> {{ v.review_note|truncatechars:90 }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% include "vacancies/_pager.html" with page=posts %}
+  {% else %}
+  <div class="vc-card vc-empty">
+    <div class="ico"><i class="bi bi-megaphone"></i></div>
+    <h3>{% trans "You have not posted a job yet" %}</h3>
+    <p>{% trans "Need a house girl, a guard, a driver or staff for months? Post a job - we check it, publish it, and verified workers apply." %}</p>
+    <a href="{% url 'vacancies:post' %}" class="btn btn-success vc-btn"><i class="bi bi-plus-lg"></i> {% trans "Post a job" %}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

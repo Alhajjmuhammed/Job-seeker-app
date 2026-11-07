@@ -1,0 +1,142 @@
+{% extends base_template %}
+{% load i18n humanize vacancy_tags %}
+
+{% block title %}{% trans "Contract" %}{% endblock %}
+{% block page_title %}{% trans "Contract" %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+{% with v=c.vacancy worker_name=c.worker.user.get_full_name|default:c.worker.user.username %}
+<div class="container-fluid py-3 vc-wrap">
+  <a href="{% url 'vacancies:contracts' %}" class="small text-decoration-none d-inline-block mb-2"><i class="bi bi-arrow-left"></i> {% trans "All contracts" %}</a>
+
+  <div class="vc-card mb-3">
+    <div class="vc-card-body">
+      <div class="d-flex justify-content-between gap-2 flex-wrap align-items-start">
+        <div style="min-width:0">
+          <div class="small vc-muted">{% trans "Contract for" %}</div>
+          <h1 class="vc-title"><a href="{% url 'vacancies:detail' v.pk %}" class="text-decoration-none">{{ v.title }}</a></h1>
+          <div class="vc-meta mt-1">
+            <span><i class="bi bi-person-badge"></i>{% trans "Employer" %}: {{ v.poster_display_name }}</span>
+            <span><i class="bi bi-person"></i>{% trans "Worker" %}: {{ worker_name }}</span>
+          </div>
+        </div>
+        <span class="vc-st vc-st-{{ c.status }}">{{ c.get_status_display }}</span>
+      </div>
+      {% if other_user and open_rel %}
+      <div class="d-flex flex-wrap gap-2 mt-3 vc-actions">
+        <a href="{% url 'jobs:conversation' other_user.id %}" class="btn btn-success btn-sm vc-btn"><i class="bi bi-chat-dots"></i> {% if party == 'employer' %}{% trans "Chat with worker" %}{% else %}{% trans "Chat with employer" %}{% endif %}</a>
+        {% if other_user.phone_number %}<a href="tel:{{ other_user.phone_number }}" class="btn btn-outline-success btn-sm vc-btn"><i class="bi bi-telephone"></i> {% trans "Call" %} {{ other_user.phone_number }}</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "Terms" %}</h2></div>
+        <div class="vc-card-body py-1">
+          <dl class="vc-facts">
+            <div class="vc-fact"><i class="bi bi-calendar-event"></i><div><dt>{% trans "Start date" %}</dt><dd>{{ c.start_date|date:"d M Y" }}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-calendar-check"></i><div><dt>{% trans "End date" %}</dt><dd>{% if c.end_date %}{{ c.end_date|date:"d M Y" }}{% else %}{% trans "Permanent" %}{% endif %}</dd></div></div>
+            <div class="vc-fact"><i class="bi bi-wallet2"></i><div><dt>{% trans "Salary" %}</dt><dd>TSh {{ c.salary_amount|tsh }} {{ c.get_pay_period_display }}{% if v.pay_day %} · {{ v.pay_day }}{% endif %}</dd></div></div>
+            {% if v.working_days or v.working_hours %}<div class="vc-fact"><i class="bi bi-clock"></i><div><dt>{% trans "Working time" %}</dt><dd>{{ v.working_days }}{% if v.working_days and v.working_hours %} · {% endif %}{{ v.working_hours }}</dd></div></div>{% endif %}
+            <div class="vc-fact"><i class="bi bi-geo-alt"></i><div><dt>{% trans "Place" %}</dt><dd>{% if v.area %}{{ v.area }}, {% endif %}{{ v.city }}{% if v.address %}{% if open_rel or party == 'admin' %}<br><strong>{{ v.address }}</strong>{% endif %}{% endif %}</dd></div></div>
+            {% if v.kind == 'home' %}<div class="vc-fact"><i class="bi bi-house-heart"></i><div><dt>{% trans "Home job" %}</dt><dd>
+              {% if v.live_in %}<span class="vc-tag">{% trans "Live-in" %}</span>{% endif %}{% if v.food_provided %}<span class="vc-tag">{% trans "Food provided" %}</span>{% endif %}{% if v.room_provided %}<span class="vc-tag">{% trans "Room provided" %}</span>{% endif %}
+              {% if v.trial_period %}<span class="vc-tag alt">{% trans "Trial" %}: {{ v.trial_period }}</span>{% endif %}</dd></div></div>{% endif %}
+            <div class="vc-fact"><i class="bi bi-file-earmark-text"></i><div><dt>{% trans "Agreed terms" %}</dt><dd>{{ c.terms|default:"—" }}</dd></div></div>
+            {% if c.end_reason %}<div class="vc-fact"><i class="bi bi-chat-left-text"></i><div><dt>{% trans "Reason it ended" %}</dt><dd>{{ c.end_reason }}{% if c.ended_by %} <span class="vc-muted small">— {{ c.ended_by.get_full_name|default:c.ended_by.username }}, {{ c.ended_at|date:"d M Y" }}</span>{% endif %}</dd></div></div>{% endif %}
+          </dl>
+        </div>
+      </div>
+
+      {% if c.employer_rating or c.worker_rating %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "Ratings" %}</h2></div>
+        <div class="vc-card-body">
+          {% if c.employer_rating %}<div class="mb-2"><div class="small fw-semibold">{% trans "Employer rated the worker" %}</div>
+            <span class="vc-stars">{% for i in "12345" %}{% if forloop.counter <= c.employer_rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+            {% if c.employer_feedback %}<div class="vc-msg">{{ c.employer_feedback }}</div>{% endif %}</div>{% endif %}
+          {% if c.worker_rating %}<div><div class="small fw-semibold">{% trans "Worker rated the employer" %}</div>
+            <span class="vc-stars">{% for i in "12345" %}{% if forloop.counter <= c.worker_rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+            {% if c.worker_feedback %}<div class="vc-msg">{{ c.worker_feedback }}</div>{% endif %}</div>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if history|length > 1 %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2>{% trans "Contract history" %}</h2></div>
+        <div class="list-group list-group-flush">
+          {% for h in history %}
+          <a href="{% url 'vacancies:contract' h.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-2 {% if h.pk == c.pk %}active-row fw-semibold{% endif %}">
+            <span class="small">{{ h.start_date|date:"d M Y" }} – {% if h.end_date %}{{ h.end_date|date:"d M Y" }}{% else %}{% trans "permanent" %}{% endif %}{% if h.pk == c.pk %} · {% trans "this one" %}{% endif %}</span>
+            <span class="vc-st vc-st-{{ h.status }}">{{ h.get_status_display }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-5">
+      {# ----- rate ----- #}
+      {% if party == 'employer' or party == 'worker' %}{% if c.status != 'active' and not my_rating %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2><i class="bi bi-star"></i> {% if party == 'employer' %}{% trans "Rate the worker" %}{% else %}{% trans "Rate the employer" %}{% endif %}</h2></div>
+        <form method="post" action="{% url 'vacancies:contract_action' c.pk 'rate' %}" class="vc-card-body">{% csrf_token %}
+          <div class="vc-rate mb-2" role="radiogroup" aria-label="{% trans 'Rating' %}">
+            {% for n in "54321" %}<input type="radio" name="rating" value="{{ n }}" id="r{{ n }}" required><label for="r{{ n }}" title="{{ n }}">★</label>{% endfor %}
+          </div>
+          <label class="form-label small fw-semibold" for="{{ rate_form.feedback.id_for_label }}">{{ rate_form.feedback.label }}</label>
+          {{ rate_form.feedback }}
+          <button class="btn btn-warning btn-sm vc-btn mt-2">{% trans "Send rating" %}</button>
+        </form>
+      </div>
+      {% endif %}{% endif %}
+
+      {# ----- renew ----- #}
+      {% if party == 'employer' or party == 'admin' %}{% if c.status == 'active' or c.status == 'finished' %}{% if not c.renewal %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2><i class="bi bi-arrow-repeat"></i> {% trans "Renew" %}</h2></div>
+        <form method="post" action="{% url 'vacancies:contract_action' c.pk 'renew' %}" class="vc-card-body">{% csrf_token %}
+          <p class="small vc-muted">{% trans "Keep the same worker for another period. The new period starts when this one ends." %}</p>
+          <label class="form-label small fw-semibold" for="{{ renew_form.duration.id_for_label }}">{{ renew_form.duration.label }}</label>
+          {{ renew_form.duration }}
+          <button class="btn btn-outline-success btn-sm vc-btn mt-2">{% trans "Renew contract" %}</button>
+        </form>
+      </div>
+      {% endif %}{% endif %}{% endif %}
+
+      {# ----- end ----- #}
+      {% if c.status == 'active' %}
+      <div class="vc-card mb-3">
+        <div class="vc-card-head"><h2><i class="bi bi-stop-circle"></i> {% trans "End contract" %}</h2></div>
+        <form method="post" action="{% url 'vacancies:contract_action' c.pk 'end' %}" class="vc-card-body" data-confirm="{% trans 'End this contract now?' %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}
+          <p class="small vc-muted">{% trans "Ending before the end date is recorded as ended early. Our team can see the reason." %}</p>
+          <label class="form-label small fw-semibold" for="{{ end_form.reason.id_for_label }}">{{ end_form.reason.label }}</label>
+          {{ end_form.reason }}
+          <button class="btn btn-outline-danger btn-sm vc-btn mt-2">{% trans "End contract" %}</button>
+        </form>
+      </div>
+      {% endif %}
+
+      {# ----- report ----- #}
+      {% if party == 'employer' or party == 'worker' %}
+      <details class="vc-card mb-3">
+        <summary class="vc-card-body small fw-semibold text-danger" style="cursor:pointer"><i class="bi bi-flag"></i> {% trans "Report a problem" %}</summary>
+        <form method="post" action="{% url 'vacancies:contract_action' c.pk 'report' %}" class="vc-card-body pt-0">{% csrf_token %}
+          <p class="small vc-muted">{% trans "Not paid, unsafe, or something else wrong? Tell our team - your report is private." %}</p>
+          <div class="mb-2"><label class="form-label small fw-semibold" for="{{ report_form.report_type.id_for_label }}">{{ report_form.report_type.label }}</label>{{ report_form.report_type }}</div>
+          <div class="mb-2"><label class="form-label small fw-semibold" for="{{ report_form.description.id_for_label }}">{{ report_form.description.label }}</label>{{ report_form.description }}</div>
+          <button class="btn btn-sm btn-outline-danger vc-btn">{% trans "Send report" %}</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}

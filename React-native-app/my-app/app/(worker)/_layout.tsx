@@ -98,6 +98,12 @@ export default function WorkerLayout() {
       <Tabs.Screen name="experience/add" options={{ href: null }} />
       <Tabs.Screen name="experience/index" options={{ href: null }} />
       <Tabs.Screen name="experience/[id]/edit" options={{ href: null }} />
+      {/* job posts (vacancies) */}
+      <Tabs.Screen name="find-jobs" options={{ href: null }} />
+      <Tabs.Screen name="my-applications" options={{ href: null }} />
+      <Tabs.Screen name="vacancy/[id]" options={{ href: null }} />
+      <Tabs.Screen name="contracts" options={{ href: null }} />
+      <Tabs.Screen name="contract/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

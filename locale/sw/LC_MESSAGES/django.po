@@ -1712,10 +1712,9 @@ msgstr "Msimamizi"
 #: templates/admin_panel/service_request_detail.html:484
 #: templates/admin_panel/user_detail.html:290
 #: templates/jobs/job_detail.html:1014
-#, fuzzy
 #| msgid "Active Jobs"
 msgid "Active"
-msgstr "Kazi Zinazoendelea"
+msgstr "Unaendelea"
 
 #: templates/admin_panel/create_user.html:224
 #: templates/admin_panel/edit_user.html:246
@@ -1823,7 +1822,6 @@ msgstr ""
 
 # Jobs & Assignments
 #: templates/admin_panel/dashboard.html:556
-#, fuzzy
 #| msgid "Jobs"
 msgid "Jobs"
 msgstr "Kazi"
@@ -3100,10 +3098,9 @@ msgid "Total:"
 msgstr "Jumla"
 
 #: templates/admin_panel/service_request_detail.html:641
-#, fuzzy
 #| msgid "Contact Us"
 msgid "Contact"
-msgstr "Wasiliana Nasi"
+msgstr "Mawasiliano"
 
 #: templates/admin_panel/service_request_detail.html:672
 #: templates/admin_panel/view_request_workers.html:210
@@ -3525,10 +3522,9 @@ msgstr "Usajili wa Mfanyakazi"
 
 #: templates/admin_panel/user_detail.html:415
 #: templates/agents/search_workers.html:44 templates/agents/workers.html:36
-#, fuzzy
 #| msgid "Notifications"
 msgid "Verification"
-msgstr "Arifa"
+msgstr "Uthibitisho"
 
 #: templates/admin_panel/user_detail.html:420
 #: templates/admin_panel/worker_verification_list.html:138
@@ -3665,10 +3661,9 @@ msgid "No ID document uploaded. This worker cannot be verified yet."
 msgstr ""
 
 #: templates/admin_panel/verify_worker.html:83
-#, fuzzy
 #| msgid "Honest Reviews"
 msgid "Review"
-msgstr "Maoni ya Kweli"
+msgstr "Kagua"
 
 #: templates/admin_panel/verify_worker.html:100
 #, fuzzy
@@ -6338,10 +6333,9 @@ msgid "Back to job"
 msgstr "Rudi Nyumbani"
 
 #: templates/jobs/application_detail.html:21
-#, fuzzy
 #| msgid "Apply"
 msgid "Applied"
-msgstr "Omba"
+msgstr "Ameomba"
 
 #: templates/jobs/application_detail.html:40
 #, fuzzy
@@ -6568,7 +6562,7 @@ msgstr ""
 
 #: templates/jobs/direct_hire_reject.html:33
 msgid "Reason"
-msgstr ""
+msgstr "Sababu"
 
 #: templates/jobs/direct_hire_reject.html:35
 msgid "For example: already booked that day"
@@ -6656,7 +6650,7 @@ msgstr ""
 
 #: templates/jobs/job_close.html:33
 msgid "Close job"
-msgstr ""
+msgstr "Funga kazi"
 
 #: templates/jobs/job_delete.html:4 templates/jobs/job_detail.html:1153
 #: templates/jobs/job_detail.html:1170 templates/jobs/job_detail.html:1196
@@ -6680,10 +6674,9 @@ msgid "Delete job"
 msgstr "Futa"
 
 #: templates/jobs/job_detail.html:948
-#, fuzzy
 #| msgid "Documents"
 msgid "Requirements"
-msgstr "Nyaraka"
+msgstr "Mahitaji"
 
 #: templates/jobs/job_detail.html:972
 #, fuzzy
@@ -6846,7 +6839,7 @@ msgstr ""
 
 #: templates/jobs/job_list.html:561
 msgid "Any"
-msgstr ""
+msgstr "Yoyote"
 
 #: templates/jobs/job_list.html:568
 #, fuzzy
@@ -6864,10 +6857,9 @@ msgstr ""
 
 # Jobs & Assignments
 #: templates/jobs/job_list.html:582
-#, fuzzy
 #| msgid "Jobs"
 msgid "Open"
-msgstr "Kazi"
+msgstr "Fungua"
 
 #: templates/jobs/job_list.html:591
 msgid "Sort By"
@@ -11178,3 +11170,766 @@ msgid ""
 msgstr ""
 "Mtaalamu: unaweza pia kuona kazi zilizo wazi kwenye programu. Asiye na elimu"
 " rasmi: unapata kazi mteja anapokuajiri moja kwa moja au tunapokupangia."
+
+msgid "\"Up to\" must be more than the salary."
+msgstr "\"Hadi\" lazima iwe zaidi ya mshahara."
+
+msgid "A company / business"
+msgstr "Kampuni / biashara"
+
+msgid "A home / family"
+msgstr "Nyumbani / familia"
+
+msgid "A published job cannot be edited. Close it and post a new one."
+msgstr ""
+"Tangazo lililochapishwa haliwezi kubadilishwa. Lifunge kisha tangaza jipya."
+
+msgid "About the job"
+msgstr "Kuhusu kazi"
+
+msgid "Added to the shortlist."
+msgstr "Ameongezwa kwenye orodha fupi."
+
+msgid "After hiring you can chat and call each other."
+msgstr "Baada ya kuajiri mnaweza kuzungumza na kupigiana simu."
+
+msgid "Agreed terms"
+msgstr "Masharti yaliyokubaliwa"
+
+msgid "Agreed terms (optional)"
+msgstr "Masharti yaliyokubaliwa (si lazima)"
+
+msgid "All contracts"
+msgstr "Mikataba yote"
+
+msgid "All job posts"
+msgstr "Matangazo yote ya kazi"
+
+msgid "All places are filled."
+msgstr "Nafasi zote zimejazwa."
+
+msgid "Applicants"
+msgstr "Waombaji"
+
+msgid "Applications can stay open for at most 90 days."
+msgstr "Maombi yanaweza kukaa wazi kwa siku 90 tu."
+
+msgid "Applications close on"
+msgstr "Maombi yanafungwa tarehe"
+
+msgid ""
+"Applied → Shortlisted → Hired. You get a notification every time something "
+"changes."
+msgstr ""
+"Umeomba → Orodha fupi → Umeajiriwa. Utapata taarifa kila kitu "
+"kinapobadilika."
+
+msgid "Apply for this job"
+msgstr "Omba kazi hii"
+
+msgid "Area / neighbourhood"
+msgstr "Eneo / mtaa"
+
+msgid "Ask for changes"
+msgstr "Omba marekebisho"
+
+msgid "Changes requested"
+msgstr "Marekebisho yanahitajika"
+
+msgid "Chat with employer"
+msgstr "Zungumza na mwajiri"
+
+msgid "Check each job is real and safe, then publish it. Oldest first."
+msgstr ""
+"Hakikisha kila kazi ni ya kweli na salama, kisha uichapishe. Za zamani "
+"kwanza."
+
+msgid "Choose 1 to 5 stars."
+msgstr "Chagua nyota 1 hadi 5."
+
+msgid "Choose an action."
+msgstr "Chagua hatua."
+
+msgid "Choose how long to renew for."
+msgstr "Chagua muda wa kuongeza."
+
+msgid "Close this job? Workers will no longer be able to apply."
+msgstr "Funga kazi hii? Mafundi hawataweza kuomba tena."
+
+msgid "Closed"
+msgstr "Imefungwa"
+
+msgid "Closes"
+msgstr "Inafungwa"
+
+msgid "Company / business"
+msgstr "Kampuni / biashara"
+
+msgid "Company name"
+msgstr "Jina la kampuni"
+
+msgid "Confirm hire"
+msgstr "Thibitisha kuajiri"
+
+msgid "Congratulations, you got this job!"
+msgstr "Hongera, umepata kazi hii!"
+
+msgid "Contract"
+msgstr "Mkataba"
+
+msgid "Contract for"
+msgstr "Mkataba wa"
+
+msgid "Contract history"
+msgstr "Historia ya mkataba"
+
+msgid "Contracts"
+msgstr "Mikataba"
+
+msgid "Dates"
+msgstr "Tarehe"
+
+msgid "Describe the job"
+msgstr "Eleza kazi"
+
+msgid "Duties"
+msgstr "Majukumu"
+
+msgid "Duties (cooking, cleaning, childcare...)"
+msgstr "Majukumu (kupika, kusafisha, kulea watoto...)"
+
+msgid "Edit and send again"
+msgstr "Rekebisha na utume tena"
+
+msgid "Edit job post"
+msgstr "Rekebisha tangazo la kazi"
+
+msgid "Employer"
+msgstr "Mwajiri"
+
+msgid "Employer phone"
+msgstr "Simu ya mwajiri"
+
+msgid "Employer rated the worker"
+msgstr "Mwajiri amempa fundi alama"
+
+msgid "End contract"
+msgstr "Maliza mkataba"
+
+msgid "End date"
+msgstr "Tarehe ya mwisho"
+
+msgid "End this contract now?"
+msgstr "Maliza mkataba huu sasa?"
+
+msgid ""
+"Ending before the end date is recorded as ended early. Our team can see the "
+"reason."
+msgstr ""
+"Kumaliza kabla ya tarehe ya mwisho kunarekodiwa kama kumalizwa mapema. Timu "
+"yetu inaona sababu."
+
+msgid "Every hire from a job post, with its dates and salary."
+msgstr ""
+"Kila ajira kutoka kwenye tangazo la kazi, pamoja na tarehe na mshahara."
+
+msgid "Every job post from homes and companies."
+msgstr "Kila tangazo la kazi kutoka kwa familia na kampuni."
+
+msgid "Exact address (shown only to the workers you hire)"
+msgstr "Anwani kamili (inaonyeshwa tu kwa mafundi unaowaajiri)"
+
+msgid "Feedback (optional)"
+msgstr "Maoni (si lazima)"
+
+msgid "Filled"
+msgstr "Imejazwa"
+
+msgid ""
+"Find a job that fits you and apply with one tap. The employer sees your "
+"profile, rating and work history."
+msgstr ""
+"Tafuta kazi inayokufaa na uombe kwa kubofya mara moja. Mwajiri ataona wasifu"
+" wako, alama zako na historia ya kazi."
+
+msgid "Find jobs"
+msgstr "Tafuta kazi"
+
+msgid ""
+"Fix one thing - a plumber, an electrician, a cleaner. Choose the service, "
+"pick the worker or let us choose."
+msgstr ""
+"Rekebisha kitu kimoja - fundi bomba, fundi umeme, msafishaji. Chagua huduma,"
+" chagua fundi au tukuchagulie."
+
+msgid "Food"
+msgstr "Chakula"
+
+msgid "Food provided"
+msgstr "Chakula kinatolewa"
+
+msgid ""
+"Good news - you are on the shortlist. The employer may contact you through "
+"our team."
+msgstr ""
+"Habari njema - uko kwenye orodha fupi. Mwajiri anaweza kuwasiliana nawe "
+"kupitia timu yetu."
+
+msgid "Helps workers know what to expect"
+msgstr "Inawasaidia mafundi kujua nini cha kutarajia"
+
+msgid "Hire"
+msgstr "Ajiri"
+
+msgid "Hired"
+msgstr "Ameajiriwa"
+
+msgid "Hired workers"
+msgstr "Mafundi walioajiriwa"
+
+msgid "Hired! You can now chat and call each other."
+msgstr "Ameajiriwa! Sasa mnaweza kuzungumza na kupigiana simu."
+
+msgid "Home / household"
+msgstr "Nyumbani / familia"
+
+msgid "Home job"
+msgstr "Kazi ya nyumbani"
+
+msgid "Home job details"
+msgstr "Maelezo ya kazi ya nyumbani"
+
+msgid "Hotel, shop, school, office, site..."
+msgstr "Hoteli, duka, shule, ofisi, eneo la ujenzi..."
+
+msgid "House girl, nanny, driver, guard, gardener..."
+msgstr "Msichana wa kazi za ndani, yaya, dereva, mlinzi, mtunza bustani..."
+
+msgid "How many workers?"
+msgstr "Mafundi wangapi?"
+
+msgid "ID / TIN / BRELA"
+msgstr "Kitambulisho / TIN / BRELA"
+
+msgid "Is something wrong or unsafe? Tell our team - your report is private."
+msgstr "Kuna tatizo au si salama? Iambie timu yetu - ripoti yako ni ya siri."
+
+msgid "Job post"
+msgstr "Tangazo la kazi"
+
+msgid "Jobs to review"
+msgstr "Kazi za kukagua"
+
+msgid "Jobs you can apply for"
+msgstr "Kazi unazoweza kuomba"
+
+msgid ""
+"Keep the same worker for another period. The new period starts when this one"
+" ends."
+msgstr ""
+"Endelea na fundi huyo huyo kwa kipindi kingine. Kipindi kipya kinaanza hiki "
+"kinapoisha."
+
+#, python-format
+msgid "Last: %(who)s, %(when)s"
+msgstr "Mwisho: %(who)s, %(when)s"
+
+msgid "Live-in"
+msgstr "Anaishi nyumbani"
+
+msgid ""
+"Long-term jobs and vacancies you posted. Each one is checked by our team "
+"before workers see it."
+msgstr ""
+"Kazi za muda mrefu na nafasi ulizotangaza. Kila moja inakaguliwa na timu "
+"yetu kabla mafundi hawajaiona."
+
+msgid ""
+"Long-term work and vacancies from homes and companies. Every job is checked "
+"by our team before it appears here."
+msgstr ""
+"Kazi za muda mrefu na nafasi kutoka kwa familia na kampuni. Kila kazi "
+"inakaguliwa na timu yetu kabla haijaonekana hapa."
+
+msgid ""
+"Long-term work or a vacancy - a house girl, a guard, a driver, staff for 3 "
+"or 6 months. We check it, then workers apply."
+msgstr ""
+"Kazi ya muda mrefu au nafasi - msichana wa kazi za ndani, mlinzi, dereva, "
+"wafanyakazi kwa miezi 3 au 6. Tunaikagua, kisha mafundi wanaomba."
+
+msgid ""
+"Matching workers were told about this job. Applications will appear here."
+msgstr ""
+"Mafundi wanaofaa wamejulishwa kuhusu kazi hii. Maombi yataonekana hapa."
+
+msgid "Message from our team:"
+msgstr "Ujumbe kutoka kwa timu yetu:"
+
+msgid "Message the poster"
+msgstr "Mtumie ujumbe mtangazaji"
+
+msgid "Message to the employer (optional)"
+msgstr "Ujumbe kwa mwajiri (si lazima)"
+
+msgid "My applications"
+msgstr "Maombi yangu"
+
+msgid "My job posts"
+msgstr "Matangazo yangu ya kazi"
+
+msgid "National ID (NIDA), or TIN / BRELA number for a company"
+msgstr "Kitambulisho cha Taifa (NIDA), au namba ya TIN / BRELA kwa kampuni"
+
+msgid ""
+"Need a house girl, a guard, a driver or staff for months? Post a job - we "
+"check it, publish it, and verified workers apply."
+msgstr ""
+"Unahitaji msichana wa kazi za ndani, mlinzi, dereva au wafanyakazi kwa "
+"miezi? Tangaza kazi - tunaikagua, tunaichapisha, na mafundi waliothibitishwa"
+" wanaomba."
+
+msgid "New job posts appear here. You also get a notification for each one."
+msgstr ""
+"Matangazo mapya ya kazi yanaonekana hapa. Pia utapata taarifa kwa kila moja."
+
+msgid "No applicants yet"
+msgstr "Bado hakuna waombaji"
+
+msgid "No applications yet"
+msgstr "Bado hakuna maombi"
+
+msgid "No contracts yet"
+msgstr "Bado hakuna mikataba"
+
+msgid "No job post matches."
+msgstr "Hakuna tangazo linalolingana."
+
+msgid "No job posts"
+msgstr "Hakuna matangazo ya kazi"
+
+msgid "No jobs found"
+msgstr "Hakuna kazi zilizopatikana"
+
+msgid "Not approved"
+msgstr "Halikukubaliwa"
+
+msgid ""
+"Not paid, unsafe, or something else wrong? Tell our team - your report is "
+"private."
+msgstr ""
+"Hujalipwa, si salama, au kuna tatizo jingine? Iambie timu yetu - ripoti yako"
+" ni ya siri."
+
+msgid "Not selected"
+msgstr "Hakuchaguliwa"
+
+msgid "Note to the poster (needed when asking for changes or rejecting)"
+msgstr "Ujumbe kwa mtangazaji (unahitajika unapoomba marekebisho au kukataa)"
+
+msgid "Nothing to review"
+msgstr "Hakuna cha kukagua"
+
+msgid "Only clients can post jobs."
+msgstr "Wateja pekee ndio wanaweza kutangaza kazi."
+
+msgid "Only jobs for my worker type"
+msgstr "Kazi za aina yangu ya fundi tu"
+
+msgid ""
+"Only our team sees this number. We use it to make sure the job is real."
+msgstr ""
+"Timu yetu pekee ndiyo inaona namba hii. Tunaitumia kuhakikisha kazi ni ya "
+"kweli."
+
+msgid ""
+"Only verified workers can apply. Upload your ID so our team can verify you."
+msgstr ""
+"Mafundi waliothibitishwa pekee ndio wanaweza kuomba. Pakia kitambulisho "
+"chako ili timu yetu ikuthibitishe."
+
+msgid "Only workers can apply for jobs."
+msgstr "Mafundi pekee ndio wanaweza kuomba kazi."
+
+msgid "Open the contract"
+msgstr "Fungua mkataba"
+
+msgid ""
+"Our team checks each job post to keep workers safe. You will get a "
+"notification as soon as it is published, usually within one working day."
+msgstr ""
+"Timu yetu inakagua kila tangazo la kazi ili kuwalinda mafundi. Utapata "
+"taarifa mara litakapochapishwa, kwa kawaida ndani ya siku moja ya kazi."
+
+msgid "Our team is checking this job. It is not visible to workers yet."
+msgstr "Timu yetu inakagua kazi hii. Bado haionekani kwa mafundi."
+
+#, python-format
+msgid "Page %(n)s of %(total)s"
+msgstr "Ukurasa %(n)s kati ya %(total)s"
+
+msgid "Pages"
+msgstr "Kurasa"
+
+msgid "Pay"
+msgstr "Malipo"
+
+msgid "Pay day"
+msgstr "Siku ya malipo"
+
+msgid "Permanent"
+msgstr "Ya kudumu"
+
+msgid "Place"
+msgstr "Mahali"
+
+msgid "Please check the fields marked below."
+msgstr "Tafadhali angalia sehemu zilizowekwa alama hapa chini."
+
+msgid "Please check the start date."
+msgstr "Tafadhali angalia tarehe ya kuanza."
+
+msgid "Please enter the company name."
+msgstr "Tafadhali weka jina la kampuni."
+
+msgid "Please give a reason."
+msgstr "Tafadhali eleza sababu."
+
+msgid "Please tell us what happened."
+msgstr "Tafadhali tueleze kilichotokea."
+
+msgid "Post a job"
+msgstr "Tangaza kazi"
+
+msgid "Posted by"
+msgstr "Imetangazwa na"
+
+msgid "Publish"
+msgstr "Chapisha"
+
+msgid "Published"
+msgstr "Imechapishwa"
+
+msgid "Published. Matching workers were notified."
+msgstr "Imechapishwa. Mafundi wanaofaa wamejulishwa."
+
+msgid "Quick service"
+msgstr "Huduma ya haraka"
+
+msgid "Rate the employer"
+msgstr "Mpe mwajiri alama"
+
+msgid "Ratings"
+msgstr "Alama"
+
+msgid "Reason it ended"
+msgstr "Sababu ya kumalizika"
+
+msgid "Renew"
+msgstr "Ongeza muda"
+
+msgid "Renew contract"
+msgstr "Ongeza muda wa mkataba"
+
+msgid "Renew for"
+msgstr "Ongeza kwa muda wa"
+
+msgid "Report a problem"
+msgstr "Ripoti tatizo"
+
+msgid "Report this job"
+msgstr "Ripoti kazi hii"
+
+msgid "Requirements (experience, certificates, languages...)"
+msgstr "Mahitaji (uzoefu, vyeti, lugha...)"
+
+msgid "Room"
+msgstr "Chumba"
+
+msgid "Room provided"
+msgstr "Chumba kinatolewa"
+
+msgid "Salary"
+msgstr "Mshahara"
+
+msgid "Salary (TSh)"
+msgstr "Mshahara (TSh)"
+
+msgid "Send for review"
+msgstr "Tuma kwa ukaguzi"
+
+msgid "Send rating"
+msgstr "Tuma alama"
+
+msgid "Send report"
+msgstr "Tuma ripoti"
+
+msgid "Sent back to the poster for changes."
+msgstr "Limerudishwa kwa mtangazaji kwa marekebisho."
+
+msgid "Shortlist"
+msgstr "Orodha fupi"
+
+msgid "Start date"
+msgstr "Tarehe ya kuanza"
+
+msgid "Tell the poster why."
+msgstr "Mweleze mtangazaji sababu."
+
+msgid "Tell this worker they were not selected?"
+msgstr "Mjulishe fundi huyu kwamba hakuchaguliwa?"
+
+msgid "Tell us more"
+msgstr "Tueleze zaidi"
+
+msgid "Terms"
+msgstr "Masharti"
+
+msgid "Thank you for your rating."
+msgstr "Asante kwa alama yako."
+
+msgid ""
+"Thank you! Your job post is under review. We will tell you when it is "
+"published."
+msgstr ""
+"Asante! Tangazo lako la kazi linakaguliwa. Tutakujulisha litakapochapishwa."
+
+msgid "Thank you. Our team will look at it."
+msgstr "Asante. Timu yetu italishughulikia."
+
+msgid "The applicant was told they were not selected."
+msgstr "Mwombaji amejulishwa kwamba hakuchaguliwa."
+
+msgid "The closing date cannot be in the past."
+msgstr "Tarehe ya kufunga haiwezi kuwa iliyopita."
+
+msgid "The contract has ended."
+msgstr "Mkataba umemalizika."
+
+msgid "The contract was renewed."
+msgstr "Muda wa mkataba umeongezwa."
+
+msgid ""
+"The employer has your application. You will get a notification when they "
+"decide."
+msgstr "Mwajiri amepokea ombi lako. Utapata taarifa atakapoamua."
+
+msgid "The employer will see your profile, rating, trades and work history."
+msgstr ""
+"Mwajiri ataona wasifu wako, alama zako, fani zako na historia ya kazi."
+
+msgid "The exact address is shown to the workers who are hired."
+msgstr "Anwani kamili inaonyeshwa kwa mafundi walioajiriwa."
+
+msgid "The job"
+msgstr "Kazi"
+
+msgid "The job is closed."
+msgstr "Kazi imefungwa."
+
+msgid "The job post was rejected."
+msgstr "Tangazo la kazi limekataliwa."
+
+msgid "The start date cannot be in the past."
+msgstr "Tarehe ya kuanza haiwezi kuwa iliyopita."
+
+msgid "The worker lives in the house"
+msgstr "Fundi anaishi nyumbani"
+
+msgid ""
+"There are no open jobs that match right now. We will send you a notification"
+" when a job in your trade and city is published."
+msgstr ""
+"Hakuna kazi zilizo wazi zinazolingana kwa sasa. Tutakutumia taarifa kazi ya "
+"fani na mji wako itakapochapishwa."
+
+msgid "This job is no longer taking applications."
+msgstr "Kazi hii haipokei maombi tena."
+
+msgid "This job post is not waiting for review."
+msgstr "Tangazo hili halisubiri ukaguzi."
+
+msgid "Time and pay"
+msgstr "Muda na malipo"
+
+msgid "Title, company, city or poster"
+msgstr "Jina la kazi, kampuni, mji au mtangazaji"
+
+msgid "To review"
+msgstr "Za kukagua"
+
+msgid "Trial"
+msgstr "Majaribio"
+
+msgid "Trial period"
+msgstr "Kipindi cha majaribio"
+
+msgid "Type of work"
+msgstr "Aina ya kazi"
+
+msgid "Under review"
+msgstr "Inakaguliwa"
+
+msgid "Up to (optional)"
+msgstr "Hadi (si lazima)"
+
+msgid "We review every job before it is published."
+msgstr "Tunakagua kila kazi kabla haijachapishwa."
+
+msgid "What is wrong?"
+msgstr "Kuna tatizo gani?"
+
+msgid "When a worker is hired from a job post, the contract appears here."
+msgstr "Fundi anapoajiriwa kupitia tangazo la kazi, mkataba unaonekana hapa."
+
+msgid "Who is hiring?"
+msgstr "Nani anaajiri?"
+
+msgid "Withdraw application"
+msgstr "Futa ombi"
+
+msgid "Withdraw your application?"
+msgstr "Futa ombi lako?"
+
+msgid "Worker rated the employer"
+msgstr "Fundi amempa mwajiri alama"
+
+msgid "Workers can apply once the job is published."
+msgstr "Mafundi wanaweza kuomba kazi ikishachapishwa."
+
+#, python-format
+msgid "Workers can apply until %(d)s."
+msgstr "Mafundi wanaweza kuomba hadi %(d)s."
+
+msgid "Workers needed"
+msgstr "Mafundi wanaohitajika"
+
+msgid ""
+"Workers only see the city and area. The exact address is shown only to the "
+"workers you hire."
+msgstr ""
+"Mafundi wanaona mji na eneo tu. Anwani kamili inaonyeshwa kwa mafundi "
+"unaowaajiri pekee."
+
+msgid "Working days"
+msgstr "Siku za kazi"
+
+msgid "Working hours"
+msgstr "Saa za kazi"
+
+msgid "Working time"
+msgstr "Muda wa kazi"
+
+msgid "You have not posted a job yet"
+msgstr "Bado hujatangaza kazi"
+
+msgid ""
+"You were not selected this time. Keep applying - new jobs are published "
+"every week."
+msgstr ""
+"Hukuchaguliwa safari hii. Endelea kuomba - kazi mpya zinachapishwa kila "
+"wiki."
+
+msgid ""
+"Your application was sent. You will get a notification when the employer "
+"decides."
+msgstr "Ombi lako limetumwa. Utapata taarifa mwajiri atakapoamua."
+
+msgid "Your application was withdrawn."
+msgstr "Ombi lako limefutwa."
+
+msgid "Your application:"
+msgstr "Ombi lako:"
+
+msgid "e.g. 2 weeks"
+msgstr "mf. wiki 2"
+
+msgid "e.g. 7am - 5pm"
+msgstr "mf. saa 1 asubuhi - saa 11 jioni"
+
+msgid "e.g. End of each month"
+msgstr "mf. Mwisho wa kila mwezi"
+
+msgid "e.g. House girl for a family of four"
+msgstr "mf. Msichana wa kazi za ndani kwa familia ya watu wanne"
+
+msgid "e.g. Monday to Saturday"
+msgstr "mf. Jumatatu hadi Jumamosi"
+
+msgid "e.g. Sunday off, salary paid on the 30th"
+msgstr "mf. Jumapili mapumziko, mshahara unalipwa tarehe 30"
+
+msgid "e.g. house girl, guard, cook"
+msgstr "mf. msichana wa kazi za ndani, mlinzi, mpishi"
+
+msgid "permanent"
+msgstr "ya kudumu"
+
+msgid "this one"
+msgstr "huu"
+
+#, python-format
+msgid "%(n)s contract"
+msgid_plural "%(n)s contracts"
+msgstr[0] "Mkataba %(n)s"
+msgstr[1] "Mikataba %(n)s"
+
+#, python-format
+msgid "%(n)s job done"
+msgid_plural "%(n)s jobs done"
+msgstr[0] "Kazi %(n)s imefanyika"
+msgstr[1] "Kazi %(n)s zimefanyika"
+
+#, python-format
+msgid "%(n)s place left"
+msgid_plural "%(n)s places left"
+msgstr[0] "Nafasi %(n)s imebaki"
+msgstr[1] "Nafasi %(n)s zimebaki"
+
+#, python-format
+msgid "%(n)s place left."
+msgid_plural "%(n)s places left."
+msgstr[0] "Nafasi %(n)s imebaki."
+msgstr[1] "Nafasi %(n)s zimebaki."
+
+#, python-format
+msgid "%(n)s year experience"
+msgid_plural "%(n)s years experience"
+msgstr[0] "Uzoefu wa mwaka %(n)s"
+msgstr[1] "Uzoefu wa miaka %(n)s"
+
+msgid "A few days"
+msgstr "Siku chache"
+
+msgid "12 months"
+msgstr "Miezi 12"
+
+msgid "per day"
+msgstr "kwa siku"
+
+msgid "per week"
+msgstr "kwa wiki"
+
+msgid "per month"
+msgstr "kwa mwezi"
+
+msgid "Any worker"
+msgstr "Fundi yeyote"
+
+msgid "Professional"
+msgstr "Mtaalamu"
+
+msgid "Non-Academic"
+msgstr "Asiye na elimu rasmi"
+
+msgid "Shortlisted"
+msgstr "Yuko kwenye orodha fupi"
+
+msgid "Withdrawn"
+msgstr "Ameondoa ombi"
+
+msgid "Ended early"
+msgstr "Umesitishwa mapema"
+
+msgid "Renewed"
+msgstr "Umehuishwa"

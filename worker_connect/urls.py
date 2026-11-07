@@ -108,6 +108,9 @@ urlpatterns = [
     # Messaging and chat (consolidated)
     path('api/messages/', include('jobs.messaging_urls')),  # Mobile and web compatibility
 
+    # Job posts (vacancies): post -> admin review -> publish -> apply -> hire -> contract
+    path('api/vacancies/', include('jobs.vacancy_api_urls')),
+
     # Worker-related endpoints (consolidated)
     path('api/v1/worker-availability/', include('workers.availability_urls')),
     path('api/v1/worker-earnings/', include('workers.earnings_urls')),
@@ -162,6 +165,9 @@ urlpatterns = [
     
     # Service Request Web Interface (NEW)
     path('services/', include('jobs.service_request_web_urls')),
+
+    # Job posts (vacancies) on the website
+    path('vacancies/', include(('jobs.vacancy_web_urls', 'vacancies'), namespace='vacancies')),
     
     # Notification Center Web Interface (NEW)
     path('notifications/', include('worker_connect.notification_web_urls')),

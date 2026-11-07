@@ -1,0 +1,53 @@
+{% extends base_template %}
+{% load i18n humanize vacancy_tags %}
+
+{% block title %}{% trans "Contracts" %}{% endblock %}
+{% block page_title %}{% trans "Contracts" %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 vc-wrap">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="vc-title">{% trans "Contracts" %}</h1>
+      <div class="small vc-muted">{% trans "Every hire from a job post, with its dates and salary." %}</div>
+    </div>
+    <div class="vc-tabs">
+      <a href="?" class="{% if not status_filter %}active{% endif %}">{% trans "All" %}</a>
+      {% for val, label in statuses %}<a href="?status={{ val }}" class="{% if status_filter == val %}active{% endif %}">{{ label }}</a>{% endfor %}
+    </div>
+  </div>
+
+  {% if contracts.object_list %}
+  <div class="vc-card">
+    <div class="table-responsive">
+      <table class="table vc-table mb-0">
+        <thead><tr>
+          <th>{% trans "Job" %}</th><th>{% trans "Worker" %}</th><th>{% trans "Employer" %}</th>
+          <th>{% trans "Dates" %}</th><th>{% trans "Salary" %}</th><th>{% trans "Status" %}</th>
+        </tr></thead>
+        <tbody>
+        {% for c in contracts %}
+        <tr style="cursor:pointer" onclick="location.href='{% url 'vacancies:contract' c.pk %}'">
+          <td><a href="{% url 'vacancies:contract' c.pk %}" class="fw-semibold text-decoration-none">{{ c.vacancy.title }}</a></td>
+          <td>{{ c.worker.user.get_full_name|default:c.worker.user.username }}</td>
+          <td>{{ c.vacancy.poster_display_name }}</td>
+          <td class="text-nowrap small">{{ c.start_date|date:"d M Y" }} – {% if c.end_date %}{{ c.end_date|date:"d M Y" }}{% else %}{% trans "permanent" %}{% endif %}</td>
+          <td class="text-nowrap small">TSh {{ c.salary_amount|tsh }} {{ c.get_pay_period_display }}</td>
+          <td><span class="vc-st vc-st-{{ c.status }}">{{ c.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include "vacancies/_pager.html" with page=contracts %}
+  {% else %}
+  <div class="vc-card vc-empty">
+    <div class="ico"><i class="bi bi-file-earmark-text"></i></div>
+    <h3>{% trans "No contracts yet" %}</h3>
+    <p>{% trans "When a worker is hired from a job post, the contract appears here." %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

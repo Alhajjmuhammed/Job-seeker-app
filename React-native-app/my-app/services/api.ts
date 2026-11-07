@@ -1042,6 +1042,92 @@ class ApiService {
     return response.data;
   }
 
+  // ============== JOB POSTS (vacancies) ==============
+  // Long-term jobs and vacancies: a client posts -> the admin reviews and
+  // publishes -> workers apply -> the poster hires -> a contract runs.
+  // Backend: jobs/vacancy_api.py. Lists are paginated: {count, next, results}.
+
+  async getVacancies(params: Record<string, any> = {}) {
+    const response = await this.api.get('/vacancies/', { params });
+    return response.data;
+  }
+
+  async getVacancyOptions() {
+    const response = await this.api.get('/vacancies/options/');
+    return response.data;
+  }
+
+  async postVacancy(data: Record<string, any>) {
+    const response = await this.api.post('/vacancies/', data);
+    return response.data;
+  }
+
+  async updateVacancy(id: number, data: Record<string, any>) {
+    const response = await this.api.patch(`/vacancies/${id}/`, data);
+    return response.data;
+  }
+
+  async getMyVacancies(page = 1) {
+    const response = await this.api.get('/vacancies/mine/', { params: { page } });
+    return response.data;
+  }
+
+  async getVacancy(id: number) {
+    const response = await this.api.get(`/vacancies/${id}/`);
+    return response.data;
+  }
+
+  async closeVacancy(id: number) {
+    const response = await this.api.post(`/vacancies/${id}/close/`);
+    return response.data;
+  }
+
+  async applyVacancy(id: number, message = '') {
+    const response = await this.api.post(`/vacancies/${id}/apply/`, { message });
+    return response.data;
+  }
+
+  async reportVacancy(id: number, report_type: string, description: string) {
+    const response = await this.api.post(`/vacancies/${id}/report/`, { report_type, description });
+    return response.data;
+  }
+
+  async getVacancyApplicants(id: number, status?: string, page = 1) {
+    const params: Record<string, any> = { page };
+    if (status) params.status = status;
+    const response = await this.api.get(`/vacancies/${id}/applications/`, { params });
+    return response.data;
+  }
+
+  /** action: shortlist | reject | hire | withdraw. hire takes {start_date?, terms?} */
+  async applicationAction(id: number, action: string, data: Record<string, any> = {}) {
+    const response = await this.api.post(`/vacancies/applications/${id}/${action}/`, data);
+    return response.data;
+  }
+
+  async getMyVacancyApplications(page = 1) {
+    const response = await this.api.get('/vacancies/my-applications/', { params: { page } });
+    return response.data;
+  }
+
+  async getContracts(status?: string, page = 1) {
+    const params: Record<string, any> = { page };
+    if (status) params.status = status;
+    const response = await this.api.get('/vacancies/contracts/', { params });
+    return response.data;
+  }
+
+  async getContract(id: number) {
+    const response = await this.api.get(`/vacancies/contracts/${id}/`);
+    return response.data;
+  }
+
+  /** action: end {reason} | renew {duration} | rate {rating, feedback} | report {report_type, description} */
+  async contractAction(id: number, action: string, data: Record<string, any> = {}) {
+    const response = await this.api.post(`/vacancies/contracts/${id}/${action}/`, data);
+    return response.data;
+  }
+
   // ============== GDPR API ==============
   
   // Export user data (GDPR Article 20 - Right to Data Portability)

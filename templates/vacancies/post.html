@@ -1,0 +1,148 @@
+{% extends base_template %}
+{% load i18n %}
+
+{% block title %}{% if vacancy %}{% trans "Edit job post" %}{% else %}{% trans "Post a job" %}{% endif %}{% endblock %}
+{% block page_title %}{% if vacancy %}{% trans "Edit job post" %}{% else %}{% trans "Post a job" %}{% endif %}{% endblock %}
+{% block extra_css %}{% include "vacancies/_styles.html" %}
+<style>
+  .vc-step { display: flex; align-items: center; gap: .6rem; }
+  .vc-step .n { width: 28px; height: 28px; border-radius: 8px; background: #0f766e; color: #fff; font-weight: 700; font-size: .85rem;
+                display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .vc-kind { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .vc-kind label { border: 2px solid var(--bs-border-color); border-radius: 12px; padding: .85rem 1rem; cursor: pointer; display: flex; gap: .7rem; align-items: center; }
+  .vc-kind label i { font-size: 1.5rem; color: #0f766e; }
+  .vc-kind input { display: none; }
+  .vc-kind input:checked + label { border-color: #0f766e; background: rgba(15, 118, 110, .07); }
+  [data-bs-theme="dark"] .vc-kind label i { color: #5eead4; }
+  [data-bs-theme="dark"] .vc-kind input:checked + label { border-color: #14b8a6; background: rgba(20, 184, 166, .12); }
+  @media (max-width: 575.98px) { .vc-kind { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" style="max-width: 860px;">
+  <div class="vc-banner published mb-3"><i class="bi bi-shield-check"></i>
+    <div class="small"><strong>{% trans "We review every job before it is published." %}</strong>
+      {% trans "Our team checks each job post to keep workers safe. You will get a notification as soon as it is published, usually within one working day." %}</div>
+  </div>
+
+  {% if vacancy and vacancy.review_note and vacancy.status != 'review' %}
+  <div class="vc-banner {{ vacancy.status }} mb-3"><i class="bi bi-chat-left-text"></i>
+    <div class="small"><strong>{% trans "Message from our team:" %}</strong> {{ vacancy.review_note }}</div></div>
+  {% endif %}
+
+  {% if form.non_field_errors %}<div class="alert alert-danger small">{{ form.non_field_errors }}</div>{% endif %}
+  {% if form.errors %}<div class="alert alert-danger small py-2"><i class="bi bi-exclamation-circle"></i> {% trans "Please check the fields marked below." %}</div>{% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {# 1. who #}
+    <div class="vc-card mb-3">
+      <div class="vc-card-head"><div class="vc-step"><span class="n">1</span><h2>{% trans "Who is hiring?" %}</h2></div></div>
+      <div class="vc-card-body">
+        <div class="vc-kind mb-3">
+          {% for radio in form.kind %}
+          <div>
+            <input type="radio" name="{{ form.kind.html_name }}" value="{{ radio.data.value }}" id="kind_{{ radio.data.value }}" {% if radio.data.selected %}checked{% endif %}>
+            <label for="kind_{{ radio.data.value }}">
+              {% if radio.data.value == 'home' %}<i class="bi bi-house-heart"></i>
+                <span><strong>{% trans "A home / family" %}</strong><br><small class="vc-muted">{% trans "House girl, nanny, driver, guard, gardener..." %}</small></span>
+              {% else %}<i class="bi bi-building"></i>
+                <span><strong>{% trans "A company / business" %}</strong><br><small class="vc-muted">{% trans "Hotel, shop, school, office, site..." %}</small></span>{% endif %}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        {% for e in form.kind.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        {% include "vacancies/_field.html" with field=form.company_name wrap_id="wrap_company" %}
+      </div>
+    </div>
+
+    {# 2. the job #}
+    <div class="vc-card mb-3">
+      <div class="vc-card-head"><div class="vc-step"><span class="n">2</span><h2>{% trans "The job" %}</h2></div></div>
+      <div class="vc-card-body row g-3">
+        <div class="col-md-6">{% include "vacancies/_field.html" with field=form.category %}</div>
+        <div class="col-md-6">{% trans "e.g. House girl for a family of four" as h %}{% include "vacancies/_field.html" with field=form.title hint=h %}</div>
+        <div class="col-12">{% include "vacancies/_field.html" with field=form.description %}</div>
+        <div class="col-md-6">{% include "vacancies/_field.html" with field=form.workers_needed %}</div>
+        <div class="col-md-6">{% include "vacancies/_field.html" with field=form.worker_type_needed %}</div>
+        <div class="col-12">{% include "vacancies/_field.html" with field=form.requirements %}</div>
+      </div>
+    </div>
+
+    {# 3. time and pay #}
+    <div class="vc-card mb-3">
+      <div class="vc-card-head"><div class="vc-step"><span class="n">3</span><h2>{% trans "Time and pay" %}</h2></div></div>
+      <div class="vc-card-body row g-3">
+        <div class="col-md-4">{% include "vacancies/_field.html" with field=form.duration %}</div>
+        <div class="col-6 col-md-4">{% include "vacancies/_field.html" with field=form.start_date %}</div>
+        <div class="col-6 col-md-4">{% include "vacancies/_field.html" with field=form.closing_date %}</div>
+        <div class="col-6 col-md-4">{% include "vacancies/_field.html" with field=form.salary_amount %}</div>
+        <div class="col-6 col-md-4">{% include "vacancies/_field.html" with field=form.salary_max %}</div>
+        <div class="col-md-4">{% include "vacancies/_field.html" with field=form.pay_period %}</div>
+        <div class="col-md-4">{% trans "e.g. End of each month" as h %}{% include "vacancies/_field.html" with field=form.pay_day hint=h %}</div>
+        <div class="col-6 col-md-4">{% trans "e.g. Monday to Saturday" as h %}{% include "vacancies/_field.html" with field=form.working_days hint=h %}</div>
+        <div class="col-6 col-md-4">{% trans "e.g. 7am - 5pm" as h %}{% include "vacancies/_field.html" with field=form.working_hours hint=h %}</div>
+      </div>
+    </div>
+
+    {# 4. place #}
+    <div class="vc-card mb-3">
+      <div class="vc-card-head"><div class="vc-step"><span class="n">4</span><h2>{% trans "Place" %}</h2></div></div>
+      <div class="vc-card-body row g-3">
+        <div class="col-md-6">{% include "vacancies/_field.html" with field=form.city %}</div>
+        <div class="col-md-6">{% include "vacancies/_field.html" with field=form.area %}</div>
+        <div class="col-12">{% trans "Workers only see the city and area. The exact address is shown only to the workers you hire." as h %}{% include "vacancies/_field.html" with field=form.address hint=h %}</div>
+      </div>
+    </div>
+
+    {# 5. home job details #}
+    <div class="vc-card mb-3" id="homeSection">
+      <div class="vc-card-head"><div class="vc-step"><span class="n">5</span><h2>{% trans "Home job details" %}</h2></div>
+        <small>{% trans "Helps workers know what to expect" %}</small></div>
+      <div class="vc-card-body row g-3">
+        <div class="col-md-4">{% include "vacancies/_field.html" with field=form.live_in %}</div>
+        <div class="col-6 col-md-4">{% include "vacancies/_field.html" with field=form.food_provided %}</div>
+        <div class="col-6 col-md-4">{% include "vacancies/_field.html" with field=form.room_provided %}</div>
+        <div class="col-12">{% include "vacancies/_field.html" with field=form.duties %}</div>
+        <div class="col-md-6">{% trans "e.g. 2 weeks" as h %}{% include "vacancies/_field.html" with field=form.trial_period hint=h %}</div>
+      </div>
+    </div>
+
+    {# 6. verification #}
+    <div class="vc-card mb-3">
+      <div class="vc-card-head"><div class="vc-step"><span class="n" id="lastStepNo">6</span><h2>{% trans "Verification" %}</h2></div></div>
+      <div class="vc-card-body">
+        {% trans "Only our team sees this number. We use it to make sure the job is real." as h %}
+        {% include "vacancies/_field.html" with field=form.verification_number hint=h %}
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 justify-content-end vc-actions mb-4">
+      <a href="{% if vacancy %}{% url 'vacancies:detail' vacancy.pk %}{% else %}{% url 'vacancies:mine' %}{% endif %}" class="btn btn-light vc-btn">{% trans "Cancel" %}</a>
+      <button type="submit" class="btn btn-success vc-btn px-4"><i class="bi bi-send"></i> {% trans "Send for review" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var home = document.getElementById('homeSection');
+  var company = document.getElementById('wrap_company');
+  var stepNo = document.getElementById('lastStepNo');
+  function sync() {
+    var checked = document.querySelector('input[name="kind"]:checked');
+    var kind = checked ? checked.value : 'home';
+    if (home) home.style.display = kind === 'home' ? '' : 'none';
+    if (company) company.style.display = kind === 'business' ? '' : 'none';
+    if (stepNo) stepNo.textContent = kind === 'home' ? '6' : '5';
+  }
+  document.querySelectorAll('input[name="kind"]').forEach(function (r) { r.addEventListener('change', sync); });
+  sync();
+})();
+</script>
+{% endblock %}

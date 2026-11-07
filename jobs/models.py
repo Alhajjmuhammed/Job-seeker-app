@@ -6,6 +6,7 @@ from workers.models import WorkerProfile, Category
 
 # Import new service request models
 from .service_request_models import ServiceRequest, ServiceRequestAssignment, TimeTracking, WorkerActivity
+from .vacancy_models import Vacancy, VacancyApplication, EmploymentContract  # noqa: F401  (job posts)
 
 # ============================================================================
 # DEPRECATED MODELS - LEGACY CODE
@@ -322,6 +323,7 @@ class Report(models.Model):
     CONTENT_TYPE_CHOICES = (
         ('user', 'User'),
         ('job', 'Job Posting'),
+        ('contract', 'Contract'),
         ('message', 'Message'),
         ('review', 'Review'),
     )

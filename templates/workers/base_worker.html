@@ -663,6 +663,18 @@
                 <i class="bi bi-activity"></i>
                 <span class="nav-text">{% trans "Activity" %}</span>
             </a>
+            <a href="{% url 'vacancies:board' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'board' or request.resolver_match.url_name == 'detail' %}active{% endif %}{% endif %}">
+                <i class="bi bi-search"></i>
+                <span class="nav-text">{% trans "Find jobs" %}</span>
+            </a>
+            <a href="{% url 'vacancies:my_applications' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'my_applications' %}active{% endif %}{% endif %}">
+                <i class="bi bi-send-check"></i>
+                <span class="nav-text">{% trans "My applications" %}</span>
+            </a>
+            <a href="{% url 'vacancies:contracts' %}" class="sidebar-nav-item {% if request.resolver_match.namespace == 'vacancies' %}{% if request.resolver_match.url_name == 'contracts' or request.resolver_match.url_name == 'contract' %}active{% endif %}{% endif %}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="nav-text">{% trans "Contracts" %}</span>
+            </a>
             <a href="{% url 'workers:analytics' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
                 <i class="bi bi-graph-up"></i>
                 <span class="nav-text">{% trans "Earnings" %}</span>

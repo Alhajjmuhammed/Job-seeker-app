@@ -109,6 +109,11 @@ export default function ClientDashboard() {
   };
 
   const s = StyleSheet.create({
+    needCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1.5, padding: 14 },
+    needTitle: { fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+    needText: { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+    needSmall: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, borderWidth: 1, paddingVertical: 12 },
+    needSmallText: { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
     container: { flex: 1, backgroundColor: theme.background },
     scroll: { flex: 1 },
 
@@ -279,6 +284,53 @@ export default function ClientDashboard() {
               <Text style={s.statLabel}>{st.label}</Text>
             </View>
           ))}
+        </View>
+
+        {/* ── What do you need? Quick service or a job post ── */}
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>{t('vacancies.whatDoYouNeed')}</Text>
+          </View>
+          <View style={{ gap: 10 }}>
+            <TouchableOpacity
+              style={[s.needCard, { backgroundColor: theme.surface, borderColor: theme.primary }]}
+              onPress={() => router.push('/(client)/request-service')}
+            >
+              <View style={[s.actionIcon, { backgroundColor: '#E6F4F3', marginBottom: 0 }]}>
+                <Ionicons name="construct-outline" size={24} color="#0D6E68" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.needTitle, { color: theme.text }]}>{t('vacancies.quickService')}</Text>
+                <Text style={[s.needText, { color: theme.textSecondary }]}>{t('vacancies.quickServiceText')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.needCard, { backgroundColor: theme.surface, borderColor: '#7C3AED' }]}
+              onPress={() => router.push('/(client)/post-job' as any)}
+            >
+              <View style={[s.actionIcon, { backgroundColor: '#F3E8FF', marginBottom: 0 }]}>
+                <Ionicons name="megaphone-outline" size={24} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.needTitle, { color: theme.text }]}>{t('vacancies.postJob')}</Text>
+                <Text style={[s.needText, { color: theme.textSecondary }]}>{t('vacancies.postJobText')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity style={[s.needSmall, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => router.push('/(client)/my-jobs' as any)}>
+                <Ionicons name="briefcase-outline" size={18} color={theme.primary} />
+                <Text style={[s.needSmallText, { color: theme.text }]}>{t('vacancies.myJobs')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.needSmall, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => router.push('/(client)/contracts' as any)}>
+                <Ionicons name="document-text-outline" size={18} color={theme.primary} />
+                <Text style={[s.needSmallText, { color: theme.text }]}>{t('vacancies.myContracts')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {/* ── Quick Actions ── */}

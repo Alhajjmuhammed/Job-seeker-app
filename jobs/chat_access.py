@@ -6,6 +6,8 @@ Who may chat with whom.
   that client (a service-request assignment or a direct booking). The chat
   stays open while the job runs and after it is completed; if the job is
   rejected or cancelled the chat closes (old messages stay readable).
+- Job posts: an employer and a worker they HIRED can chat while the contract
+  runs and after it finishes; a contract ended early closes the chat.
 - Workers never chat with other workers, clients never with other clients.
 """
 from django.db.models import Q
@@ -13,6 +15,7 @@ from django.db.models import Q
 # assignment / booking states that mean "the worker said yes"
 OPEN_ASSIGNMENT = ('accepted', 'in_progress', 'completed')
 OPEN_BOOKING = ('accepted', 'completed')
+OPEN_CONTRACT = ('active', 'finished', 'renewed')
 
 
 def is_admin(user):
@@ -32,6 +35,7 @@ def chat_partners(user):
     """
     from .models import DirectHireRequest
     from .service_request_models import ServiceRequestAssignment
+    from .vacancy_models import EmploymentContract
 
     partners = {}
     if is_admin(user):
@@ -46,6 +50,10 @@ def chat_partners(user):
         for b in (DirectHireRequest.objects.filter(worker__user=user, status__in=OPEN_BOOKING)
                   .order_by('-created_at')):
             partners.setdefault(b.client_id, b.title)
+        for c in (EmploymentContract.objects.filter(worker__user=user, status__in=OPEN_CONTRACT,
+                                                    application__status='hired')
+                  .select_related('vacancy').order_by('-created_at')):
+            partners.setdefault(c.employer_id, c.vacancy.title)
     elif utype == 'client':
         rows = (ServiceRequestAssignment.objects
                 .filter(service_request__client=user, status__in=OPEN_ASSIGNMENT)
@@ -55,6 +63,10 @@ def chat_partners(user):
         for b in (DirectHireRequest.objects.filter(client=user, status__in=OPEN_BOOKING)
                   .select_related('worker').order_by('-created_at')):
             partners.setdefault(b.worker.user_id, b.title)
+        for c in (EmploymentContract.objects.filter(employer=user, status__in=OPEN_CONTRACT,
+                                                    application__status='hired')
+                  .select_related('vacancy', 'worker').order_by('-created_at')):
+            partners.setdefault(c.worker.user_id, c.vacancy.title)
     partners.pop(user.id, None)
     return partners
 

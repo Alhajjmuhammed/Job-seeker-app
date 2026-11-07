@@ -1,0 +1,23 @@
+{% load i18n %}<a href="{% url 'vacancies:detail' v.pk %}" class="vc-card vc-job">
+  <div class="vc-job-top">
+    <div style="min-width:0">
+      <h3>{{ v.title }}</h3>
+      <div class="small vc-muted">{{ v.poster_display_name }}{% if v.category %} · {{ v.category.name }}{% endif %}</div>
+    </div>
+    {% if show_status %}<span class="vc-st vc-st-{{ v.status }}">{{ v.get_status_display }}</span>
+    {% else %}<span class="vc-tag alt">{% if v.kind == 'home' %}<i class="bi bi-house"></i>{% else %}<i class="bi bi-building"></i>{% endif %} {{ v.get_kind_display }}</span>{% endif %}
+  </div>
+  <div class="vc-pay mt-2">{% include "vacancies/_pay.html" %}</div>
+  <div class="vc-meta mt-1">
+    <span><i class="bi bi-geo-alt"></i>{% if v.area %}{{ v.area }}, {% endif %}{{ v.city }}</span>
+    <span><i class="bi bi-calendar-range"></i>{{ v.get_duration_display }}</span>
+    <span><i class="bi bi-people"></i>{% blocktrans count n=v.places_left %}{{ n }} place left{% plural %}{{ n }} places left{% endblocktrans %}</span>
+    <span><i class="bi bi-hourglass-split"></i>{% trans "Closes" %} {{ v.closing_date|date:"d M" }}</span>
+  </div>
+  {% if v.kind == 'home' %}<div class="mt-1">
+    {% if v.live_in %}<span class="vc-tag"><i class="bi bi-house-heart"></i> {% trans "Live-in" %}</span>{% endif %}
+    {% if v.food_provided %}<span class="vc-tag"><i class="bi bi-cup-hot"></i> {% trans "Food" %}</span>{% endif %}
+    {% if v.room_provided %}<span class="vc-tag"><i class="bi bi-door-closed"></i> {% trans "Room" %}</span>{% endif %}
+  </div>{% endif %}
+  {% if v.worker_type_needed != 'any' %}<div class="small vc-muted mt-1"><i class="bi bi-mortarboard"></i> {{ v.get_worker_type_needed_display }}</div>{% endif %}
+</a>

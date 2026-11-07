@@ -938,18 +938,43 @@ export default function WorkerDashboard() {
           </TouchableOpacity>
         )}
 
-        {/* Browse Jobs Button - Professional Workers Only */}
-        {isProfessional && (
-          <View style={styles.actionButtonsContainer}>
+        {/* Job posts: every worker can look; the server decides who can apply */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.browseJobsButton, { backgroundColor: theme.primary }]}
+            onPress={() => router.push('/(worker)/find-jobs' as any)}
+          >
+            <Ionicons name="search" size={20} color="#FFFFFF" />
+            <Text style={styles.browseJobsButtonText}>{t('vacancies.findJobs')}</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
+            onPress={() => router.push('/(worker)/my-applications' as any)}
+          >
+            <Ionicons name="paper-plane-outline" size={20} color={theme.primary} />
+            <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('vacancies.myApplications')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
+            onPress={() => router.push('/(worker)/contracts' as any)}
+          >
+            <Ionicons name="document-text-outline" size={20} color={theme.primary} />
+            <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('vacancies.myContracts')}</Text>
+          </TouchableOpacity>
+
+          {isProfessional && (
             <TouchableOpacity
-              style={[styles.browseJobsButton, { backgroundColor: theme.primary }]}
+              style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
               onPress={() => router.push('/(worker)/browse-jobs' as any)}
             >
-              <Ionicons name="search" size={20} color="#FFFFFF" />
-              <Text style={styles.browseJobsButtonText}>{t('nav.jobs')}</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              <Ionicons name="flash-outline" size={20} color={theme.primary} />
+              <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('vacancies.quickRequests')}</Text>
             </TouchableOpacity>
-
+          )}
+          {isProfessional && (
             <TouchableOpacity
               style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
               onPress={() => router.push('/(worker)/saved-jobs' as any)}
@@ -957,8 +982,8 @@ export default function WorkerDashboard() {
               <Ionicons name="heart" size={20} color={theme.primary} />
               <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('savedJobs.savedJobs')}</Text>
             </TouchableOpacity>
-          </View>
-        )}
+          )}
+        </View>
 
         {/* Stats Grid */}
         <View style={styles.statsContainer}>

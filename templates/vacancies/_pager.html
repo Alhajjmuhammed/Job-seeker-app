@@ -1,0 +1,7 @@
+{% load i18n %}{% if page.has_other_pages %}
+<nav class="d-flex justify-content-center align-items-center gap-2 mt-3" aria-label="{% trans 'Pages' %}">
+  {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary vc-btn" href="?{% for k, vals in request.GET.lists %}{% if k != 'page' %}{% for val in vals %}{{ k }}={{ val|urlencode }}&{% endfor %}{% endif %}{% endfor %}page={{ page.previous_page_number }}"><i class="bi bi-chevron-left"></i> {% trans "Previous" %}</a>{% endif %}
+  <span class="small vc-muted">{% blocktrans with n=page.number total=page.paginator.num_pages %}Page {{ n }} of {{ total }}{% endblocktrans %}</span>
+  {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary vc-btn" href="?{% for k, vals in request.GET.lists %}{% if k != 'page' %}{% for val in vals %}{{ k }}={{ val|urlencode }}&{% endfor %}{% endif %}{% endfor %}page={{ page.next_page_number }}">{% trans "Next" %} <i class="bi bi-chevron-right"></i></a>{% endif %}
+</nav>
+{% endif %}

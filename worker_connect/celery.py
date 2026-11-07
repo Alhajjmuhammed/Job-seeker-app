@@ -70,6 +70,10 @@ app.conf.update(
             'task': 'workers.tasks.check_badge_expirations',
             'schedule': 86400.0,  # Daily
         },
+        'vacancy-daily': {
+            'task': 'jobs.tasks.vacancy_daily',
+            'schedule': 6 * 3600.0,  # every 6 hours (safe to repeat)
+        },
     },
 )
 
