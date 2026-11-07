@@ -1,9 +1,11 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function WorkerLayout() {
+  const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   
   return (
@@ -16,12 +18,15 @@ export default function WorkerLayout() {
           backgroundColor: theme.surface,
           borderTopWidth: 1,
           borderTopColor: theme.border,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          // room for icon + label, plus the phone's own bottom area (iPhone home bar,
+          // Android gesture bar) - a fixed 60 clipped the labels
+          height: 68 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: 11,
+          lineHeight: 15,
           fontFamily: 'Poppins_600SemiBold',
         },
       }}
