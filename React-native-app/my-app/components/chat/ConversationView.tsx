@@ -12,7 +12,7 @@ import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView,
   Platform, ActivityIndicator, RefreshControl, Alert, Linking,
 } from 'react-native';
-import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams, Stack, useFocusEffect, router, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
@@ -42,6 +42,7 @@ export default function ConversationView() {
   const { t } = useTranslation();
   const { id, name } = useLocalSearchParams();
   const { theme } = useTheme();
+  const segments = useSegments();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -103,6 +104,11 @@ export default function ConversationView() {
   };
 
   const phone = other?.phone_number || '';
+  // Back = the chat list of this app (worker / client). router.back() inside the
+  // tab layout jumps to the first tab (Home), not to where the user came from.
+  const goBack = () => {
+    router.navigate(`/${segments[0] === '(client)' ? '(client)' : '(worker)'}/messages` as any);
+  };
   const callOther = () => {
     if (!phone) return;
     Linking.openURL(`tel:${phone}`).catch(() =>
@@ -123,9 +129,18 @@ export default function ConversationView() {
     <>
       <Stack.Screen
         options={{
-          title: (other?.name || (name as string) || t('nav.messages')),
+          // the admin account is "Support" to workers and clients, not a person's name
+          title: other?.user_type === 'admin'
+            ? t('messages.supportTeam')
+            : (other?.name || (name as string) || t('nav.messages')),
           headerShown: true,
-          headerBackTitle: t('common.back', 'Back'),
+          // this screen lives in the tab layout, which adds no back arrow by itself
+          headerLeft: () => (
+            <TouchableOpacity onPress={goBack} style={styles.backButton} accessibilityLabel={t('common.back', 'Back')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="arrow-back" size={22} color={theme.text} />
+            </TouchableOpacity>
+          ),
           headerRight: () => phone ? (
             <TouchableOpacity onPress={callOther} style={[styles.callButton, { backgroundColor: theme.primary }]}
               accessibilityLabel={t('messages.call')}>
@@ -252,5 +267,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7,
     borderRadius: 18, marginRight: 8,
   },
+  backButton: { paddingHorizontal: 14, paddingVertical: 6 },
   callText: { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
 });
