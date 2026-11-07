@@ -15,6 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import ProfileCompletionBanner from '../../components/ProfileCompletionBanner';
 import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -872,6 +873,9 @@ export default function WorkerDashboard() {
             thumbColor={isAvailable ? '#0F766E' : '#9CA3AF'}
           />
         </View>
+
+        {/* Complete-your-profile banner (until 70%) */}
+        <ProfileCompletionBanner />
 
         {/* Profile Verification Alert */}
         {user?.verificationStatus && user.verificationStatus !== 'verified' && (

@@ -80,7 +80,19 @@
     "activeJobs": "Kazi Hai",
     "completedJobs": "Zimekamilika",
     "pendingJobs": "Zinasubiri",
-    "totalEarnings": "Jumla ya Mapato"
+    "totalEarnings": "Jumla ya Mapato",
+    "completion": {
+      "title": "Kamilisha wasifu wako: {{pct}}%",
+      "stillNeeded": "Bado inahitajika:",
+      "cta": "Kamilisha wasifu",
+      "missing": {
+        "id": "Kitambulisho cha Taifa",
+        "trades": "aina za kazi zako",
+        "city": "mji wako",
+        "bio": "maelezo mafupi kuhusu wewe",
+        "documents": "nyaraka nyingine (vyeti)"
+      }
+    }
   },
   "assignments": {
     "title": "Mgawo",

@@ -80,7 +80,19 @@
     "activeJobs": "Lavori attivi",
     "completedJobs": "Completati",
     "pendingJobs": "In attesa",
-    "totalEarnings": "Guadagni totali"
+    "totalEarnings": "Guadagni totali",
+    "completion": {
+      "title": "Complete your profile: {{pct}}%",
+      "stillNeeded": "Still needed:",
+      "cta": "Complete profile",
+      "missing": {
+        "id": "National ID",
+        "trades": "your trades",
+        "city": "your city",
+        "bio": "a short bio",
+        "documents": "other documents (certificates)"
+      }
+    }
   },
   "assignments": {
     "title": "Incarichi",

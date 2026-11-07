@@ -563,12 +563,29 @@ def profile_completion(request):
     
     try:
         profile = WorkerProfile.objects.get(user=request.user)
-        
+        profile.recalculate_completion()  # always current, never a stale number
+
+        # what is still missing, most important first - the app's banner
+        # shows these until the profile reaches BANNER_UNTIL percent
+        missing = []
+        if not profile.has_id_document:
+            missing.append('id')
+        if not profile.categories.exists():
+            missing.append('trades')
+        if not (profile.city or profile.can_work_everywhere):
+            missing.append('city')
+        if not profile.bio:
+            missing.append('bio')
+        if not profile.documents.exclude(document_type='id').exists():
+            missing.append('documents')
+
         return Response({
             'profile_completion_percentage': profile.profile_completion_percentage,
             'is_profile_complete': profile.is_profile_complete,
             'has_uploaded_national_id': profile.has_uploaded_national_id,
             'worker_type': profile.worker_type,
+            'missing': missing,
+            'banner_until': 70,
         })
         
     except WorkerProfile.DoesNotExist:

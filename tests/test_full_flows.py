@@ -1446,3 +1446,16 @@ class ProfileSetupTests(FlowBase):
     def test_clients_never_need_setup(self):
         r = post_json(Client(), '/api/auth/login/', {'email': 'Client.One@t.co', 'password': PW})
         self.assertFalse(r.json()['user']['needsSetup'])
+
+    def test_completion_report_lists_what_is_missing_until_70(self):
+        r = self.c.get('/api/workers/profile/completion/').json()
+        self.assertEqual((r['profile_completion_percentage'], r['banner_until']), (20, 70))
+        self.assertEqual(r['missing'], ['id', 'trades', 'city', 'bio', 'documents'])
+        self.c.post('/api/workers/documents/upload/', {
+            'document_type': 'id', 'file': SimpleUploadedFile('id.png', PNG, 'image/png')})
+        r = self.c.get('/api/workers/profile/completion/').json()
+        self.assertEqual(r['profile_completion_percentage'], 60)          # banner still shown
+        self.assertEqual(r['missing'][:2], ['trades', 'city'])
+        patch_json(self.c, '/api/workers/profile/update/', {'city': 'Dar', 'category_ids': [self.cat.id]})
+        r = self.c.get('/api/workers/profile/completion/').json()
+        self.assertGreaterEqual(r['profile_completion_percentage'], 70)   # banner goes away
