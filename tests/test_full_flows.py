@@ -1391,3 +1391,9 @@ class WorkerTypeTests(FlowBase):
         unused = Category.objects.create(name='Unused', daily_rate=D('1'), service_fee=D('1'))
         self.admin_c.post('/dashboard/categories/', {'action': 'delete', 'category_id': unused.id}, secure=True)
         self.assertFalse(Category.objects.filter(pk=unused.pk).exists())
+
+    def test_search_filters_endpoint_works(self):
+        # a duplicate import inside the view made it crash for everyone
+        r = Client().get('/api/search/filters/')
+        self.assertEqual(r.status_code, 200, r.content[:300])
+        self.assertIn('Plumber', [c['name'] for c in r.json()['filters']['categories']])

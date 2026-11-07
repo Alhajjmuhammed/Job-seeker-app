@@ -397,8 +397,8 @@ def search_filters(request):
         )
         
         # Price ranges come from the categories, which is where the amount
-        # a client pays is actually set.
-        from workers.models import Category
+        # a client pays is actually set. (Category is imported at the top; a
+        # second import here made the name local and crashed the whole view.)
         rate_stats = Category.objects.filter(is_active=True).aggregate(
             min_rate=Min('daily_rate'),
             max_rate=Max('daily_rate'),

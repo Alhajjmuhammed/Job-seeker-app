@@ -509,5 +509,8 @@
     },
     "noPosts": "No job posts yet",
     "noPostsText": "Post a job and our team will publish it after a quick check."
+  },
+  "savedJobs": {
+    "savedJobs": "Lavori salvati"
   }
 }

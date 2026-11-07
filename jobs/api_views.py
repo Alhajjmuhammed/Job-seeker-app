@@ -91,7 +91,7 @@ def _can_browse_jobs(user):
     """Open requests are listed to professional workers (and staff).
     Non-academic workers get work by direct booking or admin assignment,
     and clients must not see other clients' requests."""
-    if user.is_staff:
+    if user.is_staff or getattr(user, 'user_type', '') == 'admin':
         return True
     profile = getattr(user, 'worker_profile', None)
     return bool(profile and profile.worker_type == 'professional')

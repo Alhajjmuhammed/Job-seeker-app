@@ -114,7 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // profile, so Browse Jobs shows or hides without restarting the app).
   const refreshUser = async () => {
     const fresh = await authService.getCurrentUser();
-    if (fresh) setUser(fresh);
+    // merge, so a failed worker-profile read never drops workerType etc.
+    if (fresh) setUser(prev => (prev ? { ...prev, ...fresh } : fresh));
   };
 
   const logout = async () => {
