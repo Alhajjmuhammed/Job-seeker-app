@@ -1459,3 +1459,116 @@ class ProfileSetupTests(FlowBase):
         patch_json(self.c, '/api/workers/profile/update/', {'city': 'Dar', 'category_ids': [self.cat.id]})
         r = self.c.get('/api/workers/profile/completion/').json()
         self.assertGreaterEqual(r['profile_completion_percentage'], 70)   # banner goes away
+
+
+class WorkerTypeMatrixTests(AssignmentOptionTests):
+    """Every way of getting work, for BOTH worker types (Professional and
+    Non-Academic), on the app API and the website."""
+
+    TYPES = ('professional', 'non_academic')
+
+    def as_type(self, t):
+        # fresh round: the previous round's accepted job left the worker 'busy'
+        WorkerProfile.objects.filter(pk__in=[self.wp.pk, self.wp2.pk]).update(worker_type=t, availability='available')
+        self.wp.refresh_from_db(); self.wp2.refresh_from_db()
+
+    def accept_first_assignment(self, worker_c):
+        rows = worker_c.get('/api/v1/worker/my-assignments/').json()['results']
+        self.assertTrue(rows, 'worker sees no assignment')
+        r = post_json(worker_c, f'/api/v1/worker/my-assignments/{rows[0]["id"]}/respond/', {'accepted': True})
+        self.assertEqual(r.status_code, 200, r.content)
+
+    def test_quick_service_admin_choice_for_both_types(self):
+        from jobs.chat_access import can_chat
+        for t in self.TYPES:
+            with self.subTest(worker_type=t):
+                self.as_type(t)
+                ServiceRequest.objects.all().delete()
+                sr, _ = self.book(assignment_mode='admin_choice')
+                sr = self.verify_payment(sr)
+                r = self.admin_c.post(f'/dashboard/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+                self.assertEqual(r.status_code, 302)
+                self.accept_first_assignment(self.worker_c)
+                self.assertTrue(can_chat(self.client_user, self.worker_user))
+
+    def test_quick_service_system_picks_either_type(self):
+        for t in self.TYPES:
+            with self.subTest(worker_type=t):
+                self.as_type(t)
+                ServiceRequest.objects.all().delete()
+                sr, _ = self.book(assignment_mode='auto_nearest', latitude=-6.79, longitude=39.27)
+                sr = self.verify_payment(sr)
+                self.assertEqual(self.workers_on(sr), {self.wp2.id})
+
+    def test_quick_service_client_choice_for_both_types(self):
+        for t in self.TYPES:
+            with self.subTest(worker_type=t):
+                self.as_type(t)
+                ServiceRequest.objects.all().delete()
+                sr, _ = self.book(preferred_worker=self.wp2.id, assignment_mode='client_choice')
+                self.assertEqual(sr.preferred_worker_id, self.wp2.id)
+
+    def test_direct_booking_for_both_types(self):
+        from jobs.models import DirectHireRequest
+        for t in self.TYPES:
+            with self.subTest(worker_type=t):
+                self.as_type(t)
+                b = DirectHireRequest.objects.create(client=self.client_user, worker=self.wp, title=f'Paint {t}',
+                                                     description='x', location='Dar', duration_value=1,
+                                                     start_datetime=timezone.now(), offered_rate=D('1000'),
+                                                     total_amount=D('1000'))
+                listed = [x['id'] for x in self.worker_c.get('/api/workers/direct-hire-requests/').json()]
+                self.assertIn(b.id, listed)
+                r = post_json(self.worker_c, f'/api/jobs/worker/direct-hire-requests/{b.id}/accept/')
+                self.assertEqual(r.status_code, 200, r.content)
+
+    def test_open_service_requests_are_for_professionals_only(self):
+        self.book()
+        for t, code in (('professional', 200), ('non_academic', 403)):
+            with self.subTest(worker_type=t):
+                self.as_type(t)
+                self.assertEqual(self.worker_c.get('/api/jobs/jobs/browse/').status_code, code)
+
+    def test_job_posts_follow_the_type_the_job_asks_for(self):
+        from datetime import timedelta
+        from jobs.vacancy_models import Vacancy, VacancyApplication
+        today = timezone.localdate()
+
+        def job(needed):
+            return Vacancy.objects.create(
+                poster=self.client_user, category=self.cat, title=f'Job for {needed}', description='x',
+                worker_type_needed=needed, start_date=today + timedelta(days=5), closing_date=today + timedelta(days=3),
+                salary_amount=D('200000'), city='Dar', status='published', published_at=timezone.now())
+        jobs = {need: job(need) for need in ('any', 'professional', 'non_academic')}
+        for t in self.TYPES:
+            for need, v in jobs.items():
+                with self.subTest(worker_type=t, job_needs=need):
+                    self.as_type(t)
+                    VacancyApplication.objects.filter(worker=self.wp).delete()
+                    allowed = need in ('any', t)
+                    # app: the job shows on Find jobs either way; Apply only when the type fits
+                    self.assertIn(v.id, [x['id'] for x in self.worker_c.get('/api/vacancies/').json()['results']])
+                    d = self.worker_c.get(f'/api/vacancies/{v.id}/').json()
+                    self.assertEqual(d['apply_problem'] is None, allowed)
+                    r = post_json(self.worker_c, f'/api/vacancies/{v.id}/apply/', {'message': 'hi'})
+                    self.assertEqual(r.status_code, 201 if allowed else 400, r.content)
+                    # website: the job page offers Apply, or explains why not
+                    VacancyApplication.objects.filter(worker=self.wp).delete()
+                    page = self.worker_c.get(f'/vacancies/{v.id}/', secure=True)
+                    self.assertEqual(page.status_code, 200)
+                    if allowed:
+                        self.assertContains(page, f'/vacancies/{v.id}/apply/')
+                    else:
+                        self.assertContains(page, 'workers.')  # "This job is for Professional workers."
+                    r = self.worker_c.post(f'/vacancies/{v.id}/apply/', {'message': 'hi'}, secure=True)
+                    self.assertEqual(VacancyApplication.objects.filter(vacancy=v, worker=self.wp).exists(), allowed)
+
+    def test_both_types_see_their_pages(self):
+        for t in self.TYPES:
+            with self.subTest(worker_type=t):
+                self.as_type(t)
+                for url in ('/workers/dashboard/', '/vacancies/', '/vacancies/my-applications/', '/vacancies/contracts/',
+                            '/workers/profile/edit/', '/services/worker/assignments/', '/jobs/inbox/'):
+                    self.assertEqual(self.worker_c.get(url, secure=True).status_code, 200, url)
+                login = post_json(Client(), '/api/auth/login/', {'email': 'worker@t.co', 'password': PW}).json()
+                self.assertEqual(login['user']['workerType'], t)
