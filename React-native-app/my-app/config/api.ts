@@ -24,6 +24,13 @@ export const API_CONFIG = {
   
   // Auto-detect based on environment and platform
   get BASE_URL() {
+    // Test a local run against any server, e.g. the live one:
+    //   EXPO_PUBLIC_API_URL=https://workersearch.co.tz npx expo start
+    // Not set in store builds, so they keep using apiUrl from app.json.
+    const forced = process.env.EXPO_PUBLIC_API_URL;
+    if (forced) {
+      return forced.replace(/\/+$/, '');
+    }
     if (isDevelopment) {
       // Always use LOCAL_IP for all platforms (works for both emulator and physical devices)
       const host = this.LOCAL_IP;
