@@ -34,8 +34,8 @@ export default function SupportScreen() {
   const faqs: FAQ[] = [
     {
       id: 1,
-      question: 'How do I apply for jobs?',
-      answer: 'Browse available jobs from the Jobs tab, tap on a job to view details, and click the "Apply Now" button. Fill in your cover letter and submit your application.',
+      question: 'How do I get jobs?',
+      answer: 'Keep your profile, trades and ID up to date so you get verified. Clients can then book you directly, and our team assigns you to requests in your trades - you get a notification and can accept or decline. Professional workers can also browse open jobs from the dashboard.',
     },
     {
       id: 2,

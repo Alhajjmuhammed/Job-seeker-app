@@ -11168,3 +11168,13 @@ msgstr "Piga simu"
 
 msgid "Chat with support"
 msgstr "Zungumza na msaada"
+
+msgid "Worker type"
+msgstr "Aina ya fundi"
+
+msgid ""
+"Professional: you can also browse open jobs in the app. Non-Academic: you "
+"get work by direct booking or when we assign you."
+msgstr ""
+"Mtaalamu: unaweza pia kuona kazi zilizo wazi kwenye programu. Asiye na elimu"
+" rasmi: unapata kazi mteja anapokuajiri moja kwa moja au tunapokupangia."

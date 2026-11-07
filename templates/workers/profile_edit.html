@@ -653,6 +653,13 @@
                         </label>
                         {{ form.availability }}
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" for="id_worker_type">
+                            <i class="bi bi-mortarboard"></i> {% trans "Worker type" %}
+                        </label>
+                        {{ form.worker_type }}
+                        <small class="text-muted d-block mt-1">{% trans "Professional: you can also browse open jobs in the app. Non-Academic: you get work by direct booking or when we assign you." %}</small>
+                    </div>
                 </div>
             </div>
 

@@ -87,6 +87,16 @@ def reject_direct_hire_request(request, request_id):
         return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+def _can_browse_jobs(user):
+    """Open requests are listed to professional workers (and staff).
+    Non-academic workers get work by direct booking or admin assignment,
+    and clients must not see other clients' requests."""
+    if user.is_staff:
+        return True
+    profile = getattr(user, 'worker_profile', None)
+    return bool(profile and profile.worker_type == 'professional')
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def worker_job_listings(request):
@@ -99,10 +109,15 @@ def worker_job_listings(request):
     payment_transaction_id, and payment_screenshot. See browse_jobs() above
     for the same fix and rationale.
     """
+    if not _can_browse_jobs(request.user):
+        return Response({'error': 'Browse Jobs is for professional workers.'},
+                        status=status.HTTP_403_FORBIDDEN)
+
     jobs = ServiceRequest.objects.filter(status='pending') \
         .select_related('client', 'category', 'assigned_worker') \
         .order_by('-created_at')
-    return paginate_queryset(request, jobs, ServiceRequestListSerializer)
+    # public view: no client contact details or street address
+    return paginate_queryset(request, jobs, ServiceRequestPublicSerializer)
 
 
 @api_view(['GET'])
@@ -311,6 +326,10 @@ def browse_jobs(request):
     already used by the equivalent listing endpoints (worker_connect.search_views
     job_search, admin_panel's request list, and clients' own request list).
     """
+    if not _can_browse_jobs(request.user):
+        return Response({'error': 'Browse Jobs is for professional workers.'},
+                        status=status.HTTP_403_FORBIDDEN)
+
     jobs = ServiceRequest.objects.filter(status='pending') \
         .select_related('client', 'category', 'assigned_worker') \
         .order_by('-created_at')
@@ -355,7 +374,7 @@ def job_detail(request, job_id):
             # the public serializer - opening one must show the same public
             # view, not a 404. Nothing private (contact details, exact
             # address, payment data) is in it.
-            if job.status == 'pending' and hasattr(user, 'worker_profile'):
+            if job.status == 'pending' and _can_browse_jobs(user):
                 return Response(ServiceRequestPublicSerializer(job).data)
             return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 

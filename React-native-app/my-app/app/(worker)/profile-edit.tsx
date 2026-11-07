@@ -37,7 +37,7 @@ type Skill = {
 
 export default function ProfileEditScreen() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -596,6 +596,7 @@ export default function ProfileEditScreen() {
       };
 
       await apiService.updateWorkerProfile(data);
+      await refreshUser().catch(() => {});
       Alert.alert(t('common.success'), t('profile.profileUpdatedSuccess'), [
         { text: 'OK', onPress: () => router.back() }
       ]);
@@ -899,21 +900,21 @@ export default function ProfileEditScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Worker Type</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.workerTypeLabel')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={workerType}
                 onValueChange={(value) => setWorkerType(value as 'professional' | 'non_academic')}
                 style={styles.picker}
               >
-                <Picker.Item label="Professional (Can apply for jobs)" value="professional" />
-                <Picker.Item label="Non-Academic (Direct hire only)" value="non_academic" />
+                <Picker.Item label={t('profile.professionalWorkerType')} value="professional" />
+                <Picker.Item label={t('profile.nonAcademicWorkerType')} value="non_academic" />
               </Picker>
             </View>
             <Text style={[styles.helpText, { color: theme.textSecondary }]}>
               {workerType === 'professional' 
-                ? 'You can browse and apply for jobs in your field' 
-                : 'You will receive direct hire requests from clients'}
+                ? t('profile.professionalHelp')
+                : t('profile.nonAcademicHelp')}
             </Text>
           </View>
         </View>

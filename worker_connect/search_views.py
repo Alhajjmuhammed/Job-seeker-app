@@ -9,7 +9,9 @@ import math
 from jobs.service_request_models import ServiceRequest
 from workers.models import WorkerProfile, Category
 from clients.models import ClientProfile
-from jobs.service_request_serializers import ServiceRequestListSerializer
+# Public (no login) search: the public serializer has no client contact
+# details and no street address - only the city.
+from jobs.service_request_serializers import ServiceRequestPublicSerializer
 from workers.serializers import WorkerPublicSerializer
 
 class SearchPagination(PageNumberPagination):
@@ -189,7 +191,7 @@ def search_jobs(request):
         page = paginator.paginate_queryset(jobs, request)
         
         if page is not None:
-            serializer = ServiceRequestListSerializer(page, many=True, context={'request': request})
+            serializer = ServiceRequestPublicSerializer(page, many=True, context={'request': request})
             return paginator.get_paginated_response({
                 'jobs': serializer.data,
                 'total_count': jobs.count(),
@@ -203,7 +205,7 @@ def search_jobs(request):
                 }
             })
         
-        serializer = ServiceRequestListSerializer(jobs, many=True, context={'request': request})
+        serializer = ServiceRequestPublicSerializer(jobs, many=True, context={'request': request})
         return Response({
             'success': True,
             'jobs': serializer.data,

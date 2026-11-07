@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,6 +110,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Re-read the user (e.g. after the worker changes their type in the
+  // profile, so Browse Jobs shows or hides without restarting the app).
+  const refreshUser = async () => {
+    const fresh = await authService.getCurrentUser();
+    if (fresh) setUser(fresh);
+  };
+
   const logout = async () => {
     try {
       await authService.logout();
@@ -128,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
+        refreshUser,
       }}
     >
       {children}

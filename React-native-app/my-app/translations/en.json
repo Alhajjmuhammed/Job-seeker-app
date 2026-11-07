@@ -340,8 +340,8 @@
     "available": "Available",
     "busy": "Busy",
     "offline": "Offline",
-    "professionalWorkerType": "Professional (Can apply for jobs)",
-    "nonAcademicWorkerType": "Non-Academic (Direct hire only)",
+    "professionalWorkerType": "Professional (can browse open jobs)",
+    "nonAcademicWorkerType": "Non-Academic",
     "canBrowseJobs": "You can browse and apply for jobs in your field",
     "directHireOnly": "You will receive direct hire requests from clients",
     "categories": "Categories",
@@ -351,7 +351,10 @@
     "profilePhotoUpdated": "Profile photo updated!",
     "uploadError": "Upload Error",
     "profileUpdatedSuccess": "Profile updated successfully!",
-    "failedSaveProfile": "Failed to save profile"
+    "failedSaveProfile": "Failed to save profile",
+    "workerTypeLabel": "Worker Type",
+    "professionalHelp": "You can browse open jobs in the app and save them. You also get work by direct booking or when we assign you.",
+    "nonAcademicHelp": "You get work when a client books you directly or when we assign you."
   },
   "settings": {
     "title": "Settings",

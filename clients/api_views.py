@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 def services_list(request):
     """Get list of available service categories"""
     try:
-        categories = Category.objects.all()
+        categories = Category.objects.filter(is_active=True)  # switched-off trades can't be booked
         services = []
         
         for category in categories:

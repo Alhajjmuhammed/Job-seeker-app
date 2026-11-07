@@ -123,7 +123,12 @@
     "experience": "Esperienza",
     "location": "Posizione",
     "rating": "Valutazione",
-    "completedJobs": "Lavori completati"
+    "completedJobs": "Lavori completati",
+    "workerTypeLabel": "Worker Type",
+    "professionalWorkerType": "Professional (can browse open jobs)",
+    "nonAcademicWorkerType": "Non-Academic",
+    "professionalHelp": "You can browse open jobs in the app and save them. You also get work by direct booking or when we assign you.",
+    "nonAcademicHelp": "You get work when a client books you directly or when we assign you."
   },
   "settings": {
     "title": "Impostazioni",

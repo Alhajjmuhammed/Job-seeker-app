@@ -31,7 +31,7 @@ class WorkerProfileForm(forms.ModelForm):
             'bio', 'address', 'city', 'state', 'country', 'postal_code',
             'latitude', 'longitude',
             'religion', 'can_work_everywhere',
-            'categories', 'experience_years', 'availability'
+            'categories', 'experience_years', 'availability', 'worker_type'
         ]
         widgets = {
             'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -46,7 +46,23 @@ class WorkerProfileForm(forms.ModelForm):
             'categories': forms.CheckboxSelectMultiple(),
             'experience_years': forms.NumberInput(attrs={'class': 'form-control'}),
             'availability': forms.Select(attrs={'class': 'form-select'}),
+            'worker_type': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Switched-off trades are not offered, but a worker keeps the ones
+        # they already have (so saving the form does not drop them).
+        from django.db.models import Q
+        mine = list(self.instance.categories.values_list('pk', flat=True)) if self.instance.pk else []
+        self.fields['categories'].queryset = Category.objects.filter(
+            Q(is_active=True) | Q(pk__in=mine)).order_by('name')
+        # The first-time setup page does not show the type: keep what the
+        # worker chose at sign-up instead of failing or blanking it.
+        self.fields['worker_type'].required = False
+
+    def clean_worker_type(self):
+        return self.cleaned_data.get('worker_type') or self.instance.worker_type or 'non_academic'
 
 
 class ProfileImageForm(forms.ModelForm):

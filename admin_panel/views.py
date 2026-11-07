@@ -108,8 +108,17 @@ def category_list(request):
                 try:
                     category = Category.objects.get(pk=category_id)
                     category_name = category.name
-                    category.delete()
-                    messages.success(request, f'Category "{category_name}" deleted successfully!')
+                    in_use_workers = category.workers.count()
+                    in_use_jobs = category.service_requests.count()
+                    if in_use_workers or in_use_jobs:
+                        # Deleting would silently strip the trade from every
+                        # worker and from past requests - switch it off instead.
+                        messages.error(request, f'"{category_name}" is used by {in_use_workers} worker(s) and '
+                                                f'{in_use_jobs} request(s), so it cannot be deleted. '
+                                                f'Deactivate it instead - it will no longer be offered.')
+                    else:
+                        category.delete()
+                        messages.success(request, f'Category "{category_name}" deleted successfully!')
                 except Category.DoesNotExist:
                     messages.error(request, 'Category not found.')
         

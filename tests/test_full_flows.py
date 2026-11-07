@@ -1282,6 +1282,7 @@ class GapFixTests(FlowBase):
             self.assertEqual(self.worker_c.get('/jobs/', {'sort': sort}, secure=True).status_code, 200, sort)
 
     def test_worker_can_open_an_open_job_from_browse_without_private_details(self):
+        self.wp.worker_type = 'professional'; self.wp.save()
         sr, _ = self.book()
         r = self.worker_c.get(f'/api/jobs/jobs/{sr.id}/')
         self.assertEqual(r.status_code, 200, r.content)
@@ -1308,3 +1309,85 @@ class GapFixTests(FlowBase):
         self.assertEqual(r.status_code, 200, r.content)
         n = Notification.objects.get(recipient=self.client_user, notification_type='job_accepted')
         self.assertEqual(n.target_url, f'/jobs/direct-hire/{b.id}/')
+
+
+class WorkerTypeTests(FlowBase):
+    """Professional vs Non-Academic workers, and trades (categories)."""
+
+    def test_login_tells_the_app_the_worker_type(self):
+        self.wp.worker_type = 'professional'; self.wp.save()
+        r = post_json(Client(), '/api/auth/login/', {'email': 'worker@t.co', 'password': PW})
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(r.json()['user']['workerType'], 'professional')
+        r = post_json(Client(), '/api/auth/login/', {'email': 'Client.One@t.co', 'password': PW})
+        self.assertIsNone(r.json()['user']['workerType'])
+
+    def test_register_keeps_the_chosen_type(self):
+        for wt, saved in (('professional', 'professional'), ('non-academic', 'non_academic'), (None, 'non_academic')):
+            email = f'new-{saved}-{wt}@t.co'
+            body = {'firstName': 'N', 'lastName': 'W', 'email': email, 'phone': '+255700111222',
+                    'password': PW, 'userType': 'worker'}
+            if wt: body['workerType'] = wt
+            r = post_json(Client(), '/api/auth/register/', body)
+            self.assertEqual(r.status_code, 201, r.content)
+            self.assertEqual(r.json()['user']['workerType'], saved)
+            self.assertEqual(User.objects.get(email__iexact=email).worker_profile.worker_type, saved)
+
+    def test_only_professionals_browse_open_jobs(self):
+        self.book()
+        self.wp.worker_type = 'non_academic'; self.wp.save()
+        for url in ('/api/jobs/jobs/browse/', '/api/jobs/worker/jobs/'):
+            self.assertEqual(self.worker_c.get(url).status_code, 403, url)
+            self.assertEqual(self.client_c.get(url).status_code, 403, url)
+        self.wp.worker_type = 'professional'; self.wp.save()
+        for url in ('/api/jobs/jobs/browse/', '/api/jobs/worker/jobs/'):
+            r = self.worker_c.get(url)
+            self.assertEqual(r.status_code, 200, url)
+            self.assertIn(b'Leaky tap', r.content)
+            self.assertNotIn(b'Secret Street', r.content)
+            self.assertNotIn(b'+255711222333', r.content)
+        self.assertEqual(self.admin_c.get('/api/jobs/jobs/browse/').status_code, 200)
+
+    def test_non_academic_cannot_open_other_open_jobs(self):
+        sr, _ = self.book()
+        self.wp2.worker_type = 'non_academic'; self.wp2.save()
+        c = Client(); c.force_login(self.worker2_user)
+        self.assertEqual(c.get(f'/api/jobs/jobs/{sr.id}/').status_code, 404)
+
+    def test_type_can_be_changed_in_app_and_on_website(self):
+        r = patch_json(self.worker_c, '/api/workers/profile/update/', {'worker_type': 'professional'})
+        self.assertIn(r.status_code, (200, 201), r.content)
+        self.wp.refresh_from_db(); self.assertEqual(self.wp.worker_type, 'professional')
+        page = self.worker_c.get('/workers/profile/edit/', secure=True)
+        self.assertContains(page, 'name="worker_type"')
+        r = self.worker_c.post('/workers/profile/edit/', {
+            'worker_type': 'non_academic', 'categories': [self.cat.id], 'experience_years': 2,
+            'availability': 'available', 'country': 'Tanzania', 'city': 'Dar'}, secure=True)
+        self.assertEqual(r.status_code, 302, r.content[:400])
+        self.wp.refresh_from_db(); self.assertEqual(self.wp.worker_type, 'non_academic')
+
+    def test_form_without_type_keeps_it(self):
+        from workers.forms import WorkerProfileForm
+        self.wp.worker_type = 'professional'; self.wp.save()
+        f = WorkerProfileForm({'categories': [self.cat.id], 'experience_years': 1,
+                               'availability': 'available', 'country': 'Tanzania'}, instance=self.wp)
+        self.assertTrue(f.is_valid(), f.errors)
+        f.save(); self.wp.refresh_from_db()
+        self.assertEqual(self.wp.worker_type, 'professional')
+
+    def test_switched_off_trade_not_offered_but_kept_by_its_workers(self):
+        from workers.forms import WorkerProfileForm
+        off = Category.objects.create(name='Retired trade', daily_rate=D('1'), service_fee=D('1'), is_active=False)
+        names = [x['name'] for x in self.client_c.get('/api/clients/services/').json()['services']]
+        self.assertIn('Plumber', names)
+        self.assertNotIn('Retired trade', names)
+        self.assertNotIn(off, WorkerProfileForm(instance=self.wp2).fields['categories'].queryset)
+        self.wp.categories.add(off)
+        self.assertIn(off, WorkerProfileForm(instance=self.wp).fields['categories'].queryset)
+
+    def test_trade_in_use_cannot_be_deleted(self):
+        self.admin_c.post('/dashboard/categories/', {'action': 'delete', 'category_id': self.cat.id}, secure=True)
+        self.assertTrue(Category.objects.filter(pk=self.cat.pk).exists())
+        unused = Category.objects.create(name='Unused', daily_rate=D('1'), service_fee=D('1'))
+        self.admin_c.post('/dashboard/categories/', {'action': 'delete', 'category_id': unused.id}, secure=True)
+        self.assertFalse(Category.objects.filter(pk=unused.pk).exists())

@@ -123,7 +123,12 @@
     "experience": "Uzoefu",
     "location": "Mahali",
     "rating": "Ukadiriaji",
-    "completedJobs": "Kazi Zilizokamilika"
+    "completedJobs": "Kazi Zilizokamilika",
+    "workerTypeLabel": "Aina ya Fundi",
+    "professionalWorkerType": "Mtaalamu (anaweza kuona kazi zilizo wazi)",
+    "nonAcademicWorkerType": "Asiye na Elimu Rasmi",
+    "professionalHelp": "Unaweza kuona kazi zilizo wazi kwenye programu na kuzihifadhi. Pia unapata kazi mteja anapokuajiri moja kwa moja au tunapokupangia.",
+    "nonAcademicHelp": "Unapata kazi mteja anapokuajiri moja kwa moja au tunapokupangia."
   },
   "settings": {
     "title": "Mipangilio",

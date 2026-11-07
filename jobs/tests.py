@@ -147,7 +147,8 @@ class JobsAPITest(APITestCase):
         self.worker_profile = WorkerProfile.objects.create(
             user=self.worker_user,
             verification_status='verified',
-            is_profile_complete=True
+            is_profile_complete=True,
+            worker_type='professional',  # open jobs are listed to professionals only
         )
         self.worker_profile.categories.add(self.category)
         
