@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { uploadable } from '../../utils/uploadable';
 import apiService from '../../services/api';
 import Header from '../../components/Header';
 import { useTranslation } from 'react-i18next';
@@ -67,11 +68,7 @@ export default function ProfileSetupScreen() {
       setLoading(true);
 
       // Prepare file for upload
-      const fileToUpload: any = {
-        uri: file.uri,
-        type: file.mimeType || 'application/octet-stream',
-        name: file.name,
-      };
+      const fileToUpload = uploadable(file, file.mimeType || 'application/octet-stream', file.name);
 
       // Upload to backend
       const response = await apiService.uploadDocument(fileToUpload, documentType);

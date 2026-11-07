@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { uploadable } from '../../utils/uploadable';
 import apiService from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -122,11 +123,7 @@ export default function DocumentsScreen() {
     try {
       setLoading(true);
 
-      const fileToUpload: any = {
-        uri: file.uri,
-        type: file.mimeType || 'application/octet-stream',
-        name: file.name,
-      };
+      const fileToUpload = uploadable(file, file.mimeType || 'application/octet-stream', file.name);
 
       await apiService.uploadDocument(fileToUpload, documentType);
       Alert.alert(t('common.success'), t('documents.documentUploadedSuccess'));

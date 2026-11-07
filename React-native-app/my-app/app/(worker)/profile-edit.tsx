@@ -19,6 +19,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import { uploadable } from '../../utils/uploadable';
 import apiService from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -494,11 +495,7 @@ export default function ProfileEditScreen() {
       
       // Create FormData - React Native specific format
       const formData: any = new FormData();
-      formData.append('profile_image', {
-        uri: image.uri,
-        type: imageType,
-        name: fileName,
-      });
+      formData.append('profile_image', uploadable(image, imageType, fileName));
       
       console.log('Uploading image:', { uri: image.uri, type: imageType, name: fileName });
 
