@@ -17,6 +17,7 @@ from .api_views import (
     job_detail,
 )
 from . import api_messages
+from . import direct_hire_api
 
 urlpatterns = [
     # Root jobs API endpoint
@@ -34,6 +35,10 @@ urlpatterns = [
     path('worker/direct-hire-requests/', worker_direct_hire_requests, name='api_worker_direct_hire_requests'),
     path('worker/direct-hire-requests/<int:request_id>/accept/', accept_direct_hire_request, name='api_accept_direct_hire'),
     path('worker/direct-hire-requests/<int:request_id>/reject/', reject_direct_hire_request, name='api_reject_direct_hire'),
+    # Direct hire (client books one worker) - jobs/direct_hire_api.py
+    path('direct-hires/', direct_hire_api.direct_hires, name='api_direct_hires'),
+    path('direct-hires/<int:pk>/', direct_hire_api.direct_hire_detail, name='api_direct_hire_detail'),
+    path('direct-hires/<int:pk>/complete/', direct_hire_api.complete_direct_hire, name='api_direct_hire_complete'),
     path('direct-hire-requests/<int:request_id>/cancel/', cancel_direct_hire_request, name='api_cancel_direct_hire'),
     path('worker/jobs/', worker_job_listings, name='api_worker_jobs'),
     path('worker/applications/', worker_applications, name='api_worker_applications'),

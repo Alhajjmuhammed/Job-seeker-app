@@ -298,8 +298,57 @@ class ApiService {
     return response.data;
   }
 
-  async getDirectHireRequests() {
-    const response = await this.api.get('/workers/direct-hire-requests/');
+  /** The worker's direct bookings. status: pending (default) | accepted | completed | rejected,cancelled | all */
+  async getDirectHireRequests(status?: string) {
+    const response = await this.api.get('/workers/direct-hire-requests/', { params: status ? { status } : {} });
+    return response.data;
+  }
+
+  // ============== DIRECT HIRE (a client books one worker) ==============
+  // Backend: jobs/direct_hire_api.py (rules in jobs/direct_hire_service.py).
+
+  async createDirectHire(data: {
+    worker_id: number; title: string; description: string; location: string;
+    duration_type: 'hours' | 'days'; duration_value: number; start_datetime: string; offered_rate: string | number;
+  }) {
+    const response = await this.api.post('/jobs/direct-hires/', data);
+    return response.data;
+  }
+
+  /** Paginated {count, next, results}. status may list several: 'rejected,cancelled' */
+  async getDirectHires(params: { status?: string; role?: 'client' | 'worker'; page?: number } = {}) {
+    const response = await this.api.get('/jobs/direct-hires/', { params });
+    return response.data;
+  }
+
+  async getDirectHire(id: number) {
+    const response = await this.api.get(`/jobs/direct-hires/${id}/`);
+    return response.data;
+  }
+
+  async completeDirectHire(id: number, data: { rating?: number | null; feedback?: string } = {}) {
+    const response = await this.api.post(`/jobs/direct-hires/${id}/complete/`, data);
+    return response.data;
+  }
+
+  async cancelDirectHire(id: number, reason = '') {
+    const response = await this.api.post(`/jobs/direct-hire-requests/${id}/cancel/`, { reason });
+    return response.data;
+  }
+
+  // ============== CUSTOM SKILLS (worker profile) ==============
+  async getCustomSkills() {
+    const response = await this.api.get('/workers/custom-skills/');
+    return response.data;
+  }
+
+  async addCustomSkill(data: { name: string; description?: string; years_of_experience?: number }) {
+    const response = await this.api.post('/workers/custom-skills/', data);
+    return response.data;
+  }
+
+  async deleteCustomSkill(id: number) {
+    const response = await this.api.delete(`/workers/custom-skills/${id}/`);
     return response.data;
   }
 
@@ -309,8 +358,9 @@ class ApiService {
     return response.data;
   }
 
-  async rejectDirectHireRequest(requestId: number) {
-    const response = await this.api.post(`/jobs/worker/direct-hire-requests/${requestId}/reject/`);
+  async rejectDirectHireRequest(requestId: number, reason?: string) {
+    const response = await this.api.post(`/jobs/worker/direct-hire-requests/${requestId}/reject/`,
+      reason ? { reason } : {});
     return response.data;
   }
 

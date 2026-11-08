@@ -330,6 +330,19 @@ export default function ClientDashboard() {
                 <Text style={[s.needSmallText, { color: theme.text }]}>{t('vacancies.myContracts')}</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={[s.needCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/(client)/direct-hires' as any)}
+            >
+              <View style={[s.actionIcon, { backgroundColor: '#FEF3C7', marginBottom: 0 }]}>
+                <Ionicons name="flash-outline" size={24} color="#D97706" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.needTitle, { color: theme.text }]}>{t('directHire.dashboardCardTitle')}</Text>
+                <Text style={[s.needText, { color: theme.textSecondary }]}>{t('directHire.dashboardCardText')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
           </View>
         </View>
 

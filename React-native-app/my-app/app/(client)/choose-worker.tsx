@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface BrowseWorker {
   id: number;
@@ -27,10 +28,13 @@ interface BrowseWorker {
   city: string;
   distance_km: number | null;
   categories: { id: number; name: string }[];
+  /** verified + ID uploaded: may be booked directly (older servers don't send it) */
+  can_direct_hire?: boolean;
 }
 
 export default function ChooseWorkerScreen() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ categoryId: string; latitude?: string; longitude?: string }>();
   const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState<BrowseWorker[]>([]);
@@ -60,6 +64,13 @@ export default function ChooseWorkerScreen() {
     router.push({
       pathname: '/(client)/request-service',
       params: { preferredWorkerId: worker.id.toString(), preferredWorkerName: worker.name },
+    });
+  };
+
+  const handleBookDirectly = (worker: BrowseWorker) => {
+    router.push({
+      pathname: '/(client)/direct-hire/new' as any,
+      params: { workerId: worker.id.toString(), workerName: worker.name },
     });
   };
 
@@ -95,9 +106,9 @@ export default function ChooseWorkerScreen() {
             </View>
           ) : (
             workers.map((worker) => (
+              <View key={worker.id} style={[styles.cardWrap, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TouchableOpacity
-                key={worker.id}
-                style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                style={styles.card}
                 onPress={() => handleSelect(worker)}
               >
                 {worker.profile_image ? (
@@ -128,6 +139,19 @@ export default function ChooseWorkerScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
               </TouchableOpacity>
+              {worker.can_direct_hire !== false ? (
+                <TouchableOpacity
+                  style={[styles.bookButton, { borderColor: theme.primary }]}
+                  onPress={() => handleBookDirectly(worker)}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="flash-outline" size={16} color={theme.primary} />
+                  <Text style={[styles.bookButtonText, { color: theme.primary }]}>{t('directHire.bookDirectly')}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={[styles.notEligible, { color: theme.textSecondary }]}>{t('directHire.notEligible')}</Text>
+              )}
+              </View>
             ))
           )}
 
@@ -150,15 +174,24 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 17, fontFamily: 'Poppins_600SemiBold', marginBottom: 6 },
   emptySubtitle: { fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center', paddingHorizontal: 20 },
+  cardWrap: { borderRadius: 14, borderWidth: 1, marginBottom: 12, padding: 14 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 12,
     gap: 12,
   },
+  bookButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 8,
+    marginTop: 12,
+  },
+  bookButtonText: { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  notEligible: { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 10, textAlign: 'center' },
   avatar: { width: 52, height: 52, borderRadius: 26 },
   avatarPlaceholder: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
   avatarInitial: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_700Bold' },

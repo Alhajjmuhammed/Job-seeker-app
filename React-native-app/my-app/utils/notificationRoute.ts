@@ -73,12 +73,7 @@ export function routeForNotification({ type, data, role }: NotificationRouteInpu
 
   // Direct hire (bookings made straight with a worker).
   const directHire = id(d.direct_hire_id);
-  if (directHire) {
-    // TODO direct-hire screen: (worker)/direct-hire/[id] and (client)/direct-hire/[id]
-    // When those screens exist, replace this line with:
-    //   return `${area}/direct-hire/${directHire}`;
-    return `${area}/dashboard`;
-  }
+  if (directHire) return `${area}/direct-hire/${directHire}`;
 
   // Service requests (admin-assigned bookings).
   const requestId = id(d.service_request_id ?? d.request_id);

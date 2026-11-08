@@ -108,6 +108,9 @@ export default function WorkerLayout() {
       <Tabs.Screen name="vacancy/[id]" options={{ href: null }} />
       <Tabs.Screen name="contracts" options={{ href: null }} />
       <Tabs.Screen name="contract/[id]" options={{ href: null }} />
+      {/* direct hire (a client books one worker) */}
+      <Tabs.Screen name="direct-hires" options={{ href: null }} />
+      <Tabs.Screen name="direct-hire/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

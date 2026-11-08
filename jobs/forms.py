@@ -124,6 +124,15 @@ class DirectHireRequestForm(forms.ModelForm):
                 f"This is the rate per hour or per day (as chosen above) - the total is this rate x how long."
             )
 
+    def clean_start_datetime(self):
+        """A booking can't start in the past (a few minutes' grace for "start now")."""
+        from datetime import timedelta
+        from django.utils import timezone
+        value = self.cleaned_data.get('start_datetime')
+        if value and value < timezone.now() - timedelta(minutes=15):
+            raise forms.ValidationError('The start time is in the past. Please choose a time from now on.')
+        return value
+
 
 class MessageForm(forms.ModelForm):
     class Meta:

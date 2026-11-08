@@ -355,29 +355,33 @@ def direct_hire_requests(request):
     try:
         profile = WorkerProfile.objects.get(user=request.user)
         
-        # Get pending direct hire requests
-        requests = DirectHireRequest.objects.filter(
-            worker=profile,
-            status='pending'
-        ).select_related('client').order_by('-created_at')
+        # ?status=pending (default, what older apps expect) | accepted | rejected,cancelled | all
+        from jobs import direct_hire_service as dh
+        requests = dh.filter_status(
+            DirectHireRequest.objects.filter(worker=profile),
+            request.query_params.get('status', 'pending'),
+        ).select_related('client').order_by('-created_at', '-id')
         
         # Serialize the requests
         requests_data = []
         for req in requests:
+            is_open = req.status in dh.OPEN_STATES
             requests_data.append({
                 'id': req.id,
                 'title': req.title,
                 'client_name': req.client.get_full_name(),
-                'client_phone': '',  # shown only after the worker accepts
+                # the phone and the address are shown only after the worker accepts
+                'client_phone': (req.client.phone_number or '') if is_open else '',
                 'job_description': req.description,
                 'offered_rate': str(req.offered_rate),
                 'total_amount': str(req.total_amount),
                 'duration_type': req.duration_type,
                 'duration_value': req.duration_value,
                 'start_datetime': req.start_datetime.isoformat(),
-                'location': req.location,
+                'location': req.location if is_open else '',
                 'created_at': req.created_at.isoformat(),
                 'status': req.status,
+                'status_display': req.get_status_display(),
             })
         
         return Response(requests_data)
@@ -995,3 +999,49 @@ def payment_history(request):
 # (backed by the PushToken model). This module used to have its own
 # register_push_token that accepted tokens but never persisted them, and
 # nothing in the mobile app called it - removed rather than duplicated.
+
+
+# ------------------------------------------------------------------ custom skills
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([JSONParser, MultiPartParser, FormParser])
+def custom_skills(request):
+    """GET: the worker's own custom skills. POST {name, description?, years_of_experience?,
+    certificate? (file)}: add one - the same rules as the website (workers/custom_skills.py)."""
+    from .custom_skills import add_custom_skill, skill_json
+    profile = WorkerProfile.objects.filter(user=request.user).first()
+    if request.user.user_type != 'worker' or profile is None:
+        return Response({'error': 'Only workers can do this.', 'code': 'not_worker'}, status=status.HTTP_403_FORBIDDEN)
+    if request.method == 'GET':
+        return Response({'results': [skill_json(s, request) for s in profile.custom_skills.all()]})
+    data = {
+        'name': str(request.data.get('name') or '').strip(),
+        'description': str(request.data.get('description') or '').strip(),
+        'years_of_experience': request.data.get('years_of_experience') or 0,
+    }
+    if request.FILES.get('certificate'):
+        try:
+            validate_document_file(request.FILES['certificate'])
+        except ValidationError as e:
+            return Response({'error': ' '.join(e.messages), 'code': 'invalid_file'}, status=status.HTTP_400_BAD_REQUEST)
+    skill, outcome, form = add_custom_skill(profile, data, request.FILES)
+    if outcome == 'invalid':
+        field, errors = next(iter(form.errors.items()))
+        label = {'name': 'Skill name', 'years_of_experience': 'Years of experience'}.get(field, field.replace('_', ' ').capitalize())
+        return Response({'error': f'{label}: {errors[0]}', 'code': 'invalid', 'field': field},
+                        status=status.HTTP_400_BAD_REQUEST)
+    if outcome == 'exists':
+        return Response({'error': f'You already have the skill "{skill.name}".', 'code': 'skill_exists',
+                         'skill': skill_json(skill, request)}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(skill_json(skill, request), status=status.HTTP_201_CREATED)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def custom_skill_delete(request, skill_id):
+    from .models import WorkerCustomSkill
+    skill = WorkerCustomSkill.objects.filter(pk=skill_id, worker__user=request.user).first()
+    if skill is None:
+        return Response({'error': 'Skill not found.', 'code': 'not_found'}, status=status.HTTP_404_NOT_FOUND)
+    skill.delete()
+    return Response({'message': 'Skill removed.'})

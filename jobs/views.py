@@ -544,18 +544,15 @@ def message_detail(request, pk):
 # ===============================================
 
 def _suggested_rate(worker):
-    """A sensible opening offer for hiring this worker directly.
-
-    Work is priced per request, so the suggestion is what the platform charges
-    for one worker in this worker's own category - never an hourly figure.
-    """
-    category = worker.categories.first()
-    return category.daily_rate if category else None
+    """A sensible opening offer for hiring this worker directly (see direct_hire_service)."""
+    from . import direct_hire_service
+    return direct_hire_service.suggested_rate(worker)
 
 
 @login_required
 def request_worker_directly(request, worker_id):
     """Client requests/books a worker directly for quick work"""
+    from . import direct_hire_service as dh
     if not request.user.is_client:
         messages.error(request, 'Only clients can request workers.')
         return redirect('home')
@@ -563,20 +560,16 @@ def request_worker_directly(request, worker_id):
     worker = get_object_or_404(WorkerProfile, pk=worker_id)
     
     # Check if worker can accept direct hires
-    if not worker.can_accept_direct_hires:
-        messages.error(request, 'This worker is not available for direct hire requests. They need to upload ID and be verified.')
+    try:
+        dh.check_can_book(request.user, worker)
+    except dh.DirectHireError as e:
+        messages.error(request, e.message)
         return redirect('workers:public_profile', pk=worker_id)
     
     if request.method == 'POST':
         form = DirectHireRequestForm(request.POST, suggested_rate=_suggested_rate(worker))
         if form.is_valid():
-            direct_hire = form.save(commit=False)
-            direct_hire.client = request.user
-            direct_hire.worker = worker
-            direct_hire.save()
-            from worker_connect.notification_service import NotificationService
-            NotificationService.notify_direct_hire(direct_hire)
-            
+            direct_hire = dh.create(request.user, worker, form)
             messages.success(request, f'Request sent to {worker.user.get_full_name()}! They will be notified.')
             return redirect('jobs:direct_hire_detail', pk=direct_hire.pk)
     else:
@@ -612,52 +605,47 @@ def direct_hire_detail(request, pk):
 @login_required
 def cancel_direct_hire(request, pk):
     """Client (pending/accepted) or worker (accepted) cancels a direct booking."""
+    from . import direct_hire_service as dh
     hire_request = get_object_or_404(DirectHireRequest, pk=pk)
     if request.user not in (hire_request.client, hire_request.worker.user):
         messages.error(request, 'Access denied.')
         return redirect('home')
     if request.method == 'POST':
-        reason = request.POST.get('reason', '').strip()[:500]
-        if hire_request.cancel(request.user, reason):
+        try:
+            dh.cancel(hire_request, request.user, request.POST.get('reason', ''))
             messages.success(request, 'The booking was cancelled. The other side has been told.')
-        else:
+        except dh.DirectHireError:
             messages.error(request, 'This booking can no longer be cancelled.')
     return redirect('jobs:direct_hire_detail', pk=pk)
+
+
+def _answer_problem(request, hire_request, problem):
+    """Shared handling of an accept/decline the worker may not make."""
+    if problem.code == 'forbidden':
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    if problem.code == 'already_responded':
+        messages.warning(request, problem.message)
+    else:
+        messages.error(request, problem.message)
+    return redirect('jobs:direct_hire_detail', pk=hire_request.pk)
 
 
 @login_required
 def worker_accept_direct_hire(request, pk):
     """Worker accepts a direct hire request"""
+    from . import direct_hire_service as dh
     hire_request = get_object_or_404(DirectHireRequest, pk=pk)
-    
-    # Check if user is the worker
-    if not hasattr(request.user, 'worker_profile') or request.user.worker_profile != hire_request.worker:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
-    
-    # Check if already responded
-    if hire_request.status != 'pending':
-        messages.warning(request, 'This request has already been responded to.')
-        return redirect('jobs:direct_hire_detail', pk=pk)
 
-    if hire_request.worker.availability == 'busy':  # busy with other work: decline, or finish first
-        messages.error(request, 'You are busy with other work. Finish it first, or decline this request.')
-        return redirect('jobs:direct_hire_detail', pk=pk)
+    problem = dh.accept_problem(hire_request, request.user)
+    if problem:
+        return _answer_problem(request, hire_request, problem)
     
     if request.method == 'POST':
-        response_message = request.POST.get('response_message', '')
-        
-        hire_request.status = 'accepted'
-        hire_request.worker_response_message = response_message
-        hire_request.responded_at = timezone.now()
-        hire_request.save()
-        
-        # Update worker availability
-        hire_request.worker.availability = 'busy'
-        hire_request.worker.save()
-        from worker_connect.notification_service import NotificationService
-        NotificationService.notify_direct_hire(hire_request)
-        
+        try:
+            dh.accept(hire_request, request.user, request.POST.get('response_message', ''))
+        except dh.DirectHireError as e:
+            return _answer_problem(request, hire_request, e)
         messages.success(request, 'Request accepted! The client will be notified.')
         return redirect('jobs:direct_hire_detail', pk=pk)
     
@@ -667,28 +655,19 @@ def worker_accept_direct_hire(request, pk):
 @login_required
 def worker_reject_direct_hire(request, pk):
     """Worker rejects a direct hire request"""
+    from . import direct_hire_service as dh
     hire_request = get_object_or_404(DirectHireRequest, pk=pk)
-    
-    # Check if user is the worker
-    if not hasattr(request.user, 'worker_profile') or request.user.worker_profile != hire_request.worker:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
-    
-    # Check if already responded
-    if hire_request.status != 'pending':
-        messages.warning(request, 'This request has already been responded to.')
-        return redirect('jobs:direct_hire_detail', pk=pk)
+
+    problem = dh.reject_problem(hire_request, request.user)
+    if problem:
+        return _answer_problem(request, hire_request, problem)
     
     if request.method == 'POST':
-        reason = request.POST.get('reason', '')
-        
-        hire_request.status = 'rejected'
-        hire_request.worker_response_message = reason
-        hire_request.responded_at = timezone.now()
-        hire_request.save()
-        from worker_connect.notification_service import NotificationService
-        NotificationService.notify_direct_hire(hire_request)
-        
+        reason = request.POST.get('reason', '') or request.POST.get('response_message', '')
+        try:
+            dh.reject(hire_request, request.user, reason)
+        except dh.DirectHireError as e:
+            return _answer_problem(request, hire_request, e)
         messages.info(request, 'Request declined.')
         return redirect('jobs:direct_hire_detail', pk=pk)
     
@@ -739,72 +718,23 @@ def my_direct_hire_requests(request):
 @login_required
 def complete_direct_hire(request, pk):
     """Client marks direct hire as completed and can rate worker"""
+    from . import direct_hire_service as dh
     hire_request = get_object_or_404(DirectHireRequest, pk=pk)
-    
-    # Only client can complete
-    if request.user != hire_request.client:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
-    
-    if hire_request.status != 'accepted':
-        messages.error(request, 'Can only complete accepted requests.')
+
+    problem = dh.complete_problem(hire_request, request.user)
+    if problem:
+        if problem.code == 'forbidden':
+            messages.error(request, 'Access denied.')
+            return redirect('home')
+        messages.error(request, problem.message)
         return redirect('jobs:direct_hire_detail', pk=pk)
     
     if request.method == 'POST':
-        rating = request.POST.get('rating')
-        feedback = request.POST.get('feedback', '')
-
         try:
-            rating_value = int(rating)
-        except (TypeError, ValueError):
-            rating_value = None
-
-        from django.db import transaction
-        with transaction.atomic():
-            if DirectHireRequest.objects.select_for_update().get(pk=hire_request.pk).status != 'accepted':
-                messages.error(request, 'This booking is no longer active.')
-                return redirect('jobs:direct_hire_detail', pk=pk)
-            hire_request.status = 'completed'
-            hire_request.completed_at = timezone.now()
-            hire_request.save(update_fields=['status', 'completed_at', 'updated_at'])
-        hire_request.status = 'completed'
-        hire_request.completed_at = timezone.now()
-        # the parsed number, 1-5 only (the raw text crashed on '' / 'abc', and stored 9 as 9)
-        hire_request.client_rating = rating_value if rating_value and 1 <= rating_value <= 5 else None
-        hire_request.client_feedback = feedback
-        hire_request.save()
-
-        # Update worker stats
-        worker = hire_request.worker
-        worker.completed_jobs += 1
-        worker.total_jobs += 1
-        worker.total_earnings += hire_request.total_amount
-
-        # Persist the rating as a real Rating row so it actually counts
-        # toward the worker's average and shows up in their review list -
-        # previously only hire_request.client_rating was set, which nothing
-        # else ever read.
-        from clients.models import Rating
-        if rating_value and 1 <= rating_value <= 5:
-            Rating.objects.update_or_create(
-                client=request.user,
-                worker=worker,
-                defaults={'rating': rating_value, 'review': feedback},
-            )
-
-        ratings = Rating.objects.filter(worker=worker)
-        if ratings.exists():
-            from django.db.models import Avg
-            avg = ratings.aggregate(Avg('rating'))['rating__avg']
-            worker.average_rating = round(avg, 2)
-            worker.total_reviews = ratings.count()
-
-        worker.save()
-
-        # Free the worker only if nothing else keeps them busy (an active job-post contract,
-        # a booking, or another accepted direct hire) - this used to set "available" always.
-        hire_request.free_worker_if_idle()
-        
+            dh.complete(hire_request, request.user, request.POST.get('rating'), request.POST.get('feedback', ''))
+        except dh.DirectHireError as e:
+            messages.error(request, e.message)
+            return redirect('jobs:direct_hire_detail', pk=pk)
         messages.success(request, 'Work completed! Thank you for your feedback.')
         return redirect('jobs:direct_hire_detail', pk=pk)
     

@@ -21,6 +21,8 @@ urlpatterns = [
     path('documents/<int:document_id>/delete/', api_views.delete_document, name='delete_document'),
     path('categories/', api_views.get_categories, name='get_categories'),
     path('skills/', api_views.get_skills_by_category, name='get_skills_by_category'),
+    path('custom-skills/', api_views.custom_skills, name='custom_skills'),
+    path('custom-skills/<int:skill_id>/', api_views.custom_skill_delete, name='custom_skill_delete'),
     path('experiences/', api_views.work_experiences, name='work_experiences'),
     path('experiences/<int:experience_id>/', api_views.work_experience_detail, name='work_experience_detail'),
     # Auto-generated CV

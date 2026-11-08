@@ -5,6 +5,7 @@ verification dispatching to cancelled requests, invoice/review abuse, search
 leaks, and inputs that used to be 500s.
 """
 
+from datetime import timedelta
 from decimal import Decimal as D
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -125,7 +126,7 @@ class PaymentAndDirectHireFixTests(FlowBase):
         WorkerDocument.objects.create(worker=self.wp, document_type='id', title='id',
                                       file=SimpleUploadedFile('i.png', PNG, 'image/png'))
         base = {'title': 'x', 'description': 'y', 'location': 'z', 'duration_type': 'hours',
-                'start_datetime': '2026-12-01 10:00'}
+                'start_datetime': (timezone.localtime() + timedelta(days=7)).strftime('%Y-%m-%d %H:%M')}
         for extra in ({'duration_value': 0, 'offered_rate': '5000'},
                       {'duration_value': 2, 'offered_rate': '-5000'},
                       {'duration_value': 2, 'offered_rate': '0'}):

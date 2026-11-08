@@ -28,6 +28,12 @@ class DirectHireRequestSerializer(serializers.ModelSerializer):
     def get_client_name(self, obj):
         return f"{obj.client.first_name} {obj.client.last_name}"
 
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        if obj.status not in ('accepted', 'completed'):
+            data['location'] = ''  # the address is for the worker only once they accept
+        return data
+
 
 class JobRequestSerializer(SanitizedSerializerMixin, serializers.ModelSerializer):
     """

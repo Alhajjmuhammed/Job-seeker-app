@@ -19,6 +19,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import CustomSkills from '../../components/CustomSkills';
 import { uploadable } from '../../utils/uploadable';
 import apiService from '../../services/api';
 import { useTranslation } from 'react-i18next';
@@ -1009,6 +1010,11 @@ export default function ProfileEditScreen() {
             </View>
           </View>
         )}
+        {/* The worker's own skills (not in the lists above) */}
+        <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
+          <CustomSkills />
+        </View>
+
         {/* Work Experience Note */}
         <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.sectionHeader}>

@@ -558,6 +558,8 @@ def client_browse_workers(request):
         'city': w.city,
         'distance_km': round(w.distance_km, 1) if getattr(w, 'distance_km', None) is not None else None,
         'categories': [{'id': c.id, 'name': c.name} for c in w.categories.all()],
+        # verified + ID uploaded: the client may book them directly (jobs/direct_hire_service.py)
+        'can_direct_hire': w.can_accept_direct_hires,
     } for w in workers]
 
     return Response({

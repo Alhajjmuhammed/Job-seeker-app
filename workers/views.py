@@ -339,17 +339,12 @@ def custom_skill_add(request):
     profile = get_object_or_404(WorkerProfile, user=request.user)
     
     if request.method == 'POST':
-        from .forms import CustomSkillForm
-        form = CustomSkillForm(request.POST, request.FILES)
-        if form.is_valid():
-            skill = form.save(commit=False)
-            skill.worker = profile
-            # (worker, name) is unique - adding the same skill twice was a 500
-            if profile.custom_skills.filter(name__iexact=skill.name.strip()).exists():
-                messages.info(request, f'You already have the skill "{skill.name}".')
-            else:
-                skill.save()
-                messages.success(request, f'Custom skill "{skill.name}" added successfully!')
+        from .custom_skills import add_custom_skill
+        skill, outcome, form = add_custom_skill(profile, request.POST, request.FILES)
+        if outcome == 'exists':
+            messages.info(request, f'You already have the skill "{skill.name}".')
+        elif outcome == 'added':
+            messages.success(request, f'Custom skill "{skill.name}" added successfully!')
         else:
             messages.error(request, 'Please correct the errors in the form.')
     

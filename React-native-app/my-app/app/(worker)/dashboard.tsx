@@ -26,8 +26,10 @@ import '../../services/i18n';
 
 interface DirectHireRequest {
   id: number;
+  title?: string;
   client_name: string;
   duration_type: string;
+  duration_value?: number;
   offered_rate: number;
   total_amount: number;
   status: string;
@@ -1097,7 +1099,7 @@ export default function WorkerDashboard() {
 
         {/* Pending Requests */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pending Requests ({pendingRequests.length})</Text>
+          <Text style={styles.sectionTitle}>{t('directHire.pendingTitle', { count: pendingRequests.length })}</Text>
           {pendingRequests.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
@@ -1108,7 +1110,8 @@ export default function WorkerDashboard() {
             </View>
           ) : (
             pendingRequests.map((request) => (
-              <View key={request.id} style={styles.requestCard}>
+              <TouchableOpacity key={request.id} style={styles.requestCard} activeOpacity={0.85}
+                onPress={() => router.push(`/(worker)/direct-hire/${request.id}` as any)}>
                 <View style={styles.requestHeader}>
                   <View>
                     <Text style={styles.clientName}>{request.client_name}</Text>
@@ -1116,20 +1119,24 @@ export default function WorkerDashboard() {
                   </View>
                   <View style={styles.amountBadge}>
                     <Text style={styles.amountText}>
-                      TSH {request.offered_rate}
+                      TSh {Number(request.offered_rate || 0).toLocaleString()}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.requestDetails}>
+                  {!!request.title && (
+                    <Text style={[styles.clientName, { marginBottom: 6 }]}>{request.title}</Text>
+                  )}
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{t('requestService.duration')}</Text>
-                    <Text style={styles.detailValue}>{request.duration_type}</Text>
+                    {/* "2 days", not just "days" */}
+                    <Text style={styles.detailValue}>{`${request.duration_value ?? ''} ${request.duration_type}`.trim()}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Total Amount:</Text>
+                    <Text style={styles.detailLabel}>{t('directHire.total')}</Text>
                     <Text style={styles.detailValue}>
-                      TSH {request.total_amount.toLocaleString()}
+                      TSh {Number(request.total_amount || 0).toLocaleString()}
                     </Text>
                   </View>
                 </View>
@@ -1139,18 +1146,25 @@ export default function WorkerDashboard() {
                     style={styles.rejectButton}
                     onPress={() => handleRejectRequest(request.id)}
                   >
-                    <Text style={styles.rejectButtonText}>Decline</Text>
+                    <Text style={styles.rejectButtonText}>{t('directHire.decline')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.acceptButton}
                     onPress={() => handleAcceptRequest(request.id)}
                   >
-                    <Text style={styles.acceptButtonText}>Accept Job</Text>
+                    <Text style={styles.acceptButtonText}>{t('directHire.accept')}</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
+          <TouchableOpacity
+            style={[styles.savedJobsButton, { backgroundColor: theme.surface, borderColor: theme.primary, marginTop: 8 }]}
+            onPress={() => router.push('/(worker)/direct-hires' as any)}
+          >
+            <Ionicons name="flash-outline" size={20} color={theme.primary} />
+            <Text style={[styles.savedJobsButtonText, { color: theme.primary }]}>{t('directHire.myBookings')}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Actions */}

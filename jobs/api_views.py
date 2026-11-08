@@ -41,63 +41,48 @@ def worker_direct_hire_requests(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def accept_direct_hire_request(request, request_id):
-    """Accept a direct hire request"""
+    """Accept a direct hire request (rules: jobs/direct_hire_service.py)"""
+    from . import direct_hire_service as dh
+    hire_request = DirectHireRequest.objects.select_related('worker__user', 'client').filter(
+        id=request_id, worker__user=request.user).first()
+    if hire_request is None:  # a non-worker / someone else's request
+        return Response({'error': 'Request not found', 'code': 'not_found'}, status=status.HTTP_404_NOT_FOUND)
     try:
-        worker_profile = WorkerProfile.objects.get(user=request.user)
-        hire_request = DirectHireRequest.objects.get(id=request_id, worker=worker_profile)
-
-        if hire_request.status != 'pending':
-            return Response({'error': 'This request has already been responded to'}, status=status.HTTP_400_BAD_REQUEST)
-        if worker_profile.availability == 'busy':
-            return Response({'error': 'You are busy with other work. Finish it first, or decline this request.', 'code': 'worker_busy'}, status=status.HTTP_400_BAD_REQUEST)
-
-        hire_request.status = 'accepted'
-        hire_request.responded_at = timezone.now()
-        hire_request.save()
-
-        # Mirrors worker_accept_direct_hire (the web view) - without this the
-        # worker still shows as 'available' after committing to a direct
-        # hire booking, which the web flow correctly prevents.
-        worker_profile.availability = 'busy'
-        worker_profile.save()
-        from worker_connect.notification_service import NotificationService
-        NotificationService.notify_direct_hire(hire_request)
-
-        return Response({'message': 'Request accepted successfully'})
-    except (DirectHireRequest.DoesNotExist, WorkerProfile.DoesNotExist):  # a non-worker used to get a 500
-        return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+        dh.accept(hire_request, request.user, str(request.data.get('response_message') or request.data.get('message') or '')[:1000])
+    except dh.DirectHireError as e:
+        return Response({'error': e.message, 'code': e.code}, status=e.status)
+    return Response({'message': 'Request accepted successfully', 'status': hire_request.status})
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def reject_direct_hire_request(request, request_id):
-    """Reject a direct hire request"""
+    """Decline a direct hire request, optionally with a reason ({reason} or {response_message})"""
+    from . import direct_hire_service as dh
+    hire_request = DirectHireRequest.objects.select_related('worker__user', 'client').filter(
+        id=request_id, worker__user=request.user).first()
+    if hire_request is None:
+        return Response({'error': 'Request not found', 'code': 'not_found'}, status=status.HTTP_404_NOT_FOUND)
+    reason = str(request.data.get('reason') or request.data.get('response_message') or '').strip()[:1000]
     try:
-        worker_profile = WorkerProfile.objects.get(user=request.user)
-        hire_request = DirectHireRequest.objects.get(id=request_id, worker=worker_profile)
-
-        if hire_request.status != 'pending':
-            return Response({'error': 'This request has already been responded to'}, status=status.HTTP_400_BAD_REQUEST)
-
-        hire_request.status = 'rejected'
-        hire_request.responded_at = timezone.now()
-        hire_request.save()
-        from worker_connect.notification_service import NotificationService
-        NotificationService.notify_direct_hire(hire_request)
-        return Response({'message': 'Request rejected successfully'})
-    except (DirectHireRequest.DoesNotExist, WorkerProfile.DoesNotExist):  # a non-worker used to get a 500
-        return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+        dh.reject(hire_request, request.user, reason)
+    except dh.DirectHireError as e:
+        return Response({'error': e.message, 'code': e.code}, status=e.status)
+    return Response({'message': 'Request rejected successfully', 'status': hire_request.status})
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cancel_direct_hire_request(request, request_id):
     """Client (pending/accepted) or worker (accepted) cancels a direct booking."""
+    from . import direct_hire_service as dh
     hire_request = DirectHireRequest.objects.select_related('worker__user', 'client').filter(pk=request_id).first()
-    if hire_request is None or request.user not in (hire_request.client, hire_request.worker.user):
-        return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
-    if not hire_request.cancel(request.user, str(request.data.get('reason', '')).strip()[:500]):
-        return Response({'error': 'This booking can no longer be cancelled'}, status=status.HTTP_400_BAD_REQUEST)
+    if hire_request is None or not dh.is_party(hire_request, request.user):
+        return Response({'error': 'Request not found', 'code': 'not_found'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        dh.cancel(hire_request, request.user, str(request.data.get('reason', '')))
+    except dh.DirectHireError as e:
+        return Response({'error': e.message, 'code': e.code}, status=e.status)
     return Response({'message': 'Booking cancelled', 'status': hire_request.status})
 
 
