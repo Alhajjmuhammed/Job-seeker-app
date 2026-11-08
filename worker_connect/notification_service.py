@@ -317,7 +317,7 @@ class NotificationService:
         # Notify all admins - routed through create_notification (not
         # bulk_create) so each admin also gets the websocket broadcast and
         # email, same as every other notification type.
-        admins = User.objects.filter(is_staff=True)
+        admins = User.objects.filter(is_staff=True, is_active=True)  # not deactivated admins
         notifications = []
         for admin in admins:
             notifications.append(
@@ -402,7 +402,7 @@ class NotificationService:
         # Notify all admins - routed through create_notification (not
         # bulk_create) so each admin also gets the websocket broadcast and
         # email, same as every other notification type.
-        admins = User.objects.filter(is_staff=True)
+        admins = User.objects.filter(is_staff=True, is_active=True)  # not deactivated admins
         notifications = []
         for admin in admins:
             notifications.append(

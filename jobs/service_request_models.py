@@ -801,12 +801,39 @@ class ServiceRequestAssignment(models.Model):
     def __str__(self):
         return f"Assignment #{self.assignment_number} - {self.worker.user.get_full_name()} - SR#{self.service_request.id}"
     
+    # A worker can only answer an offer that is still open: the assignment
+    # must be 'pending' and its request not already closed. cancel() flips
+    # the row to 'cancelled' but leaves worker_accepted=None, so checking
+    # worker_accepted alone let a worker accept (and be paid for) a job the
+    # client had cancelled.
+    CLOSED_REQUEST_STATUSES = ('cancelled', 'completed')
+
+    def _lock_if_respondable(self):
+        """Lock this row; return True if it can still be accepted/rejected."""
+        locked = ServiceRequestAssignment.objects.select_for_update().get(pk=self.pk)
+        sr_status = ServiceRequest.objects.filter(
+            pk=locked.service_request_id).values_list('status', flat=True).first()
+        if (locked.status != 'pending' or locked.worker_accepted is not None
+                or sr_status in self.CLOSED_REQUEST_STATUSES):
+            self.status = locked.status
+            self.worker_accepted = locked.worker_accepted
+            return False
+        return True
+
+    def can_be_responded(self):
+        return (self.status == 'pending' and self.worker_accepted is None
+                and self.service_request.status not in self.CLOSED_REQUEST_STATUSES)
+
     def accept_assignment(self):
-        """Worker accepts this assignment"""
-        self.worker_accepted = True
-        self.worker_response_at = timezone.now()
-        self.status = 'accepted'
-        self.save()
+        """Worker accepts this assignment. Returns False if it is no longer open."""
+        from django.db import transaction
+        with transaction.atomic():
+            if not self._lock_if_respondable():
+                return False
+            self.worker_accepted = True
+            self.worker_response_at = timezone.now()
+            self.status = 'accepted'
+            self.save()
         
         # AUTO-UPDATE: Set worker to busy when accepting assignment
         self.worker.availability = 'busy'
@@ -828,13 +855,31 @@ class ServiceRequestAssignment(models.Model):
         return True
     
     def reject_assignment(self, reason=''):
-        """Worker rejects this assignment"""
-        self.worker_accepted = False
-        self.worker_response_at = timezone.now()
-        self.worker_rejection_reason = reason
-        self.status = 'rejected'
-        self.save()
-        
+        """Worker rejects this assignment. Returns False if it is no longer open."""
+        from django.db import transaction
+        with transaction.atomic():
+            if not self._lock_if_respondable():
+                return False
+            self.worker_accepted = False
+            self.worker_response_at = timezone.now()
+            self.worker_rejection_reason = reason
+            self.status = 'rejected'
+            self.save()
+
+            # If nobody is left on the request, put it back to 'pending' so
+            # the admin sees it needs a worker (it used to sit on 'assigned'
+            # forever with no one working it).
+            sr = self.service_request
+            still_live = ServiceRequestAssignment.objects.filter(
+                service_request_id=sr.pk,
+                status__in=ServiceRequest.LIVE_ASSIGNMENT_STATUSES,
+            ).exists()
+            if not still_live:
+                ServiceRequest.objects.filter(
+                    pk=sr.pk, status__in=['assigned', 'in_progress']
+                ).update(status='pending')
+                sr.refresh_from_db(fields=['status'])
+
         # AUTO-UPDATE: Set worker to available if no other active jobs
         if not self._worker_has_other_active_jobs():
             self.worker.availability = 'available'
@@ -858,7 +903,8 @@ class ServiceRequestAssignment(models.Model):
     COMPLETABLE_STATUSES = ('accepted', 'in_progress')
 
     def can_be_completed(self):
-        return self.worker_accepted is True and self.status in self.COMPLETABLE_STATUSES
+        return (self.worker_accepted is True and self.status in self.COMPLETABLE_STATUSES
+                and self.service_request.status != 'cancelled')
 
     def mark_completed(self, completion_notes=''):
         """
@@ -944,7 +990,12 @@ class ServiceRequestAssignment(models.Model):
     def _check_all_completed(self):
         """Check if all assignments are completed and update main request"""
         sr = self.service_request
-        
+        sr.refresh_from_db(fields=['status'])
+        # A cancelled (or already closed) request must never be flipped to
+        # completed by a late assignment completion.
+        if sr.status in self.CLOSED_REQUEST_STATUSES:
+            return
+
         # Rejected/cancelled rows are not work that is still owed, so they
         # must not stop the request from closing.
         all_assignments = ServiceRequestAssignment.objects.filter(

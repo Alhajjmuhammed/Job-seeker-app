@@ -74,7 +74,11 @@ def category_list(request):
             if category_id:
                 try:
                     category = Category.objects.get(pk=category_id)
-                    category.name = request.POST.get('name', category.name)
+                    new_name = (request.POST.get('name') or category.name).strip()
+                    if Category.objects.filter(name__iexact=new_name).exclude(pk=category.pk).exists():
+                        messages.error(request, f'A category named "{new_name}" already exists.')
+                        return redirect('admin_panel:category_list')
+                    category.name = new_name
                     category.description = request.POST.get('description', '')
                     category.icon = request.POST.get('icon', '')
                     
@@ -99,7 +103,7 @@ def category_list(request):
 
                     category.save()
                     messages.success(request, f'Category "{category.name}" updated successfully!')
-                except Category.DoesNotExist:
+                except (Category.DoesNotExist, ValueError):
                     messages.error(request, 'Category not found.')
         
         elif action == 'delete':
@@ -119,7 +123,7 @@ def category_list(request):
                     else:
                         category.delete()
                         messages.success(request, f'Category "{category_name}" deleted successfully!')
-                except Category.DoesNotExist:
+                except (Category.DoesNotExist, ValueError):
                     messages.error(request, 'Category not found.')
         
         elif action == 'toggle_status':
@@ -131,15 +135,17 @@ def category_list(request):
                     category.save()
                     status = 'activated' if category.is_active else 'deactivated'
                     messages.success(request, f'Category "{category.name}" {status}!')
-                except Category.DoesNotExist:
+                except (Category.DoesNotExist, ValueError):
                     messages.error(request, 'Category not found.')
         
         return redirect('admin_panel:category_list')
     
     # GET request - display categories
     categories = Category.objects.annotate(
-        worker_count=Count('workers'),
-        job_count=Count('service_requests')
+        # distinct: counting two relations in one query multiplied the joins
+        # (3 workers and 4 requests showed as 12 and 12)
+        worker_count=Count('workers', distinct=True),
+        job_count=Count('service_requests', distinct=True)
     ).order_by('name')
 
     active_categories = categories.filter(is_active=True).count()
@@ -159,7 +165,7 @@ def reports(request):
     from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
     
     # Get filter parameters
-    days = int(request.GET.get('days', 30))
+    days = _days_param(request)
     view_type = request.GET.get('view', 'daily')  # daily, weekly, monthly, yearly
     
     start_date = timezone.now() - timedelta(days=days)
@@ -371,9 +377,15 @@ def manage_users(request):
             Q(phone_number__icontains=search)
         )
     
-    # Get statistics for each user
+    # Paginate FIRST, then work out the statistics for the 20 users on this page
+    # only - it used to run several queries for every user in the table on
+    # every page load.
+    paginator = Paginator(users, 20)
+    page = request.GET.get('page', 1)
+    users_page = paginator.get_page(page)
+
     users_data = []
-    for user in users:
+    for user in users_page.object_list:
         user_info = {
             'user': user,
             'jobs_posted': 0,
@@ -395,11 +407,9 @@ def manage_users(request):
                 user_info['avg_rating'] = round(ratings.aggregate(Avg('rating'))['rating__avg'], 1)
         
         users_data.append(user_info)
-    
-    # Pagination
-    paginator = Paginator(users_data, 20)
-    page = request.GET.get('page', 1)
-    users_page = paginator.get_page(page)
+
+    # the template iterates the page: give it the rows with their statistics
+    users_page.object_list = users_data
     
     # Overall statistics
     total_users = User.objects.count()
@@ -500,6 +510,14 @@ def user_detail(request, user_id):
     return render(request, 'admin_panel/user_detail.html', context)
 
 
+def _days_param(request, default=30):
+    """?days= for reports: a bad value used to crash the page with a 500."""
+    try:
+        return min(max(int(request.GET.get('days', default)), 1), 3650)
+    except (TypeError, ValueError):
+        return default
+
+
 @staff_member_required
 def toggle_user_status(request, user_id):
     """Activate or deactivate a user"""
@@ -511,9 +529,16 @@ def toggle_user_status(request, user_id):
         if user == request.user:
             messages.error(request, 'You cannot deactivate your own account.')
             return redirect('admin_panel:user_detail', user_id=user_id)
-        
+        if user.is_superuser and not request.user.is_superuser:
+            messages.error(request, 'Only a superuser can change or delete a superuser account.')
+            return redirect('admin_panel:user_detail', user_id=user_id)
+
         user.is_active = not user.is_active
         user.save()
+        # a deactivated worker must drop out of the assign / auto-assign lists
+        if not user.is_active and hasattr(user, 'worker_profile'):
+            user.worker_profile.availability = 'offline'
+            user.worker_profile.save(update_fields=['availability'])
         
         status = 'activated' if user.is_active else 'deactivated'
         messages.success(request, f'User {user.email} has been {status}.')
@@ -611,14 +636,15 @@ def edit_user(request, user_id):
         password = request.POST.get('password')
         
         # Check if email is already taken by another user
-        if User.objects.filter(email=email).exclude(pk=user_id).exists():
+        if User.objects.filter(email__iexact=(email or '').strip()).exclude(pk=user_id).exists():
             messages.error(request, 'This email is already taken by another user.')
             return redirect('admin_panel:manage_users')
-        
+
         try:
-            # Update user
+            # Update user. The username is left alone: agents and the workers
+            # they register log in with their own username, which an edit used
+            # to overwrite with the email.
             user.email = email
-            user.username = email
             user.first_name = first_name
             user.last_name = last_name
             user.phone_number = phone_number
@@ -628,9 +654,12 @@ def edit_user(request, user_id):
             if password:
                 from django.contrib.auth.hashers import make_password
                 user.password = make_password(password)
-            
+
             user.save()
-            
+            if not user.is_active and hasattr(user, 'worker_profile'):
+                user.worker_profile.availability = 'offline'  # out of the assign lists
+                user.worker_profile.save(update_fields=['availability'])
+
             messages.success(request, f'User {user.get_full_name()} has been updated successfully.')
             return redirect('admin_panel:manage_users')
             
@@ -807,7 +836,7 @@ def system_overview(request):
 @staff_member_required
 def export_reports_csv(request):
     """Export reports to CSV format"""
-    days = int(request.GET.get('days', 30))
+    days = _days_param(request)
     start_date = timezone.now() - timedelta(days=days)
     
     # Create the HttpResponse object with CSV header
@@ -883,7 +912,7 @@ def export_reports_csv(request):
 @staff_member_required
 def export_reports_excel(request):
     """Export reports to Excel format (using CSV with .xls extension)"""
-    days = int(request.GET.get('days', 30))
+    days = _days_param(request)
     start_date = timezone.now() - timedelta(days=days)
     
     # For true Excel export, you would need openpyxl or xlsxwriter
@@ -944,7 +973,7 @@ def export_reports_excel(request):
 @staff_member_required
 def export_reports_json(request):
     """Export reports to JSON format"""
-    days = int(request.GET.get('days', 30))
+    days = _days_param(request)
     start_date = timezone.now() - timedelta(days=days)
     
     # Gather all statistics
@@ -1020,7 +1049,7 @@ def export_reports_pdf(request):
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
     
-    days = int(request.GET.get('days', 30))
+    days = _days_param(request)
     start_date = timezone.now() - timedelta(days=days)
     
     # Create the HttpResponse object with PDF header
@@ -1451,7 +1480,7 @@ def service_request_detail(request, request_id):
     existing_assignments = ServiceRequestAssignment.objects.filter(
         service_request=service_request
     ).select_related('worker', 'worker__user')
-    existing_assignments_count = existing_assignments.count()
+    existing_assignments_count = existing_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
     
     # Calculate remaining workers needed
     remaining_workers_needed = service_request.workers_needed - existing_assignments_count
@@ -1502,6 +1531,12 @@ def verify_payment(request, request_id):
     
     if service_request.payment_verified:
         messages.info(request, 'Payment has already been verified.')
+        return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+    # Verifying payment runs auto-assign, so a closed request must not be
+    # verified - it used to dispatch workers to a cancelled booking.
+    if service_request.status in ('cancelled', 'completed'):
+        messages.error(request, f'This request is {service_request.status}; its payment cannot be verified.')
         return redirect('admin_panel:service_request_detail', request_id=request_id)
     
     # Verifying the proof is what makes the booking paid
@@ -1566,7 +1601,7 @@ def view_request_workers(request, request_id):
         'current_assignments': current_assignments,
         'assigned_worker_ids': assigned_worker_ids,
         'workers_needed': service_request.workers_needed,
-        'workers_remaining': service_request.workers_needed - current_assignments.count(),
+        'workers_remaining': service_request.workers_needed - current_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count(),
         'has_location': has_location,
     }
 
@@ -1623,9 +1658,10 @@ def assign_worker_to_request(request, request_id):
                     )
                     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
+                # rejected/cancelled rows do not occupy a slot
                 existing_assignments_count = ServiceRequestAssignment.objects.filter(
                     service_request=locked_request
-                ).count()
+                ).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
 
                 if existing_assignments_count >= locked_request.workers_needed:
                     messages.error(
@@ -1679,7 +1715,7 @@ def auto_assign_nearest_worker(request, request_id):
         return redirect('admin_panel:view_request_workers', request_id=request_id)
 
     existing_assignments = ServiceRequestAssignment.objects.filter(service_request=service_request)
-    existing_count = existing_assignments.count()
+    existing_count = existing_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
     slots_remaining = service_request.workers_needed - existing_count
 
     if slots_remaining <= 0:
@@ -1715,7 +1751,7 @@ def auto_assign_nearest_worker(request, request_id):
         locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
 
         current_assignments = ServiceRequestAssignment.objects.filter(service_request=locked_request)
-        current_count = current_assignments.count()
+        current_count = current_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
         current_slots_remaining = locked_request.workers_needed - current_count
 
         if current_slots_remaining <= 0:
@@ -1989,6 +2025,11 @@ def reject_agent(request, agent_id):
 
     agent = get_object_or_404(AgentProfile, id=agent_id)
     name = agent.display_name
+    if agent.is_verified:
+        # "reject" is for pending applications - it must never delete a working
+        # agent (and their account) by mistake
+        messages.error(request, f'{name} is already a verified agent and cannot be rejected.')
+        return redirect('admin_panel:agent_list')
     agent.user.delete()  # cascades to AgentProfile
     messages.success(request, f"Agent application for {name} has been removed.")
     return redirect('admin_panel:agent_list')

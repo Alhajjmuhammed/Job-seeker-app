@@ -231,9 +231,11 @@ def admin_assign_worker(request, pk):
                 )
 
             # Check if we've reached the maximum workers needed
+            # Only live rows take a slot: a worker who rejected (or a
+            # cancelled row) must not block assigning a replacement.
             existing_assignments_count = ServiceRequestAssignment.objects.filter(
                 service_request=locked_request
-            ).count()
+            ).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
 
             if existing_assignments_count >= locked_request.workers_needed:
                 return Response(
@@ -315,9 +317,11 @@ def admin_reassign_worker(request, pk):
                 )
 
             # Check if we've reached the maximum workers needed
+            # Only live rows take a slot: a worker who rejected (or a
+            # cancelled row) must not block assigning a replacement.
             existing_assignments_count = ServiceRequestAssignment.objects.filter(
                 service_request=locked_request
-            ).count()
+            ).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
 
             if existing_assignments_count >= locked_request.workers_needed:
                 return Response(
@@ -378,7 +382,7 @@ def admin_bulk_assign_workers(request, pk):
     # error response on obviously-oversized requests. Not authoritative -
     # the real capacity check happens under the row lock below, right
     # before creating the assignments.
-    existing_count = ServiceRequestAssignment.objects.filter(service_request=service_request).count()
+    existing_count = ServiceRequestAssignment.objects.filter(service_request=service_request).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
 
     # Validate data
     serializer = BulkAssignWorkersSerializer(
@@ -426,7 +430,7 @@ def admin_bulk_assign_workers(request, pk):
             locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
 
             existing_assignments = ServiceRequestAssignment.objects.filter(service_request=locked_request)
-            existing_count = existing_assignments.count()
+            existing_count = existing_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
             already_assigned_ids = set(existing_assignments.values_list('worker_id', flat=True))
 
             # Filter out workers already assigned
@@ -525,7 +529,7 @@ def admin_auto_assign_nearest_workers(request, pk):
     admin_notes = request.data.get('admin_notes', '')
 
     existing_assignments = ServiceRequestAssignment.objects.filter(service_request=service_request)
-    existing_count = existing_assignments.count()
+    existing_count = existing_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
     slots_remaining = service_request.workers_needed - existing_count
 
     if slots_remaining <= 0:
@@ -566,7 +570,7 @@ def admin_auto_assign_nearest_workers(request, pk):
         locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
 
         current_assignments = ServiceRequestAssignment.objects.filter(service_request=locked_request)
-        current_count = current_assignments.count()
+        current_count = current_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
         current_slots_remaining = locked_request.workers_needed - current_count
 
         if current_slots_remaining <= 0:

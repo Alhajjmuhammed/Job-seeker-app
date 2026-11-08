@@ -183,7 +183,8 @@ def worker_respond_to_assignment(request, assignment_id):
     if accepted:
         # I accept MY assignment (accept_assignment() logs the activity)
         rejection_reason = None
-        assignment.accept_assignment()
+        if not assignment.accept_assignment():
+            return Response({'error': 'This assignment is no longer open (it may have been cancelled).'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Notify client that I accepted
         from worker_connect.notification_service import NotificationService
@@ -205,7 +206,8 @@ def worker_respond_to_assignment(request, assignment_id):
     else:
         # I reject MY assignment (reject_assignment() logs the activity)
         rejection_reason = serializer.validated_data.get('rejection_reason', '')
-        assignment.reject_assignment(rejection_reason)
+        if not assignment.reject_assignment(rejection_reason):
+            return Response({'error': 'This assignment is no longer open (it may have been cancelled).'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Notify admin that I rejected (admin may need to find replacement).
         # assigned_by is None for auto-assigned assignments (see
@@ -262,8 +264,8 @@ def worker_clock_in_assignment(request, assignment_id):
         worker=worker_profile
     )
     
-    # Check if I accepted it
-    if assignment.worker_accepted != True:
+    # Check if I accepted it (and it has not since been cancelled/completed)
+    if assignment.worker_accepted != True or assignment.status not in ('accepted', 'in_progress'):
         return Response(
             {'error': 'You must accept the assignment first'},
             status=status.HTTP_400_BAD_REQUEST

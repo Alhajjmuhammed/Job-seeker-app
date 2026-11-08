@@ -331,6 +331,12 @@ class GDPRService:
                 profile.profile_image.delete(save=False)
                 profile.profile_image = None
             profile.save()
+            # ID card scans, CVs and certificates are the most personal data we
+            # hold - anonymising must remove them (files and rows), not keep them.
+            for doc in profile.documents.all():
+                if doc.file:
+                    doc.file.delete(save=False)
+                doc.delete()
 
         # Anonymize client profile
         if hasattr(user, 'client_profile') and user.client_profile:

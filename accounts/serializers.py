@@ -146,7 +146,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     """Serializer for changing password while logged in."""
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True, min_length=8)
-    new_password_confirm = serializers.CharField(write_only=True, min_length=8)
+    # The app checks "type it twice" on the phone and sends only new_password,
+    # so the confirm field is optional here - every app password change failed.
+    new_password_confirm = serializers.CharField(write_only=True, min_length=8, required=False)
     
     def validate_new_password(self, value):
         """Validate new password using Django's built-in validators."""
@@ -158,7 +160,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     
     def validate(self, data):
         """Check that new passwords match."""
-        if data['new_password'] != data['new_password_confirm']:
+        if 'new_password_confirm' in data and data['new_password'] != data['new_password_confirm']:
             raise serializers.ValidationError({
                 'new_password_confirm': 'Passwords do not match.'
             })

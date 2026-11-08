@@ -4,7 +4,7 @@ created. Shared by all three client creation entry points (API, serializer,
 web) so the auto-assign logic isn't duplicated three times.
 """
 
-from jobs.service_request_models import ServiceRequestAssignment
+from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
 from workers.models import WorkerProfile
 from workers.cities import city_key
 from workers.proximity import rank_by_distance
@@ -55,6 +55,11 @@ def apply_assignment_mode(service_request):
     if service_request.assignment_mode != 'auto_nearest':
         return
 
+    # Never dispatch workers to a request that is already closed - verifying
+    # a late payment on a cancelled request used to send workers out.
+    if service_request.status in ('cancelled', 'completed'):
+        return
+
     # Workers are only sent once the booking is paid. This used to assign
     # immediately, so an unpaid request still got workers dispatched.
     # mark_payment_verified() calls back in here once payment is confirmed.
@@ -67,7 +72,9 @@ def apply_assignment_mode(service_request):
     # it would try to fill workers_needed all over again on top of whatever
     # was already assigned, over-assigning the request.
     existing_assignments = ServiceRequestAssignment.objects.filter(service_request=service_request)
-    existing_count = existing_assignments.count()
+    # rejected/cancelled rows do not occupy a slot
+    existing_count = existing_assignments.exclude(
+        status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
     slots_remaining = service_request.workers_needed - existing_count
     if slots_remaining <= 0:
         return

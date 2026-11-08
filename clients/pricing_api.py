@@ -3,7 +3,7 @@ Pricing and Payment API for Clients
 """
 import logging
 import uuid
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timedelta
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -169,11 +169,11 @@ def process_fake_payment(request):
         
         try:
             amount = Decimal(str(amount))
-            if amount <= 0:
+            if not amount.is_finite() or amount <= 0:
                 return Response({
                     'error': 'amount must be greater than 0'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, InvalidOperation):
             return Response({
                 'error': 'Invalid amount format'
             }, status=status.HTTP_400_BAD_REQUEST)

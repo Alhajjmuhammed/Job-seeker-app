@@ -13,6 +13,39 @@ from jobs.models import JobRequest
 from .reviews import Review, ReviewService
 
 
+def _job_involves_both(job, a, b):
+    """True if this job is between these two people: one the client, the other a worker on it."""
+    from jobs.models import JobApplication
+    for client, other in ((a, b), (b, a)):
+        if job.client_id != client.id:
+            continue
+        if (job.assigned_worker_id and job.assigned_worker.user_id == other.id)                 or job.assigned_workers.filter(user=other).exists()                 or JobApplication.objects.filter(job=job, worker__user=other, status='accepted').exists():
+            return True
+    return False
+
+
+def _parse_rating(value, required=False):
+    """An int 1..5 (strings like "5" accepted), None if absent; raises ValueError if bad."""
+    if value is None or value == '':
+        if required:
+            raise ValueError
+        return None
+    if isinstance(value, bool):
+        raise ValueError
+    rating = int(str(value).strip())
+    if not 1 <= rating <= 5:
+        raise ValueError
+    return rating
+
+
+def _parse_int(value, default, lo, hi):
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(n, hi))
+
+
 def _have_worked_together(a, b):
     """True if one is the client and the other a worker on completed work."""
     from django.db.models import Q
@@ -60,9 +93,14 @@ def create_review(request):
             'error': 'reviewee_id is required'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    if not overall_rating or overall_rating < 1 or overall_rating > 5:
+    # A string such as "5" used to raise a TypeError (500) on the comparison.
+    try:
+        overall_rating = _parse_rating(overall_rating, required=True)
+        sub_ratings = {k: _parse_rating(request.data.get(k)) for k in (
+            'communication_rating', 'quality_rating', 'punctuality_rating', 'professionalism_rating')}
+    except (TypeError, ValueError):
         return Response({
-            'error': 'overall_rating (1-5) is required'
+            'error': 'overall_rating (1-5) is required; other ratings must be 1-5'
         }, status=status.HTTP_400_BAD_REQUEST)
     
     reviewee = get_object_or_404(User, id=reviewee_id)
@@ -75,6 +113,12 @@ def create_review(request):
     job = None
     if job_id:
         job = get_object_or_404(JobRequest, id=job_id)
+        # Any job id used to be accepted, so one real job together let a
+        # client post one more counted review per unrelated job id.
+        if not _job_involves_both(job, request.user, reviewee):
+            return Response({
+                'error': 'That job is not one you and this user worked on together'
+            }, status=status.HTTP_403_FORBIDDEN)
 
     # Reviews feed the hourly average_rating that orders search results, so
     # anyone could raise or sink a worker with throwaway accounts. Only
@@ -91,10 +135,7 @@ def create_review(request):
         overall_rating=overall_rating,
         comment=request.data.get('comment', ''),
         title=request.data.get('title', ''),
-        communication_rating=request.data.get('communication_rating'),
-        quality_rating=request.data.get('quality_rating'),
-        punctuality_rating=request.data.get('punctuality_rating'),
-        professionalism_rating=request.data.get('professionalism_rating'),
+        **sub_ratings,
         would_recommend=request.data.get('would_recommend'),
         would_hire_again=request.data.get('would_hire_again'),
     )
@@ -118,8 +159,8 @@ def get_user_reviews(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
     review_type = request.query_params.get('type')
-    limit = int(request.query_params.get('limit', 20))
-    offset = int(request.query_params.get('offset', 0))
+    limit = _parse_int(request.query_params.get('limit'), 20, 1, 100)
+    offset = _parse_int(request.query_params.get('offset'), 0, 0, 10**6)
     
     result = ReviewService.get_reviews_for_user(
         user,

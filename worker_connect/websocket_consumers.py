@@ -31,7 +31,8 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
         """Handle WebSocket connection."""
         # Get token from query string
         token = self.scope.get('query_string', b'').decode()
-        token = dict(x.split('=') for x in token.split('&') if '=' in x).get('token', '')
+        from urllib.parse import parse_qs  # a value containing '=' broke the old split
+        token = (parse_qs(token).get('token') or [''])[0]
         
         # Authenticate user
         self.user = await self.get_user_from_token(token)
@@ -278,7 +279,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         """Handle WebSocket connection."""
         # Get token from query string
         token = self.scope.get('query_string', b'').decode()
-        token = dict(x.split('=') for x in token.split('&') if '=' in x).get('token', '')
+        from urllib.parse import parse_qs  # a value containing '=' broke the old split
+        token = (parse_qs(token).get('token') or [''])[0]
         
         # Authenticate user
         self.user = await self.get_user_from_token(token)

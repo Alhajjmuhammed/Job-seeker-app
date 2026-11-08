@@ -317,7 +317,11 @@ class RateLimitingTest(APITestCase):
         # actually worked.
         from accounts.api_views import LoginRateThrottle
 
-        allowed = int(LoginRateThrottle.rate.split('/')[0])
+        from django.conf import settings
+
+        # Wrong passwords hit whichever comes first: the per-minute throttle
+        # or the failed-login lockout (shared with the website login).
+        allowed = min(int(LoginRateThrottle.rate.split('/')[0]), settings.LOGIN_FAILURE_LIMIT)
         responses = []
         for _ in range(allowed + 3):
             response = self.client.post(login_url, data, format='json')

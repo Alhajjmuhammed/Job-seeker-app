@@ -137,7 +137,11 @@ def _decide(request, worker):
     name = worker.user.get_full_name() or worker.user.username
 
     if action in ('approve_doc', 'reject_doc'):
-        doc = get_object_or_404(WorkerDocument, pk=request.POST.get('doc_id'), worker=worker)
+        doc_id = request.POST.get('doc_id', '')
+        if not str(doc_id).isdigit():  # a non-number crashed the page with a 500
+            from django.http import Http404
+            raise Http404
+        doc = get_object_or_404(WorkerDocument, pk=int(doc_id), worker=worker)
         if action == 'approve_doc':
             _approve_document(doc)
             messages.success(request, f'{doc.get_document_type_display()} approved.')

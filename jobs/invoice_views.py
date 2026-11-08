@@ -11,7 +11,38 @@ from django.http import HttpResponse
 from .invoices import Invoice, InvoiceItem, InvoiceService
 from workers.models import WorkerProfile
 from clients.models import ClientProfile
+from django.db import models
 from jobs.models import JobRequest
+
+
+def _worker_worked_for(worker, client, job=None):
+    """
+    True if this worker actually did (or is doing) work for this client - so
+    a worker cannot raise an invoice against an arbitrary client or job.
+    With a job, the job must be the client's and the worker on it.
+    """
+    from jobs.models import DirectHireRequest, JobApplication
+    from jobs.service_request_models import ServiceRequestAssignment
+
+    if job is not None:
+        if job.client_id != client.user_id:
+            return False
+        return (job.assigned_worker_id == worker.id
+                or job.assigned_workers.filter(pk=worker.pk).exists()
+                or JobApplication.objects.filter(job=job, worker=worker, status='accepted').exists())
+
+    return (
+        ServiceRequestAssignment.objects.filter(
+            worker=worker, service_request__client_id=client.user_id,
+            status__in=['accepted', 'in_progress', 'completed'],
+        ).exists()
+        or DirectHireRequest.objects.filter(
+            worker=worker, client_id=client.user_id, status__in=['accepted', 'completed'],
+        ).exists()
+        or JobRequest.objects.filter(client_id=client.user_id).filter(
+            models.Q(assigned_worker=worker) | models.Q(assigned_workers=worker)
+        ).exists()
+    )
 
 
 @api_view(['GET'])
@@ -166,6 +197,11 @@ def create_invoice(request):
             return Response({
                 'error': 'Job not found'
             }, status=status.HTTP_404_NOT_FOUND)
+
+    if not _worker_worked_for(worker, client, job):
+        return Response({
+            'error': 'You can only invoice a client you have worked for'
+        }, status=status.HTTP_403_FORBIDDEN)
     
     # Get items
     items = request.data.get('items', [])
@@ -191,17 +227,36 @@ def create_invoice(request):
             return Response({'error': 'quantity and unit_price must be numbers'}, status=status.HTTP_400_BAD_REQUEST)
         if not quantity.is_finite() or not unit_price.is_finite() or quantity <= 0 or unit_price < 0:
             return Response({'error': 'quantity must be above 0 and unit_price cannot be negative'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Tax, discount and due days used to go in unchecked: a negative
+    # discount inflated the total and a non-number was a 500.
+    subtotal = sum(Decimal(str(i['quantity'])) * Decimal(str(i['unit_price'])) for i in items)
+    try:
+        tax_rate = Decimal(str(request.data.get('tax_rate', 0) or 0))
+        discount = Decimal(str(request.data.get('discount', 0) or 0))
+    except (InvalidOperation, ValueError, TypeError):
+        return Response({'error': 'tax_rate and discount must be numbers'}, status=status.HTTP_400_BAD_REQUEST)
+    if not tax_rate.is_finite() or not (0 <= tax_rate <= 100):
+        return Response({'error': 'tax_rate must be between 0 and 100'}, status=status.HTTP_400_BAD_REQUEST)
+    if not discount.is_finite() or not (0 <= discount <= subtotal):
+        return Response({'error': 'discount must be between 0 and the subtotal'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        due_days = int(request.data.get('due_days', 30))
+    except (ValueError, TypeError):
+        return Response({'error': 'due_days must be a whole number'}, status=status.HTTP_400_BAD_REQUEST)
+    if not (0 <= due_days <= 365):
+        return Response({'error': 'due_days must be between 0 and 365'}, status=status.HTTP_400_BAD_REQUEST)
     
     invoice = InvoiceService.create_invoice(
         worker=worker,
         client=client,
         job=job,
         items=items,
-        tax_rate=request.data.get('tax_rate', 0),
-        discount=request.data.get('discount', 0),
+        tax_rate=tax_rate,
+        discount=discount,
         notes=request.data.get('notes', ''),
         terms=request.data.get('terms', ''),
-        due_days=request.data.get('due_days', 30),
+        due_days=due_days,
     )
     
     return Response({
@@ -264,6 +319,14 @@ def mark_paid(request, invoice_id):
             'error': 'Invoice not found or access denied'
         }, status=status.HTTP_404_NOT_FOUND)
     
+    # Only the issuing worker (who received the money) or staff can say it
+    # was paid - the client marking their own bill paid settled it for free.
+    worker_profile = getattr(request.user, 'worker_profile', None)
+    if not request.user.is_staff and not (worker_profile and invoice.worker_id == worker_profile.id):
+        return Response({
+            'error': 'Only the worker who issued this invoice can mark it paid'
+        }, status=status.HTTP_403_FORBIDDEN)
+
     if invoice.status not in ['sent', 'overdue']:
         return Response({
             'error': 'Only sent or overdue invoices can be marked as paid'

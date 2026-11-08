@@ -250,11 +250,25 @@ def mark_all_notifications_read_web(request):
 
 def forgot_password(request):
     """Request password reset - sends email with reset link"""
+    from django.core.cache import cache
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            
+            # at most 5 requests an hour per IP and 3 per address: no email-bombing a victim
+            for key, limit in ((f'pwreset-ip:{_client_ip(request)}', 5),
+                               (f'pwreset-mail:{email.strip().lower()}', 3)):
+                cache.add(key, 0, 3600)
+                try:
+                    count = cache.incr(key)
+                except ValueError:
+                    count = 1
+                if count > limit:
+                    messages.success(
+                        request,
+                        'If an account exists with this email, you will receive a password reset link shortly.')
+                    return redirect('accounts:login')
+
             # Try to find user by email
             try:
                 user = User.objects.get(email__iexact=email.strip())
@@ -280,14 +294,20 @@ def forgot_password(request):
                 html_message = render_to_string('emails/password_reset.html', context)
                 plain_message = strip_tags(html_message)
                 
-                send_mail(
-                    subject='Password Reset Request - Worker Connect',
-                    message=plain_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    html_message=html_message,
-                    fail_silently=False,
-                )
+                try:
+                    send_mail(
+                        subject='Password Reset Request - Worker Connect',
+                        message=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                except Exception:
+                    # Same answer either way: a 500 only for real accounts would
+                    # tell an attacker which emails are registered.
+                    import logging
+                    logging.getLogger(__name__).exception('password reset email failed')
                 
                 messages.success(
                     request, 
@@ -323,6 +343,9 @@ def reset_password(request, uidb64, token):
                 password = form.cleaned_data['password1']
                 user.set_password(password)
                 user.save()
+                # a reset means "someone may know my password": sign out the app everywhere
+                from rest_framework.authtoken.models import Token
+                Token.objects.filter(user=user).delete()
                 
                 messages.success(request, 'Your password has been reset successfully. You can now log in.')
                 return redirect('accounts:login')
@@ -348,6 +371,8 @@ def change_password(request):
             new_password = form.cleaned_data['new_password1']
             request.user.set_password(new_password)
             request.user.save()
+            from rest_framework.authtoken.models import Token
+            Token.objects.filter(user=request.user).delete()  # sign out the app on other phones
             
             # Update session to prevent logout
             update_session_auth_hash(request, request.user)

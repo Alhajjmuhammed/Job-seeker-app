@@ -245,7 +245,7 @@ def search_workers(request):
             verification_status='verified',
             user__is_active=True,
             is_public=True
-        ).select_related('user')
+        ).select_related('user').prefetch_related('categories', 'skills')
         
         # Text search
         if query:
@@ -313,20 +313,26 @@ def search_workers(request):
             except ValueError:
                 pass
         
-        # Convert back to queryset for sorting
+        # Convert back to queryset for sorting (keeping the related loads,
+        # or every serialized worker cost three extra queries)
         if workers_list != list(workers):
             worker_ids = [worker.id for worker in workers_list]
-            workers = WorkerProfile.objects.filter(id__in=worker_ids)
+            workers = WorkerProfile.objects.filter(id__in=worker_ids).select_related(
+                'user').prefetch_related('categories', 'skills')
         
         # Sorting
         sort_options = {
             'rating': '-average_rating',
             'experience': '-experience_years',
-            'rate': 'categories__daily_rate',
+            # cheapest category; ordering by the raw join returned a worker
+            # once per category they offer
+            'rate': 'min_rate',
             'name': 'user__first_name',
             'jobs_completed': '-completed_jobs',
         }
         
+        if sort_by == 'rate':
+            workers = workers.annotate(min_rate=Min('categories__daily_rate'))
         if sort_by in sort_options:
             workers = workers.order_by(sort_options[sort_by])
         else:

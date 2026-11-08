@@ -190,14 +190,16 @@ def worker_respond_to_assignment(request, pk):
         # request's status, so a worker who accepted through this route
         # stayed bookable for overlapping jobs and the client's request
         # still read as unaccepted. accept_assignment() logs the activity.
-        assignment.accept_assignment()
+        if not assignment.accept_assignment():
+            return Response({'error': 'This assignment is no longer open (it may have been cancelled).'}, status=status.HTTP_400_BAD_REQUEST)
 
         message = 'Assignment accepted successfully'
     else:
         rejection_reason = serializer.validated_data.get('rejection_reason', '')
         # Same reason: rejecting inline never released the worker back to
         # available. reject_assignment() logs the activity.
-        assignment.reject_assignment(rejection_reason)
+        if not assignment.reject_assignment(rejection_reason):
+            return Response({'error': 'This assignment is no longer open (it may have been cancelled).'}, status=status.HTTP_400_BAD_REQUEST)
 
         message = 'Assignment rejected'
     
@@ -712,137 +714,7 @@ def worker_assignment_detail(request, assignment_id):
         'is_clocked_in': time_logs.filter(clock_out__isnull=True).exists()
     })
 
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def worker_respond_to_assignment_new(request, assignment_id):
-    """
-    Worker accepts or rejects an individual assignment (new multi-worker system)
-    POST /api/v1/worker/my-assignments/{assignment_id}/respond/
-    Body: {"accepted": true} or {"accepted": false, "rejection_reason": "Already booked"}
-    """
-    if request.user.user_type != 'worker':
-        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
-    
-    try:
-        worker_profile = WorkerProfile.objects.get(user=request.user)
-    except WorkerProfile.DoesNotExist:
-        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    assignment = get_object_or_404(
-        ServiceRequestAssignment,
-        id=assignment_id,
-        worker=worker_profile
-    )
-    
-    # Check if already responded
-    if assignment.status != 'pending':
-        return Response(
-            {'error': f'Assignment already {assignment.status}'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    serializer = AssignmentResponseSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    accepted = serializer.validated_data['accepted']
-    
-    if accepted:
-        # Accept assignment
-        assignment.accept_assignment()
-        
-        # Log activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='accepted',
-            description=f'Accepted assignment #{assignment.assignment_number}: {assignment.service_request.title}',
-            service_request=assignment.service_request,
-            location=assignment.service_request.location
-        )
-        
-        message = f'Assignment #{assignment.assignment_number} accepted successfully'
-    else:
-        # Reject assignment
-        rejection_reason = serializer.validated_data.get('rejection_reason', '')
-        assignment.reject_assignment(rejection_reason)
-        
-        # Log activity
-        WorkerActivity.log_activity(
-            worker=worker_profile,
-            activity_type='rejected',
-            description=f'Rejected assignment #{assignment.assignment_number}: {assignment.service_request.title}. Reason: {rejection_reason}',
-            service_request=assignment.service_request
-        )
-        
-        message = f'Assignment #{assignment.assignment_number} rejected'
-    
-    response_serializer = ServiceRequestAssignmentSerializer(assignment)
-    return Response({
-        'message': message,
-        'assignment': response_serializer.data
-    })
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def worker_complete_assignment(request, assignment_id):
-    """
-    Worker marks their individual assignment as completed
-    POST /api/v1/worker/my-assignments/{assignment_id}/complete/
-    Body: {"notes": "Job completed successfully"} (optional)
-    """
-    if request.user.user_type != 'worker':
-        return Response({'error': 'Only workers can access this'}, status=status.HTTP_403_FORBIDDEN)
-    
-    try:
-        worker_profile = WorkerProfile.objects.get(user=request.user)
-    except WorkerProfile.DoesNotExist:
-        return Response({'error': 'Worker profile not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    assignment = get_object_or_404(
-        ServiceRequestAssignment,
-        id=assignment_id,
-        worker=worker_profile
-    )
-    
-    # Verify assignment is in progress
-    if assignment.status not in ['accepted', 'in_progress']:
-        return Response(
-            {'error': f'Cannot complete assignment with status: {assignment.status}'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Check if clocked in
-    active_clock = TimeTracking.objects.filter(
-        service_request=assignment.service_request,
-        worker=worker_profile,
-        clock_out__isnull=True
-    ).exists()
-    
-    if active_clock:
-        return Response(
-            {'error': 'Please clock out before completing the assignment'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    completion_notes = request.data.get('notes', '')
-    assignment.mark_completed(completion_notes)
-    
-    # Log activity
-    WorkerActivity.log_activity(
-        worker=worker_profile,
-        activity_type='completed',
-        description=f'Completed assignment #{assignment.assignment_number}: {assignment.service_request.title}',
-        service_request=assignment.service_request
-    )
-    
-    # Update worker profile stats
-    worker_profile.completed_jobs = (worker_profile.completed_jobs or 0) + 1
-    worker_profile.save()
-    
-    serializer = ServiceRequestAssignmentSerializer(assignment)
-    return Response({
-        'message': 'Assignment completed successfully',
-        'assignment': serializer.data
-    })
+# worker_respond_to_assignment_new and worker_complete_assignment used to live
+# here. Neither was routed (the live endpoints are in workers/assignment_views.py),
+# and the complete view counted completed_jobs even when completion failed - so
+# they were removed rather than left for someone to wire up by mistake.

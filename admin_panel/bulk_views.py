@@ -68,11 +68,10 @@ def bulk_user_action(request):
         
         elif action == 'verify':
             # Verify associated profiles
-            for user in users:
-                if hasattr(user, 'worker_profile'):
-                    user.worker_profile.verification_status = 'verified'
-                    user.worker_profile.save()
-                    affected_count += 1
+            # only workers with an approved ID - the same rule as the review page
+            ready = WorkerProfile.objects.filter(user__in=users, documents__document_type='id', documents__verification_status='approved').distinct()
+            affected_count = WorkerProfile.objects.filter(pk__in=ready.values('pk')).update(
+                verification_status='verified')
     
     return Response({
         'success': True,
@@ -113,7 +112,10 @@ def bulk_worker_action(request):
     
     with transaction.atomic():
         if action == 'verify':
-            affected_count = workers.update(verification_status='verified')
+            # only workers with an approved ID - the same rule as the review page
+            ready = workers.filter(documents__document_type='id', documents__verification_status='approved').distinct()
+            affected_count = WorkerProfile.objects.filter(pk__in=ready.values('pk')).update(
+                verification_status='verified')
 
         elif action == 'unverify':
             affected_count = workers.update(verification_status='pending')

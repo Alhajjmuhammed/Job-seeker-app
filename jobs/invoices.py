@@ -152,7 +152,7 @@ class InvoiceService:
             tax_rate=Decimal(str(tax_rate)),
             discount=Decimal(str(discount)),
             total=0,  # Will be calculated
-            due_date=timezone.now().date() + timezone.timedelta(days=due_days),
+            due_date=timezone.now().date() + timezone.timedelta(days=int(due_days)),
             notes=notes,
             terms=terms or "Payment due within 30 days of invoice date.",
         )

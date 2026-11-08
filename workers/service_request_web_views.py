@@ -127,7 +127,9 @@ def worker_web_respond_assignment(request, pk):
         from worker_connect.notification_service import NotificationService
 
         if action == 'accept':
-            assignment.accept_assignment()
+            if not assignment.accept_assignment():
+                messages.error(request, 'This assignment is no longer open (it may have been cancelled).')
+                return redirect('service_requests_web:worker_assignment_detail', pk=pk)
 
             NotificationService.create_notification(
                 recipient=assignment.service_request.client,
@@ -148,7 +150,9 @@ def worker_web_respond_assignment(request, pk):
 
         elif action == 'reject':
             reason = request.POST.get('reason', '')
-            assignment.reject_assignment(reason)
+            if not assignment.reject_assignment(reason):
+                messages.error(request, 'This assignment is no longer open (it may have been cancelled).')
+                return redirect('service_requests_web:worker_assignment_detail', pk=pk)
 
             # assigned_by is None for auto-assigned assignments (see
             # clients/assignment_mode.py) - fall back to notifying all staff

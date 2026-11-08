@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models, transaction
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
@@ -217,11 +218,11 @@ class DirectHireRequest(models.Model):
     
     # Duration
     duration_type = models.CharField(max_length=10, choices=DURATION_TYPE_CHOICES, default='hours')
-    duration_value = models.PositiveIntegerField(help_text="Number of hours or days")
+    duration_value = models.PositiveIntegerField(validators=[MinValueValidator(1)], help_text="Number of hours or days")
     start_datetime = models.DateTimeField(help_text="When should the work start?")
     
     # Payment
-    offered_rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Offered hourly/daily rate")
+    offered_rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))], help_text="Offered hourly/daily rate")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total estimated amount")
     
     # Status
@@ -252,7 +253,9 @@ class DirectHireRequest(models.Model):
     
     def save(self, *args, **kwargs):
         # Auto-calculate total amount
-        if self.duration_value and self.offered_rate:
+        # 'is not None', not truthiness: a 0 skipped the calculation and the
+        # NOT NULL total_amount raised an IntegrityError (500).
+        if self.duration_value is not None and self.offered_rate is not None:
             self.total_amount = self.duration_value * self.offered_rate
         super().save(*args, **kwargs)
     

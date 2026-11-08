@@ -17,6 +17,17 @@ from workers.serializers import WorkerPublicSerializer
 from worker_connect.search_views import _as_number
 
 
+def _page_params(request):
+    """page >= 1 and page_size 1..50; a non-number falls back to the default
+    (page=abc was a 500, page_size=0 a ZeroDivisionError)."""
+    def as_int(name, default):
+        try:
+            return int(request.query_params.get(name, default))
+        except (TypeError, ValueError):
+            return default
+    return max(as_int('page', 1), 1), max(1, min(as_int('page_size', 20), 50))
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def search_jobs(request):
@@ -41,8 +52,7 @@ def search_jobs(request):
     max_budget = request.query_params.get('max_budget')
     category = request.query_params.get('category', '').strip()
     sort = request.query_params.get('sort', 'newest')
-    page = max(int(request.query_params.get('page', 1)), 1)
-    page_size = min(int(request.query_params.get('page_size', 20)), 50)
+    page, page_size = _page_params(request)
 
     # Base queryset - only open jobs for public search
     jobs = JobRequest.objects.filter(status='open')
@@ -147,8 +157,7 @@ def search_workers(request):
     verified_only = request.query_params.get('verified_only', 'false').lower() == 'true'
     min_rating = request.query_params.get('min_rating')
     sort = request.query_params.get('sort', 'rating')
-    page = max(int(request.query_params.get('page', 1)), 1)
-    page_size = min(int(request.query_params.get('page_size', 20)), 50)
+    page, page_size = _page_params(request)
 
     # Base queryset
     workers = WorkerProfile.objects.select_related('user').filter(
@@ -160,8 +169,9 @@ def search_workers(request):
     if available_only:
         workers = workers.filter(availability='available')
 
-    # Verified filter
-    if verified_only:
+    # Verified filter: clients only ever see verified workers; staff may
+    # opt in to the filter as before.
+    if verified_only or not request.user.is_staff:
         workers = workers.filter(verification_status='verified')
     
     # Search query (skills is a ManyToManyField - filter via skills__name)
@@ -179,12 +189,10 @@ def search_workers(request):
         for skill in skill_list:
             workers = workers.filter(skills__name__icontains=skill)
 
-    # Location filter (WorkerProfile has no `location` field - use address/city)
+    # Location filter: city only. Substring-matching the home address let
+    # anyone probe where a worker lives.
     if location:
-        workers = workers.filter(
-            Q(address__icontains=location) |
-            Q(city__icontains=location)
-        )
+        workers = workers.filter(city__icontains=location)
     
     # Rating filter
     if min_rating:

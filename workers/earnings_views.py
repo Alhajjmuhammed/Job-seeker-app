@@ -75,6 +75,8 @@ def earnings_breakdown(request):
         return Response({
             'error': 'periods must be an integer'
         }, status=status.HTTP_400_BAD_REQUEST)
+    # bounded: each period is its own query
+    periods = max(1, min(periods, 24))
 
     if group_by not in ['day', 'week', 'month']:
         return Response({
@@ -132,6 +134,8 @@ def top_clients(request):
         return Response({
             'error': 'limit must be an integer'
         }, status=status.HTTP_400_BAD_REQUEST)
+    # a negative slice is a 500 in the ORM
+    limit = max(1, min(limit, 200))
 
     clients = EarningsService.get_top_clients(worker, limit)
     
@@ -197,6 +201,8 @@ def payment_history(request):
         return Response({
             'error': 'limit must be an integer'
         }, status=status.HTTP_400_BAD_REQUEST)
+    # a negative slice is a 500 in the ORM
+    limit = max(1, min(limit, 200))
 
     history = EarningsService.get_payment_history(worker, limit)
     

@@ -12,13 +12,18 @@ from .serializers import UserSerializer, LoginSerializer, RegisterSerializer
 User = get_user_model()
 
 
+# Each limit needs its own scope: with the default 'anon' scope all of them
+# (and the global anon limit) shared ONE counter per IP - three wrong
+# passwords then also blocked "forgot password" for an hour.
 class LoginRateThrottle(AnonRateThrottle):
     """Reasonable rate limiting for login attempts"""
+    scope = 'login'
     rate = '20/minute'  # Increased from 5/minute
 
 
 class RegisterRateThrottle(AnonRateThrottle):
     """Reasonable rate limiting for registration"""
+    scope = 'register'
     rate = '10/minute'  # Increased from 3/minute
 
 
@@ -26,6 +31,17 @@ class RegisterRateThrottle(AnonRateThrottle):
 @permission_classes([AllowAny])
 @throttle_classes([LoginRateThrottle])
 def login_view(request):
+    from django.conf import settings
+    from django.core.cache import cache
+    from .views import _client_ip
+
+    # Same lockout as the website login (shared counter per IP), so password
+    # guessing cannot simply move from the web form to the app API.
+    lockout_key = f'web-login-failures:{_client_ip(request)}'
+    if cache.get(lockout_key, 0) >= settings.LOGIN_FAILURE_LIMIT:
+        return Response({'message': 'Too many failed login attempts. Please wait 15 minutes and try again.'},
+                        status=status.HTTP_429_TOO_MANY_REQUESTS)
+
     serializer = LoginSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -44,10 +60,16 @@ def login_view(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
     if user is None:
+        cache.add(lockout_key, 0, settings.LOGIN_LOCKOUT_SECONDS)
+        try:
+            cache.incr(lockout_key)
+        except ValueError:
+            pass
         return Response(
             {'message': 'Invalid email, username, phone number or password'},
             status=status.HTTP_401_UNAUTHORIZED
         )
+    cache.delete(lockout_key)
     
     # Get or create token
     token, _ = Token.objects.get_or_create(user=user)
@@ -193,6 +215,7 @@ logger = logging.getLogger('api')
 
 class PasswordResetThrottle(AnonRateThrottle):
     """Rate limiting for password reset to prevent abuse"""
+    scope = 'password_reset'
     rate = '3/hour'
 
 
@@ -341,7 +364,8 @@ def change_password(request):
     user.save()
     
     # Invalidate all tokens except current one
-    Token.objects.filter(user=user).exclude(key=request.auth.key).delete()
+    # sign out every other app session; a browser (session) login has no token
+    Token.objects.filter(user=user).exclude(key=getattr(request.auth, 'key', None)).delete()
     
     logger.info(f"Password changed for user: {user.email}")
     

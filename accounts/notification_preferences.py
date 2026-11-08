@@ -180,7 +180,12 @@ class NotificationPreferencesService:
                 if field_name in ['quiet_hours_start', 'quiet_hours_end']:
                     from datetime import datetime
                     if value:
-                        value = datetime.strptime(value, '%H:%M').time()
+                        try:
+                            value = datetime.strptime(str(value), '%H:%M').time()
+                        except ValueError:
+                            # "10pm" used to crash with a 500 - answer with a clear 400
+                            from rest_framework.exceptions import ValidationError
+                            raise ValidationError({setting: 'Use a 24-hour time like 22:00.'})
                     else:
                         value = None
                 
