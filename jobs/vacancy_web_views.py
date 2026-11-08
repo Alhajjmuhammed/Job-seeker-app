@@ -94,7 +94,7 @@ def post(request, pk=None):
 def mine(request):
     if is_admin(request.user):
         return redirect('vacancies:admin_all')
-    posts = svc.with_counts(Vacancy.objects.filter(poster=request.user).select_related('category'))
+    posts = svc.with_counts(Vacancy.objects.filter(poster=request.user).select_related('category', 'poster'))
     return render(request, 'vacancies/mine.html', _ctx(request, posts=_page(request, posts)))
 
 

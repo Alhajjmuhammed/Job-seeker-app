@@ -12,6 +12,7 @@ from workers.models import WorkerProfile
 from clients.models import ClientProfile
 from jobs.models import JobRequest
 from .recommendations import RecommendationEngine
+from jobs.params import int_param
 
 
 @api_view(['GET'])
@@ -33,7 +34,7 @@ def get_job_recommendations(request):
         }, status=status.HTTP_403_FORBIDDEN)
     
     # Parse parameters
-    limit = min(int(request.query_params.get('limit', 20)), 50)
+    limit = int_param(request.query_params, 'limit', 20, hi=50)
     include_scores = request.query_params.get('include_scores', '').lower() == 'true'
     
     # Get recommendations
@@ -51,12 +52,13 @@ def get_job_recommendations(request):
             'id': job.id,
             'title': job.title,
             'description': job.description[:200] + '...' if len(job.description) > 200 else job.description,
-            'location': getattr(job, 'location', ''),
+            'location': getattr(job, 'city', '') or '',  # city only, not the street address
             'budget': str(job.budget) if hasattr(job, 'budget') and job.budget else None,
             'created_at': job.created_at.isoformat(),
             'client': {
                 'id': job.client.id,
-                'name': job.client.user.get_full_name() or job.client.user.username,
+                # JobRequest.client is the User itself (job.client.user was a 500)
+                'name': job.client.get_full_name() or job.client.username,
             },
             'match_score': rec['score'],
         }
@@ -102,7 +104,7 @@ def get_worker_recommendations(request, job_id):
         }, status=status.HTTP_403_FORBIDDEN)
     
     # Parse parameters
-    limit = min(int(request.query_params.get('limit', 20)), 50)
+    limit = int_param(request.query_params, 'limit', 20, hi=50)
     include_scores = request.query_params.get('include_scores', '').lower() == 'true'
     
     # Get recommendations

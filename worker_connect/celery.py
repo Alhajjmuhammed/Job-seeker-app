@@ -6,6 +6,7 @@ This module configures Celery for asynchronous task processing.
 
 import os
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 # Set default Django settings module
@@ -56,7 +57,9 @@ app.conf.update(
         },
         'send-job-reminders': {
             'task': 'jobs.tasks.send_job_reminders',
-            'schedule': 86400.0,  # Daily
+            # 15:00 UTC = 18:00 in Tanzania: the evening before the job. A bare "every
+            # 24 hours" ran at whatever time the scheduler last started.
+            'schedule': crontab(hour=15, minute=0),
         },
         'cleanup-old-activities': {
             'task': 'jobs.tasks.cleanup_old_activities',

@@ -106,7 +106,8 @@ class SavedJobsService:
                     'title': job.title,
                     'description': job.description[:200] + '...' if len(job.description) > 200 else job.description,
                     'status': job.status,
-                    'location': getattr(job, 'location', ''),
+                    # city only - the exact address is for the assigned worker, not a bookmark
+                    'location': getattr(job, 'city', '') or '',
                     'budget': str(job.total_price) if job.total_price else None,
                     'client_name': job.client.get_full_name() or job.client.username,
                     'created_at': job.created_at.isoformat(),

@@ -118,6 +118,6 @@ def apply_assignment_mode(service_request):
         )
 
     total_assignments = existing_count + len(chosen)
-    if total_assignments >= service_request.workers_needed:
+    if total_assignments >= service_request.workers_needed and service_request.status == 'pending':
         service_request.status = 'assigned'
         service_request.save(update_fields=['status'])

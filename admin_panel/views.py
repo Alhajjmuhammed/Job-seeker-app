@@ -114,11 +114,12 @@ def category_list(request):
                     category_name = category.name
                     in_use_workers = category.workers.count()
                     in_use_jobs = category.service_requests.count()
-                    if in_use_workers or in_use_jobs:
+                    in_use_posts = category.vacancies.count()
+                    if in_use_workers or in_use_jobs or in_use_posts:
                         # Deleting would silently strip the trade from every
-                        # worker and from past requests - switch it off instead.
-                        messages.error(request, f'"{category_name}" is used by {in_use_workers} worker(s) and '
-                                                f'{in_use_jobs} request(s), so it cannot be deleted. '
+                        # worker, past requests and job posts - switch it off instead.
+                        messages.error(request, f'"{category_name}" is used by {in_use_workers} worker(s), '
+                                                f'{in_use_jobs} request(s) and {in_use_posts} job post(s), so it cannot be deleted. '
                                                 f'Deactivate it instead - it will no longer be offered.')
                     else:
                         category.delete()
@@ -1292,7 +1293,7 @@ def job_management(request):
     if status != 'all':
         jobs = jobs.filter(status=status)
     
-    if category_id:
+    if category_id and str(category_id).isdigit():  # ?category=abc was a 500
         jobs = jobs.filter(category_id=category_id)
     
     # Search
@@ -1312,7 +1313,7 @@ def job_management(request):
     # Statistics
     total_jobs = ServiceRequest.objects.count()
     open_jobs = ServiceRequest.objects.filter(status='pending').count()
-    assigned_jobs = ServiceRequest.objects.filter(assignments__isnull=False, status='in_progress').distinct().count()
+    assigned_jobs = ServiceRequest.objects.filter(status='assigned').count()
     completed_jobs = ServiceRequest.objects.filter(status='completed').count()
     
     # Get all categories for filter
@@ -1369,7 +1370,7 @@ def service_request_list(request):
         requests = requests.filter(status=status_filter)
     if urgency_filter:
         requests = requests.filter(urgency=urgency_filter)
-    if category_filter:
+    if category_filter and str(category_filter).isdigit():  # ?category=abc was a 500
         requests = requests.filter(category_id=category_filter)
     if payment_filter:
         if payment_filter == 'verified':
@@ -1646,6 +1647,12 @@ def assign_worker_to_request(request, request_id):
             with transaction.atomic():
                 locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
 
+                # A cancelled or finished booking must never come back to life by assigning
+                # someone to it (the worker could then work - and be paid - on a refunded job).
+                if locked_request.status in ('completed', 'cancelled'):
+                    messages.error(request, f'This request is {locked_request.get_status_display().lower()} - workers can no longer be assigned.')
+                    return redirect('admin_panel:service_request_detail', request_id=request_id)
+
                 existing_assignment = ServiceRequestAssignment.objects.filter(
                     service_request=locked_request,
                     worker=worker
@@ -1680,7 +1687,7 @@ def assign_worker_to_request(request, request_id):
 
                 # Update service request status if all workers are now assigned
                 total_assignments = existing_assignments_count + 1
-                if total_assignments >= locked_request.workers_needed:
+                if total_assignments >= locked_request.workers_needed and locked_request.status == 'pending':
                     locked_request.status = 'assigned'
                     locked_request.save()
 
@@ -1775,7 +1782,7 @@ def auto_assign_nearest_worker(request, request_id):
             assigned_names.append(f'{worker.user.get_full_name()} ({worker.distance_km:.1f} km)')
 
         total_assignments = current_count + len(to_assign)
-        if total_assignments >= locked_request.workers_needed:
+        if total_assignments >= locked_request.workers_needed and locked_request.status == 'pending':
             locked_request.status = 'assigned'
             locked_request.save()
 
@@ -1786,47 +1793,42 @@ def auto_assign_nearest_worker(request, request_id):
 
 @staff_member_required
 def unassign_worker_from_request(request, request_id, assignment_id):
-    """Unassign a worker from a service request (for rejected or pending assignments)"""
-    
+    """Take a worker off a request: one who hasn't started yet (pending / accepted), or a
+    rejected / cancelled row, so a replacement can be assigned.
+
+    Before, any row could be deleted - even a finished one, which wiped the work history and
+    put a completed job back into the pending queue - and nothing was locked."""
     service_request = get_object_or_404(ServiceRequest, id=request_id)
-    assignment = get_object_or_404(ServiceRequestAssignment, id=assignment_id, service_request=service_request)
-    
+    get_object_or_404(ServiceRequestAssignment, id=assignment_id, service_request=service_request)
+
     if request.method == 'POST':
-        try:
-            worker_name = assignment.worker.user.get_full_name()
-            assignment_status = assignment.status
+        with transaction.atomic():
+            locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            assignment = (ServiceRequestAssignment.objects.select_for_update().select_related('worker__user')
+                          .filter(pk=assignment_id, service_request=locked_request).first())
+            if assignment is None:
+                messages.info(request, 'That worker is no longer on this request.')
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+            if locked_request.status in ('completed', 'cancelled'):
+                messages.error(request, f'This request is {locked_request.get_status_display().lower()} - its workers can no longer be changed.')
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+            if assignment.status in ('in_progress', 'completed'):
+                messages.error(request, f'{assignment.worker.user.get_full_name()} has already started this job, so they cannot be unassigned.')
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+
             worker = assignment.worker
-            
-            # Delete the assignment
+            worker_name = worker.user.get_full_name() or worker.user.username
+            was = assignment.get_status_display() if hasattr(assignment, 'get_status_display') else assignment.status
+            # the post_delete signal puts the request back to "pending" when no live worker is left
             assignment.delete()
-            
-            # Set worker back to available if they have no other active assignments
-            other_active_assignments = ServiceRequestAssignment.objects.filter(
-                worker=worker,
-                status__in=['pending', 'accepted', 'in_progress']
-            ).count()
-            
-            if other_active_assignments == 0:
+
+            if not ServiceRequestAssignment.objects.filter(
+                    worker=worker, status__in=['pending', 'accepted', 'in_progress']).exists():
                 worker.availability = 'available'
-                worker.save()
-            
-            # If this was the last/only assignment, update service request status back to pending
-            remaining_assignments = ServiceRequestAssignment.objects.filter(
-                service_request=service_request
-            ).count()
-            
-            if remaining_assignments == 0:
-                service_request.status = 'pending'
-                service_request.save()
-            
-            messages.success(
-                request,
-                f'Successfully unassigned {worker_name} (was {assignment_status}). You can now assign a replacement.'
-            )
-            
-        except Exception as e:
-            messages.error(request, f'Error unassigning worker: {str(e)}')
-    
+                worker.save(update_fields=['availability'])
+
+        messages.success(request, f'Unassigned {worker_name} (was {was}). You can now assign a replacement.')
+
     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
 

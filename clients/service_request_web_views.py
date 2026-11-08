@@ -449,7 +449,11 @@ def client_web_cancel_request(request, pk):
     
     service_request = get_object_or_404(ServiceRequest, pk=pk, client=request.user)
     
-    # Check if request can be cancelled
+    # Same rule as the app: once a worker has started, the job can't be cancelled here
+    # (the workers' time would be thrown away unpaid). Contact support instead.
+    if service_request.status == 'in_progress':
+        messages.error(request, 'This job is already in progress, so it can no longer be cancelled. Please contact support.')
+        return redirect('service_requests_web:client_request_detail', pk=pk)
     if service_request.status in ['completed', 'cancelled']:
         messages.error(request, f'Cannot cancel request that is already {service_request.status}.')
         return redirect('service_requests_web:client_request_detail', pk=pk)
@@ -563,13 +567,7 @@ def client_web_complete_request(request, pk):
         # client force-completing is an explicit override and shouldn't
         # depend on mark_completed()'s own "all assignments done" count
         # (which never fires if there happen to be zero real assignments).
-        for assignment in service_request.assignments.filter(status__in=['accepted', 'in_progress']):
-            assignment.mark_completed()
-
-        service_request.refresh_from_db()
-        service_request.status = 'completed'
-        service_request.completed_at = timezone.now()
-        service_request.save()
+        service_request.finish_by_client()
 
         # Notify every worker that the client marked their assignment
         # finished. The import here used to be `from jobs.notifications

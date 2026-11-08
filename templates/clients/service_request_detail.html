@@ -285,8 +285,8 @@
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
                                 <h6>{% trans "Work Completed" %}</h6>
-                                {% if request.completed_at %}
-                                <small class="text-muted">{{ request.completed_at|date:"M d, Y g:i A" }}</small>
+                                {% if request.work_completed_at %}
+                                <small class="text-muted">{{ request.work_completed_at|date:"M d, Y g:i A" }}</small>
                                 {% else %}
                                 <small class="text-muted">{% trans "Not completed yet" %}</small>
                                 {% endif %}

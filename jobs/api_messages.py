@@ -115,8 +115,8 @@ def send_message_api(request):
         return Response({'error': 'Message text is required'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        recipient = User.objects.get(id=recipient_id)
-    except User.DoesNotExist:
+        recipient = User.objects.get(id=int(recipient_id))
+    except (User.DoesNotExist, ValueError, TypeError):  # "abc" used to be a 500
         return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
 
     from .chat_access import can_chat, CLOSED_REASON

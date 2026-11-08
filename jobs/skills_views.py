@@ -12,6 +12,7 @@ from workers.models import WorkerProfile
 from clients.models import ClientProfile
 from jobs.models import JobRequest
 from .skills_matching import SkillsMatcher
+from jobs.params import float_param, int_param
 
 
 @api_view(['POST'])
@@ -95,8 +96,8 @@ def find_matching_workers(request, job_id):
                 'error': 'Not authorized'
             }, status=status.HTTP_403_FORBIDDEN)
     
-    min_score = float(request.query_params.get('min_score', 0.5))
-    limit = min(int(request.query_params.get('limit', 20)), 50)
+    min_score = float_param(request.query_params, 'min_score', 0.5)
+    limit = int_param(request.query_params, 'limit', 20, hi=50)
     
     matches = SkillsMatcher.find_matching_workers(job, min_score, limit)
     
@@ -142,8 +143,8 @@ def find_matching_jobs(request):
             'error': 'Only workers can access this endpoint'
         }, status=status.HTTP_403_FORBIDDEN)
     
-    min_score = float(request.query_params.get('min_score', 0.3))
-    limit = min(int(request.query_params.get('limit', 20)), 50)
+    min_score = float_param(request.query_params, 'min_score', 0.3)
+    limit = int_param(request.query_params, 'limit', 20, hi=50)
     
     matches = SkillsMatcher.find_matching_jobs(worker, min_score, limit)
     

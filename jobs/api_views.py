@@ -62,7 +62,7 @@ def accept_direct_hire_request(request, request_id):
         NotificationService.notify_direct_hire(hire_request)
 
         return Response({'message': 'Request accepted successfully'})
-    except DirectHireRequest.DoesNotExist:
+    except (DirectHireRequest.DoesNotExist, WorkerProfile.DoesNotExist):  # a non-worker used to get a 500
         return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -83,7 +83,7 @@ def reject_direct_hire_request(request, request_id):
         from worker_connect.notification_service import NotificationService
         NotificationService.notify_direct_hire(hire_request)
         return Response({'message': 'Request rejected successfully'})
-    except DirectHireRequest.DoesNotExist:
+    except (DirectHireRequest.DoesNotExist, WorkerProfile.DoesNotExist):  # a non-worker used to get a 500
         return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
 
 

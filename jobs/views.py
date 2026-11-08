@@ -234,6 +234,10 @@ def apply_for_job(request, pk):
         messages.warning(request, 'Your profile is under review. You can apply once verified.')
         return redirect('jobs:job_detail', pk=pk)
     
+    if job.status != 'open':  # cancelled / finished jobs took applications too
+        messages.error(request, 'This job is no longer taking applications.')
+        return redirect('jobs:job_detail', pk=pk)
+
     # Check if already applied
     if JobApplication.objects.filter(job=job, worker=worker_profile).exists():
         messages.warning(request, 'You have already applied for this job.')
@@ -310,6 +314,11 @@ def accept_application(request, pk):
         return redirect('home')
     
     if request.method == 'POST':
+        # only a pending application on a job that is still open (a withdrawn application,
+        # or a job already in progress / cancelled, could be "accepted" before)
+        if application.status != 'pending' or application.job.status != 'open':
+            messages.error(request, 'This application can no longer be accepted.')
+            return redirect('jobs:job_detail', pk=application.job.pk)
         application.status = 'accepted'
         application.save()
         
@@ -730,7 +739,8 @@ def complete_direct_hire(request, pk):
 
         hire_request.status = 'completed'
         hire_request.completed_at = timezone.now()
-        hire_request.client_rating = rating
+        # the parsed number, 1-5 only (the raw text crashed on '' / 'abc', and stored 9 as 9)
+        hire_request.client_rating = rating_value if rating_value and 1 <= rating_value <= 5 else None
         hire_request.client_feedback = feedback
         hire_request.save()
 
@@ -739,7 +749,6 @@ def complete_direct_hire(request, pk):
         worker.completed_jobs += 1
         worker.total_jobs += 1
         worker.total_earnings += hire_request.total_amount
-        worker.availability = 'available'  # Make worker available again
 
         # Persist the rating as a real Rating row so it actually counts
         # toward the worker's average and shows up in their review list -
@@ -761,6 +770,17 @@ def complete_direct_hire(request, pk):
             worker.total_reviews = ratings.count()
 
         worker.save()
+
+        # Free the worker only if nothing else keeps them busy (an active job-post contract,
+        # a booking, or another accepted direct hire) - this used to set "available" always.
+        from .vacancy_models import EmploymentContract
+        from .service_request_models import ServiceRequestAssignment
+        still_busy = (EmploymentContract.objects.filter(worker=worker, status='active').exists()
+                      or ServiceRequestAssignment.objects.filter(worker=worker, status__in=('accepted', 'in_progress')).exists()
+                      or DirectHireRequest.objects.filter(worker=worker, status='accepted').exclude(pk=hire_request.pk).exists())
+        if not still_busy and worker.availability == 'busy':
+            worker.availability = 'available'
+            worker.save(update_fields=['availability'])
         
         messages.success(request, 'Work completed! Thank you for your feedback.')
         return redirect('jobs:direct_hire_detail', pk=pk)

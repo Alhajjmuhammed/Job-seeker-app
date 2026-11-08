@@ -14,6 +14,7 @@ from workers.models import WorkerProfile
 from clients.models import ClientProfile
 from .completion import JobCompletionService
 from .saved_jobs import SavedJobsService
+from jobs.params import int_param
 
 
 # Job Completion Views
@@ -254,6 +255,14 @@ def save_job(request, job_id):
     # which is what actually feeds the mobile "Browse Jobs" -> save button.
     job = get_object_or_404(ServiceRequest, id=job_id)
 
+    # Only a job the worker may actually see: an open one they can browse, or one they are
+    # assigned to. Any id used to be accepted - a worker could "save" another client's
+    # private (even finished) booking and then read it back from the saved list.
+    from jobs.api_views import _can_browse_jobs
+    on_it = job.assignments.filter(worker=worker).exists()
+    if not on_it and not (job.status == 'pending' and _can_browse_jobs(request.user)):
+        return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
+
     result = SavedJobsService.save_job(worker, job)
     
     return Response(result)
@@ -300,7 +309,7 @@ def get_saved_jobs(request):
         }, status=status.HTTP_403_FORBIDDEN)
     
     include_closed = request.query_params.get('include_closed', '').lower() == 'true'
-    limit = int(request.query_params.get('limit', 50))
+    limit = int_param(request.query_params, 'limit', 50)
     
     saved_jobs = SavedJobsService.get_saved_jobs(worker, include_closed, limit)
     

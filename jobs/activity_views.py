@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .activity import Activity, ActivityService
+from jobs.params import int_param
 
 
 @api_view(['GET'])
@@ -21,7 +22,7 @@ def get_my_feed(request):
         - types: Comma-separated activity types to filter
         - unread: Only show unread activities
     """
-    limit = int(request.query_params.get('limit', 50))
+    limit = int_param(request.query_params, 'limit', 50)
     types = request.query_params.get('types')
     unread_only = request.query_params.get('unread', '').lower() == 'true'
     
@@ -61,7 +62,7 @@ def get_public_feed(request):
     """
     Get public activity feed.
     """
-    limit = int(request.query_params.get('limit', 20))
+    limit = int_param(request.query_params, 'limit', 20)
     types = request.query_params.get('types')
     
     activity_types = types.split(',') if types else None

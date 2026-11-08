@@ -251,7 +251,7 @@ def admin_assign_worker(request, pk):
 
             # Update service request status if all workers are now assigned
             total_assignments = existing_assignments_count + 1
-            if total_assignments >= locked_request.workers_needed:
+            if total_assignments >= locked_request.workers_needed and locked_request.status == 'pending':
                 locked_request.status = 'assigned'
                 locked_request.save()
 
@@ -279,9 +279,9 @@ def admin_reassign_worker(request, pk):
     """
     service_request = get_object_or_404(ServiceRequest, pk=pk)
     
-    if service_request.status == 'completed':
+    if service_request.status in ('completed', 'cancelled'):
         return Response(
-            {'error': 'Cannot reassign completed service'},
+            {'error': f'Cannot reassign a {service_request.status} service'},
             status=status.HTTP_400_BAD_REQUEST
         )
     
@@ -303,6 +303,9 @@ def admin_reassign_worker(request, pk):
         # the last open slot can both pass the count check.
         with transaction.atomic():
             locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            if locked_request.status in ('completed', 'cancelled'):  # closed while we waited for the lock
+                return Response({'error': f'Cannot reassign a {locked_request.status} service'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             # Check if worker is already assigned
             existing_assignment = ServiceRequestAssignment.objects.filter(
@@ -338,7 +341,7 @@ def admin_reassign_worker(request, pk):
 
             # Update service request status if all workers are now assigned
             total_assignments = existing_assignments_count + 1
-            if total_assignments >= locked_request.workers_needed:
+            if total_assignments >= locked_request.workers_needed and locked_request.status == 'pending':
                 locked_request.status = 'assigned'
                 locked_request.save()
 
@@ -428,6 +431,18 @@ def admin_bulk_assign_workers(request, pk):
         # admin_assign_worker for the full explanation).
         with transaction.atomic():
             locked_request = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            if locked_request.status in ('completed', 'cancelled'):
+                return Response({'error': f'Cannot assign workers to {locked_request.status} request'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Same rule as a single assign: lock each worker and re-read them, so a busy,
+            # offline or deactivated worker can't be double-booked through bulk-assign.
+            workers = list(WorkerProfile.objects.select_for_update().select_related('user').filter(id__in=worker_ids))
+            unavailable = [f'{w.user.get_full_name() or w.user.username} ({w.availability if w.user.is_active else "deactivated"})'
+                           for w in workers if w.availability != 'available' or not w.user.is_active]
+            if unavailable:
+                return Response({'error': 'Only available workers can be assigned: ' + ', '.join(unavailable)},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             existing_assignments = ServiceRequestAssignment.objects.filter(service_request=locked_request)
             existing_count = existing_assignments.exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).count()
@@ -474,7 +489,7 @@ def admin_bulk_assign_workers(request, pk):
 
             # Update service request status only if all workers are now assigned
             total_assignments = existing_count + len(assignments_created)
-            if total_assignments >= locked_request.workers_needed:
+            if total_assignments >= locked_request.workers_needed and locked_request.status == 'pending':
                 locked_request.status = 'assigned'
                 locked_request.save()
 
@@ -602,7 +617,7 @@ def admin_auto_assign_nearest_workers(request, pk):
             assignments_created.append(assignment)
 
         total_assignments = current_count + len(assignments_created)
-        if total_assignments >= locked_request.workers_needed:
+        if total_assignments >= locked_request.workers_needed and locked_request.status == 'pending':
             locked_request.status = 'assigned'
             locked_request.save()
 

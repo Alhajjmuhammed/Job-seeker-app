@@ -191,8 +191,8 @@ def bulk_job_action(request):
             # methods), leaving every active assignment and worker's
             # availability untouched for anything cancelled in bulk.
             for job in jobs:
-                job.cancel()
-                affected_count += 1
+                if job.cancel():  # completed / already-cancelled jobs are left as they are
+                    affected_count += 1
 
         elif action == 'delete':
             # Release the workers before the rows go. A plain queryset

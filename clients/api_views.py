@@ -607,13 +607,7 @@ def complete_service_request(request, request_id):
         # client force-completing is an explicit override and shouldn't
         # depend on mark_completed()'s own "all assignments done" count
         # (which never fires if there happen to be zero real assignments).
-        for assignment in service_request.assignments.filter(status__in=['accepted', 'in_progress']):
-            assignment.mark_completed()
-
-        service_request.refresh_from_db()
-        service_request.status = 'completed'
-        service_request.completed_at = timezone.now()
-        service_request.save()
+        service_request.finish_by_client()
 
         # Notify every worker that the client marked their assignment
         # finished. The import here used to be `from jobs.notifications
@@ -642,7 +636,7 @@ def complete_service_request(request, request_id):
             'service_request': {
                 'id': service_request.id,
                 'status': service_request.status,
-                'completed_at': service_request.completed_at.isoformat() if service_request.completed_at else None
+                'completed_at': service_request.work_completed_at.isoformat() if service_request.work_completed_at else None
             }
         })
     except ServiceRequest.DoesNotExist:

@@ -9,6 +9,7 @@ from rest_framework import status
 from django.db.models import Count
 
 from workers.models import Category
+from jobs.params import int_param
 
 
 @api_view(['GET'])
@@ -130,7 +131,7 @@ def create_category(request):
             "parent_id": null
         }
     """
-    name = request.data.get('name')
+    name = str(request.data.get('name') or '').strip()
     description = request.data.get('description', '')
     icon = request.data.get('icon', '')
     parent_id = request.data.get('parent_id')
@@ -187,7 +188,13 @@ def update_category(request, category_id):
         }, status=status.HTTP_404_NOT_FOUND)
     
     if 'name' in request.data:
-        category.name = request.data['name']
+        # an empty name was accepted, and an existing name crashed with a 500 (unique field)
+        new_name = str(request.data['name'] or '').strip()
+        if not new_name:
+            return Response({'error': 'name cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
+        if Category.objects.filter(name__iexact=new_name).exclude(pk=category.pk).exists():
+            return Response({'error': 'Category with this name already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        category.name = new_name
     
     if hasattr(category, 'description') and 'description' in request.data:
         category.description = request.data['description']
@@ -225,6 +232,14 @@ def delete_category(request, category_id):
             'error': f'Cannot delete category with {job_count} jobs. Reassign jobs first.'
         }, status=status.HTTP_400_BAD_REQUEST)
     
+    # Job posts would silently lose their category (SET_NULL) and workers' skills in it
+    # would be deleted (CASCADE). Switch it off instead (is_active=False) if it's in use.
+    post_count = category.vacancies.count()
+    if post_count > 0:
+        return Response({
+            'error': f'Cannot delete category used by {post_count} job post(s). Switch it off instead.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     category.delete()
     
     return Response({
@@ -238,7 +253,7 @@ def popular_categories(request):
     """
     Get popular categories by job count.
     """
-    limit = int(request.query_params.get('limit', 10))
+    limit = int_param(request.query_params, 'limit', 10, hi=50)
 
     categories = Category.objects.annotate(
         job_count=Count('service_requests')

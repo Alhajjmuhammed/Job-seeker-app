@@ -86,6 +86,12 @@ def submit_report(request):
     user = request.user
     content_type = request.data.get('content_type')
     content_id = request.data.get('content_id')
+    try:  # a non-number id crashed with a 500
+        content_id = int(content_id) if content_id not in (None, '') else None
+        if content_id is not None and content_id <= 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        return Response({'error': 'content_id must be a positive number'}, status=status.HTTP_400_BAD_REQUEST)
     report_type = request.data.get('report_type')
     description = request.data.get('description', '').strip()
     
@@ -194,8 +200,11 @@ def list_reports(request):
     status_filter = request.query_params.get('status')
     report_type = request.query_params.get('report_type')
     content_type = request.query_params.get('content_type')
-    page = int(request.query_params.get('page', 1))
-    page_size = min(int(request.query_params.get('page_size', 20)), 100)
+    try:
+        page = max(1, int(request.query_params.get('page', 1)))
+        page_size = max(1, min(int(request.query_params.get('page_size', 20)), 100))
+    except (TypeError, ValueError):
+        page, page_size = 1, 20
     
     reports = Report.objects.select_related('reporter', 'reported_user', 'reviewed_by')
     
@@ -263,7 +272,9 @@ def review_report(request, report_id):
     
     new_status = request.data.get('status')
     action_taken = request.data.get('action_taken', '')
-    ban_user = request.data.get('ban_user', False)
+    # "false" / "0" / "no" sent by a form are non-empty strings - reading them as truthy
+    # banned the user when the admin chose to dismiss without banning.
+    ban_user = str(request.data.get('ban_user', '')).strip().lower() in ('1', 'true', 'yes', 'on')
     
     if new_status not in [ReportStatus.RESOLVED, ReportStatus.DISMISSED, ReportStatus.UNDER_REVIEW]:
         return Response(
@@ -271,6 +282,11 @@ def review_report(request, report_id):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    # never ban a staff account, and never yourself
+    target = report.reported_user
+    if ban_user and target and (target.is_staff or target.is_superuser or target.pk == request.user.pk):
+        return Response({'error': 'Staff accounts cannot be banned from a report.'}, status=status.HTTP_400_BAD_REQUEST)
+
     # Update report
     report.status = new_status
     report.reviewed_by = request.user

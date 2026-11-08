@@ -220,7 +220,7 @@ class ServiceRequest(models.Model):
     
     # Billing
     total_hours_worked = models.DecimalField(
-        max_digits=5, 
+        max_digits=8, 
         decimal_places=2, 
         default=0,
         help_text="Actual hours worked (from time tracking)"
@@ -460,6 +460,35 @@ class ServiceRequest(models.Model):
             return names[0]
         return f"{names[0]} +{len(names) - 1} more"
 
+    def finish_by_client(self):
+        """
+        The client says the job is done (website and app share this).
+        Every worker who accepted / is working is completed (earnings, counts, commission);
+        anyone still only *pending* is released - before, their row stayed "pending" for
+        ever and they stayed busy, and could never be assigned again. The finish time
+        goes in work_completed_at (it used to be set on a field that doesn't exist, so
+        these jobs were missing from the revenue / "completed today" numbers).
+        """
+        from django.db import transaction
+
+        for assignment in self.assignments.filter(status__in=['accepted', 'in_progress']):
+            assignment.mark_completed()
+
+        with transaction.atomic():
+            locked = ServiceRequest.objects.select_for_update().get(pk=self.pk)
+            for assignment in locked.assignments.filter(status='pending').select_related('worker'):
+                assignment.status = 'cancelled'
+                assignment.save(update_fields=['status', 'updated_at'])
+                if not assignment._worker_has_other_active_jobs():
+                    assignment.worker.availability = 'available'
+                    assignment.worker.save(update_fields=['availability'])
+            locked.status = 'completed'
+            if not locked.work_completed_at:
+                locked.work_completed_at = timezone.now()
+            locked.save(update_fields=['status', 'work_completed_at', 'updated_at'])
+        self.refresh_from_db()
+        return self
+
     def cancel(self, reason=''):
         """
         Cancel this request: release every active assignment and free up
@@ -478,6 +507,11 @@ class ServiceRequest(models.Model):
 
         with transaction.atomic():
             locked = ServiceRequest.objects.select_for_update().get(pk=self.pk)
+            # A finished job must not become "cancelled" (its earnings are already paid out),
+            # and cancelling twice must not re-stamp the date or notify everyone again.
+            if locked.status in ('completed', 'cancelled'):
+                self.status = locked.status
+                return False
             active_assignments = locked.assignments.filter(
                 status__in=['pending', 'accepted', 'in_progress']
             ).select_related('worker')
@@ -531,7 +565,7 @@ class TimeTracking(models.Model):
     
     # Calculated duration
     duration_hours = models.DecimalField(
-        max_digits=5,
+        max_digits=8,
         decimal_places=2,
         null=True,
         blank=True,
@@ -773,7 +807,7 @@ class ServiceRequestAssignment(models.Model):
         help_text="What this worker earns for the request (the category amount, once)"
     )
     total_hours_worked = models.DecimalField(
-        max_digits=5,
+        max_digits=8,
         decimal_places=2,
         default=0,
         help_text="Total hours this worker spent"
