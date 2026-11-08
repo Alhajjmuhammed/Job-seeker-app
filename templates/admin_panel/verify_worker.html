@@ -7,24 +7,27 @@
 {% block content %}
 <style>
   /* ---------- sticky header card (stays below the fixed top bar) ---------- */
+  /* The browser's scroll anchoring "corrects" the scroll when the card turns compact, which
+     threw the page back to the top / made it shake. This page keeps its own place instead. */
+  html, body { overflow-anchor: none; }
   .rv-top { position: sticky; top: calc(var(--header-height, 70px) + .6rem); z-index: 20; margin-bottom: 1rem;
             background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 16px;
-            box-shadow: 0 6px 24px rgba(15, 23, 42, .06); overflow: hidden; transition: box-shadow .2s; }
+            box-shadow: 0 6px 24px rgba(15, 23, 42, .06); overflow: hidden; overflow-anchor: none; transition: box-shadow .2s; }
   .rv-top.is-verified { --rv-tone: #10b981; } .rv-top.is-rejected { --rv-tone: #ef4444; } .rv-top.is-pending { --rv-tone: #f59e0b; }
   /* when stuck, a strip in the page colour covers the gap under the top bar so text never peeks through */
   .rv-top.is-stuck { box-shadow: 0 -.75rem 0 .1rem var(--rv-page, #f8f9fa), 0 10px 30px rgba(15, 23, 42, .14); }
   [data-bs-theme="dark"] .rv-top { --rv-page: #0f172a; }
-  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.1rem; padding: 1rem 1.25rem; transition: padding .2s; }
+  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.1rem; padding: 1rem 1.25rem; }
   .rv-back { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
              background: var(--bs-tertiary-bg); color: var(--bs-body-color); border: 0; flex-shrink: 0; }
   .rv-back:hover { background: var(--bs-secondary-bg); }
   .rv-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: flex; align-items: center;
                justify-content: center; font-size: 1.45rem; font-weight: 700; color: #fff;
                background: linear-gradient(135deg, #0f766e, #14b8a6); box-shadow: 0 0 0 3px var(--bs-body-bg), 0 0 0 5px var(--rv-tone, #f59e0b);
-               transition: width .2s, height .2s, font-size .2s; }
+               }
   .rv-who { min-width: 0; flex: 1 1 260px; }
   .rv-name { font-size: 1.2rem; font-weight: 750; margin: 0; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; line-height: 1.2; }
-  .rv-meta { font-size: .8rem; color: var(--bs-secondary-color); display: flex; flex-wrap: wrap; gap: .2rem 1rem; margin-top: .3rem; transition: opacity .2s; }
+  .rv-meta { font-size: .8rem; color: var(--bs-secondary-color); display: flex; flex-wrap: wrap; gap: .2rem 1rem; margin-top: .3rem; }
   .rv-meta i { margin-right: .25rem; }
   .rv-pill { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .25rem .6rem; border-radius: 999px; white-space: nowrap; }
   .rv-pill.pending { background: #fef3c7; color: #92400e; } .rv-pill.verified { background: #d1fae5; color: #065f46; } .rv-pill.rejected { background: #fee2e2; color: #991b1b; }
@@ -341,13 +344,39 @@
 {% block extra_js %}
 <script>
 (function () {
-  // compact the sticky header once it has scrolled up to the top bar
+  // Compact the sticky header once it reaches the top bar.
+  // The card gets shorter when compact; if that shrank the page, the content below would
+  // jump, the browser would move the scroll back, the card would grow again... and the
+  // header shook non-stop. So the space it leaves is kept the same (extra margin), and
+  // there is a 40px dead zone between "compact" and "full" so it can never flip-flop.
   var top = document.getElementById('rvTop'), sentinel = document.getElementById('rvSentinel');
-  if (top && sentinel && 'IntersectionObserver' in window) {
-    var offset = (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 70) + 12;
-    new IntersectionObserver(function (entries) {
-      top.classList.toggle('is-stuck', !entries[0].isIntersecting);
-    }, { rootMargin: '-' + offset + 'px 0px 0px 0px' }).observe(sentinel);
+  if (top && sentinel) {
+    var baseMargin = parseFloat(getComputedStyle(top).marginBottom) || 16, fullHeight = 0, stuck = false, ticking = false;
+    function trigger() {
+      var bar = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 70;
+      return sentinel.getBoundingClientRect().top + window.scrollY - bar - 12;
+    }
+    function setStuck(on) {
+      if (on === stuck) return;
+      stuck = on;
+      if (on) {
+        fullHeight = top.offsetHeight;
+        top.classList.add('is-stuck');
+        top.style.marginBottom = (baseMargin + fullHeight - top.offsetHeight) + 'px';
+      } else {
+        top.classList.remove('is-stuck');
+        top.style.marginBottom = '';
+      }
+    }
+    function update() {
+      ticking = false;
+      var y = window.scrollY, t = trigger();
+      if (!stuck && y > t + 40) setStuck(true);
+      else if (stuck && y < t) setStuck(false);
+    }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    window.addEventListener('resize', function () { setStuck(false); update(); });
+    update();
   }
   // full-size document viewer (click to zoom)
   var modalEl = document.getElementById('rvViewer');
