@@ -275,22 +275,46 @@ class Journeys(VacancyBase):
         self.refresh(self.wp)
         self.assertEqual(self.wp.availability, 'available')
 
-    def test_6_report_the_two_open_rules(self):
-        """Not errors - rules for the owner to decide. Recorded so the answer is known:
-        (a) can a worker on an active contract be hired on a second job post?
-        (b) can a busy worker accept a direct hire?"""
-        v1 = self.publish(self.post_job(title='Job A'))
-        v2 = self.publish(self.post_job(title='Job B'))
-        self.apply(v1); self.apply(v2)
+    def test_6_no_second_long_contract_but_a_few_days_job_is_fine(self):
+        v1 = self.publish(self.post_job(title='House girl 3 months'))
+        v2 = self.publish(self.post_job(title='Another family, 6 months', duration='6_months'))
+        v3 = self.publish(self.post_job(title='Party help', duration='one_off'))
+        for v in (v1, v2, v3):
+            self.apply(v)
         self.hire(VacancyApplication.objects.get(vacancy=v1))
-        second = post_json(self.client_c, f'{API}applications/{VacancyApplication.objects.get(vacancy=v2).id}/hire/', {})
-        h = DirectHireRequest.objects.create(
-            client=self.other_client, worker=self.wp, title='x', description='x', location='x',
-            duration_type='hours', duration_value=2, start_datetime=timezone.now(), offered_rate=D('5000'))
+        r = post_json(self.client_c, f'{API}applications/{VacancyApplication.objects.get(vacancy=v2).id}/hire/', {})
+        self.assertEqual(r.status_code, 400, r.content)
+        self.assertIn('already on a contract until', r.content.decode())
+        self.hire(VacancyApplication.objects.get(vacancy=v3))  # "a few days" job still allowed
+
+    def test_7_busy_worker_cannot_accept_a_direct_hire_but_can_decline(self):
+        self.wp.availability = 'busy'
+        self.wp.save(update_fields=['availability'])
+
+        def make():
+            return DirectHireRequest.objects.create(
+                client=self.other_client, worker=self.wp, title='x', description='x', location='x',
+                duration_type='hours', duration_value=2, start_datetime=timezone.now() + timedelta(days=1),
+                offered_rate=D('5000'))
+        h = make()
         self.worker_c.post(f'/jobs/direct-hire/{h.id}/accept/', {'response_message': 'ok'})
         h.refresh_from_db()
-        print(f'\nRULE (a) second contract while on one: HTTP {second.status_code}'
-              f'\nRULE (b) busy worker accepts a direct hire: status={h.status}')
+        self.assertEqual(h.status, 'pending')
+        r = post_json(self.worker_c, f'/api/jobs/worker/direct-hire-requests/{h.id}/accept/')
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json().get('code'), 'worker_busy')
+        page = self.worker_c.get(f'/jobs/direct-hire/{h.id}/').content.decode()
+        self.assertIn('You are busy with other work', page)
+        self.assertNotIn('Accept request', page)
+        self.worker_c.post(f'/jobs/direct-hire/{h.id}/reject/', {'response_message': 'busy'})
+        h.refresh_from_db()
+        self.assertEqual(h.status, 'rejected')
+        self.wp.availability = 'available'  # free again -> can accept
+        self.wp.save(update_fields=['availability'])
+        h2 = make()
+        self.worker_c.post(f'/jobs/direct-hire/{h2.id}/accept/', {'response_message': 'ok'})
+        h2.refresh_from_db()
+        self.assertEqual(h2.status, 'accepted')
 
 
 class EveryPageEveryRole(VacancyBase):

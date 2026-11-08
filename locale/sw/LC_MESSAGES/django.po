@@ -11973,3 +11973,7 @@ msgstr ""
 
 msgid "Reason (optional) - the other side will see it"
 msgstr "Sababu (si lazima) - upande mwingine utaiona"
+
+msgid ""
+"You are busy with other work. Finish it first, or decline this request."
+msgstr "Uko na kazi nyingine kwa sasa. Imalize kwanza, au kataa ombi hili."

@@ -65,9 +65,15 @@
 
       <div class="d-flex flex-wrap gap-2">
         {% if is_worker and hire_request.status == 'pending' %}
+          {% if worker_busy %}
+          <div class="alert alert-warning w-100 mb-2 py-2">
+            <i class="bi bi-hourglass-split me-1"></i>{% trans "You are busy with other work. Finish it first, or decline this request." %}
+          </div>
+          {% else %}
           <a href="{% url 'jobs:worker_accept_direct_hire' hire_request.pk %}" class="btn btn-success">
             <i class="bi bi-check2-circle me-1"></i>{% trans "Accept request" %}
           </a>
+          {% endif %}
           <a href="{% url 'jobs:worker_reject_direct_hire' hire_request.pk %}" class="btn btn-outline-danger">
             <i class="bi bi-x-circle me-1"></i>{% trans "Decline" %}
           </a>

@@ -48,6 +48,8 @@ def accept_direct_hire_request(request, request_id):
 
         if hire_request.status != 'pending':
             return Response({'error': 'This request has already been responded to'}, status=status.HTTP_400_BAD_REQUEST)
+        if worker_profile.availability == 'busy':
+            return Response({'error': 'You are busy with other work. Finish it first, or decline this request.', 'code': 'worker_busy'}, status=status.HTTP_400_BAD_REQUEST)
 
         hire_request.status = 'accepted'
         hire_request.responded_at = timezone.now()

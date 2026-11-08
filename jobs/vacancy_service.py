@@ -312,6 +312,14 @@ def hire(user, app, start_date=None, terms=''):
             raise VacancyError('This worker is not verified any more.')
         if start_date and start_date < timezone.localdate():
             raise VacancyError('The start date cannot be in the past.')
+        if vacancy.duration != 'one_off':
+            # A house girl on a 3/6-month contract works for that family full time: a second
+            # contract would leave one of them without her. Short "a few days" jobs are fine.
+            running = (EmploymentContract.objects.filter(worker=app.worker, status='active')
+                       .order_by('end_date').last())
+            if running:
+                until = f' until {running.end_date:%d %b %Y}' if running.end_date else ''
+                raise VacancyError(f'This worker is already on a contract{until}.')
         start = start_date or max(vacancy.start_date, timezone.localdate())
         app.status, app.decided_by, app.decided_at = 'hired', user, timezone.now()
         app.save()

@@ -461,7 +461,7 @@ class ReviewFindingTests(VacancyBase):
         self.hire(self.app)
         before = {u: count(c, u) for c, u in urls}
         for i in range(4):  # four more jobs, each applied for and hired
-            v = self.publish(self.post_job(title=f'Job {i}'))
+            v = self.publish(self.post_job(title=f'Job {i}', duration='one_off'))  # one long contract at a time
             a = VacancyApplication.objects.get(pk=self.apply(v).json()['id'])
             self.hire(a)
         self.wp.verification_status = 'verified'; self.wp.save()

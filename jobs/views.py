@@ -604,6 +604,7 @@ def direct_hire_detail(request, pk):
         'is_worker': request.user == hire_request.worker.user,
         'is_client': request.user == hire_request.client,
         'can_cancel': hire_request.can_cancel(request.user),
+        'worker_busy': hire_request.worker.availability == 'busy',
     }
     return render(request, 'jobs/direct_hire_detail.html', context)
 
@@ -637,6 +638,10 @@ def worker_accept_direct_hire(request, pk):
     # Check if already responded
     if hire_request.status != 'pending':
         messages.warning(request, 'This request has already been responded to.')
+        return redirect('jobs:direct_hire_detail', pk=pk)
+
+    if hire_request.worker.availability == 'busy':  # busy with other work: decline, or finish first
+        messages.error(request, 'You are busy with other work. Finish it first, or decline this request.')
         return redirect('jobs:direct_hire_detail', pk=pk)
     
     if request.method == 'POST':
