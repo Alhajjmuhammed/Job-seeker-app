@@ -292,13 +292,15 @@ class DirectHireRequest(models.Model):
             locked = DirectHireRequest.objects.select_for_update().get(pk=self.pk)
             if not locked.can_cancel(user):
                 return False
+            was_accepted = locked.status == 'accepted'
             locked.status = 'cancelled'
             note = 'Cancelled by the client' if user == locked.client else 'Cancelled by the worker'
             locked.worker_response_message = (f'{note}: {reason}' if reason else note)[:1000]
             if not locked.responded_at:
                 locked.responded_at = tz.now()
             locked.save()
-            locked.free_worker_if_idle()
+            if was_accepted:  # a pending request never made them busy - don't undo their own "busy"
+                locked.free_worker_if_idle()
         self.refresh_from_db()
         try:
             from worker_connect.notification_service import NotificationService

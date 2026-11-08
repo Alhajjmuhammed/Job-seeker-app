@@ -31,13 +31,5 @@ def requeue_request_when_assignment_deleted(sender, instance, **kwargs):
     service_request = ServiceRequest.objects.filter(pk=request_id).first()
     if service_request is None or service_request.status in SETTLED:
         return
-
-    still_live = ServiceRequestAssignment.objects.filter(
-        service_request_id=request_id
-    ).exclude(status__in=ServiceRequest.DEAD_ASSIGNMENT_STATUSES).exists()
-    if still_live:
-        return
-
-    if service_request.status != 'pending':
-        service_request.status = 'pending'
-        service_request.save(update_fields=['status', 'updated_at'])
+    # same rule as a refusal: back to the queue only if nobody did any work
+    service_request.after_worker_left()

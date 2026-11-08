@@ -102,7 +102,7 @@ class FlowBase(TestCase):
         ref = pay.json()['transaction_id']
         body = {'category': self.cat.id, 'title': 'Leaky tap', 'description': 'fix it',
                 'location': '12 Secret Street', 'city': 'Dar', 'workers_needed': workers,
-                'duration_type': 'daily', 'preferred_date': str(timezone.now().date()),
+                'duration_type': 'daily', 'preferred_date': str(timezone.localdate()),
                 'preferred_time': '09:00:00', 'payment_transaction_id': ref,
                 'payment_method': 'yas', **extra}
         r = post_json(self.client_c, '/api/v1/client/service-requests/create/', body)
@@ -225,7 +225,7 @@ class BookingAndPaymentTests(FlowBase):
     def test_reference_cannot_be_used_twice_or_for_another_amount(self):
         sr, ref = self.book()
         body = {'category': self.cat.id, 'title': 'Again', 'description': 'x', 'location': 'x', 'city': 'Dar',
-                'workers_needed': 1, 'duration_type': 'daily', 'preferred_date': str(timezone.now().date()),
+                'workers_needed': 1, 'duration_type': 'daily', 'preferred_date': str(timezone.localdate()),
                 'preferred_time': '09:00:00', 'payment_transaction_id': ref, 'payment_method': 'yas'}
         post_json(self.client_c, '/api/v1/client/service-requests/create/', body)
         second = ServiceRequest.objects.filter(client=self.client_user).latest('id')
@@ -477,7 +477,7 @@ class EmailTests(FlowBase):
 
         sr, _ = self.book()
         self.assign_and_accept(sr)
-        tomorrow = timezone.now().date() + timedelta(days=1)
+        tomorrow = timezone.localdate() + timedelta(days=1)
         ServiceRequest.objects.filter(pk=sr.pk).update(preferred_date=tomorrow, service_start_date=None)
         sr.refresh_from_db()
         self.assertEqual(sr.status, 'in_progress')  # accepting moves it on
@@ -526,7 +526,7 @@ class AssignmentOptionTests(FlowBase):
         return self.client_c.post('/services/client/request-service/', {
             'category': self.cat.id, 'title': 'Fix sink', 'description': 'leaking', 'location': 'Mikocheni',
             'city': 'Dar', 'duration_type': 'daily', 'workers_needed': 1, 'urgency': 'normal',
-            'preferred_date': str(timezone.now().date()), 'payment_method': 'yas', **extra})
+            'preferred_date': str(timezone.localdate()), 'payment_method': 'yas', **extra})
 
     # -- 1. admin chooses --------------------------------------------------
     def test_admin_choice_waits_for_the_admin(self):
@@ -565,7 +565,7 @@ class AssignmentOptionTests(FlowBase):
             ref = post_json(self.client_c, '/api/v1/client/process-payment/',
                             {'amount': total, 'payment_type': 'yas'}).json()['transaction_id']
             body = {'category': self.cat.id, 'title': 'x', 'description': 'x', 'location': 'x', 'city': 'Dar',
-                    'workers_needed': 1, 'duration_type': 'daily', 'preferred_date': str(timezone.now().date()),
+                    'workers_needed': 1, 'duration_type': 'daily', 'preferred_date': str(timezone.localdate()),
                     'preferred_time': '09:00:00', 'payment_transaction_id': ref, 'payment_method': 'yas',
                     'preferred_worker': self.unverified.id, 'assignment_mode': 'client_choice'}
             r = post_json(self.client_c, url, body)

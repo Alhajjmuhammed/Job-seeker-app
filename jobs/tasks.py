@@ -40,8 +40,7 @@ def send_job_reminders(self):
         # "Tomorrow" for people in Tanzania (UTC+3). The server clock is UTC, so between
         # 00:00 and 03:00 EAT the UTC date was still "yesterday": people were reminded about
         # today's jobs, and the real tomorrow's jobs got no reminder at all.
-        from zoneinfo import ZoneInfo
-        tomorrow = timezone.now().astimezone(ZoneInfo('Africa/Dar_es_Salaam')).date() + timedelta(days=1)
+        tomorrow = timezone.localdate() + timedelta(days=1)
 
         # Requests starting tomorrow that have workers on them. Accepting an
         # assignment moves a request to 'in_progress', so 'assigned' alone

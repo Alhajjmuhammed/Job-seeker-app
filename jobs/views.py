@@ -754,6 +754,14 @@ def complete_direct_hire(request, pk):
         except (TypeError, ValueError):
             rating_value = None
 
+        from django.db import transaction
+        with transaction.atomic():
+            if DirectHireRequest.objects.select_for_update().get(pk=hire_request.pk).status != 'accepted':
+                messages.error(request, 'This booking is no longer active.')
+                return redirect('jobs:direct_hire_detail', pk=pk)
+            hire_request.status = 'completed'
+            hire_request.completed_at = timezone.now()
+            hire_request.save(update_fields=['status', 'completed_at', 'updated_at'])
         hire_request.status = 'completed'
         hire_request.completed_at = timezone.now()
         # the parsed number, 1-5 only (the raw text crashed on '' / 'abc', and stored 9 as 9)

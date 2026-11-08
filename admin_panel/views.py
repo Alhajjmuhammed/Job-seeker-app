@@ -1813,15 +1813,21 @@ def unassign_worker_from_request(request, request_id, assignment_id):
             if locked_request.status in ('completed', 'cancelled'):
                 messages.error(request, f'This request is {locked_request.get_status_display().lower()} - its workers can no longer be changed.')
                 return redirect('admin_panel:service_request_detail', request_id=request_id)
-            if assignment.status in ('in_progress', 'completed'):
-                messages.error(request, f'{assignment.worker.user.get_full_name()} has already started this job, so they cannot be unassigned.')
+            if assignment.status == 'completed':
+                messages.error(request, f'{assignment.worker.user.get_full_name()} already finished this job, so they cannot be unassigned.')
                 return redirect('admin_panel:service_request_detail', request_id=request_id)
 
             worker = assignment.worker
             worker_name = worker.user.get_full_name() or worker.user.username
             was = assignment.get_status_display() if hasattr(assignment, 'get_status_display') else assignment.status
-            # the post_delete signal puts the request back to "pending" when no live worker is left
-            assignment.delete()
+            if assignment.status == 'in_progress':
+                # started and then disappeared: keep the record (time logs) but take them off
+                assignment.status = 'cancelled'
+                assignment.save(update_fields=['status', 'updated_at'])
+                locked_request.after_worker_left()
+            else:
+                # the post_delete signal decides the request's state when nobody is left
+                assignment.delete()
 
             if not ServiceRequestAssignment.objects.filter(
                     worker=worker, status__in=['pending', 'accepted', 'in_progress']).exists():
@@ -1833,23 +1839,33 @@ def unassign_worker_from_request(request, request_id, assignment_id):
     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
 
+from jobs.service_request_models import _closing_on_purpose  # noqa: E402
+
+
 @staff_member_required
 def close_request_as_done(request, request_id):
     """Admin closes a short-staffed booking with the work that was done (refund is separate)."""
     service_request = get_object_or_404(ServiceRequest, id=request_id)
     if request.method == 'POST':
-        gap = service_request.short_staffed()
-        if service_request.status in ('completed', 'cancelled'):
-            messages.info(request, 'This request is already closed.')
-        elif service_request.assignments.filter(status__in=['pending', 'accepted', 'in_progress']).exists():
-            messages.error(request, 'A worker is still on this job - wait for them, or unassign them first.')
-        else:
+        with transaction.atomic():
+            locked = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            gap = locked.short_staffed()
+            if locked.status in ('completed', 'cancelled'):
+                messages.info(request, 'This request is already closed.')
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+            if gap is None:
+                messages.error(request, 'Only a request where some workers finished and nobody is still working '
+                                        'can be closed as done. Unassign a worker who stopped coming first.')
+                return redirect('admin_panel:service_request_detail', request_id=request_id)
+        token = _closing_on_purpose.set(True)
+        try:
             service_request.finish_by_client()
-            if gap:
-                messages.success(request, f'Request closed as done ({gap[0]} of {gap[1]} workers). '
-                                          f'Remember to refund the client for {gap[1] - gap[0]} worker(s) not supplied.')
-            else:
-                messages.success(request, 'Request closed as done.')
+        finally:
+            _closing_on_purpose.reset(token)
+        from worker_connect.notification_service import NotificationService
+        NotificationService.notify_service_completed(service_request)
+        messages.success(request, f'Request closed as done ({gap[0]} of {gap[1]} workers). '
+                                  f'Remember to refund the client for {gap[1] - gap[0]} worker(s) not supplied.')
     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
 

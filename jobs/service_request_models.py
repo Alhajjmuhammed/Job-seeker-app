@@ -11,6 +11,13 @@ from accounts.models import User
 from workers.models import WorkerProfile, Category
 
 
+import contextvars
+
+# Set while the client (or admin) closes a request on purpose: completing the last
+# workers inside that must not raise the "booking needs a decision" alert.
+_closing_on_purpose = contextvars.ContextVar('closing_on_purpose', default=False)
+
+
 class ServiceRequest(models.Model):
     """
     Client service requests - Admin assigns workers to these
@@ -460,6 +467,35 @@ class ServiceRequest(models.Model):
             return names[0]
         return f"{names[0]} +{len(names) - 1} more"
 
+    def after_worker_left(self):
+        """A worker refused, was taken off, or stopped: decide the request's state in ONE place.
+          - someone is still on it               -> nothing to do
+          - nobody did any work                  -> back to 'pending' (admin's queue)
+          - enough workers finished              -> completed
+          - some finished, fewer than paid for   -> stays 'in_progress' and admins are alerted
+        Before, a refusal after others had finished sent it back to 'pending' - no alert, and
+        the client could then cancel a job somebody had already been paid for."""
+        sr = ServiceRequest.objects.get(pk=self.pk)
+        if sr.status in ('completed', 'cancelled'):
+            return
+        rows = ServiceRequestAssignment.objects.filter(service_request_id=sr.pk)
+        if rows.filter(status__in=self.LIVE_ASSIGNMENT_STATUSES).exists():
+            return
+        done = rows.filter(status='completed').count()
+        if done == 0:
+            if sr.status != 'pending':
+                ServiceRequest.objects.filter(pk=sr.pk).update(status='pending', updated_at=timezone.now())
+        elif done >= sr.workers_needed:
+            ServiceRequest.objects.filter(pk=sr.pk).update(
+                status='completed', work_completed_at=sr.work_completed_at or timezone.now(), updated_at=timezone.now())
+            from worker_connect.notification_service import NotificationService
+            NotificationService.notify_service_completed(ServiceRequest.objects.get(pk=sr.pk))
+        else:
+            if sr.status != 'in_progress':
+                ServiceRequest.objects.filter(pk=sr.pk).update(status='in_progress', updated_at=timezone.now())
+            sr.alert_admins_short_staffed(done)
+        self.refresh_from_db(fields=['status', 'work_completed_at'])
+
     def short_staffed(self):
         """(finished workers, workers paid for) when fewer finished than were paid for and
         nobody else is still on the job - the case admin has to decide. Else None."""
@@ -469,15 +505,24 @@ class ServiceRequest(models.Model):
             return None
         return done, self.workers_needed
 
-    def alert_admins_short_staffed(self, done):
+    def alert_admins_short_staffed(self, done, closed=False):
+        if _closing_on_purpose.get() and not closed:
+            return
+        if closed:
+            title = 'Refund may be due'
+            text = (f'Request #{self.pk} "{self.title}" was closed with {done} of {self.workers_needed} workers. '
+                    f'Refund the client for {self.workers_needed - done} worker(s) not supplied.')
+        else:
+            title = 'Booking needs a decision'
+            text = (f'Request #{self.pk} "{self.title}": {done} of {self.workers_needed} workers finished. '
+                    'Assign a replacement, or close it as done and refund the client for the missing worker(s).')
         try:
             from accounts.models import User
             from worker_connect.notification_service import NotificationService
             for admin in User.objects.filter(is_staff=True, is_active=True):
                 NotificationService.create_notification(
-                    recipient=admin, title='Booking needs a decision',
-                    message=(f'Request #{self.pk} "{self.title}": {done} of {self.workers_needed} workers finished. '
-                             'Assign a replacement, or close it as done and refund the client for the missing worker(s).'),
+                    recipient=admin, title=title,
+                    message=text,
                     notification_type='system_alert',
                     extra_data={'service_request_id': self.pk})
         except Exception:  # pragma: no cover - an alert must never undo the worker's completion
@@ -495,8 +540,12 @@ class ServiceRequest(models.Model):
         """
         from django.db import transaction
 
-        for assignment in self.assignments.filter(status__in=['accepted', 'in_progress']):
-            assignment.mark_completed()
+        token = _closing_on_purpose.set(True)
+        try:
+            for assignment in self.assignments.filter(status__in=['accepted', 'in_progress']):
+                assignment.mark_completed()
+        finally:
+            _closing_on_purpose.reset(token)
 
         with transaction.atomic():
             locked = ServiceRequest.objects.select_for_update().get(pk=self.pk)
@@ -511,6 +560,9 @@ class ServiceRequest(models.Model):
                 locked.work_completed_at = timezone.now()
             locked.save(update_fields=['status', 'work_completed_at', 'updated_at'])
         self.refresh_from_db()
+        done = self.assignments.filter(status='completed').count()
+        if done < self.workers_needed:
+            self.alert_admins_short_staffed(done, closed=True)
         return self
 
     def cancel(self, reason=''):
@@ -924,19 +976,9 @@ class ServiceRequestAssignment(models.Model):
             self.status = 'rejected'
             self.save()
 
-            # If nobody is left on the request, put it back to 'pending' so
-            # the admin sees it needs a worker (it used to sit on 'assigned'
-            # forever with no one working it).
-            sr = self.service_request
-            still_live = ServiceRequestAssignment.objects.filter(
-                service_request_id=sr.pk,
-                status__in=ServiceRequest.LIVE_ASSIGNMENT_STATUSES,
-            ).exists()
-            if not still_live:
-                ServiceRequest.objects.filter(
-                    pk=sr.pk, status__in=['assigned', 'in_progress']
-                ).update(status='pending')
-                sr.refresh_from_db(fields=['status'])
+        # Nobody left on it -> back to the queue; but if others already finished it stays
+        # open and admins are alerted (see ServiceRequest.after_worker_left).
+        self.service_request.after_worker_left()
 
         # AUTO-UPDATE: Set worker to available if no other active jobs
         if not self._worker_has_other_active_jobs():

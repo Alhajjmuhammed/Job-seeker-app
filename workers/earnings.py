@@ -37,7 +37,7 @@ class EarningsService:
         from jobs.service_request_models import ServiceRequestAssignment
 
         if not start_date:
-            start_date = (timezone.now() - timedelta(days=30)).date()
+            start_date = timezone.localdate() - timedelta(days=30)
         if not end_date:
             end_date = timezone.localdate()
 

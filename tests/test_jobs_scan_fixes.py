@@ -249,3 +249,98 @@ class TanzaniaTime(FlowBase):
         late_utc = datetime(2026, 11, 8, 22, 30, tzinfo=dtz.utc)  # 01:30 on the 9th in Dar
         with mock.patch('django.utils.timezone.now', return_value=late_utc):
             self.assertEqual(str(timezone.localdate()), '2026-11-09')
+
+
+class SecondReviewFixes(FlowBase):
+    """The independent review of the fixes above found these; each is proven here."""
+
+    def alerts(self, title):
+        from worker_connect.notification_models import Notification
+        return Notification.objects.filter(recipient=self.admin, title=title).count()
+
+    def two_worker_job(self):
+        sr, _ = self.book(workers=2)
+        a1 = self.assign_and_accept(sr)
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp2.id})
+        a2 = ServiceRequestAssignment.objects.get(service_request=sr, worker=self.wp2)
+        return sr, a1, a2
+
+    def test_worker_who_started_then_vanished_can_be_taken_off_and_job_closed(self):
+        sr, a1, a2 = self.two_worker_job()
+        c2 = self.client_class(); c2.force_login(self.worker2_user)
+        post_json(c2, f'/api/v1/worker/my-assignments/{a2.id}/respond/', {'accepted': True})
+        post_json(c2, f'/api/v1/worker/my-assignments/{a2.id}/clock-in/')
+        a2.refresh_from_db()
+        self.assertEqual(a2.status, 'in_progress')
+        a1.mark_completed()
+        self.admin_c.post(f'/dashboard/service-requests/{sr.id}/unassign/{a2.id}/')
+        a2.refresh_from_db(); sr.refresh_from_db(); self.wp2.refresh_from_db()
+        self.assertEqual(a2.status, 'cancelled')          # record kept
+        self.assertEqual(self.wp2.availability, 'available')
+        self.assertEqual(sr.status, 'in_progress')
+        self.assertEqual(sr.short_staffed(), (1, 2))
+        self.assertEqual(self.alerts('Booking needs a decision'), 1)
+        self.admin_c.post(f'/dashboard/service-requests/{sr.id}/close-done/')
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'completed')
+
+    def test_refusal_after_another_finished_alerts_admin_and_cannot_be_cancelled(self):
+        sr, a1, a2 = self.two_worker_job()
+        a1.mark_completed()
+        self.assertTrue(a2.reject_assignment('sick'))
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'in_progress')        # was sent back to "pending"
+        self.assertEqual(self.alerts('Booking needs a decision'), 1)
+        r = post_json(self.client_c, f'/api/v1/client/service-requests/{sr.id}/cancel/')
+        self.assertEqual(r.status_code, 400)
+
+    def test_client_closing_short_job_sends_refund_alert_not_decision_alert(self):
+        sr, a1, a2 = self.two_worker_job()
+        a2.reject_assignment('sick')
+        r = post_json(self.client_c, f'/api/v1/clients/requests/{sr.id}/complete/')
+        self.assertEqual(r.status_code, 200, r.content)
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'completed')
+        self.assertEqual(self.alerts('Booking needs a decision'), 0)
+        self.assertEqual(self.alerts('Refund may be due'), 1)
+
+    def test_nobody_worked_still_goes_back_to_the_queue(self):
+        sr, _ = self.book()
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp.id})
+        a = ServiceRequestAssignment.objects.get(service_request=sr)
+        a.reject_assignment('no')
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'pending')
+        self.assertEqual(self.alerts('Booking needs a decision'), 0)
+
+    def test_reminders_right_at_night_in_tanzania(self):
+        from unittest import mock
+        from datetime import datetime, timezone as dtz
+        from tests.test_full_flows import EmailTests
+        night = datetime(2026, 11, 8, 22, 30, tzinfo=dtz.utc)  # 01:30 on the 9th in Dar es Salaam
+        with mock.patch('django.utils.timezone.now', return_value=night):
+            EmailTests.test_job_reminder_reaches_client_and_accepted_workers(self)
+
+    def test_cancelling_a_pending_direct_hire_keeps_the_workers_own_busy(self):
+        from jobs.models import DirectHireRequest
+        self.wp.availability = 'busy'
+        self.wp.save(update_fields=['availability'])
+        h = DirectHireRequest.objects.create(
+            client=self.client_user, worker=self.wp, title='x', description='x', location='x',
+            duration_type='hours', duration_value=2, start_datetime=timezone.now() + timedelta(days=1),
+            offered_rate=D('5000'))
+        self.assertTrue(h.cancel(self.client_user))
+        self.wp.refresh_from_db()
+        self.assertEqual(self.wp.availability, 'busy')
+
+    def test_cancelled_direct_hire_cannot_then_be_completed(self):
+        from jobs.models import DirectHireRequest
+        h = DirectHireRequest.objects.create(
+            client=self.client_user, worker=self.wp, title='x', description='x', location='x',
+            duration_type='hours', duration_value=2, start_datetime=timezone.now(), offered_rate=D('5000'),
+            status='accepted')
+        h_stale = DirectHireRequest.objects.get(pk=h.pk)
+        h.cancel(self.client_user)
+        self.client_c.post(f'/jobs/direct-hire/{h_stale.id}/complete/', {'rating': 5})
+        h.refresh_from_db()
+        self.assertEqual(h.status, 'cancelled')
