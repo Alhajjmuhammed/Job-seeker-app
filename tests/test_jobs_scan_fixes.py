@@ -167,3 +167,85 @@ class AdminAndApiInputFixes(FlowBase):
     def test_direct_hire_answer_as_a_client_is_not_a_500(self):
         r = post_json(self.client_c, '/api/jobs/worker/direct-hire-requests/1/accept/')
         self.assertLess(r.status_code, 500)
+
+
+class ShortStaffedBookings(FlowBase):
+    """Paid for 2 workers, only 1 finished: admin decides (no silent close)."""
+
+    def test_short_staffed_job_waits_for_admin_and_can_be_closed(self):
+        from worker_connect.notification_models import Notification
+        sr, _ = self.book(workers=2)
+        asg = self.assign_and_accept(sr)
+        post_json(self.admin_c, f'/api/v1/admin/service-requests/{sr.id}/assign/', {'worker_id': self.wp2.id})
+        a2 = ServiceRequestAssignment.objects.get(service_request=sr, worker=self.wp2)
+        self.assertTrue(a2.reject_assignment('cannot come'))
+        asg.mark_completed()
+        sr.refresh_from_db()
+        self.assertNotEqual(sr.status, 'completed')  # used to close silently
+        self.assertEqual(sr.short_staffed(), (1, 2))
+        self.assertTrue(Notification.objects.filter(recipient=self.admin, title='Booking needs a decision').exists())
+        page = self.admin_c.get(f'/dashboard/service-requests/{sr.id}/').content.decode()
+        self.assertIn('Close as done', page)
+        self.admin_c.post(f'/dashboard/service-requests/{sr.id}/close-done/')
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'completed')
+
+    def test_full_team_still_closes_by_itself(self):
+        sr, _ = self.book()
+        asg = self.assign_and_accept(sr)
+        asg.mark_completed()
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'completed')
+
+
+class DirectHireCancel(FlowBase):
+    def make_hire(self, status='pending'):
+        from jobs.models import DirectHireRequest
+        return DirectHireRequest.objects.create(
+            client=self.client_user, worker=self.wp, title='Paint room', description='x', location='Dar',
+            duration_type='days', duration_value=2, start_datetime=timezone.now() + timedelta(days=1),
+            offered_rate=D('20000'), status=status)
+
+    def test_client_cancels_accepted_booking_and_worker_is_freed(self):
+        hire = self.make_hire('accepted')
+        self.wp.availability = 'busy'
+        self.wp.save(update_fields=['availability'])
+        r = post_json(self.client_c, f'/api/jobs/direct-hire-requests/{hire.id}/cancel/', {'reason': 'changed plans'})
+        self.assertEqual(r.status_code, 200, r.content)
+        hire.refresh_from_db()
+        self.wp.refresh_from_db()
+        self.assertEqual(hire.status, 'cancelled')
+        self.assertEqual(self.wp.availability, 'available')
+        from jobs.chat_access import can_chat
+        self.assertFalse(can_chat(self.client_user, self.worker_user))
+
+    def test_worker_cancels_only_after_accepting_and_outsiders_cannot(self):
+        hire = self.make_hire('pending')
+        self.assertEqual(post_json(self.worker_c, f'/api/jobs/direct-hire-requests/{hire.id}/cancel/').status_code, 400)
+        hire.status = 'accepted'
+        hire.save(update_fields=['status'])
+        other = self.client_class()
+        other.force_login(self.other_client)
+        self.assertEqual(post_json(other, f'/api/jobs/direct-hire-requests/{hire.id}/cancel/').status_code, 404)
+        self.worker_c.post(f'/jobs/direct-hire/{hire.id}/cancel/', {'reason': 'sick'})
+        hire.refresh_from_db()
+        self.assertEqual(hire.status, 'cancelled')
+
+    def test_complete_with_bad_rating_is_not_a_500(self):
+        hire = self.make_hire('accepted')
+        r = self.client_c.post(f'/jobs/direct-hire/{hire.id}/complete/', {'rating': 'abc'})
+        self.assertLess(r.status_code, 500)
+        hire.refresh_from_db()
+        self.assertEqual(hire.status, 'completed')
+        self.assertIsNone(hire.client_rating)
+
+
+class TanzaniaTime(FlowBase):
+    def test_today_is_tanzania_today(self):
+        from django.conf import settings
+        self.assertEqual(settings.TIME_ZONE, 'Africa/Dar_es_Salaam')
+        from unittest import mock
+        from datetime import datetime, timezone as dtz
+        late_utc = datetime(2026, 11, 8, 22, 30, tzinfo=dtz.utc)  # 01:30 on the 9th in Dar
+        with mock.patch('django.utils.timezone.now', return_value=late_utc):
+            self.assertEqual(str(timezone.localdate()), '2026-11-09')

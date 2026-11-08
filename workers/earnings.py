@@ -39,7 +39,7 @@ class EarningsService:
         if not start_date:
             start_date = (timezone.now() - timedelta(days=30)).date()
         if not end_date:
-            end_date = timezone.now().date()
+            end_date = timezone.localdate()
 
         # Completed assignments in period (paid work)
         completed = ServiceRequestAssignment.objects.filter(

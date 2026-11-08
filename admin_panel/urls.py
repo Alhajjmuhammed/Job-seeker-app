@@ -25,6 +25,7 @@ urlpatterns = [
     path('service-requests/<int:request_id>/assign/', views.assign_worker_to_request, name='assign_worker_to_request'),
     path('service-requests/<int:request_id>/auto-assign-nearest/', views.auto_assign_nearest_worker, name='auto_assign_nearest_worker'),
     path('service-requests/<int:request_id>/unassign/<int:assignment_id>/', views.unassign_worker_from_request, name='unassign_worker'),
+    path('service-requests/<int:request_id>/close-done/', views.close_request_as_done, name='close_request_as_done'),
     path('service-requests/<int:request_id>/verify-payment/', views.verify_payment, name='verify_payment'),
     
     # Export URLs

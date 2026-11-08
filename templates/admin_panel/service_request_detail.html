@@ -44,6 +44,20 @@
         </a>
     </div>
 
+    {% if short_staffed %}
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+        <div class="flex-grow-1">
+            <strong>{% blocktrans with done=short_staffed.0 needed=short_staffed.1 %}Only {{ done }} of {{ needed }} workers finished this job.{% endblocktrans %}</strong><br>
+            <small>{% trans "The client paid for more workers. Assign a replacement below, or close it as done and refund the client for the missing worker(s)." %}</small>
+        </div>
+        <form method="post" action="{% url 'admin_panel:close_request_as_done' service_request.id %}"
+              onsubmit="return confirm('{% trans "Close this request as done?" %}');">{% csrf_token %}
+            <button class="btn btn-warning"><i class="bi bi-check2-circle"></i> {% trans "Close as done" %}</button>
+        </form>
+    </div>
+    {% endif %}
+
     <div class="row g-4">
         <!-- Left Column - Request Details -->
         <div class="col-lg-8">

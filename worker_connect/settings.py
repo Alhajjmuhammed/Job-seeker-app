@@ -206,7 +206,9 @@ LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
 
-TIME_ZONE = 'UTC'
+# Tanzania time: dates ("today", job-post closing dates, reports) and shown times follow
+# local time. Times are still STORED in UTC (USE_TZ=True), so no data changes.
+TIME_ZONE = 'Africa/Dar_es_Salaam'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -512,7 +514,7 @@ CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localho
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_TIMEZONE = 'UTC'  # schedules are written in UTC (celery.py pins it too); 15:00 UTC = 18:00 EAT
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 

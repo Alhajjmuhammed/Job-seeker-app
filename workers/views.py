@@ -588,6 +588,7 @@ def export_analytics_csv(request):
     import csv
     from django.http import HttpResponse
     from datetime import datetime
+    from django.utils import timezone
     from jobs.service_request_models import ServiceRequest, ServiceRequestAssignment
     from django.db.models import OuterRef, Subquery, DecimalField
     
@@ -595,14 +596,14 @@ def export_analytics_csv(request):
     
     # Create CSV response
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="analytics_{profile.user.username}_{datetime.now().strftime("%Y%m%d")}.csv"'
+    response['Content-Disposition'] = f'attachment; filename="analytics_{profile.user.username}_{timezone.localtime().strftime("%Y%m%d")}.csv"'
     
     writer = csv.writer(response)
     
     # Write header
     writer.writerow(['Analytics Export'])
     writer.writerow(['Worker:', profile.user.get_full_name()])
-    writer.writerow(['Export Date:', datetime.now().strftime('%Y-%m-%d %H:%M')])
+    writer.writerow(['Export Date:', timezone.localtime().strftime('%Y-%m-%d %H:%M')])
     writer.writerow([])
     
     # Summary stats. Use the ServiceRequestAssignment relation

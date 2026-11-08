@@ -73,12 +73,27 @@
           </a>
         {% endif %}
 
-        {% if hire_request.status == 'accepted' %}
+        {% if is_client and hire_request.status == 'accepted' %}
           <a href="{% url 'jobs:complete_direct_hire' hire_request.pk %}" class="btn btn-primary">
             <i class="bi bi-flag me-1"></i>{% trans "Mark as complete" %}
           </a>
         {% endif %}
+
+        {% if can_cancel %}
+          <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#cancelHire">
+            <i class="bi bi-x-octagon me-1"></i>{% trans "Cancel booking" %}
+          </button>
+        {% endif %}
       </div>
+      {% if can_cancel %}
+      <form method="post" action="{% url 'jobs:cancel_direct_hire' hire_request.pk %}" class="collapse mt-3" id="cancelHire">
+        {% csrf_token %}
+        <div class="input-group">
+          <input name="reason" class="form-control" maxlength="500" placeholder="{% trans 'Reason (optional) - the other side will see it' %}">
+          <button class="btn btn-danger">{% trans "Cancel booking" %}</button>
+        </div>
+      </form>
+      {% endif %}
 
     </div>
   </div>

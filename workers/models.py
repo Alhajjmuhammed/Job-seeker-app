@@ -388,7 +388,7 @@ class WorkExperience(models.Model):
         """Calculate the duration of work experience"""
         from datetime import date
         
-        end = self.end_date if self.end_date else date.today()
+        end = self.end_date if self.end_date else timezone.localdate()
         
         # Calculate total months
         months_diff = (end.year - self.start_date.year) * 12 + (end.month - self.start_date.month)

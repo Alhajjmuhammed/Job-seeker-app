@@ -120,8 +120,8 @@ class DirectHireRequestForm(forms.ModelForm):
         if suggested_rate and not self.instance.pk:
             self.fields['offered_rate'].initial = suggested_rate
             self.fields['offered_rate'].help_text = (
-                f"Typical rate for this kind of work: TSh {suggested_rate:,.0f}. "
-                f"This is the total for the job, not a rate per hour."
+                f"Typical rate for this kind of work: TSh {suggested_rate:,.0f} per day. "
+                f"This is the rate per hour or per day (as chosen above) - the total is this rate x how long."
             )
 
 

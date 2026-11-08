@@ -673,7 +673,7 @@ def admin_dashboard_stats(request):
     # already in the current timezone, which is only correct if the server's
     # OS clock happens to be UTC too. Using timezone.now() removes that
     # assumption and matches how the rest of the codebase computes "now".
-    today = timezone.now().date()
+    today = timezone.localdate()
     today_requests = ServiceRequest.objects.filter(
         created_at__date=today
     ).count()

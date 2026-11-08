@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -45,7 +46,7 @@ def dashboard(request):
     top_jobs = [w['completed_jobs'] for w in top_workers]
 
     # Workers joined per month (last 6 months)
-    today = date.today()
+    today = timezone.localdate()
     months, joined_counts = [], []
     for i in range(5, -1, -1):
         d = today - relativedelta(months=i)

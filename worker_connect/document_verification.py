@@ -263,13 +263,13 @@ class VerificationService:
         if not any(f.name == 'expiry_date' for f in WorkerDocument._meta.fields):
             return []
 
-        expiry_threshold = timezone.now().date() + timezone.timedelta(days=days_ahead)
+        expiry_threshold = timezone.localdate() + timezone.timedelta(days=days_ahead)
 
         expiring = WorkerDocument.objects.filter(
             verification_status=VerificationStatus.APPROVED,
             document_type__in=DocumentType.EXPIRABLE_TYPES,
             expiry_date__lte=expiry_threshold,
-            expiry_date__gte=timezone.now().date(),
+            expiry_date__gte=timezone.localdate(),
         ).select_related('worker__user')
 
         return [
@@ -279,7 +279,7 @@ class VerificationService:
                 'worker_email': doc.worker.user.email,
                 'document_type': doc.document_type,
                 'expiry_date': doc.expiry_date,
-                'days_until_expiry': (doc.expiry_date - timezone.now().date()).days,
+                'days_until_expiry': (doc.expiry_date - timezone.localdate()).days,
             }
             for doc in expiring
         ]
@@ -297,7 +297,7 @@ class VerificationService:
         if not any(f.name == 'expiry_date' for f in WorkerDocument._meta.fields):
             return 0
 
-        today = timezone.now().date()
+        today = timezone.localdate()
 
         # Find and expire documents
         expired_docs = WorkerDocument.objects.filter(

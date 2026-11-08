@@ -603,8 +603,25 @@ def direct_hire_detail(request, pk):
         'hire_request': hire_request,
         'is_worker': request.user == hire_request.worker.user,
         'is_client': request.user == hire_request.client,
+        'can_cancel': hire_request.can_cancel(request.user),
     }
     return render(request, 'jobs/direct_hire_detail.html', context)
+
+
+@login_required
+def cancel_direct_hire(request, pk):
+    """Client (pending/accepted) or worker (accepted) cancels a direct booking."""
+    hire_request = get_object_or_404(DirectHireRequest, pk=pk)
+    if request.user not in (hire_request.client, hire_request.worker.user):
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()[:500]
+        if hire_request.cancel(request.user, reason):
+            messages.success(request, 'The booking was cancelled. The other side has been told.')
+        else:
+            messages.error(request, 'This booking can no longer be cancelled.')
+    return redirect('jobs:direct_hire_detail', pk=pk)
 
 
 @login_required
@@ -773,14 +790,7 @@ def complete_direct_hire(request, pk):
 
         # Free the worker only if nothing else keeps them busy (an active job-post contract,
         # a booking, or another accepted direct hire) - this used to set "available" always.
-        from .vacancy_models import EmploymentContract
-        from .service_request_models import ServiceRequestAssignment
-        still_busy = (EmploymentContract.objects.filter(worker=worker, status='active').exists()
-                      or ServiceRequestAssignment.objects.filter(worker=worker, status__in=('accepted', 'in_progress')).exists()
-                      or DirectHireRequest.objects.filter(worker=worker, status='accepted').exclude(pk=hire_request.pk).exists())
-        if not still_busy and worker.availability == 'busy':
-            worker.availability = 'available'
-            worker.save(update_fields=['availability'])
+        hire_request.free_worker_if_idle()
         
         messages.success(request, 'Work completed! Thank you for your feedback.')
         return redirect('jobs:direct_hire_detail', pk=pk)

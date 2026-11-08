@@ -10417,7 +10417,7 @@ msgid "We'll notify you when your worker is confirmed."
 msgstr "Tutakujulisha fundi wako akithibitishwa."
 
 msgid "Cancel booking"
-msgstr "Ghairi miadi"
+msgstr "Ghairi oda"
 
 msgid "Cancel this booking?"
 msgstr "Ghairi miadi hii?"
@@ -11952,3 +11952,24 @@ msgstr "Tazama kwa ukubwa kamili"
 #: templates/admin_panel/verify_worker.html
 msgid "Waiting for the worker to upload an ID."
 msgstr "Inasubiri mfanyakazi apakie kitambulisho."
+
+msgid "Close as done"
+msgstr "Funga kama imekamilika"
+
+msgid "Close this request as done?"
+msgstr "Funga ombi hili kama limekamilika?"
+
+#, python-format
+msgid "Only %(done)s of %(needed)s workers finished this job."
+msgstr "Ni wafanyakazi %(done)s tu kati ya %(needed)s waliomaliza kazi hii."
+
+msgid ""
+"The client paid for more workers. Assign a replacement below, or close it as"
+" done and refund the client for the missing worker(s)."
+msgstr ""
+"Mteja alilipia wafanyakazi zaidi. Mpangie mfanyakazi mbadala hapa chini, au "
+"ifunge kama imekamilika na umrudishie mteja pesa ya mfanyakazi/wafanyakazi "
+"waliokosekana."
+
+msgid "Reason (optional) - the other side will see it"
+msgstr "Sababu (si lazima) - upande mwingine utaiona"

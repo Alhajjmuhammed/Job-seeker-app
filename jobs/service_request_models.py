@@ -460,6 +460,30 @@ class ServiceRequest(models.Model):
             return names[0]
         return f"{names[0]} +{len(names) - 1} more"
 
+    def short_staffed(self):
+        """(finished workers, workers paid for) when fewer finished than were paid for and
+        nobody else is still on the job - the case admin has to decide. Else None."""
+        live = self.assignments.exclude(status__in=['rejected', 'cancelled'])
+        done = live.filter(status='completed').count()
+        if self.status in ('completed', 'cancelled') or not done or done != live.count() or done >= self.workers_needed:
+            return None
+        return done, self.workers_needed
+
+    def alert_admins_short_staffed(self, done):
+        try:
+            from accounts.models import User
+            from worker_connect.notification_service import NotificationService
+            for admin in User.objects.filter(is_staff=True, is_active=True):
+                NotificationService.create_notification(
+                    recipient=admin, title='Booking needs a decision',
+                    message=(f'Request #{self.pk} "{self.title}": {done} of {self.workers_needed} workers finished. '
+                             'Assign a replacement, or close it as done and refund the client for the missing worker(s).'),
+                    notification_type='system_alert',
+                    extra_data={'service_request_id': self.pk})
+        except Exception:  # pragma: no cover - an alert must never undo the worker's completion
+            import logging
+            logging.getLogger(__name__).exception('short-staffed alert failed for %s', self.pk)
+
     def finish_by_client(self):
         """
         The client says the job is done (website and app share this).
@@ -1040,6 +1064,11 @@ class ServiceRequestAssignment(models.Model):
         
         # If all assignments completed, mark main request as completed
         if completed_count == total_count and total_count > 0:
+            if completed_count < sr.workers_needed:
+                # Fewer workers finished than the client paid for (e.g. 2 booked, one refused).
+                # Don't close it silently: admin assigns a replacement or closes it and refunds.
+                sr.alert_admins_short_staffed(completed_count)
+                return
             sr.status = 'completed'
             sr.work_completed_at = timezone.now()
             sr.save()

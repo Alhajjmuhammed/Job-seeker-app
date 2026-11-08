@@ -700,7 +700,7 @@ def system_overview(request):
     """Comprehensive system overview with all metrics"""
     
     # Time periods
-    today = timezone.now().date()
+    today = timezone.localdate()
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     
@@ -1514,6 +1514,7 @@ def service_request_detail(request, request_id):
         'existing_assignments_count': existing_assignments_count,
         'remaining_workers_needed': remaining_workers_needed,
         'assigned_worker_ids': list(assigned_worker_ids),
+        'short_staffed': service_request.short_staffed(),
     }
     
     return render(request, 'admin_panel/service_request_detail.html', context)
@@ -1829,6 +1830,26 @@ def unassign_worker_from_request(request, request_id, assignment_id):
 
         messages.success(request, f'Unassigned {worker_name} (was {was}). You can now assign a replacement.')
 
+    return redirect('admin_panel:service_request_detail', request_id=request_id)
+
+
+@staff_member_required
+def close_request_as_done(request, request_id):
+    """Admin closes a short-staffed booking with the work that was done (refund is separate)."""
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+    if request.method == 'POST':
+        gap = service_request.short_staffed()
+        if service_request.status in ('completed', 'cancelled'):
+            messages.info(request, 'This request is already closed.')
+        elif service_request.assignments.filter(status__in=['pending', 'accepted', 'in_progress']).exists():
+            messages.error(request, 'A worker is still on this job - wait for them, or unassign them first.')
+        else:
+            service_request.finish_by_client()
+            if gap:
+                messages.success(request, f'Request closed as done ({gap[0]} of {gap[1]} workers). '
+                                          f'Remember to refund the client for {gap[1] - gap[0]} worker(s) not supplied.')
+            else:
+                messages.success(request, 'Request closed as done.')
     return redirect('admin_panel:service_request_detail', request_id=request_id)
 
 

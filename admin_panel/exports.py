@@ -7,6 +7,7 @@ Generates CSV and PDF exports for jobs, workers, and applications.
 import csv
 import io
 from datetime import datetime
+from django.utils import timezone
 from typing import List, Dict, Any
 from django.http import HttpResponse
 from reportlab.lib import colors
@@ -30,7 +31,7 @@ def export_to_csv(data: List[Dict[str, Any]], filename: str, fields: List[str] =
         HttpResponse with CSV content
     """
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{filename}_{datetime.now().strftime("%Y%m%d")}.csv"'
+    response['Content-Disposition'] = f'attachment; filename="{filename}_{timezone.localtime().strftime("%Y%m%d")}.csv"'
     
     if not data:
         return response
@@ -72,7 +73,7 @@ def export_to_pdf(
         HttpResponse with PDF content
     """
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{filename}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="{filename}_{timezone.localtime().strftime("%Y%m%d")}.pdf"'
     
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -105,7 +106,7 @@ def export_to_pdf(
         textColor=colors.grey,
         alignment=1
     )
-    elements.append(Paragraph(f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}", timestamp_style))
+    elements.append(Paragraph(f"Generated on {timezone.localtime().strftime('%Y-%m-%d %H:%M')}", timestamp_style))
     elements.append(Spacer(1, 20))
     
     if not data:

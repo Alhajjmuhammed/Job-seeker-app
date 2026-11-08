@@ -263,6 +263,55 @@ class DirectHireRequest(models.Model):
     def is_active(self):
         """Check if request is still active"""
         return self.status in ['pending', 'accepted']
+
+    def free_worker_if_idle(self):
+        """Back to 'available' unless something else keeps the worker busy: an active
+        job-post contract, a booking, or another accepted direct hire."""
+        from jobs.vacancy_models import EmploymentContract
+        from jobs.service_request_models import ServiceRequestAssignment
+        w = self.worker
+        busy = (EmploymentContract.objects.filter(worker=w, status='active').exists()
+                or ServiceRequestAssignment.objects.filter(worker=w, status__in=('accepted', 'in_progress')).exists()
+                or DirectHireRequest.objects.filter(worker=w, status='accepted').exclude(pk=self.pk).exists())
+        if not busy and w.availability == 'busy':
+            w.availability = 'available'
+            w.save(update_fields=['availability'])
+
+    def can_cancel(self, user):
+        """Client: while pending or accepted. Worker: after accepting (before that, they decline)."""
+        if user == self.client:
+            return self.status in ('pending', 'accepted')
+        return user == self.worker.user and self.status == 'accepted'
+
+    def cancel(self, user, reason=''):
+        """Cancel the booking. There was no way to do this before, so if the client
+        disappeared the worker stayed "busy" (and the chat open) for ever."""
+        from django.db import transaction
+        from django.utils import timezone as tz
+        with transaction.atomic():
+            locked = DirectHireRequest.objects.select_for_update().get(pk=self.pk)
+            if not locked.can_cancel(user):
+                return False
+            locked.status = 'cancelled'
+            note = 'Cancelled by the client' if user == locked.client else 'Cancelled by the worker'
+            locked.worker_response_message = (f'{note}: {reason}' if reason else note)[:1000]
+            if not locked.responded_at:
+                locked.responded_at = tz.now()
+            locked.save()
+            locked.free_worker_if_idle()
+        self.refresh_from_db()
+        try:
+            from worker_connect.notification_service import NotificationService
+            other = self.worker.user if user == self.client else self.client
+            who = user.get_full_name() or user.username
+            NotificationService.create_notification(
+                recipient=other, title='Booking cancelled',
+                message=f'{who} cancelled the booking "{self.title}".' + (f' Reason: {reason}' if reason else ''),
+                notification_type='job_rejected', content_object=self, extra_data={'direct_hire_id': self.id})
+        except Exception:  # pragma: no cover - a failed alert must not undo the cancel
+            import logging
+            logging.getLogger(__name__).exception('direct hire cancel notification failed for %s', self.pk)
+        return True
     
     @property
     def duration_display(self):

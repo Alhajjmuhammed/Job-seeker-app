@@ -6,6 +6,7 @@ Provides data export and deletion functionality per GDPR requirements.
 
 import json
 from datetime import datetime
+from django.utils import timezone
 from django.core.serializers import serialize
 from django.http import JsonResponse
 from typing import Dict, Any, List
@@ -26,7 +27,7 @@ class GDPRService:
         """
         data = {
             'export_info': {
-                'exported_at': datetime.now().isoformat(),
+                'exported_at': timezone.now().isoformat(),
                 'user_id': user.id,
                 'format_version': '1.0',
             },

@@ -44,7 +44,7 @@ def get_availability(request, worker_id=None):
         if start_date_str:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
         else:
-            start_date = timezone.now().date()
+            start_date = timezone.localdate()
         
         if end_date_str:
             end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
@@ -235,7 +235,7 @@ def get_exceptions(request):
     if start_date_str:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
     else:
-        start_date = timezone.now().date()
+        start_date = timezone.localdate()
     
     exceptions = AvailabilityException.objects.filter(
         worker=worker_profile,

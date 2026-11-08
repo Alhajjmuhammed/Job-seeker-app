@@ -152,7 +152,7 @@ class InvoiceService:
             tax_rate=Decimal(str(tax_rate)),
             discount=Decimal(str(discount)),
             total=0,  # Will be calculated
-            due_date=timezone.now().date() + timezone.timedelta(days=int(due_days)),
+            due_date=timezone.localdate() + timezone.timedelta(days=int(due_days)),
             notes=notes,
             terms=terms or "Payment due within 30 days of invoice date.",
         )
@@ -223,7 +223,7 @@ class InvoiceService:
     def mark_as_paid(invoice):
         """Mark invoice as paid."""
         invoice.status = 'paid'
-        invoice.paid_date = timezone.now().date()
+        invoice.paid_date = timezone.localdate()
         invoice.save()
         return invoice
     
@@ -237,7 +237,7 @@ class InvoiceService:
     @staticmethod
     def check_overdue_invoices():
         """Mark overdue invoices."""
-        today = timezone.now().date()
+        today = timezone.localdate()
         Invoice.objects.filter(
             status='sent',
             due_date__lt=today

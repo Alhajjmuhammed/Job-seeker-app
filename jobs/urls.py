@@ -40,5 +40,6 @@ urlpatterns = [
     path('direct-hire/<int:pk>/accept/', views.worker_accept_direct_hire, name='worker_accept_direct_hire'),
     path('direct-hire/<int:pk>/reject/', views.worker_reject_direct_hire, name='worker_reject_direct_hire'),
     path('direct-hire/<int:pk>/complete/', views.complete_direct_hire, name='complete_direct_hire'),
+    path('direct-hire/<int:pk>/cancel/', views.cancel_direct_hire, name='cancel_direct_hire'),
     path('direct-hires/', views.my_direct_hire_requests, name='my_direct_hire_requests'),
 ]

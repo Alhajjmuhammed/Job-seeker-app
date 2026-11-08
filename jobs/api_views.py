@@ -87,6 +87,18 @@ def reject_direct_hire_request(request, request_id):
         return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_direct_hire_request(request, request_id):
+    """Client (pending/accepted) or worker (accepted) cancels a direct booking."""
+    hire_request = DirectHireRequest.objects.select_related('worker__user', 'client').filter(pk=request_id).first()
+    if hire_request is None or request.user not in (hire_request.client, hire_request.worker.user):
+        return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+    if not hire_request.cancel(request.user, str(request.data.get('reason', '')).strip()[:500]):
+        return Response({'error': 'This booking can no longer be cancelled'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Booking cancelled', 'status': hire_request.status})
+
+
 def _can_browse_jobs(user):
     """Open requests are listed to professional workers (and staff).
     Non-academic workers get work by direct booking or admin assignment,
