@@ -210,7 +210,60 @@ class APIError(APIException):
 # Custom Exception Handler
 # =============================================================================
 
+def _readable(details):
+    """First human sentence out of DRF error details ({'field': ['msg']}, ['msg'], 'msg')."""
+    if details is None:
+        return ''
+    if isinstance(details, str):
+        return details
+    if isinstance(details, (list, tuple)):
+        for item in details:
+            text = _readable(item)
+            if text:
+                return text
+        return ''
+    if isinstance(details, dict):
+        for key in ('detail', 'error', 'message', 'non_field_errors'):
+            if key in details:
+                text = _readable(details[key])
+                if text:
+                    return text
+        for key, value in details.items():
+            text = _readable(value)
+            if text:
+                label = str(key).replace('_', ' ').capitalize()
+                return f'{label}: {text}'
+        return ''
+    return str(details)
+
+
 def custom_exception_handler(exc, context):
+    """
+    API errors always reach the app as {"error": "<a sentence a person can read>",
+    "code": "...", "details": ...}.
+
+    It used to be {"error": {"code", "message", "details"}}: the mobile app shows
+    response.data.error in a pop-up, so it got an OBJECT - a crash/red screen on Android,
+    an empty message on iOS, "[object Object]" on login - and the useful text was hidden
+    in details (e.g. "No VacancyApplication matches..." behind message "Error").
+    """
+    response = _standard_exception_handler(exc, context)
+    if response is None or not isinstance(response.data, dict):
+        return response
+    err = response.data.get('error')
+    if isinstance(err, dict):
+        details = err.get('details')
+        message = err.get('message') or ''
+        if (not message or message in ('Error', 'Invalid input data.', 'Validation error.')) and details:
+            message = _readable(details) or message
+        flat = {'error': message or 'Something went wrong.', 'code': err.get('code', f'HTTP_{response.status_code}')}
+        if details is not None:
+            flat['details'] = details
+        response.data = flat
+    return response
+
+
+def _standard_exception_handler(exc, context):
     """
     Custom exception handler for DRF.
     

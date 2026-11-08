@@ -87,7 +87,7 @@ class SavedJobsService:
         queryset = SavedJob.objects.filter(
             worker=worker_profile
         ).select_related(
-            'job__client'
+            'job__client', 'job__category'
         ).order_by('-created_at')
 
         if not include_closed:
@@ -104,6 +104,7 @@ class SavedJobsService:
                 'job': {
                     'id': job.id,
                     'title': job.title,
+                    'category_name': job.category.name if job.category_id else '',  # the app shows it as a chip
                     'description': job.description[:200] + '...' if len(job.description) > 200 else job.description,
                     'status': job.status,
                     # city only - the exact address is for the assigned worker, not a bookmark

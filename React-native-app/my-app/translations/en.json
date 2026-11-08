@@ -901,7 +901,12 @@
     "failedLoadCategories": "Failed to load service categories",
     "serviceRequestSuccess": "Your service request has been submitted and payment has been processed! Our admin will review your payment and assign a qualified worker soon.",
     "viewMyRequests": "View My Requests",
-    "serviceFee": "Service fee:"
+    "serviceFee": "Service fee:",
+    "cancelTitle": "Cancel Service Request",
+    "cancelWhy": "Why are you cancelling? This cannot be undone.",
+    "keepIt": "Keep it",
+    "cancelNoLongerNeeded": "No longer needed",
+    "cancelOtherReason": "Other reason"
   },
   "clientSettings": {
     "security": "Security",

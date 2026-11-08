@@ -15,6 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { routeForNotification } from '../../utils/notificationRoute';
 
 interface Notification {
   id: number;
@@ -80,21 +81,9 @@ export default function ClientNotificationsScreen() {
 
   const handlePress = (n: Notification) => {
     if (!n.is_read) handleMarkAsRead(n.id);
-    // extra_data uses 'service_request_id' consistently across every
-    // service-request-related notification (see
-    // NotificationService.notify_service_assigned/_accepted/_completed in
-    // worker_connect/notification_service.py) - not 'request_id'.
-    const d = n.extra_data || {};
-    // job posts first: a contract, else the job post itself
-    if (d.contract_id) { router.push(`/(client)/contract/${d.contract_id}` as any); return; }
-    if (d.vacancy_id) { router.push(`/(client)/vacancy/${d.vacancy_id}` as any); return; }
-    const requestTypes = ['job_assigned', 'job_accepted', 'job_completed'];
-    if (requestTypes.includes(n.notification_type) && d.service_request_id) {
-      router.push(`/(client)/service-request/${d.service_request_id}` as any);
-    } else if (n.notification_type === 'message_received') {
-      // notify_message_received puts the sender in extra_data.sender_id
-      router.push((d.sender_id ? `/(client)/conversation/${d.sender_id}` : '/(client)/messages') as any);
-    }
+    // Shared with the worker list and the push tap handler.
+    const href = routeForNotification({ type: n.notification_type, data: n.extra_data, role: 'client' });
+    if (href) router.push(href as any);
   };
 
   const getIcon = (type: string): any => {

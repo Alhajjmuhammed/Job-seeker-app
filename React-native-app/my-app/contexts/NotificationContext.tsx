@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import pushNotificationService from '../services/pushNotifications';
 import apiService from '../services/api';
 import { getToken } from '../services/secureStorage';
 import { useAuth } from './AuthContext';
+import { routeForNotification } from '../utils/notificationRoute';
 
 interface NotificationContextType {
   unreadCount: number;
@@ -17,6 +18,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
+  // The tap listener is registered once on mount, so it would keep the role
+  // from that moment (usually logged out). Read the current role from a ref.
+  const roleRef = useRef<string | undefined>(user?.userType);
+  roleRef.current = user?.userType;
 
   // Registering needs a logged-in user. This ran once at start-up, so on a
   // fresh install (logged out) the server answered 401 and the user got no
@@ -94,66 +99,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   const handleNotificationTap = (response: any) => {
-    const data = response.notification.request.content.data;
-    
-    // Navigate based on notification type
-    if (data.type === 'job_posted' || data.type === 'job_update') {
-      if (data.job_id) {
-        router.push(`/job/${data.job_id}` as any);
-      } else {
-        router.push('/(worker)/browse-jobs' as any);
+    const data = response?.notification?.request?.content?.data || {};
+    const role = roleRef.current;
+
+    // Same routing as the notification lists. A push may carry the stored
+    // notification's fields (notification_type + extra_data) or a flat
+    // payload with `type` and the ids at the top level - accept both.
+    try {
+      const href = routeForNotification({
+        type: data.notification_type ?? data.type,
+        data: data.extra_data ?? data,
+        role,
+      });
+      if (href) {
+        router.push(href as any);
+      } else if (role === 'worker' || role === 'client') {
+        router.push(`/(${role})/notifications` as any);
       }
-    } else if (data.type === 'application_accepted' || data.type === 'application_rejected') {
-      router.push('/(worker)/jobs' as any);
-    } else if (data.type === 'new_message') {
-      if (data.user_id) {
-        router.push(`/(worker)/conversation/${data.user_id}` as any);
-      } else {
-        router.push('/(worker)/messages' as any);
-      }
-    } else if (data.type === 'direct_hire_request') {
-      router.push('/(worker)/dashboard' as any);
-    } else if (data.type === 'service_request_assigned' || data.type === 'assignment_received') {
-      // Worker received new assignment
-      if (data.assignment_id) {
-        router.push(`/(worker)/assignments/respond/${data.assignment_id}` as any);
-      } else {
-        router.push('/(worker)/assignments/pending' as any);
-      }
-    } else if (data.type === 'assignment_accepted' || data.type === 'worker_accepted') {
-      // Client - worker accepted assignment
-      if (data.request_id) {
-        router.push(`/(client)/service-request/${data.request_id}` as any);
-      } else {
-        router.push('/(client)/my-requests' as any);
-      }
-    } else if (data.type === 'assignment_rejected' || data.type === 'worker_rejected') {
-      // Client - worker rejected assignment
-      if (data.request_id) {
-        router.push(`/(client)/service-request/${data.request_id}` as any);
-      } else {
-        router.push('/(client)/my-requests' as any);
-      }
-    } else if (data.type === 'worker_clocked_in' || data.type === 'worker_clocked_out') {
-      // Client - worker clocked in/out
-      if (data.request_id) {
-        router.push(`/(client)/service-request/${data.request_id}` as any);
-      } else {
-        router.push('/(client)/my-requests' as any);
-      }
-    } else if (data.type === 'service_completed') {
-      // Client - service marked complete
-      if (data.request_id) {
-        router.push(`/(client)/service-request/${data.request_id}` as any);
-      } else {
-        router.push('/(client)/my-requests' as any);
-      }
-    } else if (data.type === 'service_request_created') {
-      // Client created service request (admin notification)
-      router.push('/(client)/my-requests' as any);
-    } else {
-      // Default: go to notifications screen
-      router.push('/(worker)/notifications' as any);
+    } catch (error) {
+      console.error('Error opening notification:', error);
     }
 
     // Mark as read

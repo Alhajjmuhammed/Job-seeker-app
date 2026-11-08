@@ -15,10 +15,11 @@ class AssignmentWorkerSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email', read_only=True)
     rating = serializers.DecimalField(source='average_rating', max_digits=3, decimal_places=2, read_only=True, allow_null=True)
     profile_picture = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(source='user.id', read_only=True)  # to open the chat from the app
     
     class Meta:
         model = WorkerProfile
-        fields = ['id', 'full_name', 'phone_number', 'email', 'rating', 'profile_picture']
+        fields = ['id', 'user_id', 'full_name', 'phone_number', 'email', 'rating', 'profile_picture']
     
     def get_profile_picture(self, obj):
         """Return full URL for profile image or None"""
@@ -430,6 +431,7 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='service_request.client.get_full_name', read_only=True)
     client_phone = serializers.CharField(source='service_request.client.phone_number', read_only=True)
     client_email = serializers.CharField(source='service_request.client.email', read_only=True)
+    client_id = serializers.IntegerField(source='service_request.client_id', read_only=True)  # open the chat from the app
     client_notes = serializers.CharField(source='service_request.client_notes', read_only=True)
     created_at = serializers.DateTimeField(source='service_request.created_at', read_only=True)
     total_price = serializers.DecimalField(source='service_request.total_price', max_digits=10, decimal_places=2, read_only=True, allow_null=True)
@@ -445,7 +447,7 @@ class ServiceRequestAssignmentSerializer(serializers.ModelSerializer):
             'worker_payment', 'total_hours_worked', 'admin_notes',
             'assigned_at', 'updated_at',
             # Flattened service request fields for mobile app
-            'title', 'description', 'category_name', 'urgency', 'location', 'city',
+            'client_id', 'title', 'description', 'category_name', 'urgency', 'location', 'city',
             'preferred_date', 'preferred_time', 'estimated_duration_hours', 'duration_days',
             'client_name', 'client_phone', 'client_email', 'client_notes', 'created_at',
             'total_price'

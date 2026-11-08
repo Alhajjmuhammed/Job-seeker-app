@@ -121,7 +121,7 @@ export default function CompleteServiceScreen() {
         t('assignments.excellentWork')
       );
     } catch (error: any) {
-      const errorData = error.response?.data?.error || error.message || '';
+      const errorData = String(error.response?.data?.error || error.message || '');
       
       // Check if assignment is already completed (expected case - not a real error)
       if (errorData.toLowerCase().includes('already completed')) {

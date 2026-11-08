@@ -73,7 +73,6 @@ export default function WorkerLayout() {
       <Tabs.Screen name="active-service" options={{ href: null }} />
       <Tabs.Screen name="activity" options={{ href: null }} />
       <Tabs.Screen name="analytics" options={{ href: null }} />
-      <Tabs.Screen name="applications" options={{ href: null }} />
       <Tabs.Screen name="browse-jobs" options={{ href: null }} />
       <Tabs.Screen name="change-password" options={{ href: null }} />
       <Tabs.Screen name="cv" options={{ href: null }} />

@@ -15,6 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { routeForNotification } from '../../utils/notificationRoute';
 import { useTranslation } from 'react-i18next';
 
 interface Notification {
@@ -87,44 +88,13 @@ export default function NotificationsScreen() {
       handleMarkAsRead(notification.id);
     }
 
-    // Navigate based on type. These keys mirror what the server actually
-    // sends: the payload field is extra_data (not data), and the vocabulary is
-    // the notification_type choices on the Notification model.
-    const data = notification.extra_data || {};
-    // job posts first: a contract, else the job post itself
-    if (data.contract_id) { router.push(`/(worker)/contract/${data.contract_id}` as any); return; }
-    if (data.vacancy_id) { router.push(`/(worker)/vacancy/${data.vacancy_id}` as any); return; }
-    const assignmentId = data.assignment_id;
-    switch (notification.notification_type) {
-      case 'job_assigned':
-        // service-assignment/[id] loads an assignment id - a request id there
-        // opened the wrong assignment or a 404, so without one go to the list.
-        if (assignmentId) {
-          router.push(`/(worker)/service-assignment/${assignmentId}` as any);
-        } else {
-          router.push('/(worker)/jobs' as any);
-        }
-        break;
-      case 'job_accepted':
-      case 'job_rejected':
-      case 'job_application':
-        router.push('/(worker)/jobs' as any);
-        break;
-      case 'job_completed':
-      case 'payment_received':
-        router.push('/(worker)/earnings' as any);
-        break;
-      case 'message_received':
-        if (data.sender_id ?? data.user_id) {
-          router.push(`/(worker)/conversation/${data.sender_id ?? data.user_id}` as any);
-        } else {
-          router.push('/(worker)/messages' as any);
-        }
-        break;
-      default:
-        // account_update, document_verified, promotion, review_received, system_alert
-        router.push('/(worker)/dashboard' as any);
-    }
+    // Shared with the client list and the push tap handler.
+    const href = routeForNotification({
+      type: notification.notification_type,
+      data: notification.extra_data,
+      role: 'worker',
+    });
+    if (href) router.push(href as any);
   };
 
   const getNotificationIcon = (type: string) => {

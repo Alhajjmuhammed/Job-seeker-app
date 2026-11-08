@@ -36,6 +36,7 @@ interface ServiceAssignmentDetail {
   worker_notes: string | null;
   rejection_reason: string | null;
   client_name: string;
+  client_id?: number;
   client_phone: string;
   client_email?: string;
   worker_accepted: boolean | null;
@@ -326,6 +327,16 @@ export default function ServiceAssignmentDetail() {
               )}
             </View>
           )}
+          {/* Chat with the client once the job is accepted (same rule as the server) */}
+          {assignment.client_id && ['accepted', 'in_progress', 'completed'].includes(assignment.status) ? (
+            <TouchableOpacity
+              style={[styles.contactButton, { backgroundColor: theme.primary, marginTop: 8 }]}
+              onPress={() => router.push(`/(worker)/conversation/${assignment.client_id}?name=${encodeURIComponent(assignment.client_name || '')}` as any)}
+            >
+              <Ionicons name="chatbubbles" size={20} color="#FFFFFF" />
+              <Text style={styles.contactButtonText}>{t('vacancies.chat')}</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Service Details */}

@@ -24,11 +24,11 @@ interface Job {
   title: string;
   category_name: string;
   client_name: string;
-  budget: number;
+  total_price?: string | number;   // what the server sends (there is no "budget")
+  workers_needed?: number;
   duration_type: string;
   city: string;
   created_at: string;
-  application_count: number;
 }
 
 interface Category {
@@ -149,10 +149,10 @@ export default function BrowseJobsScreen() {
     if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    if (minBudget && job.budget < parseFloat(minBudget)) {
+    if (minBudget && Number(job.total_price || 0) < parseFloat(minBudget)) {
       return false;
     }
-    if (maxBudget && job.budget > parseFloat(maxBudget)) {
+    if (maxBudget && Number(job.total_price || 0) > parseFloat(maxBudget)) {
       return false;
     }
     if (durationType && job.duration_type !== durationType) {
@@ -199,7 +199,7 @@ export default function BrowseJobsScreen() {
           <View style={styles.jobFooter}>
             <View style={styles.budgetContainer}>
               <Text style={[styles.budgetAmount, { color: theme.primary }]}>
-                ${job.budget}
+                TSh {Number(job.total_price || 0).toLocaleString()}
               </Text>
               <Text style={[styles.budgetType, { color: theme.textSecondary }]}>
                 /{job.duration_type}
@@ -209,7 +209,7 @@ export default function BrowseJobsScreen() {
             <View style={styles.applicantsContainer}>
               <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
               <Text style={[styles.applicantsText, { color: theme.textSecondary }]}>
-                {job.application_count || 0} applicants
+                {job.workers_needed || 1} {(job.workers_needed || 1) > 1 ? 'workers needed' : 'worker needed'}
               </Text>
             </View>
           </View>

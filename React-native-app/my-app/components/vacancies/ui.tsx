@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
+import { errorText } from '../../utils/apiError';
 
 export type Option = { value: string; label: string };
 
@@ -260,8 +261,7 @@ export const salaryText = (v: { salary_amount?: string | null; salary_max?: stri
 };
 
 /** First message from an API error ({error} / {errors} / {detail}). */
-export const apiError = (e: any, fallback: string) =>
-  e?.response?.data?.error || e?.response?.data?.detail || fallback;
+export const apiError = (e: any, fallback: string) => errorText(e, fallback);
 
 const s = StyleSheet.create({
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, alignSelf: 'flex-start' },

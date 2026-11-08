@@ -240,11 +240,20 @@ class GDPRService:
             from jobs.models import JobApplication
             from jobs.service_request_models import ServiceRequestAssignment
             preview['profiles']['worker'] = True
+            from jobs.vacancy_models import EmploymentContract, VacancyApplication
+            wp = user.worker_profile
             preview['applications_count'] = JobApplication.objects.filter(
-                worker=user.worker_profile
+                worker=wp
             ).count() + ServiceRequestAssignment.objects.filter(
-                worker=user.worker_profile
+                worker=wp
             ).count()
+            # what the app's delete-account screen lists for a worker (it read fields that
+            # were never sent, so every line said 0 right before an irreversible delete)
+            preview['assignments_count'] = ServiceRequestAssignment.objects.filter(worker=wp).count()
+            preview['completed_jobs_count'] = ServiceRequestAssignment.objects.filter(worker=wp, status='completed').count()
+            preview['job_post_applications_count'] = VacancyApplication.objects.filter(worker=wp).count()
+            preview['contracts_count'] = EmploymentContract.objects.filter(worker=wp).count()
+            preview['documents_count'] = wp.documents.count()
         
         if hasattr(user, 'client_profile') and user.client_profile:
             from jobs.service_request_models import ServiceRequest
@@ -270,6 +279,11 @@ class GDPRService:
         from jobs.reviews import Review
         preview['reviews_given_count'] = Review.objects.filter(reviewer=user).count()
         preview['reviews_received_count'] = Review.objects.filter(reviewee=user).count()
+        # worker ratings live in clients.Rating - count them too
+        from clients.models import Rating
+        preview['reviews_given_count'] += Rating.objects.filter(client=user).count()
+        if getattr(user, 'worker_profile', None):
+            preview['reviews_received_count'] += Rating.objects.filter(worker=user.worker_profile).count()
 
         # Payments
         from workers.models import Payment

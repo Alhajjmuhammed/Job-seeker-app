@@ -49,10 +49,16 @@ export default function RespondAssignmentScreen() {
   const loadAssignment = async () => {
     try {
       setLoading(true);
-      // Get from pending assignments list
-      const response = await apiService.getPendingAssignments();
-      const assignments = response.results || response;
-      const found = assignments.find((a: any) => a.id === Number(id));
+      // Load this one assignment directly. Searching the pending list only saw its
+      // first page (20), so an assignment further down showed "not found".
+      let found: any = null;
+      try {
+        found = await apiService.getWorkerAssignmentDetail(Number(id));
+      } catch {
+        const response = await apiService.getPendingAssignments();
+        const assignments = response.results || response;
+        found = assignments.find((a: any) => a.id === Number(id));
+      }
       if (found) {
         setAssignment(found);
       } else {

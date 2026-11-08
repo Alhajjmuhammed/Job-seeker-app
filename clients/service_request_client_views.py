@@ -332,7 +332,8 @@ def client_cancel_request(request, pk):
     # cancel() releases every active assignment and frees up each worker's
     # availability, and notifies them - a plain status flip here used to
     # leave assignments/worker availability untouched.
-    service_request.cancel()
+    from clients.service_request_web_views import cancel_reason_text
+    service_request.cancel(reason=cancel_reason_text(request.data.get('reason_type'), request.data.get('reason', '')))
 
     serializer = ServiceRequestSerializer(service_request)
     return Response({

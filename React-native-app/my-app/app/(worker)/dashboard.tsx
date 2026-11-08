@@ -11,6 +11,7 @@ import {
   RefreshControl,
   Image,
 } from 'react-native';
+import { errorText } from '../../utils/apiError';
 import { StatusBar } from 'expo-status-bar';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -641,7 +642,7 @@ export default function WorkerDashboard() {
   const fetchDashboardData = async (isMounted = () => true) => {
     try {
       setLoading(true);
-      const [assignedJobsData, pendingAssignmentsData, directHires, profileData] = await Promise.all([
+      const [assignedJobsData, pendingAssignmentsData, directHires, profileData, statsData] = await Promise.all([
         apiService.getWorkerAssignments().catch(err => {
           console.log('Error fetching assigned jobs:', err);
           return { results: [] };
@@ -654,6 +655,8 @@ export default function WorkerDashboard() {
         apiService.getDirectHireRequests().catch(() => []),
         // Real availability, so the switch below starts in the right position.
         apiService.getWorkerProfile().catch(() => null),
+        // Counts over ALL assignments (the list above is only the first page of 20).
+        apiService.getWorkerStatistics().catch(() => null),
       ]);
       
       // Only update state if component is still mounted
@@ -666,7 +669,12 @@ export default function WorkerDashboard() {
         if (profileData?.availability) setIsAvailable(profileData.availability === 'available');
 
         // Calculate stats directly from assignments data (more reliable than separate API call)
-        const computedStats = {
+        const computedStats = statsData && typeof statsData.total_assignments === 'number' ? {
+          assigned_jobs: statsData.total_assignments - (statsData.rejected || 0),
+          active_jobs: statsData.in_progress || 0,
+          completed_jobs: statsData.completed || 0,
+          pending_jobs: (statsData.pending || 0) + (statsData.accepted || 0),
+        } : {
           assigned_jobs: assignmentsList.length,
           active_jobs: assignmentsList.filter((j: any) => j.status === 'in_progress').length,
           completed_jobs: assignmentsList.filter((j: any) => j.status === 'completed').length,
@@ -704,7 +712,8 @@ export default function WorkerDashboard() {
               fetchDashboardData(); // Refresh data
             } catch (error) {
               console.error('Error accepting request:', error);
-              Alert.alert(t('common.error'), 'Failed to accept request. Please try again.');
+              // show the real reason (e.g. "You are busy with other work...") instead of "try again"
+              Alert.alert(t('common.error'), errorText(error, 'Failed to accept request. Please try again.'));
             }
           },
         },
@@ -728,7 +737,7 @@ export default function WorkerDashboard() {
               fetchDashboardData(); // Refresh data
             } catch (error) {
               console.error('Error rejecting request:', error);
-              Alert.alert(t('common.error'), 'Failed to reject request. Please try again.');
+              Alert.alert(t('common.error'), errorText(error, 'Failed to reject request. Please try again.'));
             }
           },
         },

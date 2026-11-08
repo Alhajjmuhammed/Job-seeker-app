@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import API_CONFIG from '../config/api';
 import * as SecureStorage from './secureStorage';
+import { normalizeErrorBody } from '../utils/apiError';
 
 // Use centralized API configuration
 const API_BASE_URL = API_CONFIG.API_URL;
@@ -57,6 +58,8 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
+        // every screen reads error.response.data.error: make sure it is a sentence, not an object
+        if (error.response?.data) normalizeErrorBody(error.response.data);
         const config = error.config as any;
         
         // Check if we should retry
@@ -673,8 +676,10 @@ class ApiService {
     return response.data;
   }
 
-  async cancelServiceRequest(requestId: number) {
-    const response = await this.api.post(`/v1/clients/requests/${requestId}/cancel/`);
+  async cancelServiceRequest(requestId: number, reasonType?: string, reason?: string) {
+    // same reasons as the website (no_longer_needed, found_alternative, timing_issues, ..., other)
+    const response = await this.api.post(`/v1/clients/requests/${requestId}/cancel/`,
+      reasonType ? { reason_type: reasonType, reason: reason || '' } : {});
     return response.data;
   }
 

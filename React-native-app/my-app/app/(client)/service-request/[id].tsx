@@ -51,6 +51,7 @@ interface ServiceRequestDetail {
       phone_number: string;
       email: string;
       profile_picture?: string;
+      user_id?: number;
       rating?: number; // Optional - might be null
     };
     worker_response_at?: string; // When worker responded
@@ -141,24 +142,30 @@ export default function ServiceRequestDetailScreen() {
   };
 
   const handleCancelRequest = () => {
+    // The reason is picked here (Android shows at most 3 buttons), like the website's list.
     Alert.alert(
-      'Cancel Service Request',
-      'Are you sure you want to cancel this request? This action cannot be undone.',
+      t('requestService.cancelTitle', 'Cancel Service Request'),
+      t('requestService.cancelWhy', 'Why are you cancelling? This cannot be undone.'),
       [
-        { text: 'No', style: 'cancel' },
+        { text: t('requestService.keepIt', 'Keep it'), style: 'cancel' },
         {
-          text: 'Yes, Cancel',
+          text: t('requestService.cancelNoLongerNeeded', 'No longer needed'),
           style: 'destructive',
-          onPress: confirmCancellation,
+          onPress: () => confirmCancellation('no_longer_needed'),
+        },
+        {
+          text: t('requestService.cancelOtherReason', 'Other reason'),
+          style: 'destructive',
+          onPress: () => confirmCancellation('other'),
         },
       ]
     );
   };
 
-  const confirmCancellation = async () => {
+  const confirmCancellation = async (reasonType: string = 'other') => {
     try {
       setCanceling(true);
-      await apiService.cancelServiceRequest(Number(id));
+      await apiService.cancelServiceRequest(Number(id), reasonType);
       Alert.alert(t('common.success'), 'Service request cancelled successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
@@ -652,6 +659,17 @@ export default function ServiceRequestDetailScreen() {
                       >
                         <Ionicons name="call" size={20} color="#FFFFFF" />
                         <Text style={styles.callWorkerButtonText}>Call Worker</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                    {/* Chat - the website had it, the app only offered a phone call */}
+                    {(assignment.status === 'accepted' || assignment.status === 'in_progress' || assignment.status === 'completed')
+                      && assignment.worker?.user_id ? (
+                      <TouchableOpacity
+                        style={[styles.callWorkerButton, { backgroundColor: theme.primary, opacity: 0.85, marginTop: 8 }]}
+                        onPress={() => router.push(`/(client)/conversation/${assignment.worker.user_id}?name=${encodeURIComponent(assignment.worker.full_name || '')}` as any)}
+                      >
+                        <Ionicons name="chatbubbles" size={20} color="#FFFFFF" />
+                        <Text style={styles.callWorkerButtonText}>{t('vacancies.chat')}</Text>
                       </TouchableOpacity>
                     ) : null}
                   </View>

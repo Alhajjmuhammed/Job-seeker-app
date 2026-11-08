@@ -1,5 +1,6 @@
 import apiService from './api';
 import pushNotificationService from './pushNotifications';
+import { readable } from '../utils/apiError';
 
 export interface User {
   id: number;
@@ -35,9 +36,9 @@ export function apiErrorMessage(error: any, fallback: string): string {
       : fallback;
   }
   if (typeof data === 'string') return fallback;
-  if (data.message) return data.message;
-  if (data.detail) return data.detail;
-  if (data.error) return data.error;
+  if (typeof data.message === 'string' && data.message) return data.message;
+  if (typeof data.detail === 'string' && data.detail) return data.detail;
+  if (data.error) return readable(data.error) || fallback; // was returned as-is even when an object
   const firstField = Object.keys(data)[0];
   if (firstField) {
     const value = data[firstField];

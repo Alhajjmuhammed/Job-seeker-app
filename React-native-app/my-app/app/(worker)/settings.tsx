@@ -170,11 +170,11 @@ export default function SettingsScreen() {
         'Delete Account',
         `This will permanently delete:\n\n` +
         `• Your profile and personal information\n` +
-        `• ${preview.jobs_applied || 0} job applications\n` +
-        `• ${preview.jobs_completed || 0} completed jobs\n` +
-        `• ${preview.reviews || 0} reviews\n` +
-        `• ${preview.messages || 0} messages\n` +
-        `• ${preview.earnings || 0} earnings records\n` +
+        `• ${preview.assignments_count || 0} service jobs (${preview.completed_jobs_count || 0} completed)\n` +
+        `• ${preview.job_post_applications_count || 0} job applications, ${preview.contracts_count || 0} contracts\n` +
+        `• ${(preview.reviews_given_count || 0) + (preview.reviews_received_count || 0)} reviews\n` +
+        `• ${preview.messages_count || 0} messages\n` +
+        `• ${preview.documents_count || 0} documents\n` +
         `• All other associated data\n\n` +
         `⚠️ THIS ACTION CANNOT BE UNDONE!`,
         [

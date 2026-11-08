@@ -429,6 +429,14 @@ CANCEL_REASONS = (
 )
 
 
+def cancel_reason_text(reason_type, details=''):
+    """'[type] text' exactly like the website stores it; '' when no reason was given."""
+    labels = dict(CANCEL_REASONS)
+    if reason_type not in labels:
+        return str(details or '').strip()[:500]
+    return f"[{reason_type}] {str(details or '').strip()[:500] or labels[reason_type]}"
+
+
 def _cancel_context(service_request):
     return {
         'service_request': service_request,

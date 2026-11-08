@@ -344,3 +344,24 @@ class SecondReviewFixes(FlowBase):
         self.client_c.post(f'/jobs/direct-hire/{h_stale.id}/complete/', {'rating': 5})
         h.refresh_from_db()
         self.assertEqual(h.status, 'cancelled')
+
+
+class AppErrorMessagesAreText(FlowBase):
+    """The app shows response.data.error in a pop-up: it must always be a readable string."""
+
+    def test_errors_are_sentences_not_objects(self):
+        cases = [
+            post_json(self.client_c, '/api/vacancies/applications/99999/hire/'),            # 404 from get_object_or_404
+            self.client_c.get('/api/v1/client/service-requests/999999/'),                   # not found
+            post_json(self.client_c, '/api/v1/client/service-requests/create/', {}),         # validation
+            post_json(self.worker_c, '/api/jobs/worker/direct-hire-requests/999/accept/'),   # plain view error
+            post_json(type(self.client_c)(), '/api/v1/client/service-requests/create/', {}), # not logged in
+        ]
+        for r in cases:
+            body = r.json()
+            self.assertIsInstance(body.get('error'), str, (r.status_code, body))
+            self.assertTrue(body['error'].strip(), (r.status_code, body))
+            self.assertNotIn('{', body['error'])
+        hire_404 = cases[0].json()
+        self.assertIn('code', hire_404)
+        self.assertNotEqual(hire_404['error'], 'Error')  # the real reason, not a placeholder
