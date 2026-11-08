@@ -10,12 +10,11 @@
   .rv-top { position: sticky; top: calc(var(--header-height, 70px) + .6rem); z-index: 20; margin-bottom: 1rem;
             background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 16px;
             box-shadow: 0 6px 24px rgba(15, 23, 42, .06); overflow: hidden; transition: box-shadow .2s; }
-  .rv-top::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--rv-tone, #f59e0b); }
   .rv-top.is-verified { --rv-tone: #10b981; } .rv-top.is-rejected { --rv-tone: #ef4444; } .rv-top.is-pending { --rv-tone: #f59e0b; }
   /* when stuck, a strip in the page colour covers the gap under the top bar so text never peeks through */
   .rv-top.is-stuck { box-shadow: 0 -.75rem 0 .1rem var(--rv-page, #f8f9fa), 0 10px 30px rgba(15, 23, 42, .14); }
   [data-bs-theme="dark"] .rv-top { --rv-page: #0f172a; }
-  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.1rem; padding: 1rem 1.25rem 1rem 1.5rem; transition: padding .2s; }
+  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.1rem; padding: 1rem 1.25rem; transition: padding .2s; }
   .rv-back { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
              background: var(--bs-tertiary-bg); color: var(--bs-body-color); border: 0; flex-shrink: 0; }
   .rv-back:hover { background: var(--bs-secondary-bg); }
@@ -38,10 +37,10 @@
   [data-bs-theme="dark"] .rv-top .btn-outline-secondary { color: #cbd5e1; border-color: #475569; }
   [data-bs-theme="dark"] .rv-top .btn-outline-success { color: #6ee7b7; border-color: #059669; }
   .rv-btn-main { box-shadow: 0 4px 14px rgba(16, 185, 129, .3); }
-  .rv-queue { font-size: .76rem; color: var(--bs-secondary-color); padding: .5rem 1.25rem .5rem 1.5rem; border-top: 1px solid var(--bs-border-color);
+  .rv-queue { font-size: .76rem; color: var(--bs-secondary-color); padding: .5rem 1.25rem; border-top: 1px solid var(--bs-border-color);
               display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: var(--bs-tertiary-bg); }
   .rv-queue strong { color: var(--bs-body-color); font-weight: 600; }
-  .rv-reject-box { padding: 0 1.25rem 1rem 1.5rem; }
+  .rv-reject-box { padding: 0 1.25rem 1rem; }
   /* compact while scrolling: smaller avatar, no meta line */
   .rv-top.is-stuck .rv-top-main { padding-top: .6rem; padding-bottom: .6rem; }
   .rv-top.is-stuck .rv-avatar { width: 42px; height: 42px; font-size: 1.05rem; }
@@ -55,7 +54,6 @@
   .rv-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-bottom: 1.25rem; }
   .rv-step { position: relative; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 14px;
              padding: .9rem 1rem; display: flex; gap: .75rem; align-items: flex-start; overflow: hidden; }
-  .rv-step::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--st, #e5e7eb); }
   .rv-step.ok { --st: #10b981; } .rv-step.no { --st: #ef4444; } .rv-step.wait { --st: #f59e0b; }
   .rv-step-ico { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
   .rv-step.ok .rv-step-ico { background: #d1fae5; color: #059669; }
@@ -119,15 +117,15 @@
   }
   @media (max-width: 575.98px) {
     .rv-steps { grid-template-columns: 1fr; }
-    .rv-top-main { padding: .8rem .9rem .8rem 1.1rem; gap: .65rem .75rem; }
+    .rv-top-main { padding: .8rem .9rem; gap: .65rem .75rem; }
     .rv-back { width: 34px; height: 34px; }
     .rv-avatar { width: 46px; height: 46px; font-size: 1.1rem; }
     .rv-who { flex: 1 1 0; }
     .rv-name { font-size: 1.05rem; }
     .rv-actions { gap: .4rem; }
     .rv-btn { height: 36px; padding: 0 .7rem; font-size: .8rem; }
-    .rv-queue { padding: .4rem .9rem .4rem 1.1rem; font-size: .72rem; }
-    .rv-reject-box { padding: 0 .9rem .9rem 1.1rem; }
+    .rv-queue { padding: .4rem .9rem; font-size: .72rem; }
+    .rv-reject-box { padding: 0 .9rem .9rem; }
     .rv-top.is-stuck .rv-back, .rv-top.is-stuck .rv-queue { display: none; }
     .rv-top.is-stuck .rv-avatar { width: 34px; height: 34px; font-size: .9rem; }
     .rv-top.is-stuck .rv-top-main { padding-top: .5rem; padding-bottom: .5rem; }
