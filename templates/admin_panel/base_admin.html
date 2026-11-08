@@ -25,6 +25,9 @@
         
         body {
             overflow-x: hidden;
+            /* clip (not hidden) stops sideways scrolling WITHOUT turning the body into a
+               scroll box - "hidden" silently broke every position:sticky on admin pages */
+            overflow-x: clip;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         

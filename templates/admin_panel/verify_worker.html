@@ -6,120 +6,205 @@
 
 {% block content %}
 <style>
-  .rv-top { position: sticky; top: .75rem; z-index: 5; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
-            border-radius: 14px; box-shadow: 0 4px 18px rgba(15, 23, 42, .05); }
-  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: .9rem 1.1rem; }
-  .rv-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: flex; align-items: center;
-               justify-content: center; font-size: 1.35rem; font-weight: 700; color: #fff; background: #0f766e; }
-  .rv-name { font-size: 1.05rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-  .rv-meta { font-size: .8rem; color: var(--bs-secondary-color); display: flex; flex-wrap: wrap; gap: .25rem .9rem; margin-top: .15rem; }
-  .rv-meta i { margin-right: .2rem; }
-  .rv-pill { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: .2rem .55rem; border-radius: 999px; }
+  /* ---------- sticky header card (stays below the fixed top bar) ---------- */
+  .rv-top { position: sticky; top: calc(var(--header-height, 70px) + .6rem); z-index: 20; margin-bottom: 1rem;
+            background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 16px;
+            box-shadow: 0 6px 24px rgba(15, 23, 42, .06); overflow: hidden; transition: box-shadow .2s; }
+  .rv-top::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--rv-tone, #f59e0b); }
+  .rv-top.is-verified { --rv-tone: #10b981; } .rv-top.is-rejected { --rv-tone: #ef4444; } .rv-top.is-pending { --rv-tone: #f59e0b; }
+  /* when stuck, a strip in the page colour covers the gap under the top bar so text never peeks through */
+  .rv-top.is-stuck { box-shadow: 0 -.75rem 0 .1rem var(--rv-page, #f8f9fa), 0 10px 30px rgba(15, 23, 42, .14); }
+  [data-bs-theme="dark"] .rv-top { --rv-page: #0f172a; }
+  .rv-top-main { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.1rem; padding: 1rem 1.25rem 1rem 1.5rem; transition: padding .2s; }
+  .rv-back { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+             background: var(--bs-tertiary-bg); color: var(--bs-body-color); border: 0; flex-shrink: 0; }
+  .rv-back:hover { background: var(--bs-secondary-bg); }
+  .rv-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: flex; align-items: center;
+               justify-content: center; font-size: 1.45rem; font-weight: 700; color: #fff;
+               background: linear-gradient(135deg, #0f766e, #14b8a6); box-shadow: 0 0 0 3px var(--bs-body-bg), 0 0 0 5px var(--rv-tone, #f59e0b);
+               transition: width .2s, height .2s, font-size .2s; }
+  .rv-who { min-width: 0; flex: 1 1 260px; }
+  .rv-name { font-size: 1.2rem; font-weight: 750; margin: 0; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; line-height: 1.2; }
+  .rv-meta { font-size: .8rem; color: var(--bs-secondary-color); display: flex; flex-wrap: wrap; gap: .2rem 1rem; margin-top: .3rem; transition: opacity .2s; }
+  .rv-meta i { margin-right: .25rem; }
+  .rv-pill { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .25rem .6rem; border-radius: 999px; white-space: nowrap; }
   .rv-pill.pending { background: #fef3c7; color: #92400e; } .rv-pill.verified { background: #d1fae5; color: #065f46; } .rv-pill.rejected { background: #fee2e2; color: #991b1b; }
-  .rv-actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
-  .rv-actions .btn { border-radius: 9px; font-weight: 600; font-size: .82rem; }
-  .rv-queue { font-size: .74rem; color: var(--bs-secondary-color); padding: .45rem 1.1rem; border-top: 1px solid var(--bs-border-color);
-              display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  /* checklist */
-  .rv-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
-  .rv-step { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 12px; padding: .75rem .9rem; display: flex; gap: .65rem; align-items: flex-start; }
-  .rv-step-ico { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+  .rv-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: flex-end; }
+  .rv-actions form { margin: 0; }
+  .rv-btn { display: inline-flex; align-items: center; gap: .4rem; height: 40px; padding: 0 1rem; border-radius: 11px; font-weight: 600;
+            font-size: .86rem; white-space: nowrap; }
+  .rv-btn-ghost { background: var(--bs-tertiary-bg); color: var(--bs-body-color); border: 1px solid var(--bs-border-color); }
+  .rv-btn-ghost:hover { background: var(--bs-secondary-bg); color: var(--bs-body-color); }
+  [data-bs-theme="dark"] .rv-top .btn-outline-secondary { color: #cbd5e1; border-color: #475569; }
+  [data-bs-theme="dark"] .rv-top .btn-outline-success { color: #6ee7b7; border-color: #059669; }
+  .rv-btn-main { box-shadow: 0 4px 14px rgba(16, 185, 129, .3); }
+  .rv-queue { font-size: .76rem; color: var(--bs-secondary-color); padding: .5rem 1.25rem .5rem 1.5rem; border-top: 1px solid var(--bs-border-color);
+              display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: var(--bs-tertiary-bg); }
+  .rv-queue strong { color: var(--bs-body-color); font-weight: 600; }
+  .rv-reject-box { padding: 0 1.25rem 1rem 1.5rem; }
+  /* compact while scrolling: smaller avatar, no meta line */
+  .rv-top.is-stuck .rv-top-main { padding-top: .6rem; padding-bottom: .6rem; }
+  .rv-top.is-stuck .rv-avatar { width: 42px; height: 42px; font-size: 1.05rem; }
+  .rv-top.is-stuck .rv-meta { display: none; }
+  .rv-top.is-stuck .rv-name { font-size: 1.05rem; }
+
+  /* ---------- readiness ---------- */
+  .rv-ready { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin: 0 0 .6rem; flex-wrap: wrap; }
+  .rv-ready h2 { font-size: .95rem; font-weight: 700; margin: 0; }
+  .rv-ready .rv-count { font-size: .78rem; color: var(--bs-secondary-color); }
+  .rv-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-bottom: 1.25rem; }
+  .rv-step { position: relative; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 14px;
+             padding: .9rem 1rem; display: flex; gap: .75rem; align-items: flex-start; overflow: hidden; }
+  .rv-step::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--st, #e5e7eb); }
+  .rv-step.ok { --st: #10b981; } .rv-step.no { --st: #ef4444; } .rv-step.wait { --st: #f59e0b; }
+  .rv-step-ico { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
   .rv-step.ok .rv-step-ico { background: #d1fae5; color: #059669; }
   .rv-step.no .rv-step-ico { background: #fee2e2; color: #dc2626; }
   .rv-step.wait .rv-step-ico { background: #fef3c7; color: #d97706; }
-  .rv-step-t { font-size: .82rem; font-weight: 600; line-height: 1.25; }
-  .rv-step-s { font-size: .72rem; color: var(--bs-secondary-color); }
-  .rv-bar { height: 5px; border-radius: 5px; background: var(--bs-tertiary-bg); overflow: hidden; margin-top: .35rem; }
-  .rv-bar span { display: block; height: 100%; background: #10b981; }
-  /* panels */
-  .rv-panel { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 14px; height: 100%; }
-  .rv-panel-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .85rem 1.1rem; border-bottom: 1px solid var(--bs-border-color); }
-  .rv-panel-head h2 { font-size: .92rem; font-weight: 700; margin: 0; }
-  .rv-panel-head small { color: var(--bs-secondary-color); font-size: .74rem; }
-  .rv-facts { padding: .35rem 1.1rem .6rem; margin: 0; }
-  .rv-fact { display: flex; gap: .75rem; padding: .6rem 0; border-bottom: 1px dashed var(--bs-border-color); }
+  .rv-step-t { font-size: .86rem; font-weight: 650; line-height: 1.25; }
+  .rv-step-s { font-size: .74rem; color: var(--bs-secondary-color); margin-top: .15rem; line-height: 1.35; }
+  .rv-bar { height: 6px; border-radius: 6px; background: var(--bs-tertiary-bg); overflow: hidden; margin-top: .5rem; }
+  .rv-bar span { display: block; height: 100%; background: linear-gradient(90deg, #10b981, #14b8a6); border-radius: 6px; }
+
+  /* ---------- panels ---------- */
+  .rv-panel { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 16px; height: 100%; overflow: hidden; }
+  .rv-panel-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .95rem 1.25rem; border-bottom: 1px solid var(--bs-border-color); }
+  .rv-panel-head h2 { font-size: 1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: .5rem; }
+  .rv-panel-head h2 i { color: #0f766e; }
+  .rv-panel-head small { color: var(--bs-secondary-color); font-size: .76rem; }
+  .rv-facts { padding: .4rem 1.25rem .8rem; margin: 0; }
+  .rv-fact { display: flex; gap: .85rem; padding: .7rem 0; border-bottom: 1px dashed var(--bs-border-color); }
   .rv-fact:last-child { border-bottom: 0; }
-  .rv-fact > i { color: #0f766e; font-size: .95rem; margin-top: .1rem; width: 18px; text-align: center; }
-  .rv-fact dt { font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); margin: 0; }
-  .rv-fact dd { margin: 0; font-size: .86rem; word-break: break-word; }
-  .rv-skill { display: inline-block; font-size: .74rem; padding: .15rem .55rem; margin: .15rem .2rem 0 0; border-radius: 999px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-  .rv-docs { padding: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .9rem; }
-  .rv-doc { border: 1px solid var(--bs-border-color); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-  .rv-doc-preview { background: var(--bs-tertiary-bg); height: 190px; display: flex; align-items: center; justify-content: center; }
-  .rv-doc-preview img { max-width: 100%; max-height: 190px; object-fit: contain; cursor: zoom-in; }
-  .rv-doc-body { padding: .75rem .85rem; display: flex; flex-direction: column; flex: 1; }
-  .rv-empty { padding: 2.5rem 1.5rem; text-align: center; }
-  .rv-empty .ico { width: 60px; height: 60px; border-radius: 16px; margin: 0 auto .8rem; display: flex; align-items: center; justify-content: center;
-                   font-size: 1.6rem; background: #fef3c7; color: #d97706; }
-  .rv-empty h3 { font-size: .98rem; font-weight: 700; margin-bottom: .3rem; }
-  .rv-empty p { font-size: .83rem; color: var(--bs-secondary-color); max-width: 420px; margin: 0 auto 1rem; }
-  [data-bs-theme="dark"] .rv-skill { background: rgba(16, 185, 129, .12); color: #6ee7b7; border-color: rgba(16, 185, 129, .3); }
-  @media (max-width: 991.98px) { .rv-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 575.98px) { .rv-actions { margin-left: 0; width: 100%; } .rv-top { position: static; } }
+  .rv-fact > i { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+                 background: #ecfdf5; color: #0f766e; font-size: .95rem; }
+  .rv-fact dt { font-size: .68rem; font-weight: 650; text-transform: uppercase; letter-spacing: .06em; color: var(--bs-secondary-color); margin: 0 0 .1rem; }
+  .rv-fact dd { margin: 0; font-size: .9rem; word-break: break-word; }
+  .rv-fact dd a { color: #0f766e; text-decoration: none; font-weight: 500; }
+  .rv-fact dd a:hover { text-decoration: underline; }
+  .rv-skill { display: inline-block; font-size: .76rem; padding: .2rem .6rem; margin: .15rem .25rem 0 0; border-radius: 999px;
+              background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .rv-docs { padding: 1.1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .rv-doc { border: 1px solid var(--bs-border-color); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; background: var(--bs-body-bg); }
+  .rv-doc-preview { position: relative; background: var(--bs-tertiary-bg); height: 240px; display: flex; align-items: center; justify-content: center; }
+  .rv-doc-preview img { max-width: 100%; max-height: 240px; object-fit: contain; }
+  .rv-zoom { position: absolute; inset: 0; border: 0; background: transparent; cursor: zoom-in; }
+  .rv-zoom-hint { position: absolute; right: .6rem; bottom: .6rem; font-size: .72rem; padding: .25rem .55rem; border-radius: 999px;
+                  background: rgba(15, 23, 42, .7); color: #fff; pointer-events: none; }
+  .rv-doc-body { padding: .9rem 1rem 1rem; display: flex; flex-direction: column; flex: 1; gap: .35rem; }
+  .rv-doc-title { font-weight: 650; font-size: .92rem; }
+  .rv-doc-sub { font-size: .78rem; color: var(--bs-secondary-color); }
+  .rv-doc-actions { margin-top: auto; padding-top: .5rem; display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .rv-doc-actions form, .rv-doc-actions .btn { margin: 0; }
+  .rv-doc-actions .btn { width: 100%; border-radius: 10px; font-weight: 600; }
+  .rv-doc-actions > :only-child { grid-column: 1 / -1; }
+  .rv-empty { padding: 2.75rem 1.5rem; text-align: center; }
+  .rv-empty .ico { width: 68px; height: 68px; border-radius: 18px; margin: 0 auto .9rem; display: flex; align-items: center; justify-content: center;
+                   font-size: 1.8rem; background: #fef3c7; color: #d97706; }
+  .rv-empty h3 { font-size: 1.02rem; font-weight: 700; margin-bottom: .35rem; }
+  .rv-empty p { font-size: .85rem; color: var(--bs-secondary-color); max-width: 440px; margin: 0 auto 1.1rem; }
+  /* full-screen viewer */
+  #rvViewer .modal-content { background: #0b1220 !important; border: 0; color: #e2e8f0; }
+  #rvViewer .modal-title { color: #e2e8f0 !important; }
+  #rvViewer .modal-body { display: flex; align-items: center; justify-content: center; padding: 0; overflow: auto; min-height: 70vh; }
+  #rvViewer img { max-width: 100%; max-height: 82vh; transition: transform .2s; cursor: zoom-in; }
+  #rvViewer img.zoomed { transform: scale(1.8); cursor: zoom-out; }
+  #rvViewer .modal-header { border: 0; color: #e2e8f0; justify-content: flex-start; gap: .5rem; }
+
+  [data-bs-theme="dark"] .rv-skill, [data-bs-theme="dark"] .rv-fact > i { background: rgba(16, 185, 129, .12); color: #6ee7b7; border-color: rgba(16, 185, 129, .3); }
+  [data-bs-theme="dark"] .rv-top:not(.is-stuck) { box-shadow: 0 6px 24px rgba(0, 0, 0, .35); }
+  @media (max-width: 1199.98px) { .rv-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 767.98px) {
+    .rv-actions { width: 100%; justify-content: flex-start; }
+    .rv-top { top: calc(var(--header-height, 70px) + .35rem); }
+  }
+  @media (max-width: 575.98px) {
+    .rv-steps { grid-template-columns: 1fr; }
+    .rv-top-main { padding: .8rem .9rem .8rem 1.1rem; gap: .65rem .75rem; }
+    .rv-back { width: 34px; height: 34px; }
+    .rv-avatar { width: 46px; height: 46px; font-size: 1.1rem; }
+    .rv-who { flex: 1 1 0; }
+    .rv-name { font-size: 1.05rem; }
+    .rv-actions { gap: .4rem; }
+    .rv-btn { height: 36px; padding: 0 .7rem; font-size: .8rem; }
+    .rv-queue { padding: .4rem .9rem .4rem 1.1rem; font-size: .72rem; }
+    .rv-reject-box { padding: 0 .9rem .9rem 1.1rem; }
+    .rv-top.is-stuck .rv-back, .rv-top.is-stuck .rv-queue { display: none; }
+    .rv-top.is-stuck .rv-avatar { width: 34px; height: 34px; font-size: .9rem; }
+    .rv-top.is-stuck .rv-top-main { padding-top: .5rem; padding-bottom: .5rem; }
+  }
 </style>
 
 {% with name=worker.user.get_full_name|default:worker.user.username %}
-{# ---------- who + decision ---------- #}
-<div class="rv-top mb-3">
+<div id="rvSentinel"></div>
+{# ---------- who + decision (sticky) ---------- #}
+<div class="rv-top is-{{ worker.verification_status }}" id="rvTop">
   <div class="rv-top-main">
-    <a href="{% url 'admin_panel:worker_verification_list' %}" class="btn btn-sm btn-light" title="{% trans 'Back to the list' %}"><i class="bi bi-arrow-left"></i></a>
+    <a href="{% url 'admin_panel:worker_verification_list' %}" class="rv-back" title="{% trans 'Back to the list' %}"
+       aria-label="{% trans 'Back to the list' %}"><i class="bi bi-arrow-left"></i></a>
     {% if worker.photo_url %}<img src="{{ worker.photo_url }}" class="rv-avatar" alt="">
     {% else %}<div class="rv-avatar">{{ name|first|upper }}</div>{% endif %}
-    <div style="min-width:0">
+    <div class="rv-who">
       <h1 class="rv-name">{{ name }}
-        {% if worker.verification_status == 'verified' %}<span class="rv-pill verified">{% trans "Verified" %}</span>
-        {% elif worker.verification_status == 'rejected' %}<span class="rv-pill rejected">{% trans "Rejected" %}</span>
-        {% else %}<span class="rv-pill pending">{% trans "Pending" %}</span>{% endif %}
+        {% if worker.verification_status == 'verified' %}<span class="rv-pill verified"><i class="bi bi-patch-check-fill"></i> {% trans "Verified" %}</span>
+        {% elif worker.verification_status == 'rejected' %}<span class="rv-pill rejected"><i class="bi bi-x-octagon-fill"></i> {% trans "Rejected" %}</span>
+        {% else %}<span class="rv-pill pending"><i class="bi bi-hourglass-split"></i> {% trans "Pending" %}</span>{% endif %}
       </h1>
       <div class="rv-meta">
         <span><i class="bi bi-briefcase"></i>{{ worker.get_worker_type_display }}</span>
         {% if worker.city %}<span><i class="bi bi-geo-alt"></i>{{ worker.city }}</span>{% endif %}
         <span><i class="bi bi-calendar3"></i>{% trans "Joined" %} {{ worker.user.date_joined|date:"d M Y" }}</span>
+        {% if worker.agent %}<span><i class="bi bi-person-badge"></i>{% trans "Agent" %}: {{ worker.agent.user.get_full_name }}</span>{% endif %}
       </div>
     </div>
 
     <div class="rv-actions">
-      <a href="{% url 'jobs:conversation' worker.user.id %}" class="btn btn-sm btn-light"><i class="bi bi-chat-dots"></i> {% trans "Message" %}</a>
+      <a href="{% url 'jobs:conversation' worker.user.id %}" class="btn rv-btn rv-btn-ghost"><i class="bi bi-chat-dots"></i> {% trans "Message" %}</a>
       {% if worker.verification_status != 'verified' %}
         {% if id_approved %}
-        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="verify"><input type="hidden" name="then" value="next">
-          <button class="btn btn-sm btn-success"><i class="bi bi-check2-circle"></i> {% trans "Verify" %}</button></form>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="verify">
+          <button class="btn btn-success rv-btn rv-btn-main"><i class="bi bi-check2-circle"></i> {% trans "Verify" %}</button></form>
         {% elif id_pending %}
-        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="approve_id_and_verify"><input type="hidden" name="then" value="next">
-          <button class="btn btn-sm btn-success"><i class="bi bi-check2-all"></i> {% trans "Approve ID & verify" %}</button></form>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="approve_id_and_verify">
+          <button class="btn btn-success rv-btn rv-btn-main"><i class="bi bi-check2-all"></i> {% trans "Approve ID & verify" %}</button></form>
         {% else %}
         <span class="d-inline-block" tabindex="0" title="{% trans 'Needs an ID document' %}">
-          <button class="btn btn-sm btn-success" disabled><i class="bi bi-check2-circle"></i> {% trans "Verify" %}</button></span>
+          <button class="btn btn-success rv-btn" disabled><i class="bi bi-check2-circle"></i> {% trans "Verify" %}</button></span>
         {% endif %}
         {% if worker.verification_status != 'rejected' %}
-        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#rejectWorker"><i class="bi bi-x-circle"></i> {% trans "Reject" %}</button>
+        <button class="btn btn-outline-danger rv-btn" data-bs-toggle="collapse" data-bs-target="#rejectWorker" aria-expanded="false">
+          <i class="bi bi-x-circle"></i> {% trans "Reject" %}</button>
         {% endif %}
       {% endif %}
       {% if worker.verification_status != 'pending' %}
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="reopen">
-          <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Back to pending" %}</button></form>
+          <button class="btn btn-outline-secondary rv-btn"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Back to pending" %}</button></form>
       {% endif %}
       {% if next_worker %}
-        <a href="{% url 'admin_panel:verify_worker' next_worker.id %}" class="btn btn-sm btn-outline-success">{% trans "Next" %} <i class="bi bi-chevron-right"></i></a>
+        <a href="{% url 'admin_panel:verify_worker' next_worker.id %}" class="btn btn-outline-success rv-btn"
+           title="{{ next_worker.user.get_full_name|default:next_worker.user.username }}">{% trans "Next" %} <i class="bi bi-chevron-right"></i></a>
       {% endif %}
     </div>
   </div>
   <div class="collapse" id="rejectWorker">
-    <form method="post" class="d-flex flex-wrap gap-2 px-3 pb-3">{% csrf_token %}
-      <input type="hidden" name="action" value="reject"><input type="hidden" name="then" value="next">
-      <input name="reason" class="form-control form-control-sm flex-grow-1" style="min-width:240px" required
+    <form method="post" class="rv-reject-box d-flex flex-wrap gap-2">{% csrf_token %}
+      <input type="hidden" name="action" value="reject">
+      <input name="reason" class="form-control flex-grow-1" style="min-width:240px" required
              placeholder="{% trans 'Reason (sent to the worker)' %}">
-      <button class="btn btn-sm btn-danger">{% trans "Reject worker" %}</button>
+      <button class="btn btn-danger rv-btn">{% trans "Reject worker" %}</button>
     </form>
   </div>
   <div class="rv-queue">
-    <span><i class="bi bi-hourglass-split"></i> {{ queue_left }} {% trans "workers waiting for review" %}</span>
-    {% if next_worker %}<span>{% trans "Next" %}: {{ next_worker.user.get_full_name|default:next_worker.user.username }}</span>{% endif %}
+    <span><i class="bi bi-hourglass-split"></i> <strong>{{ queue_left }}</strong> {% trans "workers waiting for review" %}</span>
+    {% if next_worker %}<span>{% trans "Next" %}: <strong>{{ next_worker.user.get_full_name|default:next_worker.user.username }}</strong></span>{% endif %}
   </div>
 </div>
 
 {# ---------- what is needed to verify ---------- #}
-<div class="rv-steps mb-3">
+<div class="rv-ready">
+  <h2>{% trans "Ready to verify?" %}</h2>
+  <span class="rv-count">{% if id_approved %}<i class="bi bi-check-circle-fill text-success"></i> {% trans "The ID is approved - you can verify this worker." %}{% elif has_id %}<i class="bi bi-hourglass-split text-warning"></i> {% trans "Check the ID below, then approve it." %}{% else %}<i class="bi bi-exclamation-circle-fill text-danger"></i> {% trans "Waiting for the worker to upload an ID." %}{% endif %}</span>
+</div>
+<div class="rv-steps">
   <div class="rv-step {% if has_id %}ok{% else %}no{% endif %}">
     <div class="rv-step-ico"><i class="bi {% if has_id %}bi-check-lg{% else %}bi-x-lg{% endif %}"></i></div>
     <div><div class="rv-step-t">{% trans "ID uploaded" %}</div>
@@ -130,7 +215,7 @@
     <div><div class="rv-step-t">{% trans "ID approved" %}</div>
       <div class="rv-step-s">{% if id_approved %}{% trans "Ready to verify" %}{% elif id_pending %}{% trans "Waiting for your check" %}{% else %}{% trans "Nothing to approve yet" %}{% endif %}</div></div>
   </div>
-  <div class="rv-step {% if worker.profile_completion_percentage >= 80 %}ok{% else %}wait{% endif %}">
+  <div class="rv-step {% if worker.profile_completion_percentage >= 70 %}ok{% else %}wait{% endif %}">
     <div class="rv-step-ico"><i class="bi bi-person-lines-fill"></i></div>
     <div class="flex-grow-1"><div class="rv-step-t">{% trans "Profile" %} {{ worker.profile_completion_percentage }}%</div>
       <div class="rv-bar"><span style="width: {{ worker.profile_completion_percentage }}%"></span></div></div>
@@ -144,9 +229,9 @@
 
 <div class="row g-3">
   {# ---------- profile ---------- #}
-  <div class="col-lg-4">
+  <div class="col-xl-4 col-lg-5">
     <div class="rv-panel">
-      <div class="rv-panel-head"><h2>{% trans "Details" %}</h2></div>
+      <div class="rv-panel-head"><h2><i class="bi bi-person-vcard"></i> {% trans "Details" %}</h2></div>
       <dl class="rv-facts">
         <div class="rv-fact"><i class="bi bi-telephone"></i><div><dt>{% trans "Phone" %}</dt>
           <dd>{% if worker.user.phone_number %}<a href="tel:{{ worker.user.phone_number }}">{{ worker.user.phone_number }}</a>{% else %}—{% endif %}</dd></div></div>
@@ -167,9 +252,9 @@
   </div>
 
   {# ---------- documents ---------- #}
-  <div class="col-lg-8">
+  <div class="col-xl-8 col-lg-7">
     <div class="rv-panel">
-      <div class="rv-panel-head"><h2>{% trans "Documents" %}</h2><small>{{ documents|length }} {% trans "uploaded" %}</small></div>
+      <div class="rv-panel-head"><h2><i class="bi bi-file-earmark-text"></i> {% trans "Documents" %}</h2><small>{{ documents|length }} {% trans "uploaded" %}</small></div>
       {% if documents %}
       <div class="rv-docs">
         {% for doc in documents %}
@@ -179,24 +264,27 @@
               <div class="text-center text-muted small px-3"><i class="bi bi-exclamation-octagon fs-3 d-block text-warning"></i>
                 {% trans "File missing on the server - ask the worker to upload it again." %}</div>
             {% elif doc.is_image %}
-              <a href="{{ doc.file.url }}" target="_blank" rel="noopener"><img src="{{ doc.file.url }}" alt="{{ doc.title }}" loading="lazy"></a>
+              <img src="{{ doc.file.url }}" alt="{{ doc.title }}" loading="lazy">
+              <button type="button" class="rv-zoom" data-src="{{ doc.file.url }}" data-title="{{ doc.title }}"
+                      aria-label="{% trans 'View full size' %}"></button>
+              <span class="rv-zoom-hint"><i class="bi bi-arrows-fullscreen"></i> {% trans "View full size" %}</span>
             {% else %}
               <a href="{{ doc.file.url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
                 <i class="bi bi-file-earmark-{% if doc.is_pdf %}pdf{% else %}text{% endif %} fs-3 d-block"></i>{% trans "Open file" %}</a>
             {% endif %}
           </div>
           <div class="rv-doc-body">
-            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-              <strong class="small">{{ doc.get_document_type_display|cut:" (Required)"|cut:" (Optional)" }}</strong>
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <span class="rv-doc-title">{{ doc.get_document_type_display|cut:" (Required)"|cut:" (Optional)" }}</span>
               {% if doc.verification_status == 'approved' %}<span class="rv-pill verified">{% trans "Approved" %}</span>
               {% elif doc.verification_status == 'rejected' %}<span class="rv-pill rejected">{% trans "Rejected" %}</span>
               {% else %}<span class="rv-pill pending">{% trans "Waiting" %}</span>{% endif %}
             </div>
-            <div class="small text-muted mb-2">{{ doc.title }} · {{ doc.uploaded_at|date:"d M Y" }}</div>
+            <div class="rv-doc-sub">{{ doc.title }} · {{ doc.uploaded_at|date:"d M Y" }}</div>
             {% if doc.verification_status == 'rejected' and doc.rejection_reason %}
-              <div class="small text-danger mb-2">{{ doc.rejection_reason }}</div>
+              <div class="small text-danger"><i class="bi bi-info-circle"></i> {{ doc.rejection_reason }}</div>
             {% endif %}
-            <div class="mt-auto d-flex flex-wrap gap-2">
+            <div class="rv-doc-actions">
               {% if doc.file_missing %}
               <form method="post">{% csrf_token %}<input type="hidden" name="action" value="reject_doc"><input type="hidden" name="doc_id" value="{{ doc.id }}">
                 <input type="hidden" name="reason" value="{% trans 'Your file could not be found on our system. Please upload it again' %}">
@@ -204,13 +292,14 @@
               {% endif %}
               {% if doc.verification_status != 'approved' and not doc.file_missing %}
               <form method="post">{% csrf_token %}<input type="hidden" name="action" value="approve_doc"><input type="hidden" name="doc_id" value="{{ doc.id }}">
-                <button class="btn btn-sm btn-success">{% trans "Approve" %}</button></form>
+                <button class="btn btn-sm btn-success"><i class="bi bi-check2"></i> {% trans "Approve" %}</button></form>
               {% endif %}
               {% if doc.verification_status != 'rejected' %}
-              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#rejectDoc{{ doc.id }}">{% trans "Reject" %}</button>
+              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#rejectDoc{{ doc.id }}">
+                <i class="bi bi-x"></i> {% trans "Reject" %}</button>
               {% endif %}
             </div>
-            <form method="post" class="collapse mt-2" id="rejectDoc{{ doc.id }}">{% csrf_token %}
+            <form method="post" class="collapse mt-1" id="rejectDoc{{ doc.id }}">{% csrf_token %}
               <input type="hidden" name="action" value="reject_doc"><input type="hidden" name="doc_id" value="{{ doc.id }}">
               <div class="input-group input-group-sm">
                 <input name="reason" class="form-control" required placeholder="{% trans 'e.g. photo is blurry' %}">
@@ -226,11 +315,55 @@
         <div class="ico"><i class="bi bi-folder2-open"></i></div>
         <h3>{% trans "No documents uploaded yet." %}</h3>
         <p>{% trans "The worker has to upload an ID (National ID, passport or driving licence) from their profile before you can verify them. Send them a message to remind them." %}</p>
-        <a href="{% url 'jobs:conversation' worker.user.id %}" class="btn btn-sm btn-success"><i class="bi bi-chat-dots"></i> {% trans "Message" %} {{ worker.user.first_name|default:name }}</a>
+        <a href="{% url 'jobs:conversation' worker.user.id %}" class="btn btn-success rv-btn"><i class="bi bi-chat-dots"></i> {% trans "Message" %} {{ worker.user.first_name|default:name }}</a>
       </div>
       {% endif %}
     </div>
   </div>
 </div>
+
+{# full-screen document viewer #}
+<div class="modal fade" id="rvViewer" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rvViewerTitle"></h5>
+        <a id="rvViewerOpen" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light ms-auto me-2"><i class="bi bi-box-arrow-up-right"></i> {% trans "Open file" %}</a>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body"><img id="rvViewerImg" src="" alt=""></div>
+    </div>
+  </div>
+</div>
 {% endwith %}
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // compact the sticky header once it has scrolled up to the top bar
+  var top = document.getElementById('rvTop'), sentinel = document.getElementById('rvSentinel');
+  if (top && sentinel && 'IntersectionObserver' in window) {
+    var offset = (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 70) + 12;
+    new IntersectionObserver(function (entries) {
+      top.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, { rootMargin: '-' + offset + 'px 0px 0px 0px' }).observe(sentinel);
+  }
+  // full-size document viewer (click to zoom)
+  var modalEl = document.getElementById('rvViewer');
+  if (!modalEl || !window.bootstrap) return;
+  var modal = new bootstrap.Modal(modalEl), img = document.getElementById('rvViewerImg');
+  document.querySelectorAll('.rv-zoom').forEach(function (b) {
+    b.addEventListener('click', function () {
+      img.src = b.dataset.src; img.alt = b.dataset.title || ''; img.classList.remove('zoomed');
+      document.getElementById('rvViewerTitle').textContent = b.dataset.title || '';
+      document.getElementById('rvViewerOpen').href = b.dataset.src;
+      modal.show();
+    });
+  });
+  img.addEventListener('click', function () { img.classList.toggle('zoomed'); });
+})();
+</script>
 {% endblock %}

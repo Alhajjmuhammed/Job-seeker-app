@@ -772,17 +772,24 @@ class VerificationQueueTests(FlowBase):
                                               file=SimpleUploadedFile('cv.pdf', b'%PDF-1.4'))
         self.assertEqual(self.admin_c.post(url, {'action': 'approve_doc', 'doc_id': other.id}).status_code, 404)
 
-    def test_reject_worker_needs_reason_and_goes_to_next(self):
+    def test_reject_worker_needs_reason_and_stays_on_the_worker(self):
         url = f'/dashboard/workers/verify/{self.pending.id}/'
         self.admin_c.post(url, {'action': 'reject'})
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.verification_status, 'pending')
         nxt_user = User.objects.create_user(email='nx@t.co', username='nexty', password=PW, user_type='worker', first_name='Next')
         nxt = WorkerProfile.objects.create(user=nxt_user, verification_status='pending')
+        # even an old form that still asks for "next" comes back to the same worker
         r = self.admin_c.post(url, {'action': 'reject', 'reason': 'fake ID', 'then': 'next'})
-        self.assertRedirects(r, f'/dashboard/workers/verify/{nxt.id}/', fetch_redirect_response=False)
+        self.assertRedirects(r, url, fetch_redirect_response=False)
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.verification_status, 'rejected')
+        page = self.admin_c.get(url).content.decode()
+        self.assertIn(f'/dashboard/workers/verify/{nxt.id}/', page)  # "Next" is the admin's own click
+        self.assertNotIn('name="then"', page)
+        # verifying also stays put
+        r = self.admin_c.post(url, {'action': 'reopen'})
+        self.assertRedirects(r, url, fetch_redirect_response=False)
         self.assertIn('fake ID', self.Notification.objects.get(recipient=self.pending_user, title='Verification not approved').message)
 
     def test_old_document_pages_lead_to_the_review_page(self):

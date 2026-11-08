@@ -3680,10 +3680,9 @@ msgid "Explain what the worker needs to correct"
 msgstr ""
 
 #: templates/admin_panel/verify_worker.html:115
-#, fuzzy
 #| msgid "Rejected"
 msgid "Reject worker"
-msgstr "Imekataliwa"
+msgstr "Mkatae mfanyakazi"
 
 #: templates/admin_panel/verify_worker.html:120
 msgid "Back to verification queue"
@@ -11933,3 +11932,23 @@ msgstr "Umesitishwa mapema"
 
 msgid "Renewed"
 msgstr "Umehuishwa"
+
+#: templates/admin_panel/verify_worker.html
+msgid "Check the ID below, then approve it."
+msgstr "Kagua kitambulisho hapa chini, kisha ukiidhinishe."
+
+#: templates/admin_panel/verify_worker.html
+msgid "Ready to verify?"
+msgstr "Tayari kuthibitisha?"
+
+#: templates/admin_panel/verify_worker.html
+msgid "The ID is approved - you can verify this worker."
+msgstr "Kitambulisho kimeidhinishwa - unaweza kumthibitisha mfanyakazi huyu."
+
+#: templates/admin_panel/verify_worker.html
+msgid "View full size"
+msgstr "Tazama kwa ukubwa kamili"
+
+#: templates/admin_panel/verify_worker.html
+msgid "Waiting for the worker to upload an ID."
+msgstr "Inasubiri mfanyakazi apakie kitambulisho."

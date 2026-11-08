@@ -105,12 +105,8 @@ def review_worker(request, worker_id):
 
     if request.method == 'POST':
         _decide(request, worker)
-        if request.POST.get('then') == 'next':
-            nxt = _next_pending(worker)
-            if nxt:
-                return redirect('admin_panel:verify_worker', worker_id=nxt.pk)
-            messages.info(request, 'No more workers waiting for review.')
-            return redirect('admin_panel:worker_verification_list')
+        # Always come back to the SAME worker: the admin moves on only with "Next".
+        # (Jumping ahead after verify/reject hid the result and lost the place.)
         return redirect('admin_panel:verify_worker', worker_id=worker.pk)
 
     documents = list(worker.documents.order_by('document_type', '-uploaded_at'))
