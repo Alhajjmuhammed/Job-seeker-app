@@ -275,7 +275,7 @@ export default function AnalyticsScreen() {
                         TSH {parseFloat(item.earnings || 0).toFixed(0)}
                       </Text>
                       <Text style={[styles.categoryJobs, { color: theme.textSecondary }]}>
-                        {item.jobs_count} jobs
+                        {t('insightsScreen.jobsCount', { count: item.jobs_count })}
                       </Text>
                     </View>
                   </View>
@@ -297,7 +297,7 @@ export default function AnalyticsScreen() {
             <Ionicons name="trending-up" size={24} color="#10B981" />
             <View style={styles.insightContent}>
               <Text style={[styles.insightTitle, { color: theme.text }]}>
-                {analytics?.response_rate || 0}% Response Rate
+                {t('insightsScreen.responseRate', { rate: analytics?.response_rate || 0 })}
               </Text>
               <Text style={[styles.insightText, { color: theme.textSecondary }]}>{t('analytics.keepResponding')}</Text>
             </View>
@@ -307,12 +307,12 @@ export default function AnalyticsScreen() {
             <Ionicons name="trophy" size={24} color="#F59E0B" />
             <View style={styles.insightContent}>
               <Text style={[styles.insightTitle, { color: theme.text }]}>
-                {calculateSuccessRate()}% Application Success
+                {t('insightsScreen.applicationSuccess', { rate: calculateSuccessRate() })}
               </Text>
               <Text style={[styles.insightText, { color: theme.textSecondary }]}>
                 {calculateSuccessRate() >= 50 
-                  ? 'Great job! Your proposals are winning clients'
-                  : 'Improve your proposals to win more jobs'}
+                  ? t('insightsScreen.greatJob')
+                  : t('insightsScreen.improve')}
               </Text>
             </View>
           </View>

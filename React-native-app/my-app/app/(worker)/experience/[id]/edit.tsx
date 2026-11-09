@@ -53,8 +53,8 @@ export default function EditExperienceScreen() {
       const experience = experiences.find((exp: any) => exp.id === parseInt(id as string));
       
       if (!experience) {
-        Alert.alert(t('common.error'), 'Experience not found', [
-          { text: 'OK', onPress: () => router.back() }
+        Alert.alert(t('common.error'), t('experienceScreen.notFound'), [
+          { text: t('common.ok'), onPress: () => router.back() }
         ]);
         return;
       }
@@ -68,8 +68,8 @@ export default function EditExperienceScreen() {
       setDescription(experience.description || '');
     } catch (error) {
       console.error('Failed to load experience:', error);
-      Alert.alert(t('common.error'), 'Failed to load experience data', [
-        { text: 'OK', onPress: () => router.back() }
+      Alert.alert(t('common.error'), t('experienceScreen.failedLoad'), [
+        { text: t('common.ok'), onPress: () => router.back() }
       ]);
     } finally {
       setLoading(false);
@@ -79,11 +79,11 @@ export default function EditExperienceScreen() {
   const handleSave = async () => {
     // Validation
     if (!jobTitle.trim()) {
-      Alert.alert(t('client.validationError'), 'Job title is required');
+      Alert.alert(t('client.validationError'), t('experienceScreen.jobTitleRequired'));
       return;
     }
     if (!company.trim()) {
-      Alert.alert(t('client.validationError'), 'Company name is required');
+      Alert.alert(t('client.validationError'), t('experienceScreen.companyRequired'));
       return;
     }
 
@@ -101,12 +101,12 @@ export default function EditExperienceScreen() {
       };
 
       await apiService.updateWorkExperience(parseInt(id as string), data);
-      Alert.alert(t('common.success'), 'Experience updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
+      Alert.alert(t('common.success'), t('experienceScreen.updatedSuccess'), [
+        { text: t('common.ok'), onPress: () => router.back() }
       ]);
     } catch (error: any) {
       console.error('Failed to update experience:', error);
-      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to update experience');
+      Alert.alert(t('common.error'), error.response?.data?.error || t('experienceScreen.failedUpdate'));
     } finally {
       setSaving(false);
     }
@@ -123,7 +123,7 @@ export default function EditExperienceScreen() {
         <Header showBack />
         <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading experience...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('experienceScreen.loadingOne')}</Text>
         </View>
       </View>
     );
@@ -137,35 +137,35 @@ export default function EditExperienceScreen() {
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text }]}>{t('common.edit')}</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('experienceScreen.editTitle')}</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Update your work history details
+            {t('experienceScreen.editSubtitle')}
           </Text>
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.3 : 0.1 }]}>
           <View style={styles.formGroup}>
             <Text style={[styles.label, { color: theme.text }]}>
-              Job Title <Text style={styles.required}>*</Text>
+              {t('experienceScreen.jobTitle')} <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={jobTitle}
               onChangeText={setJobTitle}
-              placeholder="e.g., Senior Software Engineer"
+              placeholder={t('experienceScreen.jobTitlePlaceholder')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           <View style={styles.formGroup}>
             <Text style={[styles.label, { color: theme.text }]}>
-              Company <Text style={styles.required}>*</Text>
+              {t('experienceScreen.company')} <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={company}
               onChangeText={setCompany}
-              placeholder="e.g., Tech Corp"
+              placeholder={t('experienceScreen.companyPlaceholder')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
@@ -176,14 +176,14 @@ export default function EditExperienceScreen() {
               style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={location}
               onChangeText={setLocation}
-              placeholder="e.g., Dar es Salaam, Tanzania"
+              placeholder={t('experienceScreen.locationPlaceholder')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           <View style={styles.formRow}>
             <View style={styles.formGroupHalf}>
-              <Text style={[styles.label, { color: theme.text }]}>Start Date</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('experienceScreen.startDate')}</Text>
               <TouchableOpacity
                 style={[styles.dateButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 onPress={() => setShowStartPicker(true)}
@@ -197,7 +197,7 @@ export default function EditExperienceScreen() {
 
             {!isCurrent && (
               <View style={styles.formGroupHalf}>
-                <Text style={[styles.label, { color: theme.text }]}>End Date</Text>
+                <Text style={[styles.label, { color: theme.text }]}>{t('experienceScreen.endDate')}</Text>
                 <TouchableOpacity
                   style={[styles.dateButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
                   onPress={() => setShowEndPicker(true)}
@@ -220,25 +220,25 @@ export default function EditExperienceScreen() {
                 thumbColor="#FFFFFF"
               />
               <Text style={[styles.checkboxLabel, { color: theme.text }]}>
-                I currently work here
+                {t('experienceScreen.currentlyWorkHere')}
               </Text>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Description</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('experienceScreen.description')}</Text>
             <TextInput
               style={[styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
               value={description}
               onChangeText={setDescription}
-              placeholder="Describe your responsibilities and achievements..."
+              placeholder={t('experienceScreen.descriptionPlaceholder')}
               placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={6}
               textAlignVertical="top"
             />
             <Text style={[styles.helpText, { color: theme.textSecondary }]}>
-              Share your key responsibilities, accomplishments, and skills used
+              {t('experienceScreen.descriptionHelp')}
             </Text>
           </View>
         </View>
@@ -254,7 +254,7 @@ export default function EditExperienceScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>Update Experience</Text>
+                <Text style={styles.saveButtonText}>{t('experienceScreen.updateButton')}</Text>
               </>
             )}
           </TouchableOpacity>

@@ -85,7 +85,7 @@ export default function ProfileSetupScreen() {
       }
     } catch (error: any) {
       console.error('Document upload failed:', error);
-      Alert.alert(t('worker.uploadFailed'), error.response?.data?.error || 'Failed to upload document. Please try again.');
+      Alert.alert(t('worker.uploadFailed'), error.response?.data?.error || t('profileSetupScreen.failedUpload'));
     } finally {
       setLoading(false);
     }
@@ -101,17 +101,19 @@ export default function ProfileSetupScreen() {
 
   const handleFinishSetup = () => {
     if (!canProceed) {
-      Alert.alert(t('worker.required'), 'Please upload your National ID to finish setup.');
+      Alert.alert(t('worker.required'), t('profileSetupScreen.uploadIdToFinish'));
       return;
     }
     
     // Mark profile as complete and navigate to dashboard
     Alert.alert(
-      'Profile Setup Complete!',
-      `Your profile is ${completion}% complete. ${completion === 100 ? 'Great job!' : 'You can add more details later in your profile.'}`,
+      t('worker.profileSetupComplete'),
+      completion === 100
+        ? t('profileSetupScreen.completeFull', { pct: completion })
+        : t('profileSetupScreen.completePartial', { pct: completion }),
       [
         {
-          text: 'Go to Dashboard',
+          text: t('worker.goToDashboard'),
           onPress: () => router.replace('/(worker)/dashboard'),
         },
       ]
@@ -121,20 +123,20 @@ export default function ProfileSetupScreen() {
   const handleSkipForNow = () => {
     if (!canProceed) {
       Alert.alert(
-        'National ID Required',
-        'You must upload your National ID before you can skip. This is mandatory for verification.',
-        [{ text: 'OK' }]
+        t('worker.nationalIDRequired'),
+        t('worker.mustUploadID'),
+        [{ text: t('common.ok') }]
       );
       return;
     }
     
     Alert.alert(
-      'Skip Setup?',
-      `Your profile is ${completion}% complete. You can complete it later from your profile page.`,
+      t('worker.skipSetupQuestion'),
+      t('profileSetupScreen.skipMsg', { pct: completion }),
       [
-        { text: 'Continue Setup', style: 'cancel' },
+        { text: t('worker.continueSetup'), style: 'cancel' },
         {
-          text: 'Skip',
+          text: t('worker.skip'),
           style: 'destructive',
           onPress: () => router.replace('/(worker)/dashboard'),
         },
@@ -147,7 +149,7 @@ export default function ProfileSetupScreen() {
       <View style={styles.welcomeIcon}>
         <Ionicons name="checkmark-done-circle" size={80} color={theme.primary} />
       </View>
-      <Text style={styles.welcomeTitle}>Welcome, {user?.firstName}!</Text>
+      <Text style={styles.welcomeTitle}>{t('profileSetupScreen.welcome', { name: user?.firstName ?? '' })}</Text>
       <Text style={styles.welcomeSubtitle}>{t('worker.setupProfileMessage')}</Text>
 
       <View style={styles.setupSteps}>
@@ -255,7 +257,7 @@ export default function ProfileSetupScreen() {
           )}
           <Text style={styles.uploadCardTitle}>{t('worker.nationalID')}</Text>
           <Text style={styles.uploadCardStatus}>
-            {hasUploadedID ? 'Uploaded' : 'Tap to upload'}
+            {hasUploadedID ? t('worker.uploaded') : t('worker.tapToUpload')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -591,7 +593,7 @@ export default function ProfileSetupScreen() {
     <View style={styles.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      <Header title="Profile Setup" showBack={false} showNotifications={false} showSearch={false} />
+      <Header title={t('profileSetupScreen.title')} showBack={false} showNotifications={false} showSearch={false} />
 
       <View style={{ paddingTop: 8 }}>
         <View style={styles.stepIndicatorContainer}>

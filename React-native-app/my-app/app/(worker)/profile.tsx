@@ -102,9 +102,9 @@ export default function WorkerProfileScreen() {
       await apiService.updateWorkerAvailability(value);
       setIsAvailable(value);
       Alert.alert(
-        'Success',
-        value ? 'You are now available for work' : 'You are now unavailable',
-        [{ text: 'OK' }]
+        t('common.success'),
+        value ? t('profile.nowAvailable') : t('profile.nowUnavailable'),
+        [{ text: t('common.ok') }]
       );
     } catch (error) {
       console.error('Error updating availability:', error);
@@ -114,9 +114,9 @@ export default function WorkerProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(t('nav.logout'), t('profile.sureLogout'), [
-      { text: 'Cancel', style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Logout',
+        text: t('nav.logout'),
         style: 'destructive',
         onPress: async () => await logout(),
       },
@@ -194,8 +194,8 @@ export default function WorkerProfileScreen() {
                     user.verificationStatus === 'verified' ? '#059669' :
                     user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
                 }}>
-                  {user.verificationStatus === 'verified' ? 'Verified Worker' :
-                   user.verificationStatus === 'rejected' ? 'Verification Failed' : 'Verification Pending'}
+                  {user.verificationStatus === 'verified' ? t('workerProfileScreen.verifiedWorker') :
+                   user.verificationStatus === 'rejected' ? t('profile.verificationFailed') : t('profile.verificationPending')}
                 </Text>
               </View>
               {user.verificationStatus !== 'verified' && (
@@ -207,8 +207,8 @@ export default function WorkerProfileScreen() {
                   textAlign: 'center',
                 }}>
                   {user.verificationStatus === 'pending' 
-                    ? 'Your documents are under review' 
-                    : 'Please upload valid documents'}
+                    ? t('profile.documentsUnderReview')
+                    : t('profile.uploadValidDocs')}
                 </Text>
               )}
             </View>
@@ -228,7 +228,7 @@ export default function WorkerProfileScreen() {
               <View>
                 <Text style={[styles.completionTitle, { color: theme.text }]}>{t('profile.completeProfile')}</Text>
                 <Text style={[styles.completionSubtitle, { color: theme.textSecondary }]}>
-                  {profile.profile_completion_percentage}% completed
+                  {t('workerProfileScreen.percentCompleted', { pct: profile.profile_completion_percentage })}
                 </Text>
               </View>
               <Text style={[styles.completionPercent, { color: theme.primary }]}>
@@ -319,7 +319,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.push('/(worker)/cv' as any)}
           >
             <Ionicons name="person-circle-outline" size={24} color={theme.primary} />
-            <Text style={[styles.menuText, { color: theme.text }]}>My CV</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>{t('workerProfileScreen.myCv')}</Text>
             <Text style={[styles.menuArrow, { color: theme.textTertiary }]}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity

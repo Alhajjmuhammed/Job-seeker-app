@@ -20,9 +20,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 
 const URGENCY_OPTIONS = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'emergency', label: 'Emergency' },
+  { value: 'normal', label: 'requestService.normal' },
+  { value: 'urgent', label: 'requestService.urgent' },
+  { value: 'emergency', label: 'requestService.emergency' },
 ];
 
 export default function EditServiceRequestScreen() {
@@ -75,7 +75,7 @@ export default function EditServiceRequestScreen() {
         setPreferredTime(t);
       }
     } catch (error: any) {
-      Alert.alert(t('common.error'), 'Failed to load request details');
+      Alert.alert(t('common.error'), t('requestDetail.failedLoad'));
       router.back();
     } finally {
       setLoading(false);
@@ -84,19 +84,19 @@ export default function EditServiceRequestScreen() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      Alert.alert(t('client.validationError'), 'Please enter a title');
+      Alert.alert(t('client.validationError'), t('requestService.enterTitle'));
       return;
     }
     if (!description.trim()) {
-      Alert.alert(t('client.validationError'), 'Please enter a description');
+      Alert.alert(t('client.validationError'), t('requestService.enterDescription'));
       return;
     }
     if (!location.trim()) {
-      Alert.alert(t('client.validationError'), 'Please enter a location');
+      Alert.alert(t('client.validationError'), t('requestService.enterLocationField'));
       return;
     }
     if (!city.trim()) {
-      Alert.alert(t('client.validationError'), 'Please enter a city');
+      Alert.alert(t('client.validationError'), t('requestService.enterCityField'));
       return;
     }
 
@@ -114,11 +114,11 @@ export default function EditServiceRequestScreen() {
         preferred_time: preferredTime.toTimeString().split(' ')[0].substring(0, 5),
       });
 
-      Alert.alert('Success', 'Service request updated successfully', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('common.success'), t('editRequest.updatedSuccess'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (error: any) {
-      const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to update request';
+      const msg = error.response?.data?.error || error.response?.data?.message || t('editRequest.failedUpdate');
       Alert.alert(t('common.error'), msg);
     } finally {
       setSubmitting(false);
@@ -134,7 +134,7 @@ export default function EditServiceRequestScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Edit Request" showBack />
+        <Header title={t('editRequest.title')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>{t('common.loading')}</Text>
@@ -145,30 +145,30 @@ export default function EditServiceRequestScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Edit Request" showBack />
+      <Header title={t('editRequest.title')} showBack />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* Title */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Title <Text style={styles.required}>*</Text></Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('editRequest.titleLabel')} <Text style={styles.required}>*</Text></Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
               value={title}
               onChangeText={setTitle}
-              placeholder="Service title"
+              placeholder={t('editRequest.titlePlaceholder')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           {/* Description */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Description <Text style={styles.required}>*</Text></Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('editRequest.descriptionLabel')} <Text style={styles.required}>*</Text></Text>
             <TextInput
               style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
               value={description}
               onChangeText={setDescription}
-              placeholder="Describe what you need"
+              placeholder={t('editRequest.descriptionPlaceholder')}
               placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={4}
@@ -178,31 +178,31 @@ export default function EditServiceRequestScreen() {
 
           {/* Location */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Location <Text style={styles.required}>*</Text></Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.location')} <Text style={styles.required}>*</Text></Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
               value={location}
               onChangeText={setLocation}
-              placeholder="Street address"
+              placeholder={t('editRequest.locationPlaceholder')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           {/* City */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>City <Text style={styles.required}>*</Text></Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('profile.city')} <Text style={styles.required}>*</Text></Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
               value={city}
               onChangeText={setCity}
-              placeholder="City"
+              placeholder={t('profile.city')}
               placeholderTextColor={theme.textSecondary}
             />
           </View>
 
           {/* Preferred Date */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Preferred Date</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('requestService.preferredDate')}</Text>
             <TouchableOpacity
               style={[styles.input, styles.pickerRow, { backgroundColor: theme.card, borderColor: theme.border }]}
               onPress={() => setShowDatePicker(true)}
@@ -223,7 +223,7 @@ export default function EditServiceRequestScreen() {
 
           {/* Preferred Time */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Preferred Time</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('requestService.preferredTime')}</Text>
             <TouchableOpacity
               style={[styles.input, styles.pickerRow, { backgroundColor: theme.card, borderColor: theme.border }]}
               onPress={() => setShowTimePicker(true)}
@@ -243,7 +243,7 @@ export default function EditServiceRequestScreen() {
 
           {/* Urgency */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Urgency</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('editRequest.urgency')}</Text>
             <View style={styles.urgencyRow}>
               {URGENCY_OPTIONS.map((opt) => (
                 <TouchableOpacity
@@ -258,7 +258,7 @@ export default function EditServiceRequestScreen() {
                   onPress={() => setUrgency(opt.value as any)}
                 >
                   <Text style={{ color: urgency === opt.value ? '#fff' : theme.text, fontSize: 13, fontFamily: 'Poppins_500Medium' }}>
-                    {opt.label}
+                    {t(opt.label)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -267,7 +267,7 @@ export default function EditServiceRequestScreen() {
 
           {/* Workers Needed */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Workers Needed</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('editRequest.workersNeeded')}</Text>
             <View style={styles.counterRow}>
               <TouchableOpacity
                 style={[styles.counterBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -287,12 +287,12 @@ export default function EditServiceRequestScreen() {
 
           {/* Client Notes */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: theme.text }]}>Additional Notes</Text>
+            <Text style={[styles.label, { color: theme.text }]}>{t('requestService.additionalNotes')}</Text>
             <TextInput
               style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
               value={clientNotes}
               onChangeText={setClientNotes}
-              placeholder="Any additional instructions or notes (optional)"
+              placeholder={t('editRequest.notesPlaceholder')}
               placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={3}
@@ -311,7 +311,7 @@ export default function EditServiceRequestScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-                <Text style={styles.submitText}>Save Changes</Text>
+                <Text style={styles.submitText}>{t('client.saveChanges')}</Text>
               </>
             )}
           </TouchableOpacity>

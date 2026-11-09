@@ -54,11 +54,11 @@ export default function ChangePasswordScreen() {
       await apiService.changePassword(currentPassword, newPassword);
       
       Alert.alert(
-        'Success!',
-        'Your password has been changed successfully.',
+        t('passwordScreen.success'),
+        t('security.passwordChangedSuccess'),
         [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.back(),
           },
         ]
@@ -73,7 +73,7 @@ export default function ChangePasswordScreen() {
         error.response?.data?.current_password?.[0] ||
         error.response?.data?.error ||
         error.response?.data?.message ||
-        'Failed to change password. Please check your current password and try again.';
+        t('security.failedChangePassword');
       
       Alert.alert(t('security.changePasswordFailed'), errorMessage);
     } finally {
@@ -91,9 +91,9 @@ export default function ChangePasswordScreen() {
     if (/\d/.test(newPassword)) strength++;
     if (/[^a-zA-Z0-9]/.test(newPassword)) strength++;
 
-    if (strength <= 2) return { text: 'Weak', color: '#ef4444' };
-    if (strength <= 3) return { text: 'Medium', color: '#f59e0b' };
-    return { text: 'Strong', color: '#10b981' };
+    if (strength <= 2) return { text: t('passwordScreen.weak'), color: '#ef4444' };
+    if (strength <= 3) return { text: t('passwordScreen.medium'), color: '#f59e0b' };
+    return { text: t('passwordScreen.strong'), color: '#10b981' };
   };
 
   const passwordStrength = getPasswordStrength();
@@ -101,7 +101,7 @@ export default function ChangePasswordScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Header title="Change Password" showBack />
+      <Header title={t('security.changePassword')} showBack />
       
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -173,7 +173,7 @@ export default function ChangePasswordScreen() {
             {passwordStrength && (
               <View style={styles.strengthContainer}>
                 <Text style={[styles.strengthText, { color: passwordStrength.color }]}>
-                  Password Strength: {passwordStrength.text}
+                  {t('passwordScreen.strength', { level: passwordStrength.text })}
                 </Text>
               </View>
             )}

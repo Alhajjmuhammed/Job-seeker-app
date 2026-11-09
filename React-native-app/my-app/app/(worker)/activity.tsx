@@ -115,12 +115,12 @@ export default function ActivityHistoryScreen() {
     
     if (hours < 1) {
       const minutes = Math.floor(diff / (1000 * 60));
-      return minutes < 1 ? 'Just now' : `${minutes}m ago`;
+      return minutes < 1 ? t('notifications.justNow') : t('notifications.minutesAgo', { count: minutes });
     }
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return t('notifications.hoursAgo', { count: hours });
     
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
+    if (days < 7) return t('notifications.daysAgo', { count: days });
     
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -141,9 +141,9 @@ export default function ActivityHistoryScreen() {
       
       let groupKey: string;
       if (date.toDateString() === today.toDateString()) {
-        groupKey = 'Today';
+        groupKey = t('insightsScreen.today');
       } else if (date.toDateString() === yesterday.toDateString()) {
-        groupKey = 'Yesterday';
+        groupKey = t('insightsScreen.yesterday');
       } else {
         groupKey = date.toLocaleDateString('en-US', {
           month: 'long',
@@ -164,7 +164,7 @@ export default function ActivityHistoryScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Activity History" showBack />
+        <Header title={t('insightsScreen.activityHistory')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>{t('activity.loadingActivity')}</Text>
@@ -177,7 +177,7 @@ export default function ActivityHistoryScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Activity History" showBack />
+      <Header title={t('insightsScreen.activityHistory')} showBack />
 
       {/* Stats Cards */}
       <View style={styles.statsContainer}>

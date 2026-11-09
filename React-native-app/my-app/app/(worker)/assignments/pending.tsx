@@ -83,18 +83,18 @@ export default function PendingAssignmentsScreen() {
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     
-    if (hours < 1) return 'Just now';
-    if (hours === 1) return '1 hour ago';
-    if (hours < 24) return `${hours} hours ago`;
+    if (hours < 1) return t('assignmentScreens.justNow');
+    if (hours === 1) return t('assignmentScreens.hoursAgo', { count: 1 });
+    if (hours < 24) return t('assignmentScreens.hoursAgo', { count: hours });
     const days = Math.floor(hours / 24);
-    if (days === 1) return '1 day ago';
-    return `${days} days ago`;
+    if (days === 1) return t('assignmentScreens.daysAgo', { count: 1 });
+    return t('assignmentScreens.daysAgo', { count: days });
   };
 
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Pending Assignments" showBack />
+        <Header title={t('assignments.pendingAssignments')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>{t('assignments.loadingAssignments')}</Text>
@@ -105,14 +105,14 @@ export default function PendingAssignmentsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Pending Assignments" showBack />
+      <Header title={t('assignments.pendingAssignments')} showBack />
 
       {/* Alert Banner */}
       {assignments.length > 0 && (
         <View style={[styles.alertBanner, { backgroundColor: '#FFA500' }]}>
           <Ionicons name="alert-circle" size={24} color="#FFFFFF" />
           <Text style={styles.alertText}>
-            {assignments.length} assignment{assignments.length > 1 ? 's' : ''} awaiting response
+            {assignments.length} {assignments.length > 1 ? t('assignments.assignmentsAwaiting') : t('assignments.assignmentAwaiting')}
           </Text>
         </View>
       )}
@@ -146,7 +146,9 @@ export default function PendingAssignmentsScreen() {
                 >
                   <Ionicons name="flag" size={16} color="#FFFFFF" />
                   <Text style={styles.urgencyText}>
-                    {assignment.urgency.toUpperCase()} PRIORITY
+                    {t('assignmentDetail.priority', {
+                urgency: t(`requestService.${assignment.urgency}`, { defaultValue: assignment.urgency }).toUpperCase(),
+              })}
                   </Text>
                 </View>
 
@@ -178,7 +180,7 @@ export default function PendingAssignmentsScreen() {
                 <View style={styles.infoRow}>
                   <Ionicons name="calendar-outline" size={18} color={theme.textSecondary} />
                   <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-                    {assignment.duration_days} days
+                    {t('assignmentScreens.days', { count: assignment.duration_days })}
                   </Text>
                 </View>
 
@@ -196,7 +198,7 @@ export default function PendingAssignmentsScreen() {
                 <View style={styles.timeRow}>
                   <Ionicons name="time-outline" size={16} color={theme.textSecondary} />
                   <Text style={[styles.timeText, { color: theme.textSecondary }]}>
-                    Assigned {formatDate(assignment.assigned_at)}
+                    {t('assignmentScreens.assignedWhen', { when: formatDate(assignment.assigned_at) })}
                   </Text>
                 </View>
 

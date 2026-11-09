@@ -121,7 +121,7 @@ export default function ServiceRequestDetailScreen() {
     } catch (error: any) {
       console.error('❌ Error loading request detail:', error);
       console.error('Error details:', error.response?.data || error.message);
-      Alert.alert(t('common.error'), 'Failed to load request details');
+      Alert.alert(t('common.error'), t('requestDetail.failedLoad'));
       router.back();
     } finally {
       setLoading(false);
@@ -166,13 +166,13 @@ export default function ServiceRequestDetailScreen() {
     try {
       setCanceling(true);
       await apiService.cancelServiceRequest(Number(id), reasonType);
-      Alert.alert(t('common.success'), 'Service request cancelled successfully', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('common.success'), t('requestDetail.cancelledSuccess'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (error: any) {
       Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to cancel request'
+        t('common.error'),
+        error.response?.data?.error || t('requestDetail.failedCancel')
       );
     } finally {
       setCanceling(false);
@@ -181,12 +181,12 @@ export default function ServiceRequestDetailScreen() {
 
   const handleMarkAsFinished = () => {
     Alert.alert(
-      'Mark as Finished',
-      'Are you satisfied with the work completed? This will mark the service as finished and you can rate the worker.',
+      t('requestDetail.markFinished'),
+      t('requestDetail.markFinishedConfirm'),
       [
-        { text: 'Not Yet', style: 'cancel' },
+        { text: t('assignments.notYet'), style: 'cancel' },
         {
-          text: 'Yes, Finished',
+          text: t('requestDetail.yesFinished'),
           onPress: confirmCompletion,
         },
       ]
@@ -197,13 +197,13 @@ export default function ServiceRequestDetailScreen() {
     try {
       setCompleting(true);
       await apiService.completeServiceRequest(Number(id));
-      Alert.alert(t('common.success'), 'Service marked as finished! You can now rate the worker.', [
-        { text: 'OK', onPress: () => loadRequestDetail() },
+      Alert.alert(t('common.success'), t('requestDetail.markedFinished'), [
+        { text: t('common.ok'), onPress: () => loadRequestDetail() },
       ]);
     } catch (error: any) {
       Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to mark service as finished'
+        t('common.error'),
+        error.response?.data?.error || t('requestDetail.failedMarkFinished')
       );
     } finally {
       setCompleting(false);
@@ -214,8 +214,8 @@ export default function ServiceRequestDetailScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Required',
-        'Please allow access to your photo library to upload payment screenshot.'
+        t('paymentScreenshot.permissionRequired'),
+        t('paymentScreenshot.galleryPermission')
       );
       return;
     }
@@ -233,7 +233,7 @@ export default function ServiceRequestDetailScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert(t('common.error'), 'Failed to pick image. Please try again.');
+      Alert.alert(t('common.error'), t('paymentScreenshot.failedPickImage'));
     }
   };
 
@@ -255,13 +255,13 @@ export default function ServiceRequestDetailScreen() {
 
       await apiService.updateServiceRequest(Number(id), formData as any);
 
-      Alert.alert(t('common.success'), 'Payment screenshot uploaded successfully!');
+      Alert.alert(t('common.success'), t('requestDetail.screenshotUploaded'));
       await loadRequestDetail();
     } catch (error: any) {
       console.error('Error uploading screenshot:', error);
       Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to upload screenshot. Please try again.'
+        t('common.error'),
+        error.response?.data?.error || t('requestDetail.failedUploadScreenshot')
       );
     } finally {
       setUploadingScreenshot(false);
@@ -319,10 +319,10 @@ export default function ServiceRequestDetailScreen() {
   };
 
   const formatDateTime = (dateString: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('requestDetail.notAvailable');
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'Invalid Date';
+      if (isNaN(date.getTime())) return t('requestDetail.invalidDate');
       return date.toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -332,7 +332,7 @@ export default function ServiceRequestDetailScreen() {
       });
     } catch (error) {
       console.error('Error formatting date:', error);
-      return 'Invalid Date';
+      return t('requestDetail.invalidDate');
     }
   };
 
@@ -353,11 +353,11 @@ export default function ServiceRequestDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Request Details" showBack />
+        <Header title={t('requestDetail.title')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading details...
+            {t('requestDetail.loading')}
           </Text>
         </View>
       </View>
@@ -367,11 +367,11 @@ export default function ServiceRequestDetailScreen() {
   if (!request) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Request Details" showBack />
+        <Header title={t('requestDetail.title')} showBack />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={theme.textSecondary} />
           <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-            Request not found
+            {t('requestDetail.notFound')}
           </Text>
         </View>
       </View>
@@ -387,7 +387,7 @@ export default function ServiceRequestDetailScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Request Details" showBack />
+      <Header title={t('requestDetail.title')} showBack />
 
       <ScrollView
         style={styles.content}
@@ -400,7 +400,7 @@ export default function ServiceRequestDetailScreen() {
           <View style={[styles.statusBanner, { backgroundColor: getStatusColor(request.status) }]}>
             <Ionicons name={getStatusIcon(request.status) as any} size={24} color="#FFFFFF" />
             <Text style={styles.statusBannerText}>
-              {request.status.replace('_', ' ').toUpperCase()}
+              {t(`status.${request.status}`, { defaultValue: request.status.replace('_', ' ') }).toUpperCase()}
             </Text>
           </View>
 
@@ -423,11 +423,11 @@ export default function ServiceRequestDetailScreen() {
 
         {/* Request Details */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Request Details</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('requestDetail.title')}</Text>
           
           <View style={styles.detailRow}>
             <Ionicons name="document-text-outline" size={20} color={theme.textSecondary} />
-            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Description:</Text>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('requestDetail.descriptionLabel')}</Text>
           </View>
           <Text style={[styles.description, { color: theme.text }]}>
             {request.description}
@@ -443,7 +443,7 @@ export default function ServiceRequestDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="time-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.detailText, { color: theme.text }]}>
-              Duration: {request.duration_days ?? '?'} day{request.duration_days === 1 ? '' : 's'}
+              {t('requestDetail.durationDays', { count: request.duration_days ?? 0, days: request.duration_days ?? '?' })}
               {request.duration_type_display ? ` (${request.duration_type_display})` : ''}
             </Text>
           </View>
@@ -452,8 +452,8 @@ export default function ServiceRequestDetailScreen() {
             <View style={styles.detailRow}>
               <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
               <Text style={[styles.detailText, { color: theme.text }]}>
-                Preferred Date: {new Date(request.preferred_date).toLocaleDateString()}
-                {request.preferred_time && ` at ${request.preferred_time}`}
+                {t('requestDetail.preferredDate', { date: new Date(request.preferred_date).toLocaleDateString() })}
+                {request.preferred_time && t('requestDetail.atTime', { time: request.preferred_time })}
               </Text>
             </View>
           )}
@@ -461,7 +461,7 @@ export default function ServiceRequestDetailScreen() {
           {request.client_notes && (
             <View style={styles.detailRow}>
               <Ionicons name="chatbox-ellipses-outline" size={20} color={theme.textSecondary} />
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Client Notes:</Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('requestDetail.clientNotes')}</Text>
             </View>
           )}
           {request.client_notes && (
@@ -473,14 +473,16 @@ export default function ServiceRequestDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="flag-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.detailText, { color: theme.text }]}>
-              Urgency: {request.urgency?.toUpperCase()}
+              {t('requestDetail.urgency', {
+                value: request.urgency ? t(`requestService.${request.urgency}`, { defaultValue: request.urgency }).toUpperCase() : '',
+              })}
             </Text>
           </View>
 
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-              Requested: {formatDateTime(request.created_at)}
+              {t('requestDetail.requestedOn', { date: formatDateTime(request.created_at) })}
             </Text>
           </View>
         </View>
@@ -488,19 +490,19 @@ export default function ServiceRequestDetailScreen() {
         {/* Payment Information */}
         {request.payment_method && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Payment Information</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('requestDetail.paymentInfo')}</Text>
             
             <View style={styles.detailRow}>
               <Ionicons name="card-outline" size={20} color={theme.textSecondary} />
               <Text style={[styles.detailText, { color: theme.text }]}>
-                Method: {request.payment_method}
+                {t('requestDetail.paymentMethod', { method: request.payment_method })}
               </Text>
             </View>
 
             <View style={styles.detailRow}>
               <Ionicons name="receipt-outline" size={20} color={theme.textSecondary} />
               <Text style={[styles.detailText, { color: theme.text }]}>
-                Transaction ID: {request.payment_transaction_id}
+                {t('requestDetail.transactionId', { id: request.payment_transaction_id })}
               </Text>
             </View>
 
@@ -514,7 +516,7 @@ export default function ServiceRequestDetailScreen() {
                 color: request.payment_verified ? "#10b981" : "#f59e0b",
                 fontFamily: 'Poppins_600SemiBold'
               }]}>
-                {request.payment_verified ? "Payment Verified" : "Verification Pending"}
+                {request.payment_verified ? t('requestDetail.paymentVerified') : t('requestDetail.verificationPending')}
               </Text>
             </View>
 
@@ -525,9 +527,9 @@ export default function ServiceRequestDetailScreen() {
                   <View style={styles.warningBox}>
                     <Ionicons name="warning" size={24} color="#dc2626" />
                     <View style={styles.warningTextContainer}>
-                      <Text style={styles.warningTitle}>Payment Proof Required!</Text>
+                      <Text style={styles.warningTitle}>{t('requestDetail.proofRequired')}</Text>
                       <Text style={styles.warningText}>
-                        Please upload your payment screenshot within {getRemainingUploadTime()} minute(s) for faster verification.
+                        {t('requestDetail.uploadWithin', { count: getRemainingUploadTime() })}
                       </Text>
                     </View>
                   </View>
@@ -543,7 +545,7 @@ export default function ServiceRequestDetailScreen() {
                   ) : (
                     <>
                       <Ionicons name="cloud-upload-outline" size={24} color="#fff" />
-                      <Text style={styles.uploadButtonText}>Upload Payment Screenshot</Text>
+                      <Text style={styles.uploadButtonText}>{t('requestDetail.uploadScreenshot')}</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -551,12 +553,12 @@ export default function ServiceRequestDetailScreen() {
             ) : (
               <View style={styles.screenshotSection}>
                 <Text style={[styles.detailLabel, { color: theme.textSecondary, marginBottom: 8 }]}>
-                  Payment Screenshot:
+                  {t('requestDetail.screenshotLabel')}
                 </Text>
                 <View style={styles.screenshotPreview}>
                   <Ionicons name="checkmark-circle" size={24} color="#10b981" />
                   <Text style={[styles.screenshotUploaded, { color: "#10b981" }]}>
-                    Screenshot uploaded successfully
+                    {t('requestDetail.screenshotDone')}
                   </Text>
                 </View>
               </View>
@@ -569,8 +571,8 @@ export default function ServiceRequestDetailScreen() {
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
               {request.workers_needed && request.workers_needed > 1 
-                ? `Assigned Workers (${request.assignments.length}/${request.workers_needed})` 
-                : 'Assigned Worker'}
+                ? t('requestDetail.assignedWorkers', { assigned: request.assignments.length, needed: request.workers_needed })
+                : t('requestDetail.assignedWorker')}
             </Text>
 
             {/* Multiple Workers View - Only shows accepted workers */}
@@ -586,7 +588,7 @@ export default function ServiceRequestDetailScreen() {
                         <TouchableOpacity 
                           onPress={() => {
                             setSelectedImage(assignment.worker.profile_picture || null);
-                            setSelectedWorkerName(assignment.worker.full_name || 'Worker');
+                            setSelectedWorkerName(assignment.worker.full_name || t('messages.worker'));
                             setImageViewerVisible(true);
                           }}
                         >
@@ -605,7 +607,7 @@ export default function ServiceRequestDetailScreen() {
                       <View style={styles.workerInfo}>
                         <View style={styles.workerNameRow}>
                           <Text style={[styles.workerName, { color: theme.text }]}>
-                            {assignment.worker.full_name || 'Worker'} 
+                            {assignment.worker.full_name || t('messages.worker')} 
                           </Text>
                           <Text style={[styles.assignmentNumber, { color: theme.textSecondary }]}>
                             #{assignment.assignment_number}
@@ -653,12 +655,12 @@ export default function ServiceRequestDetailScreen() {
                           if (phoneNumber) {
                             Linking.openURL(`tel:${phoneNumber}`);
                           } else {
-                            Alert.alert(t('common.error'), 'Phone number not available');
+                            Alert.alert(t('common.error'), t('requestDetail.phoneNotAvailable'));
                           }
                         }}
                       >
                         <Ionicons name="call" size={20} color="#FFFFFF" />
-                        <Text style={styles.callWorkerButtonText}>Call Worker</Text>
+                        <Text style={styles.callWorkerButtonText}>{t('requestDetail.callWorker')}</Text>
                       </TouchableOpacity>
                     ) : null}
                     {/* Chat - the website had it, the app only offered a phone call */}
@@ -681,7 +683,7 @@ export default function ServiceRequestDetailScreen() {
               <View style={styles.noWorkersContainer}>
                 <Ionicons name="person-outline" size={48} color={theme.textSecondary} />
                 <Text style={[styles.noWorkersText, { color: theme.textSecondary }]}>
-                  No workers assigned yet
+                  {t('requestDetail.noWorkersYet')}
                 </Text>
               </View>
             )}
@@ -691,14 +693,14 @@ export default function ServiceRequestDetailScreen() {
         {/* Time Logs */}
         {timeLogs && Array.isArray(timeLogs) && timeLogs.length > 0 && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Tracking</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('requestDetail.timeTracking')}</Text>
 
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                Total Hours:
+                {t('requestDetail.totalHours')}
               </Text>
               <Text style={[styles.summaryValue, { color: theme.primary }]}>
-                {totalHours.toFixed(2)} hrs
+                {t('requestDetail.hoursShort', { hours: totalHours.toFixed(2) })}
               </Text>
             </View>
 
@@ -716,7 +718,7 @@ export default function ServiceRequestDetailScreen() {
                   {log.clock_out ? (
                     <>
                       <Text style={[styles.timeLogDuration, { color: theme.textSecondary }]}>
-                        Duration: {Number(log.duration_hours || 0).toFixed(2)} hours
+                        {t('requestDetail.logDuration', { hours: Number(log.duration_hours || 0).toFixed(2) })}
                       </Text>
                       {log.notes && (
                         <Text style={[styles.timeLogNotes, { color: theme.textSecondary }]}>
@@ -727,7 +729,7 @@ export default function ServiceRequestDetailScreen() {
                   ) : (
                     <View style={[styles.activeLog, { backgroundColor: theme.primary + '20' }]}>
                       <Text style={[styles.activeLogText, { color: theme.primary }]}>
-                        ⏱️ Currently Working
+                        {t('requestDetail.currentlyWorking')}
                       </Text>
                     </View>
                   )}
@@ -771,7 +773,7 @@ export default function ServiceRequestDetailScreen() {
               ) : (
                 <>
                   <Ionicons name="checkmark-done-circle-outline" size={20} color="#FFFFFF" />
-                  <Text style={styles.completeButtonText}>Mark as Finished</Text>
+                  <Text style={styles.completeButtonText}>{t('requestDetail.markFinished')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -786,7 +788,7 @@ export default function ServiceRequestDetailScreen() {
               onPress={() => router.push(`/(client)/rate-worker/${request.id}` as any)}
             >
               <Ionicons name="star-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.rateButtonText}>Rate Service</Text>
+              <Text style={styles.rateButtonText}>{t('requestDetail.rateService')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -794,7 +796,7 @@ export default function ServiceRequestDetailScreen() {
         {/* Display Rating if already rated */}
         {request.status === 'completed' && request.client_rating && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Your Rating</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('requestDetail.yourRating')}</Text>
             <View style={styles.ratingDisplay}>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((star) => (

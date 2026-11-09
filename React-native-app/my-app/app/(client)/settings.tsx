@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
+import LanguagePicker from '../../components/LanguagePicker';
 import { confirmExportMyData } from '../../services/exportMyData';
 import apiService from '../../services/api';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +54,7 @@ export default function ClientSettingsScreen() {
       const revert = { email_notifications: setEmailNotifications, push_notifications: setPushNotifications,
                        sms_notifications: setSmsNotifications }[key];
       revert(!value);
-      Alert.alert(t('common.error'), 'Failed to update setting. Please try again.');
+      Alert.alert(t('common.error'), t('settingsScreen.failedUpdateSetting'));
     }
   };
 
@@ -71,18 +72,18 @@ export default function ClientSettingsScreen() {
       // this confirmation always understated the deletion impact as "0"
       // right before an irreversible action.
       Alert.alert(
-        'Delete Account',
-        `This will permanently delete:\n\n` +
-        `• Your profile and personal information\n` +
-        `• ${preview.jobs_count || 0} service requests\n` +
-        `• ${(preview.reviews_given_count || 0) + (preview.reviews_received_count || 0)} reviews\n` +
-        `• ${preview.messages_count || 0} messages\n` +
-        `• All other associated data\n\n` +
-        `⚠️ THIS ACTION CANNOT BE UNDONE!`,
+        t('clientSettings.deleteAccountTitle'),
+        t('settingsScreen.deleteIntro') +
+        t('settingsScreen.deleteProfileLine') +
+        t('settingsScreen.deleteRequestsLine', { n: preview.jobs_count || 0 }) +
+        t('settingsScreen.deleteReviewsLine', { n: (preview.reviews_given_count || 0) + (preview.reviews_received_count || 0) }) +
+        t('settingsScreen.deleteMessagesLine', { n: preview.messages_count || 0 }) +
+        t('settingsScreen.deleteOtherLine') +
+        t('settingsScreen.cannotUndo'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Delete Permanently',
+            text: t('clientSettings.deletePermanently'),
             style: 'destructive',
             onPress: confirmDeleteAccount,
           },
@@ -91,8 +92,8 @@ export default function ClientSettingsScreen() {
     } catch (error: any) {
       console.error('Error getting deletion preview:', error);
       Alert.alert(
-        'Error',
-        'Failed to load account information. Please try again.'
+        t('common.error'),
+        t('clientSettings.failedLoadAccount')
       );
     } finally {
       setLoading(false);
@@ -101,23 +102,23 @@ export default function ClientSettingsScreen() {
 
   const confirmDeleteAccount = () => {
     Alert.alert(
-      'Final Confirmation',
-      'Are you absolutely sure? Type "DELETE" to confirm.',
+      t('clientSettings.finalConfirmation'),
+      t('clientSettings.typeDELETE'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'I Understand',
+          text: t('clientSettings.iUnderstand'),
           style: 'destructive',
           onPress: async () => {
             try {
               setLoading(true);
               await apiService.deleteAccount();
               Alert.alert(
-                'Account Deleted',
-                'Your account has been permanently deleted.',
+                t('clientSettings.accountDeleted'),
+                t('clientSettings.accountDeletedMessage'),
                 [
                   {
-                    text: 'OK',
+                    text: t('common.ok'),
                     onPress: async () => {
                       await logout();
                     },
@@ -127,8 +128,8 @@ export default function ClientSettingsScreen() {
             } catch (error: any) {
               console.error('Error deleting account:', error);
               Alert.alert(
-                'Deletion Error',
-                error.response?.data?.error || 'Failed to delete account. Please contact support.'
+                t('clientSettings.deletionError'),
+                error.response?.data?.error || t('clientSettings.failedDeleteAccount')
               );
             } finally {
               setLoading(false);
@@ -141,23 +142,23 @@ export default function ClientSettingsScreen() {
 
   const handleAnonymizeAccount = () => {
     Alert.alert(
-      'Anonymize Account',
-      'This will remove your personally identifiable information but keep your service history for record-keeping. You will be logged out and cannot recover this account.',
+      t('clientSettings.anonymizeAccount'),
+      t('clientSettings.anonymizeAccountMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Anonymize',
+          text: t('clientSettings.anonymize'),
           style: 'destructive',
           onPress: async () => {
             try {
               setLoading(true);
               await apiService.anonymizeAccount();
               Alert.alert(
-                'Account Anonymized',
-                'Your personal information has been removed.',
+                t('clientSettings.accountAnonymized'),
+                t('clientSettings.accountAnonymizedMessage'),
                 [
                   {
-                    text: 'OK',
+                    text: t('common.ok'),
                     onPress: async () => {
                       await logout();
                     },
@@ -167,8 +168,8 @@ export default function ClientSettingsScreen() {
             } catch (error: any) {
               console.error('Error anonymizing account:', error);
               Alert.alert(
-                'Error',
-                error.response?.data?.error || 'Failed to anonymize account. Please try again.'
+                t('common.error'),
+                error.response?.data?.error || t('clientSettings.failedAnonymize')
               );
             } finally {
               setLoading(false);
@@ -182,13 +183,19 @@ export default function ClientSettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.statusBar} />
-      <Header title="Settings" />
+      <Header title={t('settings.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Account Settings */}
         <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: 'Poppins_600SemiBold' }]}>{t('client.accountSettings')}</Text>
         <View style={[styles.section, { backgroundColor: theme.card }]}>
-          <TouchableOpacity 
+          <LanguagePicker
+            rowStyle={[styles.menuItem, { borderBottomColor: theme.border }]}
+            labelStyle={[styles.menuText, { color: theme.text, fontFamily: 'Poppins_500Medium' }]}
+            iconSize={22}
+          />
+
+          <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: theme.border }]}
             onPress={() => router.push('/(client)/profile-edit')}
           >

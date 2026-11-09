@@ -69,7 +69,7 @@ export default function JobDetailScreen() {
       setJob(jobData);
     } catch (error) {
       console.error('Error loading job:', error);
-      Alert.alert(t('common.error'), 'Failed to load job details');
+      Alert.alert(t('common.error'), t('jobDetailScreen.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ export default function JobDetailScreen() {
       }
     } catch (error) {
       console.error('Error toggling saved job:', error);
-      Alert.alert(t('common.error'), 'Failed to update saved status');
+      Alert.alert(t('common.error'), t('jobDetailScreen.failedSave'));
     } finally {
       setSavingJob(false);
     }
@@ -319,10 +319,10 @@ export default function JobDetailScreen() {
     return (
       <View style={styles.container}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
-        <Header title="Job Details" showBack />
+        <Header title={t('jobDetailScreen.title')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading job...</Text>
+          <Text style={styles.loadingText}>{t('jobDetailScreen.loading')}</Text>
         </View>
       </View>
     );
@@ -332,10 +332,10 @@ export default function JobDetailScreen() {
     return (
       <View style={styles.container}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
-        <Header title="Job Details" showBack />
+        <Header title={t('jobDetailScreen.title')} showBack />
         <View style={styles.emptyContainer}>
           <Ionicons name="document-text-outline" size={64} color={theme.textSecondary} />
-          <Text style={styles.emptyText}>Job not found</Text>
+          <Text style={styles.emptyText}>{t('jobDetailScreen.notFound')}</Text>
         </View>
       </View>
     );
@@ -345,7 +345,7 @@ export default function JobDetailScreen() {
     <View style={styles.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
-      <Header title="Job Details" showBack />
+      <Header title={t('jobDetailScreen.title')} showBack />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Job Title with Save Button */}
@@ -373,9 +373,9 @@ export default function JobDetailScreen() {
 
         {/* Budget Card */}
         <View style={styles.budgetCard}>
-          <Text style={styles.budgetLabel}>Budget</Text>
+          <Text style={styles.budgetLabel}>{t('jobDetailScreen.budget')}</Text>
           <Text style={styles.budgetAmount}>TSH {job.total_price}</Text>
-          <Text style={styles.budgetDuration}>{job.duration_type_display} ({job.duration_days} days)</Text>
+          <Text style={styles.budgetDuration}>{t('jobDetailScreen.durationDays', { type: job.duration_type_display, count: job.duration_days })}</Text>
         </View>
 
         {/* Job Info */}
@@ -399,7 +399,7 @@ export default function JobDetailScreen() {
           <View style={styles.infoItem}>
             <Ionicons name="calendar-outline" size={24} color={theme.primary} style={{ marginRight: 12, width: 32 }} />
             <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Posted</Text>
+              <Text style={styles.infoLabel}>{t('jobDetailScreen.posted')}</Text>
               <Text style={styles.infoValue}>{new Date(job.created_at).toLocaleDateString()}</Text>
             </View>
           </View>
@@ -407,7 +407,7 @@ export default function JobDetailScreen() {
 
         {/* Description */}
         <View style={styles.descriptionSection}>
-          <Text style={styles.sectionTitle}>Job Description</Text>
+          <Text style={styles.sectionTitle}>{t('jobDetailScreen.description')}</Text>
           <Text style={styles.descriptionText}>{job.description}</Text>
         </View>
 
@@ -416,15 +416,15 @@ export default function JobDetailScreen() {
           <Text style={styles.sectionTitle}>{t('jobs.requirements')}</Text>
           <View style={styles.requirementItem}>
             <Text style={styles.requirementBullet}>•</Text>
-            <Text style={styles.requirementText}>Professional experience in {job.category_name}</Text>
+            <Text style={styles.requirementText}>{t('jobDetailScreen.reqExperience', { category: job.category_name })}</Text>
           </View>
           <View style={styles.requirementItem}>
             <Text style={styles.requirementBullet}>•</Text>
-            <Text style={styles.requirementText}>Own tools and equipment</Text>
+            <Text style={styles.requirementText}>{t('jobDetailScreen.reqTools')}</Text>
           </View>
           <View style={styles.requirementItem}>
             <Text style={styles.requirementBullet}>•</Text>
-            <Text style={styles.requirementText}>Good communication skills</Text>
+            <Text style={styles.requirementText}>{t('jobDetailScreen.reqCommunication')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -441,7 +441,7 @@ export default function JobDetailScreen() {
             style={{ marginRight: 8 }}
           />
           <Text style={[styles.infoNoticeText, { color: theme.textSecondary }]}>
-            Our admin team reviews profiles and assigns workers to matching jobs. Keep your profile complete and up to date to be considered.
+            {t('jobDetailScreen.adminNotice')}
           </Text>
         </View>
       </View>

@@ -69,7 +69,7 @@ export default function PayoutMethodsScreen() {
       // Set empty arrays on error
       setBankAccounts([]);
       setMobileAccounts([]);
-      Alert.alert(t('common.error'), 'Failed to load payout methods');
+      Alert.alert(t('common.error'), t('paymentMethodsScreen.failedLoadPayout'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -105,12 +105,12 @@ export default function PayoutMethodsScreen() {
 
   const handleRemoveBank = async (accountId: string) => {
     Alert.alert(
-      'Remove Bank Account?',
-      'Are you sure you want to remove this payout method?',
+      t('payout.removeBankAccount'),
+      t('payout.sureRemoveMethod'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('payout.remove'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -129,12 +129,12 @@ export default function PayoutMethodsScreen() {
 
   const handleRemoveMobile = async (accountId: string) => {
     Alert.alert(
-      'Remove Mobile Money Account?',
-      'Are you sure you want to remove this payout method?',
+      t('payout.removeMobileMoneyAccount'),
+      t('payout.sureRemoveMethod'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('payout.remove'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -336,7 +336,7 @@ export default function PayoutMethodsScreen() {
               color={theme.textSecondary}
             />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>
-              No {activeTab === 'bank' ? 'Bank Accounts' : 'Mobile Money Accounts'}
+              {activeTab === 'bank' ? t('paymentMethodsScreen.noBankAccounts') : t('paymentMethodsScreen.noMobileAccounts')}
             </Text>
             <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('payout.addPayoutMethod')}</Text>
           </View>
@@ -354,7 +354,7 @@ export default function PayoutMethodsScreen() {
         >
           <Ionicons name="add-circle-outline" size={24} color="#FFF" />
           <Text style={styles.addButtonText}>
-            Add {activeTab === 'bank' ? 'Bank Account' : 'Mobile Money'}
+            {activeTab === 'bank' ? t('paymentMethodsScreen.addBankAccount') : t('paymentMethodsScreen.addMobileMoney')}
           </Text>
         </TouchableOpacity>
 
@@ -362,7 +362,7 @@ export default function PayoutMethodsScreen() {
           <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
           <View style={styles.infoContent}>
             <Text style={[styles.infoTitle, { color: theme.text }]}>{t('payout.aboutPayouts')}</Text>
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('nav.earnings')}</Text>
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{t('payout.payoutsInfo')}</Text>
           </View>
         </View>
       </ScrollView>

@@ -121,7 +121,7 @@ export default function ContractView({ group }: { group: '(client)' | '(worker)'
         <Card>
           <View style={st.top}>
             <Text style={[st.title, { color: theme.text }]}>{c.vacancy.title}</Text>
-            <Badge status={c.status} label={c.status_display} />
+            <Badge status={c.status} label={t(`status.${c.status}`, { defaultValue: c.status_display })} />
           </View>
           <Text style={[st.salary, { color: theme.primary }]}>{salaryText(c)}</Text>
           <Row label={t('vacancies.employer')} value={c.employer_name} />

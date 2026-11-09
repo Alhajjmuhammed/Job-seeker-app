@@ -222,7 +222,7 @@ export default function CompleteServiceScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={18} color={theme.textSecondary} />
             <Text style={[styles.infoText, { color: theme.text }]}>
-              Client: {assignment.client_name}
+              {t('dashboard.clientLabel', { name: assignment.client_name })}
             </Text>
           </View>
 

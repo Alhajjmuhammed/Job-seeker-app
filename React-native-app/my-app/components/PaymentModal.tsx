@@ -300,7 +300,7 @@ export default function PaymentModal({
                     <Text style={styles.label}>{t('paymentModal.cardholderName')}</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="John Doe"
+                      placeholder={t('componentsText.cardNamePlaceholder')}
                       value={cardHolder}
                       onChangeText={setCardHolder}
                       autoCapitalize="words"

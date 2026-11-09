@@ -166,11 +166,11 @@ export default function RespondAssignmentScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Respond to Assignment" showBack />
+        <Header title={t('assignmentScreens.respondTitle')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading assignment...
+            {t('clock.loadingAssignment')}
           </Text>
         </View>
       </View>
@@ -180,10 +180,10 @@ export default function RespondAssignmentScreen() {
   if (!assignment) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Respond to Assignment" showBack />
+        <Header title={t('assignmentScreens.respondTitle')} showBack />
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-            Assignment not found
+            {t('assignments.assignmentNotFound')}
           </Text>
         </View>
       </View>
@@ -192,7 +192,7 @@ export default function RespondAssignmentScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Respond to Assignment" showBack />
+      <Header title={t('assignmentScreens.respondTitle')} showBack />
 
       <ScrollView style={styles.content}>
         {/* Urgency Banner */}
@@ -204,7 +204,9 @@ export default function RespondAssignmentScreen() {
         >
           <Ionicons name="flag" size={24} color="#FFFFFF" />
           <Text style={styles.urgencyText}>
-            {assignment.urgency.toUpperCase()} PRIORITY
+            {t('assignmentDetail.priority', {
+                urgency: t(`requestService.${assignment.urgency}`, { defaultValue: assignment.urgency }).toUpperCase(),
+              })}
           </Text>
         </View>
 
@@ -220,7 +222,7 @@ export default function RespondAssignmentScreen() {
           <View style={styles.divider} />
 
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Description
+            {t('assignmentScreens.description')}
           </Text>
           <Text style={[styles.description, { color: theme.text }]}>
             {assignment.description}
@@ -241,10 +243,10 @@ export default function RespondAssignmentScreen() {
             <View style={styles.detailItem}>
               <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
               <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Duration
+                {t('assignmentScreens.duration')}
               </Text>
               <Text style={[styles.detailValue, { color: theme.text }]}>
-                {assignment.duration_days} days
+                {t('assignmentScreens.days', { count: assignment.duration_days })}
               </Text>
             </View>
 
@@ -252,7 +254,7 @@ export default function RespondAssignmentScreen() {
               <View style={styles.detailItem}>
                 <Ionicons name="cash-outline" size={20} color={theme.primary} />
                 <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                  Total Price
+                  {t('assignmentScreens.totalPrice')}
                 </Text>
                 <Text style={[styles.budgetValue, { color: theme.primary }]}>
                   TSH {assignment.total_price.toFixed(2)}

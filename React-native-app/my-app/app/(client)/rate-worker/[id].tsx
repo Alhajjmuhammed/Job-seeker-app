@@ -55,7 +55,7 @@ export default function RateWorkerScreen() {
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      Alert.alert(t('common.error'), t('rating.selectRating') || 'Please select a rating');
+      Alert.alert(t('common.error'), t('rating.selectRating'));
       return;
     }
 
@@ -66,9 +66,9 @@ export default function RateWorkerScreen() {
         review: review.trim() || undefined,
       });
       Alert.alert(
-        t('rating.thankYou') || 'Thank You!',
-        t('rating.submitted') || 'Your rating has been submitted successfully.',
-        [{ text: t('common.ok') || 'OK', onPress: () => router.back() }]
+        t('rating.thankYou'),
+        t('rating.submitted'),
+        [{ text: t('common.ok'), onPress: () => router.back() }]
       );
     } catch (error: any) {
       Alert.alert(
@@ -81,8 +81,7 @@ export default function RateWorkerScreen() {
         error.response?.data?.error ||
           error.response?.data?.message ||
           error.response?.data?.detail ||
-          t('rating.submitFailed') ||
-          'Failed to submit rating. Please try again.'
+          t('rating.submitFailed')
       );
     } finally {
       setSubmitting(false);
@@ -198,11 +197,11 @@ export default function RateWorkerScreen() {
   });
 
   const RATING_LABELS: Record<number, string> = {
-    1: t('rating.terrible') || 'Terrible',
-    2: t('rating.poor') || 'Poor',
-    3: t('rating.okay') || 'Okay',
-    4: t('rating.good') || 'Good',
-    5: t('rating.excellent') || 'Excellent',
+    1: t('rating.terrible'),
+    2: t('rating.poor'),
+    3: t('rating.okay'),
+    4: t('rating.good'),
+    5: t('rating.excellent'),
   };
 
   if (loading) {
@@ -225,7 +224,7 @@ export default function RateWorkerScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>{t('rating.rateWorker') || 'Rate Worker'}</Text>
+        <Text style={s.headerTitle}>{t('rating.rateWorker')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
@@ -236,11 +235,11 @@ export default function RateWorkerScreen() {
           </View>
 
           {/* Worker Name */}
-          <Text style={s.workerLabel}>{t('rating.howWasYourExperience') || 'How was your experience with'}</Text>
-          <Text style={s.workerName}>{workerName || t('rating.yourWorker') || 'Your Worker'}</Text>
+          <Text style={s.workerLabel}>{t('rating.howWasYourExperience')}</Text>
+          <Text style={s.workerName}>{workerName || t('rating.yourWorker')}</Text>
 
           {/* Star Rating */}
-          <Text style={s.sectionTitle}>{t('rating.selectRating') || 'Select a rating'}</Text>
+          <Text style={s.sectionTitle}>{t('rating.selectRating')}</Text>
           <View style={s.starsRow}>
             {[1, 2, 3, 4, 5].map((star) => (
               <TouchableOpacity key={star} style={s.starBtn} onPress={() => setRating(star)}>
@@ -257,10 +256,10 @@ export default function RateWorkerScreen() {
           )}
 
           {/* Review */}
-          <Text style={s.sectionTitle}>{t('rating.leaveReview') || 'Leave a review (optional)'}</Text>
+          <Text style={s.sectionTitle}>{t('rating.leaveReview')}</Text>
           <TextInput
             style={s.reviewInput}
-            placeholder={t('rating.reviewPlaceholder') || 'Share details about your experience...'}
+            placeholder={t('rating.reviewPlaceholder')}
             placeholderTextColor={theme.textTertiary}
             multiline
             maxLength={500}
@@ -278,12 +277,12 @@ export default function RateWorkerScreen() {
           {submitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={s.submitBtnText}>{t('rating.submit') || 'Submit Rating'}</Text>
+            <Text style={s.submitBtnText}>{t('rating.submit')}</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity style={s.skipBtn} onPress={() => router.back()}>
-          <Text style={s.skipBtnText}>{t('rating.skipForNow') || 'Skip for now'}</Text>
+          <Text style={s.skipBtnText}>{t('rating.skipForNow')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

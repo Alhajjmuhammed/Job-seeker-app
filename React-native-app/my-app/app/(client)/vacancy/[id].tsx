@@ -112,7 +112,7 @@ export default function ClientVacancyScreen() {
       });
       setHiring(null);
       Alert.alert(t('vacancies.hiredTitle'), t('vacancies.hiredText'), [
-        { text: 'OK', onPress: () => router.push(`/(client)/contract/${contract.id}` as any) },
+        { text: t('common.ok'), onPress: () => router.push(`/(client)/contract/${contract.id}` as any) },
       ]);
       load();
     } catch (e: any) {
@@ -171,7 +171,7 @@ export default function ClientVacancyScreen() {
         <Card>
           <View style={st.top}>
             <Text style={[st.title, { color: theme.text }]}>{v.title}</Text>
-            <Badge status={v.status} label={v.status_display} />
+            <Badge status={v.status} label={t(`status.${v.status}`, { defaultValue: v.status_display })} />
           </View>
           <Text style={[st.salary, { color: theme.primary }]}>{salaryText(v)}</Text>
           <Row label={t('vacancies.typeOfWork')} value={v.category_name} />
@@ -201,7 +201,7 @@ export default function ClientVacancyScreen() {
                   {a.worker.city}{a.worker.categories.length ? ` · ${a.worker.categories.slice(0, 3).join(', ')}` : ''}
                 </Text>
               </View>
-              <Badge status={a.status} label={a.status_display} />
+              <Badge status={a.status} label={t(`status.${a.status}`, { defaultValue: a.status_display })} />
             </View>
             <View style={st.tags}>
               {a.worker.verified && <Tag icon="shield-checkmark-outline" label={t('vacancies.verified')} />}

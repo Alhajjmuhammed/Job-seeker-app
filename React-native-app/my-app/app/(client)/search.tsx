@@ -84,9 +84,9 @@ export default function ClientServicesScreen() {
   const handleRequestService = (service: Service) => {
     if (!service.is_available) {
       Alert.alert(
-        'Service Unavailable',
-        'This service is currently unavailable. Please try again later or contact support.',
-        [{ text: 'OK' }]
+        t('searchScreen.serviceUnavailable'),
+        t('searchScreen.serviceUnavailableMsg'),
+        [{ text: t('common.ok') }]
       );
       return;
     }
@@ -130,7 +130,7 @@ export default function ClientServicesScreen() {
         <View style={styles.statItem}>
           <Ionicons name="people" size={16} color={theme.textSecondary} />
           <Text style={[styles.statText, { color: theme.textSecondary }]}>
-            {service.available_workers} workers available
+            {t('searchScreen.workersAvailable', { count: service.available_workers })}
           </Text>
         </View>
         
@@ -138,7 +138,7 @@ export default function ClientServicesScreen() {
           <View style={styles.statItem}>
             <Ionicons name="checkmark-circle" size={16} color="#10B981" />
             <Text style={[styles.statText, { color: theme.textSecondary }]}>
-              {service.completed_projects} completed
+              {t('searchScreen.completedCount', { count: service.completed_projects })}
             </Text>
           </View>
         )}
@@ -147,7 +147,7 @@ export default function ClientServicesScreen() {
           <View style={styles.statItem}>
             <Ionicons name="time" size={16} color={theme.textSecondary} />
             <Text style={[styles.statText, { color: theme.textSecondary }]}>
-              ~{service.avg_completion_days} days
+              {t('searchScreen.aboutDays', { count: service.avg_completion_days })}
             </Text>
           </View>
         )}
@@ -155,7 +155,7 @@ export default function ClientServicesScreen() {
 
       <View style={styles.serviceFooter}>
         <Text style={[styles.requestButtonText, { color: theme.primary }]}>
-          {service.is_available ? 'Request This Service' : 'Currently Unavailable'}
+          {service.is_available ? t('searchScreen.requestThis') : t('searchScreen.currentlyUnavailable')}
         </Text>
         <Ionicons name="arrow-forward" size={16} color={theme.primary} />
       </View>
@@ -164,7 +164,7 @@ export default function ClientServicesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Request Services" showBack={false} />
+      <Header title={t('searchScreen.title')} showBack={false} />
 
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
@@ -197,7 +197,7 @@ export default function ClientServicesScreen() {
             </View>
 
             <Text style={[styles.resultsText, { color: theme.textSecondary }]}>
-              {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} available
+              {t('searchScreen.servicesAvailable', { count: filteredServices.length })}
             </Text>
 
             {filteredServices.map(renderServiceCard)}

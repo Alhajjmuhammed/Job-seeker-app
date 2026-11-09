@@ -28,7 +28,7 @@ export default function ForgotPasswordScreen() {
 
   const handleSend = async () => {
     if (!email.trim()) {
-      Alert.alert(t('common.error'), t('auth.enterEmail') || 'Please enter your email address');
+      Alert.alert(t('common.error'), t('auth.enterEmail'));
       return;
     }
 
@@ -39,7 +39,7 @@ export default function ForgotPasswordScreen() {
     } catch (error: any) {
       Alert.alert(
         t('common.error'),
-        error.response?.data?.message || t('auth.resetFailed') || 'Could not send reset email. Please try again.'
+        error.response?.data?.message || t('authScreen.resetEmailFailed')
       );
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export default function ForgotPasswordScreen() {
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>{t('auth.resetPassword') || 'Reset Password'}</Text>
+          <Text style={s.headerTitle}>{t('auth.resetPassword')}</Text>
         </View>
 
         {!sent ? (
@@ -112,18 +112,17 @@ export default function ForgotPasswordScreen() {
             <View style={s.iconWrap}>
               <Ionicons name="lock-open-outline" size={36} color={theme.primary} />
             </View>
-            <Text style={s.title}>{t('auth.forgotPassword') || 'Forgot Password?'}</Text>
+            <Text style={s.title}>{t('auth.forgotPassword')}</Text>
             <Text style={s.subtitle}>
-              {t('auth.resetInstructions') ||
-                "Enter your email address and we'll send you a link to reset your password."}
+              {t('auth.resetInstructions')}
             </Text>
 
-            <Text style={s.label}>{t('auth.email') || 'Email address'}</Text>
+            <Text style={s.label}>{t('auth.email')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="mail-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder={t('auth.emailPlaceholder') || 'Enter your email'}
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 value={email}
                 onChangeText={setEmail}
@@ -138,12 +137,12 @@ export default function ForgotPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={s.sendBtnText}>{t('auth.sendResetLink') || 'Send Reset Link'}</Text>
+                <Text style={s.sendBtnText}>{t('auth.sendResetLink')}</Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity style={s.backToLogin} onPress={() => router.replace('/(auth)/login')}>
-              <Text style={s.backToLoginText}>{t('auth.backToLogin') || 'Back to Login'}</Text>
+              <Text style={s.backToLoginText}>{t('auth.backToLogin')}</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -151,13 +150,12 @@ export default function ForgotPasswordScreen() {
             <View style={s.successIconWrap}>
               <Ionicons name="checkmark-circle" size={40} color={theme.success} />
             </View>
-            <Text style={s.successTitle}>{t('auth.checkYourEmail') || 'Check your email'}</Text>
+            <Text style={s.successTitle}>{t('auth.checkYourEmail')}</Text>
             <Text style={s.successText}>
-              {t('auth.resetLinkSent') ||
-                `We've sent a password reset link to ${email}. Please check your inbox.`}
+              {t('auth.resetLinkSent')}
             </Text>
             <TouchableOpacity style={s.sendBtn} onPress={() => router.replace('/(auth)/login')}>
-              <Text style={s.sendBtnText}>{t('auth.backToLogin') || 'Back to Login'}</Text>
+              <Text style={s.sendBtnText}>{t('auth.backToLogin')}</Text>
             </TouchableOpacity>
           </>
         )}

@@ -16,6 +16,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceRequest {
   id: number;
@@ -39,12 +40,19 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled:   '#EF4444',
 };
 
+// translation keys - shown in capitals on the badge
 const STATUS_LABEL: Record<string, string> = {
-  pending:     'PENDING',
-  assigned:    'ASSIGNED',
-  in_progress: 'IN PROGRESS',
-  completed:   'COMPLETED',
-  cancelled:   'CANCELLED',
+  pending:     'status.pending',
+  assigned:    'status.assigned',
+  in_progress: 'status.in_progress',
+  completed:   'status.completed',
+  cancelled:   'status.cancelled',
+};
+
+const URGENCY_LABEL: Record<string, string> = {
+  normal:    'requestService.normal',
+  urgent:    'requestService.urgent',
+  emergency: 'requestService.emergency',
 };
 
 const URGENCY_COLOR: Record<string, string> = {
@@ -54,15 +62,16 @@ const URGENCY_COLOR: Record<string, string> = {
 };
 
 const FILTERS = [
-  { key: 'all',         label: 'All' },
-  { key: 'pending',     label: 'Pending' },
-  { key: 'assigned',    label: 'Assigned' },
-  { key: 'in_progress', label: 'Active' },
-  { key: 'completed',   label: 'Done' },
-  { key: 'cancelled',   label: 'Cancelled' },
+  { key: 'all',         label: 'myRequests.filterAll' },
+  { key: 'pending',     label: 'myRequests.filterPending' },
+  { key: 'assigned',    label: 'myRequests.filterAssigned' },
+  { key: 'in_progress', label: 'myRequests.filterActive' },
+  { key: 'completed',   label: 'myRequests.filterDone' },
+  { key: 'cancelled',   label: 'myRequests.filterCancelled' },
 ];
 
 export default function MyRequests() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,7 +200,7 @@ export default function MyRequests() {
             <Text style={s.cardCategory}>{item.category_name}</Text>
           </View>
           <View style={[s.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={s.statusText}>{STATUS_LABEL[item.status] || item.status}</Text>
+            <Text style={s.statusText}>{STATUS_LABEL[item.status] ? t(STATUS_LABEL[item.status]).toUpperCase() : item.status}</Text>
           </View>
         </View>
 
@@ -221,7 +230,7 @@ export default function MyRequests() {
             </View>
           ) : null}
           <View style={[s.urgencyPill, { backgroundColor: urgColor }]}>
-            <Text style={s.urgencyText}>{item.urgency?.toUpperCase()}</Text>
+            <Text style={s.urgencyText}>{(URGENCY_LABEL[item.urgency] ? t(URGENCY_LABEL[item.urgency]) : item.urgency)?.toUpperCase()}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -231,14 +240,14 @@ export default function MyRequests() {
   return (
     <View style={s.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Header title="My Requests" />
+      <Header title={t('client.myRequests')} />
 
       {/* Search */}
       <View style={s.searchBox}>
         <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
         <TextInput
           style={s.searchInput}
-          placeholder="Search requests..."
+          placeholder={t('myRequests.searchPlaceholder')}
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -264,7 +273,7 @@ export default function MyRequests() {
               onPress={() => setFilter(item.key)}
             >
               <Text style={[s.filterChipText, filter === item.key && s.filterChipTextActive]}>
-                {item.label}
+                {t(item.label)}
               </Text>
             </TouchableOpacity>
           )}
@@ -280,8 +289,10 @@ export default function MyRequests() {
           <Ionicons name="clipboard-outline" size={52} color={theme.textSecondary} />
           <Text style={s.emptyText}>
             {filter === 'all'
-              ? 'No requests yet.\nGo to Home and tap "New Request".'
-              : `No ${filter.replace('_', ' ')} requests.`}
+              ? t('myRequests.noRequestsYet')
+              : t('myRequests.noFilteredRequests', {
+                  status: t(FILTERS.find(f => f.key === filter)?.label ?? 'myRequests.filterAll').toLowerCase(),
+                })}
           </Text>
         </View>
       ) : (

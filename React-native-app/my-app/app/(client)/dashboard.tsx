@@ -45,11 +45,11 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'PENDING',
-  assigned: 'ASSIGNED',
-  in_progress: 'IN PROGRESS',
-  completed: 'COMPLETED',
-  cancelled: 'CANCELLED',
+  pending: 'status.pending',
+  assigned: 'status.assigned',
+  in_progress: 'status.in_progress',
+  completed: 'status.completed',
+  cancelled: 'status.cancelled',
 };
 
 export default function ClientDashboard() {
@@ -239,10 +239,10 @@ export default function ClientDashboard() {
   }
 
   const STATS = [
-    { label: 'Total Requests', value: stats.total_requests, color: '#0D6E68', bg: '#E6F4F3', icon: 'list-outline' as const },
-    { label: 'Active', value: stats.active_requests, color: '#3B82F6', bg: '#EFF6FF', icon: 'flash-outline' as const },
-    { label: 'Completed', value: stats.completed_requests, color: '#10B981', bg: '#ECFDF5', icon: 'checkmark-circle-outline' as const },
-    { label: 'Pending', value: stats.pending_requests, color: '#F59E0B', bg: '#FFFBEB', icon: 'time-outline' as const },
+    { label: t('clientDashboard.totalRequests'), value: stats.total_requests, color: '#0D6E68', bg: '#E6F4F3', icon: 'list-outline' as const },
+    { label: t('assignments.active'), value: stats.active_requests, color: '#3B82F6', bg: '#EFF6FF', icon: 'flash-outline' as const },
+    { label: t('assignments.completed'), value: stats.completed_requests, color: '#10B981', bg: '#ECFDF5', icon: 'checkmark-circle-outline' as const },
+    { label: t('assignments.pending'), value: stats.pending_requests, color: '#F59E0B', bg: '#FFFBEB', icon: 'time-outline' as const },
   ];
 
   return (
@@ -262,14 +262,14 @@ export default function ClientDashboard() {
             <Image source={require('../../assets/images/logo.png')} style={s.heroLogo} resizeMode="contain" />
             <View>
               <Text style={s.heroAppName}>Worker Connect</Text>
-              <Text style={s.heroTagline}>Services at your fingertips</Text>
+              <Text style={s.heroTagline}>{t('clientDashboard.tagline')}</Text>
             </View>
           </View>
-          <Text style={s.heroGreeting}>Hello, {user?.firstName || 'there'} 👋</Text>
-          <Text style={s.heroName}>What do you need{'\n'}help with today?</Text>
+          <Text style={s.heroGreeting}>{t('clientDashboard.hello', { name: user?.firstName || t('clientDashboard.there') })}</Text>
+          <Text style={s.heroName}>{t('clientDashboard.whatHelp')}</Text>
           <TouchableOpacity style={s.heroCtaBtn} onPress={() => router.push('/(client)/request-service')}>
             <Ionicons name="add-circle" size={18} color="#0D6E68" />
-            <Text style={s.heroCtaText}>New Request</Text>
+            <Text style={s.heroCtaText}>{t('clientDashboard.newRequest')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -349,7 +349,7 @@ export default function ClientDashboard() {
         {/* ── Quick Actions ── */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Quick Actions</Text>
+            <Text style={s.sectionTitle}>{t('client.quickActions')}</Text>
           </View>
           <View style={s.actionRow}>
             <TouchableOpacity
@@ -359,7 +359,7 @@ export default function ClientDashboard() {
               <View style={[s.actionIcon, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
                 <Ionicons name="add-circle-outline" size={26} color="#fff" />
               </View>
-              <Text style={[s.actionCardTitle, { color: '#fff' }]}>Request{'\n'}Service</Text>
+              <Text style={[s.actionCardTitle, { color: '#fff' }]}>{t('clientDashboard.requestServiceTwoLine')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -369,7 +369,7 @@ export default function ClientDashboard() {
               <View style={[s.actionIcon, { backgroundColor: '#E6F4F3' }]}>
                 <Ionicons name="document-text-outline" size={26} color="#0D6E68" />
               </View>
-              <Text style={[s.actionCardTitle, { color: theme.text }]}>My{'\n'}Requests</Text>
+              <Text style={[s.actionCardTitle, { color: theme.text }]}>{t('clientDashboard.myRequestsTwoLine')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -379,7 +379,7 @@ export default function ClientDashboard() {
               <View style={[s.actionIcon, { backgroundColor: '#EFF6FF' }]}>
                 <Ionicons name="search-outline" size={26} color="#3B82F6" />
               </View>
-              <Text style={[s.actionCardTitle, { color: theme.text }]}>Browse{'\n'}Services</Text>
+              <Text style={[s.actionCardTitle, { color: theme.text }]}>{t('clientDashboard.browseServicesTwoLine')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -387,9 +387,9 @@ export default function ClientDashboard() {
         {/* ── Recent Requests ── */}
         <View style={[s.section, { marginBottom: 32 }]}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Recent Requests</Text>
+            <Text style={s.sectionTitle}>{t('clientDashboard.recentRequests')}</Text>
             <TouchableOpacity onPress={() => router.push('/(client)/my-requests')}>
-              <Text style={s.seeAllText}>See All</Text>
+              <Text style={s.seeAllText}>{t('client.seeAll')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -397,7 +397,7 @@ export default function ClientDashboard() {
             <View style={s.emptyBox}>
               <Ionicons name="clipboard-outline" size={44} color={theme.textSecondary} />
               <Text style={s.emptyText}>
-                No service requests yet.{'\n'}Tap &quot;New Request&quot; to get started.
+                {t('clientDashboard.noRequestsYet')}
               </Text>
             </View>
           ) : (
@@ -425,7 +425,7 @@ export default function ClientDashboard() {
                         </Text>
                       </View>
                       <View style={[s.listItemBadge, { backgroundColor: color }]}>
-                        <Text style={s.listItemBadgeText}>{STATUS_LABEL[req.status] || req.status}</Text>
+                        <Text style={s.listItemBadgeText}>{STATUS_LABEL[req.status] ? t(STATUS_LABEL[req.status]).toUpperCase() : req.status}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} style={{ marginLeft: 6 }} />
                     </TouchableOpacity>

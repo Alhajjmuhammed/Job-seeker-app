@@ -16,6 +16,7 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
 import { routeForNotification } from '../../utils/notificationRoute';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: number;
@@ -33,6 +34,7 @@ interface Notification {
 }
 
 export default function ClientNotificationsScreen() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { refreshUnreadCount } = useNotifications();
   const [loading, setLoading] = useState(true);
@@ -115,10 +117,10 @@ export default function ClientNotificationsScreen() {
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
+    if (mins < 1) return t('notifications.justNow');
+    if (mins < 60) return t('notifications.minutesAgo', { count: mins });
+    if (hours < 24) return t('notifications.hoursAgo', { count: hours });
+    if (days < 7) return t('notifications.daysAgo', { count: days });
     return new Date(dateStr).toLocaleDateString();
   };
 
@@ -172,17 +174,17 @@ export default function ClientNotificationsScreen() {
   return (
     <View style={s.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Header title="Notifications" />
+      <Header title={t('nav.notifications')} />
 
       <View style={s.content}>
         <View style={s.header}>
           <View style={s.titleRow}>
             <Ionicons name="notifications" size={24} color={theme.primary} />
-            <Text style={s.title}>Notifications</Text>
+            <Text style={s.title}>{t('nav.notifications')}</Text>
           </View>
           {unreadCount > 0 && (
             <TouchableOpacity style={s.markAllBtn} onPress={handleMarkAllAsRead}>
-              <Text style={s.markAllText}>Mark all read</Text>
+              <Text style={s.markAllText}>{t('notifications.markAllRead')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -195,7 +197,7 @@ export default function ClientNotificationsScreen() {
               onPress={() => setFilter(tab)}
             >
               <Text style={[s.tabText, { color: filter === tab ? theme.primary : theme.textSecondary }]}>
-                {tab === 'all' ? `All (${notifications.length})` : `Unread (${unreadCount})`}
+                {tab === 'all' ? `${t('notifications.all')} (${notifications.length})` : `${t('notifications.unread')} (${unreadCount})`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -208,9 +210,9 @@ export default function ClientNotificationsScreen() {
         ) : shown.length === 0 ? (
           <View style={s.empty}>
             <Ionicons name="notifications-outline" size={56} color={theme.textSecondary} />
-            <Text style={s.emptyTitle}>{filter === 'unread' ? "You're all caught up!" : 'No Notifications'}</Text>
+            <Text style={s.emptyTitle}>{filter === 'unread' ? t('notifications.allCaughtUp') : t('notifications.noNotifications')}</Text>
             <Text style={s.emptySub}>
-              {filter === 'unread' ? 'No unread notifications.' : "You'll see notifications here when they arrive."}
+              {filter === 'unread' ? t('notifications.noUnreadShort') : t('notifications.notificationsWillAppear')}
             </Text>
           </View>
         ) : (

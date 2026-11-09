@@ -42,7 +42,7 @@ export default function RegisterScreen() {
 
   const goToStep2 = () => {
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()) {
-      Alert.alert(t('common.error'), t('auth.fillAllFields') || 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
     setStep(2);
@@ -50,15 +50,15 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!password.trim() || !confirmPassword.trim()) {
-      Alert.alert(t('common.error'), t('auth.fillAllFields') || 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert(t('common.error'), t('auth.passwordMismatch') || 'Passwords do not match');
+      Alert.alert(t('common.error'), t('auth.passwordMismatch'));
       return;
     }
     if (password.length < 8) {
-      Alert.alert(t('common.error'), t('auth.passwordTooShort') || 'Password must be at least 8 characters');
+      Alert.alert(t('common.error'), t('auth.passwordTooShort'));
       return;
     }
 
@@ -77,7 +77,7 @@ export default function RegisterScreen() {
     } catch (error: any) {
       Alert.alert(
         t('common.error'),
-        error.message || t('auth.registerFailed') || 'Registration failed. Please try again.'
+        error.message || t('auth.registerFailed')
       );
     } finally {
       setLoading(false);
@@ -148,7 +148,7 @@ export default function RegisterScreen() {
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>{'Create Account'}</Text>
+          <Text style={s.headerTitle}>{t('auth.createAccount')}</Text>
         </View>
 
         {/* Step indicator */}
@@ -164,8 +164,8 @@ export default function RegisterScreen() {
 
         {step === 1 ? (
           <>
-            <Text style={s.sectionTitle}>{'Who are you?'}</Text>
-            <Text style={s.sectionSub}>{'Choose how you want to use the app'}</Text>
+            <Text style={s.sectionTitle}>{t('authScreen.whoAreYou')}</Text>
+            <Text style={s.sectionSub}>{t('authScreen.chooseHowToUse')}</Text>
 
             {/* User type selection */}
             <View style={s.typeRow}>
@@ -188,22 +188,22 @@ export default function RegisterScreen() {
                     style={s.typeIcon}
                   />
                   <Text style={[s.typeLabel, { color: userType === type ? theme.primary : theme.text }]}>
-                    {type === 'client' ? 'Client' : 'Worker'}
+                    {type === 'client' ? t('authScreen.client') : t('authScreen.worker')}
                   </Text>
                   <Text style={[s.typeDesc, { color: theme.textSecondary }]}>
-                    {type === 'client' ? 'I need services' : 'I provide services'}
+                    {type === 'client' ? t('authScreen.needServices') : t('authScreen.provideServices')}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Personal info */}
-            <Text style={s.label}>{'First Name'}</Text>
+            <Text style={s.label}>{t('auth.firstName')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="person-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder="Enter your first name"
+                placeholder={t('authScreen.firstNamePlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 value={firstName}
                 onChangeText={setFirstName}
@@ -211,12 +211,12 @@ export default function RegisterScreen() {
               />
             </View>
 
-            <Text style={s.label}>{'Last Name'}</Text>
+            <Text style={s.label}>{t('auth.lastName')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="person-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder="Enter your last name"
+                placeholder={t('authScreen.lastNamePlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 value={lastName}
                 onChangeText={setLastName}
@@ -224,12 +224,12 @@ export default function RegisterScreen() {
               />
             </View>
 
-            <Text style={s.label}>{'Email'}</Text>
+            <Text style={s.label}>{t('auth.email')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="mail-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder="Enter your email"
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 value={email}
                 onChangeText={setEmail}
@@ -239,7 +239,7 @@ export default function RegisterScreen() {
               />
             </View>
 
-            <Text style={s.label}>{'Phone Number'}</Text>
+            <Text style={s.label}>{t('auth.phone')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="call-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
@@ -253,25 +253,25 @@ export default function RegisterScreen() {
             </View>
 
             <TouchableOpacity style={s.primaryBtn} onPress={goToStep2}>
-              <Text style={s.primaryBtnText}>{'Next'}</Text>
+              <Text style={s.primaryBtnText}>{t('authScreen.next')}</Text>
             </TouchableOpacity>
 
             <View style={s.loginRow}>
-              <Text style={s.loginText}>{'Already have an account?'}</Text>
+              <Text style={s.loginText}>{t('auth.haveAccount')}</Text>
               <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-                <Text style={s.loginLink}>{'Sign In'}</Text>
+                <Text style={s.loginLink}>{t('auth.signIn')}</Text>
               </TouchableOpacity>
             </View>
           </>
         ) : (
           <>
-            <Text style={s.sectionTitle}>{'Secure your account'}</Text>
-            <Text style={s.sectionSub}>{'Create a strong password'}</Text>
+            <Text style={s.sectionTitle}>{t('authScreen.secureAccount')}</Text>
+            <Text style={s.sectionSub}>{t('authScreen.createStrongPassword')}</Text>
 
             {/* Worker type if worker */}
             {userType === 'worker' && (
               <>
-                <Text style={s.label}>{'Worker Type'}</Text>
+                <Text style={s.label}>{t('profile.workerTypeLabel')}</Text>
                 <View style={s.workerTypeRow}>
                   {(['professional', 'non-academic'] as WorkerType[]).map((wt) => (
                     <TouchableOpacity
@@ -286,7 +286,7 @@ export default function RegisterScreen() {
                       onPress={() => setWorkerType(wt)}
                     >
                       <Text style={[s.workerTypeBtnText, { color: workerType === wt ? theme.primary : theme.text }]}>
-                        {wt === 'professional' ? 'Professional' : 'Non-Academic'}
+                        {wt === 'professional' ? t('auth.professional') : t('auth.nonAcademic')}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -294,12 +294,12 @@ export default function RegisterScreen() {
               </>
             )}
 
-            <Text style={s.label}>{'Password'}</Text>
+            <Text style={s.label}>{t('auth.password')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="lock-closed-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder="Min. 8 characters"
+                placeholder={t('authScreen.passwordPlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 value={password}
                 onChangeText={setPassword}
@@ -311,12 +311,12 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={s.label}>{'Confirm Password'}</Text>
+            <Text style={s.label}>{t('auth.confirmPassword')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="lock-closed-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder="Re-enter your password"
+                placeholder={t('authScreen.confirmPasswordPlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -328,12 +328,12 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={s.optionalLabel}>{'Agent Code (optional)'}</Text>
+            <Text style={s.optionalLabel}>{t('authScreen.agentCodeOptional')}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="people-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={s.input}
-                placeholder="Enter agent code if you have one"
+                placeholder={t('auth.enterAgentCode')}
                 placeholderTextColor={theme.textTertiary}
                 value={agentCode}
                 onChangeText={setAgentCode}
@@ -345,7 +345,7 @@ export default function RegisterScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={s.primaryBtnText}>{'Create Account'}</Text>
+                <Text style={s.primaryBtnText}>{t('auth.createAccount')}</Text>
               )}
             </TouchableOpacity>
           </>

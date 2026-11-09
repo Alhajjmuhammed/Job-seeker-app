@@ -63,11 +63,11 @@ export default function ClockOutScreen() {
       if (!isClockedIn) {
         console.log('⚠️ Worker is not clocked in - redirecting back');
         Alert.alert(
-          'Not Clocked In',
-          'You are not currently clocked in. Please clock in first before you can clock out.',
+          t('clock.notClockedIn'),
+          t('clock.notClockedInMsg'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => router.back()
             }
           ]
@@ -86,7 +86,7 @@ export default function ClockOutScreen() {
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
-      Alert.alert(t('common.error'), 'Failed to load assignment');
+      Alert.alert(t('common.error'), t('clock.failedLoadAssignment'));
       router.back();
     } finally {
       setLoading(false);
@@ -109,7 +109,7 @@ export default function ClockOutScreen() {
       }
     } catch (error) {
       console.error('❌ Error getting location:', error);
-      setLocationError('Could not get location. You can still clock out without it.');
+      setLocationError(t('clock.locationFailedOut'));
     } finally {
       setLocationLoading(false);
     }
@@ -119,12 +119,12 @@ export default function ClockOutScreen() {
     if (!assignment) return;
 
     Alert.alert(
-      'Confirm Clock Out',
-      'Are you finished working for now? You can clock back in later if needed.',
+      t('clock.confirmOut'),
+      t('clock.confirmOutMsg'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Yes, Clock Out',
+          text: t('clock.yesClockOut'),
           onPress: confirmClockOut,
         },
       ]
@@ -151,7 +151,7 @@ export default function ClockOutScreen() {
       // Redirect immediately, show success after
       router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
       setTimeout(() => {
-        Alert.alert('✅ Clocked Out Successfully!', 'Your work session has been recorded.');
+        Alert.alert(t('clock.clockedOutSuccess'), t('clock.clockedOutSuccessMsg'));
       }, 100);
     } catch (error: any) {
       const isNotClockedIn = error.response?.data?.error?.toLowerCase().includes('not clocked in');
@@ -163,8 +163,8 @@ export default function ClockOutScreen() {
       } else {
         // Genuine error — show it
         console.error('❌ Clock Out Error:', error.response?.data || error.message);
-        const errorMessage = error.response?.data?.error || error.message || 'Failed to clock out. Please try again.';
-        Alert.alert('Clock Out Failed', errorMessage);
+        const errorMessage = error.response?.data?.error || error.message || t('clock.failedClockOut');
+        Alert.alert(t('clock.clockOutFailed'), errorMessage);
       }
     } finally {
       setSubmitting(false);
@@ -185,14 +185,14 @@ export default function ClockOutScreen() {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
-    if (hours === 0) return `${minutes} minutes`;
-    return `${hours}h ${minutes}m`;
+    if (hours === 0) return t('clock.durationMinutes', { minutes });
+    return t('clock.durationHoursMinutes', { hours, minutes });
   };
 
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Clock Out" showBack />
+        <Header title={t('assignments.clockOut')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>{t('requestService.loading')}</Text>
@@ -204,9 +204,9 @@ export default function ClockOutScreen() {
   if (!assignment) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Clock Out" showBack />
+        <Header title={t('assignments.clockOut')} showBack />
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.textSecondary }]}>{t('assignments.active')}</Text>
+          <Text style={[styles.errorText, { color: theme.textSecondary }]}>{t('clock.noActiveSession')}</Text>
         </View>
       </View>
     );
@@ -214,14 +214,14 @@ export default function ClockOutScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Clock Out" showBack />
+      <Header title={t('assignments.clockOut')} showBack />
 
       <ScrollView style={styles.content}>
         {/* Clock Out Banner */}
         <View style={[styles.banner, { backgroundColor: '#F44336' }]}>
           <Ionicons name="stop-circle-outline" size={48} color="#FFFFFF" />
           <Text style={styles.bannerTime}>{getCurrentTime()}</Text>
-          <Text style={styles.bannerText}>Ready to Clock Out?</Text>
+          <Text style={styles.bannerText}>{t('clock.readyToClockOut')}</Text>
         </View>
 
         {/* Work Duration */}
@@ -230,7 +230,7 @@ export default function ClockOutScreen() {
             <Ionicons name="time" size={32} color={theme.primary} />
             <View style={styles.durationInfo}>
               <Text style={[styles.durationLabel, { color: theme.textSecondary }]}>
-                Work Duration
+                {t('clock.workDuration')}
               </Text>
               <Text style={[styles.durationValue, { color: theme.text }]}>
                 {calculateWorkDuration()}
@@ -242,7 +242,7 @@ export default function ClockOutScreen() {
         {/* Assignment Info */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Assignment Summary
+            {t('clock.assignmentSummary')}
           </Text>
           
           <Text style={[styles.assignmentTitle, { color: theme.text }]}>
@@ -278,7 +278,7 @@ export default function ClockOutScreen() {
               color={currentLocation ? '#4CAF50' : '#FFA500'} 
             />
             <Text style={[styles.locationTitle, { color: theme.text }]}>
-              Location Status
+              {t('clock.locationStatus')}
             </Text>
           </View>
 
@@ -286,21 +286,21 @@ export default function ClockOutScreen() {
             <View style={styles.locationStatus}>
               <ActivityIndicator size="small" color={theme.primary} />
               <Text style={[styles.locationText, { color: theme.textSecondary }]}>
-                Getting location...
+                {t('clock.gettingLocation')}
               </Text>
             </View>
           ) : currentLocation ? (
             <View style={[styles.locationSuccess, { backgroundColor: '#4CAF50' + '20' }]}>
               <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
               <Text style={[styles.locationSuccessText, { color: '#4CAF50' }]}>
-                Location captured
+                {t('clock.locationCaptured')}
               </Text>
             </View>
           ) : (
             <View style={[styles.locationWarning, { backgroundColor: '#FFA500' + '20' }]}>
               <Ionicons name="warning-outline" size={18} color="#FFA500" />
               <Text style={[styles.locationWarningText, { color: '#FFA500' }]}>
-                Location unavailable
+                {t('clock.locationUnavailable')}
               </Text>
             </View>
           )}
@@ -309,10 +309,10 @@ export default function ClockOutScreen() {
         {/* Work Notes */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Work Notes (Optional)
+            {t('clock.workNotes')}
           </Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Describe what you accomplished during this session
+            {t('clock.workNotesHint')}
           </Text>
 
           <TextInput
@@ -320,7 +320,7 @@ export default function ClockOutScreen() {
               styles.textArea,
               { backgroundColor: theme.background, color: theme.text },
             ]}
-            placeholder={t('assignments.completed')}
+            placeholder={t('clock.workNotesPlaceholder')}
             placeholderTextColor={theme.textSecondary}
             value={notes}
             onChangeText={setNotes}
@@ -341,7 +341,7 @@ export default function ClockOutScreen() {
             ) : (
               <>
                 <Ionicons name="stop-circle" size={28} color="#FFFFFF" />
-                <Text style={styles.clockOutButtonText}>Clock Out Now</Text>
+                <Text style={styles.clockOutButtonText}>{t('clock.clockOutNow')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -350,7 +350,7 @@ export default function ClockOutScreen() {
             style={[styles.cancelButton, { borderColor: theme.border }]}
             onPress={() => router.back()}
           >
-            <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('worker.continue')}</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('clock.continueWorking')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

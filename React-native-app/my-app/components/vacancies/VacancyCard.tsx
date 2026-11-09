@@ -46,7 +46,7 @@ export default function VacancyCard({ v, onPress, showStatus }: { v: VacancySumm
             {v.poster_name} · {v.category_name}
           </Text>
         </View>
-        {showStatus && <Badge status={v.status} label={v.status_display} />}
+        {showStatus && <Badge status={v.status} label={t(`status.${v.status}`, { defaultValue: v.status_display })} />}
       </View>
       <Text style={[st.salary, { color: theme.primary }]}>{salaryText(v)}</Text>
       <View style={st.tags}>

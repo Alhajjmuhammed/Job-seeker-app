@@ -83,7 +83,7 @@ export default function WorkerVacancyScreen() {
         <Card>
           <View style={st.top}>
             <Text style={[st.title, { color: theme.text }]}>{v.title}</Text>
-            {v.status !== 'published' && <Badge status={v.status} label={v.status_display} />}
+            {v.status !== 'published' && <Badge status={v.status} label={t(`status.${v.status}`, { defaultValue: v.status_display })} />}
           </View>
           <Text style={[st.poster, { color: theme.textSecondary }]}>{v.poster_name} · {v.kind_display}</Text>
           <Text style={[st.salary, { color: theme.primary }]}>{salaryText(v)}</Text>
@@ -123,7 +123,7 @@ export default function WorkerVacancyScreen() {
           <Card>
             <View style={st.top}>
               <Text style={[st.label, { color: theme.text, marginTop: 0 }]}>{t('vacancies.yourApplication')}</Text>
-              <Badge status={mine.status} label={mine.status_display} />
+              <Badge status={mine.status} label={t(`status.${mine.status}`, { defaultValue: mine.status_display })} />
             </View>
             <Text style={[st.hint, { color: theme.textSecondary }]}>{t(`vacancies.appExplain.${mine.status}`)}</Text>
             {activeApp && <Btn title={t('vacancies.withdraw')} kind="ghost" onPress={withdraw} busy={busy} style={{ marginTop: 10 }} />}

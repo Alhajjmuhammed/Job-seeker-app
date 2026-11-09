@@ -45,11 +45,11 @@ export default function HelpScreen() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const categories = [
-    { value: 'general', label: 'General', icon: 'help-circle' as const },
-    { value: 'worker', label: 'For Workers', icon: 'hammer' as const },
-    { value: 'client', label: 'For Clients', icon: 'briefcase' as const },
-    { value: 'payment', label: 'Payments', icon: 'card' as const },
-    { value: 'technical', label: 'Technical', icon: 'settings' as const },
+    { value: 'general', label: t('help.general'), icon: 'help-circle' as const },
+    { value: 'worker', label: t('help.forWorkers'), icon: 'hammer' as const },
+    { value: 'client', label: t('help.forClients'), icon: 'briefcase' as const },
+    { value: 'payment', label: t('help.payments'), icon: 'card' as const },
+    { value: 'technical', label: t('help.technical'), icon: 'settings' as const },
   ];
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function HelpScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Help & Support" showBack />
+      <Header title={t('help.helpSupport')} showBack />
       
       <ScrollView
         style={styles.scrollView}
@@ -222,7 +222,7 @@ export default function HelpScreen() {
               <View style={styles.contactRow}>
                 <Ionicons name="shield-checkmark" size={16} color={theme.textSecondary} />
                 <Text style={[styles.contactText, { color: theme.textSecondary }]}>
-                  Emergency: {contactInfo.support_hours}
+                  {t('helpScreen.emergency', { hours: contactInfo.support_hours })}
                 </Text>
               </View>
             </View>

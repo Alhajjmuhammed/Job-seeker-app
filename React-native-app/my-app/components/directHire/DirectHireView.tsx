@@ -90,7 +90,7 @@ export default function DirectHireView({ group }: { group: '(client)' | '(worker
         <Card>
           <View style={st.top}>
             <Text style={[st.title, { color: theme.text }]}>{h.title}</Text>
-            <Badge status={hireTone(h.status)} label={h.status_display} />
+            <Badge status={hireTone(h.status)} label={t(`status.${h.status}`, { defaultValue: h.status_display })} />
           </View>
           <Text style={[st.money, { color: theme.primary }]}>TSh {formatMoney(h.total_amount)}</Text>
           <Row label={t('directHire.rate')} value={rateText(t, h)} />

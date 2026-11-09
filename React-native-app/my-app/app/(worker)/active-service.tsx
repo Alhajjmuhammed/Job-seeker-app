@@ -59,18 +59,18 @@ export default function ActiveService() {
 
       setAssignment(current || null);
       if (!current) {
-        Alert.alert(t('assignments.noActiveService'), 'You don\'t have any active service assignment', [
-          { text: 'OK', onPress: () => router.back() }
+        Alert.alert(t('assignments.noActiveService'), t('assignments.noActiveAssignment'), [
+          { text: t('common.ok'), onPress: () => router.back() }
         ]);
       }
     } catch (error: any) {
       console.error('Error loading current assignment:', error);
       if (error.response?.status === 404) {
-        Alert.alert(t('assignments.noActiveService'), 'You don\'t have any active service assignment', [
-          { text: 'OK', onPress: () => router.back() }
+        Alert.alert(t('assignments.noActiveService'), t('assignments.noActiveAssignment'), [
+          { text: t('common.ok'), onPress: () => router.back() }
         ]);
       } else {
-        Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to load active service');
+        Alert.alert(t('common.error'), error.response?.data?.error || t('activeServiceScreen.failedLoad'));
       }
     } finally {
       setLoading(false);
@@ -95,7 +95,7 @@ export default function ActiveService() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Active Service" showBack />
+        <Header title={t('assignments.activeService')} showBack />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -107,7 +107,7 @@ export default function ActiveService() {
   if (!assignment) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Active Service" showBack />
+        <Header title={t('assignments.activeService')} showBack />
         <View style={styles.centerContainer}>
           <Ionicons name="briefcase-outline" size={48} color={theme.textSecondary} />
           <Text style={{ color: theme.textSecondary, marginTop: 12, fontFamily: 'Poppins_400Regular' }}>
@@ -123,7 +123,7 @@ export default function ActiveService() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Active Service" showBack />
+      <Header title={t('assignments.activeService')} showBack />
       
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Status Card */}
@@ -154,7 +154,9 @@ export default function ActiveService() {
 
           <View style={[styles.urgencyBadge, { backgroundColor: urgencyConfig.bg }]}>
             <Text style={[styles.urgencyText, { color: urgencyConfig.text }]}>
-              {assignment.urgency.toUpperCase()} PRIORITY
+              {t('assignmentDetail.priority', {
+                urgency: t(`requestService.${assignment.urgency}`, { defaultValue: assignment.urgency }).toUpperCase(),
+              })}
             </Text>
           </View>
 
@@ -191,7 +193,7 @@ export default function ActiveService() {
           <View style={styles.infoRow}>
             <Ionicons name="hourglass-outline" size={20} color={theme.textSecondary} />
             <Text style={[styles.infoText, { color: theme.text }]}>
-              {assignment.duration_days} day{assignment.duration_days !== 1 ? 's' : ''}
+              {t('activeServiceScreen.days', { count: assignment.duration_days })}
             </Text>
           </View>
         </View>

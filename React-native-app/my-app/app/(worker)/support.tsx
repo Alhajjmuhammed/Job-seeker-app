@@ -34,43 +34,43 @@ export default function SupportScreen() {
   const faqs: FAQ[] = [
     {
       id: 1,
-      question: 'How do I get jobs?',
-      answer: 'Keep your profile, trades and ID up to date so you get verified. Clients can then book you directly, and our team assigns you to requests in your trades - you get a notification and can accept or decline. Professional workers can also browse open jobs from the dashboard.',
+      question: t('supportScreen.workerFaq1Q'),
+      answer: t('supportScreen.workerFaq1A'),
     },
     {
       id: 2,
-      question: 'How do I update my profile?',
-      answer: 'Go to Profile tab, tap "Edit Profile" button, update your information, skills, and experience. Don\'t forget to upload your documents for verification.',
+      question: t('supportScreen.workerFaq2Q'),
+      answer: t('supportScreen.workerFaq2A'),
     },
     {
       id: 3,
-      question: 'What are direct hire requests?',
-      answer: 'Direct hire requests are job offers sent directly to you by clients who found your profile. You\'ll receive notifications when you get these requests on your Dashboard.',
+      question: t('supportScreen.workerFaq3Q'),
+      answer: t('supportScreen.workerFaq3A'),
     },
     {
       id: 4,
-      question: 'How does the payment system work?',
-      answer: 'Once you complete a job, the client marks it as complete and releases payment. You can view your earnings in the Earnings tab and request withdrawals to your linked bank account.',
+      question: t('supportScreen.workerFaq4Q'),
+      answer: t('supportScreen.workerFaq4A'),
     },
     {
       id: 5,
-      question: 'How do I verify my documents?',
-      answer: 'Upload your National ID and any professional certificates from the Documents section. Our admin team will review and verify them within 24-48 hours.',
+      question: t('supportScreen.workerFaq5Q'),
+      answer: t('supportScreen.workerFaq5A'),
     },
     {
       id: 6,
-      question: 'Can I work for multiple clients?',
-      answer: 'Yes! You can accept multiple jobs and work with different clients simultaneously. Just manage your availability status and schedule accordingly.',
+      question: t('supportScreen.workerFaq6Q'),
+      answer: t('supportScreen.workerFaq6A'),
     },
     {
       id: 7,
-      question: 'What if I have a dispute with a client?',
-      answer: 'Contact our support team immediately through this Help Center. We\'ll mediate the dispute and help resolve any issues between you and the client.',
+      question: t('supportScreen.workerFaq7Q'),
+      answer: t('supportScreen.workerFaq7A'),
     },
     {
       id: 8,
-      question: 'How do I withdraw my earnings?',
-      answer: 'Go to Earnings tab, ensure you have a linked payment method, and click "Withdraw Funds". Minimum withdrawal amount is $50. Funds typically arrive within 3-5 business days.',
+      question: t('supportScreen.workerFaq8Q'),
+      answer: t('supportScreen.workerFaq8A'),
     },
   ];
 
@@ -94,11 +94,11 @@ export default function SupportScreen() {
         priority: 'medium',
       });
       Alert.alert(
-        'Message Sent',
-        'Your support request has been submitted. We\'ll get back to you within 24 hours.',
+        t('supportScreen.messageSent'),
+        t('support.messageSentSuccess'),
         [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => {
               setContactSubject('');
               setContactMessage('');
@@ -110,7 +110,7 @@ export default function SupportScreen() {
       console.error('Error creating support ticket:', error);
       Alert.alert(
         t('common.error'),
-        'Failed to submit your support request. Please check your connection and try again.'
+        t('supportScreen.failedSubmit')
       );
     } finally {
       setSubmitting(false);
@@ -133,7 +133,7 @@ export default function SupportScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.statusBar} />
-      <Header showBack title="Help & Support" />
+      <Header showBack title={t('help.helpSupport')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Quick Contact Options */}

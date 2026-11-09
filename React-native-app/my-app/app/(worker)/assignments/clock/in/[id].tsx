@@ -60,11 +60,11 @@ export default function ClockInScreen() {
       if (isClockedIn) {
         console.log('⚠️ Worker is already clocked in - redirecting back');
         Alert.alert(
-          'Already Clocked In',
-          'You are already clocked in. Please clock out first before clocking in again.',
+          t('clock.alreadyClockedIn'),
+          t('clock.alreadyClockedInMsg'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => router.back()
             }
           ]
@@ -82,7 +82,7 @@ export default function ClockInScreen() {
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
-      Alert.alert(t('common.error'), 'Failed to load assignment');
+      Alert.alert(t('common.error'), t('clock.failedLoadAssignment'));
       router.back();
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ export default function ClockInScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       
       if (status !== 'granted') {
-        setLocationError('Location permission denied. You can still clock in without location.');
+        setLocationError(t('clock.locationDeniedIn'));
         setLocationLoading(false);
         return;
       }
@@ -113,7 +113,7 @@ export default function ClockInScreen() {
       setLocationLoading(false);
     } catch (error) {
       console.error('Error getting location:', error);
-      setLocationError('Could not get location. You can still clock in without it.');
+      setLocationError(t('clock.locationFailedIn'));
       setLocationLoading(false);
     }
   };
@@ -124,19 +124,19 @@ export default function ClockInScreen() {
     // Check if assignment has been accepted
     if (assignment.worker_accepted !== true) {
       Alert.alert(
-        'Assignment Not Accepted',
-        'You must accept this assignment before you can clock in.'
+        t('clock.notAccepted'),
+        t('clock.notAcceptedMsg')
       );
       return;
     }
 
     Alert.alert(
-      'Confirm Clock In',
-      'Are you ready to start working on this assignment?',
+      t('clock.confirmIn'),
+      t('clock.confirmInMsg'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Yes, Clock In',
+          text: t('clock.yesClockIn'),
           onPress: confirmClockIn,
         },
       ]
@@ -165,11 +165,11 @@ export default function ClockInScreen() {
       if (isAlreadyClockedIn) {
         console.log('⚠️ Clock status changed! Worker is ALREADY clocked in');
         Alert.alert(
-          'Already Clocked In',
-          'You have already clocked in. This may have happened from another action or if you clicked too quickly.',
+          t('clock.alreadyClockedIn'),
+          t('clock.alreadyClockedInRace'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => {
                 // Go back to assignment detail which will show correct state
                 router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
@@ -186,7 +186,7 @@ export default function ClockInScreen() {
       // Redirect immediately, show success after
       router.replace(`/(worker)/service-assignment/${assignment.id}` as any);
       setTimeout(() => {
-        Alert.alert('⏰ Clocked In Successfully!', t('assignments.active'));
+        Alert.alert(t('clock.clockedInSuccess'), t('clock.clockedInSuccessMsg'));
       }, 100);
     } catch (error: any) {
       const isAlreadyClockedIn = error.response?.data?.error?.toLowerCase().includes('already clocked in');
@@ -198,8 +198,8 @@ export default function ClockInScreen() {
       } else {
         // Genuine error — show it
         console.error('❌ Clock In Error:', error.response?.data || error.message);
-        const errorMessage = error.response?.data?.error || error.message || 'Failed to clock in. Please try again.';
-        Alert.alert('Clock In Failed', errorMessage);
+        const errorMessage = error.response?.data?.error || error.message || t('clock.failedClockIn');
+        Alert.alert(t('clock.clockInFailed'), errorMessage);
       }
     } finally {
       setSubmitting(false);
@@ -217,11 +217,11 @@ export default function ClockInScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Clock In" showBack />
+        <Header title={t('assignments.clockIn')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading assignment...
+            {t('clock.loadingAssignment')}
           </Text>
         </View>
       </View>
@@ -231,10 +231,10 @@ export default function ClockInScreen() {
   if (!assignment) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Clock In" showBack />
+        <Header title={t('assignments.clockIn')} showBack />
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-            Assignment not found
+            {t('assignments.assignmentNotFound')}
           </Text>
         </View>
       </View>
@@ -243,20 +243,20 @@ export default function ClockInScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Clock In" showBack />
+      <Header title={t('assignments.clockIn')} showBack />
 
       <ScrollView style={styles.content}>
         {/* Clock In Banner */}
         <View style={[styles.banner, { backgroundColor: theme.primary }]}>
           <Ionicons name="time-outline" size={48} color="#FFFFFF" />
           <Text style={styles.bannerTime}>{getCurrentTime()}</Text>
-          <Text style={styles.bannerText}>Ready to Start Work?</Text>
+          <Text style={styles.bannerText}>{t('clock.readyToStart')}</Text>
         </View>
 
         {/* Assignment Info */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Assignment Details
+            {t('clock.assignmentDetails')}
           </Text>
           
           <Text style={[styles.assignmentTitle, { color: theme.text }]}>
@@ -298,7 +298,7 @@ export default function ClockInScreen() {
               color={currentLocation ? '#4CAF50' : '#FFA500'} 
             />
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Location Tracking
+              {t('clock.locationTracking')}
             </Text>
           </View>
 
@@ -306,21 +306,21 @@ export default function ClockInScreen() {
             <View style={styles.locationStatus}>
               <ActivityIndicator size="small" color={theme.primary} />
               <Text style={[styles.locationText, { color: theme.textSecondary }]}>
-                Getting your location...
+                {t('clock.gettingYourLocation')}
               </Text>
             </View>
           ) : currentLocation ? (
             <View style={[styles.locationSuccess, { backgroundColor: '#4CAF50' + '20' }]}>
               <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
               <Text style={[styles.locationSuccessText, { color: '#4CAF50' }]}>
-                Location captured successfully
+                {t('clock.locationCapturedSuccess')}
               </Text>
             </View>
           ) : (
             <View style={[styles.locationWarning, { backgroundColor: '#FFA500' + '20' }]}>
               <Ionicons name="warning-outline" size={20} color="#FFA500" />
               <Text style={[styles.locationWarningText, { color: '#FFA500' }]}>
-                {locationError || 'Location not available'}
+                {locationError || t('clock.locationNotAvailable')}
               </Text>
               <TouchableOpacity
                 style={[styles.retryButton, { backgroundColor: theme.primary }]}
@@ -332,7 +332,7 @@ export default function ClockInScreen() {
           )}
 
           <Text style={[styles.locationNote, { color: theme.textSecondary }]}>
-            📍 Location helps verify your attendance and improves service quality
+            {t('clock.locationNote')}
           </Text>
         </View>
 
@@ -342,12 +342,12 @@ export default function ClockInScreen() {
           <View style={styles.infoBoxContent}>
             <Text style={styles.infoBoxTitle}>{t('assignments.important')}</Text>
             <Text style={styles.infoBoxText}>
-              • Remember to clock out when you finish
+              {t('clock.tipClockOut')}
             </Text>
             <Text style={styles.infoBoxText}>
-              • Time tracking starts immediately after clock in
+              {t('clock.tipTracking')}
             </Text>
-            <Text style={styles.infoBoxText}>{t('common.back')}</Text>
+            <Text style={styles.infoBoxText}>{t('clock.tipBreaks')}</Text>
           </View>
         </View>
 
@@ -363,7 +363,7 @@ export default function ClockInScreen() {
             ) : (
               <>
                 <Ionicons name="play-circle" size={28} color="#FFFFFF" />
-                <Text style={styles.clockInButtonText}>Clock In Now</Text>
+                <Text style={styles.clockInButtonText}>{t('clock.clockInNow')}</Text>
               </>
             )}
           </TouchableOpacity>

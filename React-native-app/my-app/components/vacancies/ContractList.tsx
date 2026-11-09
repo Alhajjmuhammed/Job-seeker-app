@@ -58,7 +58,7 @@ export default function ContractList({ group }: { group: '(client)' | '(worker)'
               style={[st.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={st.top}>
                 <Text style={[st.title, { color: theme.text }]} numberOfLines={2}>{c.vacancy.title}</Text>
-                <Badge status={c.status} label={c.status_display} />
+                <Badge status={c.status} label={t(`status.${c.status}`, { defaultValue: c.status_display })} />
               </View>
               <Text style={[st.sub, { color: theme.textSecondary }]}>
                 {c.my_role === 'worker' ? c.employer_name : c.worker_name}

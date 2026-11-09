@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Card {
   id: string;
@@ -37,6 +38,7 @@ const BRAND_ICON: Record<string, any> = {
 };
 
 export default function ClientPaymentMethods() {
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ export default function ClientPaymentMethods() {
       await apiService.setDefaultCard(card.id);
       setCards(prev => prev.map(c => ({ ...c, is_default: c.id === card.id })));
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.error || 'Failed to set default card.');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('paymentMethodsScreen.failedSetDefault'));
     } finally {
       setActionLoading(null);
     }
@@ -79,12 +81,12 @@ export default function ClientPaymentMethods() {
 
   const handleRemove = (card: Card) => {
     Alert.alert(
-      'Remove Card',
-      `Remove ${card.card_type.toUpperCase()} ending in ${card.last_four}?`,
+      t('paymentMethodsScreen.removeCard'),
+      t('paymentMethodsScreen.removeCardConfirm', { type: card.card_type.toUpperCase(), last4: card.last_four }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('paymentMethodsScreen.remove'),
           style: 'destructive',
           onPress: async () => {
             setActionLoading(card.id);
@@ -92,7 +94,7 @@ export default function ClientPaymentMethods() {
               await apiService.removeCard(card.id);
               setCards(prev => prev.filter(c => c.id !== card.id));
             } catch (e: any) {
-              Alert.alert('Error', e.response?.data?.error || 'Failed to remove card.');
+              Alert.alert(t('common.error'), e.response?.data?.error || t('paymentMethodsScreen.failedRemove'));
             } finally {
               setActionLoading(null);
             }
@@ -202,7 +204,7 @@ export default function ClientPaymentMethods() {
   return (
     <View style={s.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Header title="Payment Methods" />
+      <Header title={t('paymentMethods.paymentMethodsTitle')} />
 
       <ScrollView
         style={s.scroll}
@@ -213,7 +215,7 @@ export default function ClientPaymentMethods() {
         <View style={s.infoCard}>
           <Ionicons name="shield-checkmark" size={22} color="#3B82F6" />
           <Text style={s.infoText}>
-            Your payment information is stored securely and used only for service payments.
+            {t('paymentMethodsScreen.secureInfo')}
           </Text>
         </View>
 
@@ -221,9 +223,9 @@ export default function ClientPaymentMethods() {
         {cards.length === 0 ? (
           <View style={s.emptyBox}>
             <Ionicons name="card-outline" size={60} color={theme.textSecondary} />
-            <Text style={s.emptyTitle}>No Payment Methods</Text>
+            <Text style={s.emptyTitle}>{t('paymentMethods.noPaymentMethods')}</Text>
             <Text style={s.emptySubtitle}>
-              Add a debit or credit card to pay for services quickly and securely.
+              {t('paymentMethodsScreen.emptySubtitle')}
             </Text>
           </View>
         ) : (
@@ -239,13 +241,13 @@ export default function ClientPaymentMethods() {
                 </View>
                 {card.is_default && (
                   <View style={s.defaultBadge}>
-                    <Text style={s.defaultBadgeText}>DEFAULT</Text>
+                    <Text style={s.defaultBadgeText}>{t('paymentMethodsScreen.default')}</Text>
                   </View>
                 )}
               </View>
 
               <View style={s.cardBottom}>
-                <Text style={s.expiry}>Expires {card.expiry_month}/{card.expiry_year}</Text>
+                <Text style={s.expiry}>{t('paymentMethodsScreen.expires', { month: card.expiry_month, year: card.expiry_year })}</Text>
                 <View style={s.actions}>
                   {!card.is_default && (
                     <TouchableOpacity
@@ -258,7 +260,7 @@ export default function ClientPaymentMethods() {
                       ) : (
                         <>
                           <Ionicons name="star-outline" size={14} color={theme.primary} />
-                          <Text style={s.setDefaultText}>Set Default</Text>
+                          <Text style={s.setDefaultText}>{t('paymentMethodsScreen.setDefault')}</Text>
                         </>
                       )}
                     </TouchableOpacity>
@@ -269,7 +271,7 @@ export default function ClientPaymentMethods() {
                     disabled={actionLoading === card.id}
                   >
                     <Ionicons name="trash-outline" size={14} color="#EF4444" />
-                    <Text style={s.removeText}>Remove</Text>
+                    <Text style={s.removeText}>{t('paymentMethodsScreen.remove')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -280,15 +282,15 @@ export default function ClientPaymentMethods() {
         {/* Add Card Button */}
         <TouchableOpacity
           style={s.addBtn}
-          onPress={() => Alert.alert('Add Card', 'Card addition will be available during checkout when you make a payment.')}
+          onPress={() => Alert.alert(t('paymentMethodsScreen.addCard'), t('paymentMethodsScreen.addCardMsg'))}
         >
           <Ionicons name="add-circle-outline" size={22} color="#fff" />
-          <Text style={s.addBtnText}>Add New Card</Text>
+          <Text style={s.addBtnText}>{t('paymentMethodsScreen.addNewCard')}</Text>
         </TouchableOpacity>
 
         {/* Mobile Money Section */}
         <View style={[s.mobileSection, { marginTop: 24 }]}>
-          <Text style={s.mobileSectionTitle}>Mobile Money</Text>
+          <Text style={s.mobileSectionTitle}>{t('paymentMethodsScreen.mobileMoney')}</Text>
           {['M-Pesa', 'Airtel Money', 'Tigo Pesa'].map(name => (
             <View key={name} style={[s.mobileRow, { marginBottom: 8 }]}>
               <View style={s.mobileIcon}>
@@ -296,10 +298,10 @@ export default function ClientPaymentMethods() {
               </View>
               <View>
                 <Text style={s.mobileName}>{name}</Text>
-                <Text style={s.mobileSub}>Pay directly via mobile money</Text>
+                <Text style={s.mobileSub}>{t('paymentMethodsScreen.payViaMobile')}</Text>
               </View>
               <View style={s.comingSoonBadge}>
-                <Text style={s.comingSoonText}>AVAILABLE AT CHECKOUT</Text>
+                <Text style={s.comingSoonText}>{t('paymentMethodsScreen.availableAtCheckout')}</Text>
               </View>
             </View>
           ))}

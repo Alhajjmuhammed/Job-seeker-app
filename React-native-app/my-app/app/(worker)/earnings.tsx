@@ -94,11 +94,11 @@ export default function EarningsScreen() {
 
   const handleWithdraw = () => {
     Alert.alert(
-      'Withdraw Funds',
-      `Available balance: TSH ${(Number(pendingAmount) || 0).toFixed(2)}`,
+      t('earningsScreen.withdrawFunds'),
+      t('earningsScreen.availableBalance', { amount: (Number(pendingAmount) || 0).toFixed(2) }),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Withdraw', onPress: () => Alert.alert(t('profile.comingSoon'), 'Withdrawal feature coming soon!') },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('earningsScreen.withdraw'), onPress: () => Alert.alert(t('profile.comingSoon'), t('earningsScreen.withdrawSoon')) },
       ]
     );
   };
@@ -217,7 +217,7 @@ export default function EarningsScreen() {
           {/* Top Clients */}
           {topClients.length > 0 && (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Top Clients</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('earningsScreen.topClients')}</Text>
               {topClients.map((client: any, index: number) => (
                 <View key={index} style={[styles.clientCard, { backgroundColor: theme.surface }]}>
                   <View style={styles.clientInfo}>

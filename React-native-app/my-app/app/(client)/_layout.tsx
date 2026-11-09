@@ -3,10 +3,12 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function ClientLayout() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -34,7 +36,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Home',
+          title: t('nav.home'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -43,7 +45,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Services',
+          title: t('tabs.services'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="search" size={size} color={color} />
           ),
@@ -52,7 +54,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="my-requests"
         options={{
-          title: 'My Requests',
+          title: t('client.myRequests'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text" size={size} color={color} />
           ),
@@ -61,7 +63,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="request-service"
         options={{
-          title: 'Request',
+          title: t('tabs.request'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add-circle" size={size} color={color} />
           ),
@@ -70,7 +72,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="messages"
         options={{
-          title: 'Messages',
+          title: t('nav.messages'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           ),
@@ -79,7 +81,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('nav.settings'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings" size={size} color={color} />
           ),

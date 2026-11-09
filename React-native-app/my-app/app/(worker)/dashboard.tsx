@@ -701,21 +701,21 @@ export default function WorkerDashboard() {
 
   const handleAcceptRequest = async (requestId: number) => {
     Alert.alert(
-      'Accept Request',
-      'Are you sure you want to accept this job request?',
+      t('dashboard.acceptRequest'),
+      t('dashboard.acceptRequestConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Accept',
+          text: t('common.accept'),
           onPress: async () => {
             try {
               await apiService.acceptDirectHireRequest(requestId);
-              Alert.alert(t('common.success'), 'Request accepted! Client will be notified.');
+              Alert.alert(t('common.success'), t('dashboard.requestAccepted'));
               fetchDashboardData(); // Refresh data
             } catch (error) {
               console.error('Error accepting request:', error);
               // show the real reason (e.g. "You are busy with other work...") instead of "try again"
-              Alert.alert(t('common.error'), errorText(error, 'Failed to accept request. Please try again.'));
+              Alert.alert(t('common.error'), errorText(error, t('dashboard.failedAccept')));
             }
           },
         },
@@ -725,21 +725,21 @@ export default function WorkerDashboard() {
 
   const handleRejectRequest = async (requestId: number) => {
     Alert.alert(
-      'Reject Request',
-      'Are you sure you want to reject this job request?',
+      t('dashboard.rejectRequest'),
+      t('dashboard.rejectRequestConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Reject',
+          text: t('common.reject'),
           style: 'destructive',
           onPress: async () => {
             try {
               await apiService.rejectDirectHireRequest(requestId);
-              Alert.alert('Request Rejected', 'You declined the job request.');
+              Alert.alert(t('dashboard.requestRejected'), t('dashboard.requestRejectedMsg'));
               fetchDashboardData(); // Refresh data
             } catch (error) {
               console.error('Error rejecting request:', error);
-              Alert.alert(t('common.error'), errorText(error, 'Failed to reject request. Please try again.'));
+              Alert.alert(t('common.error'), errorText(error, t('dashboard.failedReject')));
             }
           },
         },
@@ -753,9 +753,9 @@ export default function WorkerDashboard() {
       await apiService.updateWorkerAvailability(newValue);
       setIsAvailable(newValue);
       Alert.alert(
-        'Success', 
-        newValue ? 'You are now available for work' : 'You are now unavailable',
-        [{ text: 'OK' }]
+        t('common.success'),
+        newValue ? t('dashboard.nowAvailable') : t('dashboard.nowUnavailable'),
+        [{ text: t('common.ok') }]
       );
     } catch (error) {
       console.error('Error updating availability:', error);
@@ -809,7 +809,7 @@ export default function WorkerDashboard() {
               />
               <View>
                 <Text style={styles.greetingAppName}>Worker Connect</Text>
-                <Text style={styles.greetingAppTagline}>Your work, your terms</Text>
+                <Text style={styles.greetingAppTagline}>{t('dashboard.tagline')}</Text>
               </View>
             </View>
 
@@ -868,13 +868,13 @@ export default function WorkerDashboard() {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.availabilityTitle}>
-                {isAvailable ? t('profile.availableForWork') : 'Currently Unavailable'}
+                {isAvailable ? t('profile.availableForWork') : t('dashboard.currentlyUnavailable')}
               </Text>
             </View>
             <Text style={styles.availabilitySubtitle}>
               {isAvailable
-                ? 'Clients can send you direct hire requests'
-                : 'You are not visible to clients'}
+                ? t('dashboard.clientsCanHire')
+                : t('dashboard.notVisible')}
             </Text>
           </View>
           <Switch
@@ -914,7 +914,9 @@ export default function WorkerDashboard() {
                 color: user.verificationStatus === 'rejected' ? '#DC2626' : '#D97706',
                 marginBottom: 2,
               }}>
-                Profile Verification: {user.verificationStatus === 'rejected' ? 'Rejected' : 'Under Review'}
+                {t('dashboard.verificationLabel', {
+                  status: user.verificationStatus === 'rejected' ? t('dashboard.verificationRejected') : t('dashboard.verificationUnderReview'),
+                })}
               </Text>
               <Text style={{
                 fontSize: 13,
@@ -923,8 +925,8 @@ export default function WorkerDashboard() {
                 lineHeight: 18,
               }}>
                 {user.verificationStatus === 'rejected'
-                  ? 'Your profile was rejected. Please update your documents and try again.'
-                  : 'Your profile is under review. You\'ll be notified once verified.'}
+                  ? t('dashboard.verificationRejectedMsg')
+                  : t('dashboard.verificationPendingMsg')}
               </Text>
             </View>
           </View>
@@ -942,10 +944,10 @@ export default function WorkerDashboard() {
               </View>
               <View style={styles.alertText}>
                 <Text style={[styles.alertTitle, { fontSize: 16 }]}>
-                  🔔 {pendingAssignments.length} Pending Assignment{pendingAssignments.length > 1 ? 's' : ''}
+                  {t('dashboard.pendingAssignmentAlert', { count: pendingAssignments.length })}
                 </Text>
                 <Text style={styles.alertSubtitle}>
-                  You have service requests waiting for your response
+                  {t('dashboard.requestsWaiting')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={28} color="#D97706" />
@@ -1027,7 +1029,7 @@ export default function WorkerDashboard() {
             onPress={() => router.push('/(worker)/active-service' as any)}
           >
             <Ionicons name="time" size={22} color="#fff" />
-            <Text style={styles.activeServiceBannerText}>{t('assignments.active')}</Text>
+            <Text style={styles.activeServiceBannerText}>{t('dashboard.activeServiceBanner')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#fff" />
           </TouchableOpacity>
         )}
@@ -1035,7 +1037,7 @@ export default function WorkerDashboard() {
         {/* Assigned Jobs Section */}
         {assignedJobs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Assigned Jobs ({assignedJobs.length})</Text>
+            <Text style={styles.sectionTitle}>{t('dashboard.yourAssignedJobs', { count: assignedJobs.length })}</Text>
             <View style={[styles.jobListCard, { backgroundColor: theme.surface }]}>
               {assignedJobs.slice(0, 3).map((job, index) => (
                 <View key={job.id}>
@@ -1059,9 +1061,9 @@ export default function WorkerDashboard() {
                       }
                     ]}>
                       <Text style={styles.jobStatusText}>
-                        {job.status === 'pending' ? 'NEW' :
-                         job.status === 'in_progress' ? 'ACTIVE' :
-                         job.status === 'completed' ? 'DONE' : 'ASSIGNED'}
+                        {job.status === 'pending' ? t('dashboard.badgeNew') :
+                         job.status === 'in_progress' ? t('jobs.activeJob') :
+                         job.status === 'completed' ? t('jobs.doneJob') : t('dashboard.badgeAssigned')}
                       </Text>
                     </View>
                     <View style={styles.jobListItemContent}>
@@ -1069,10 +1071,10 @@ export default function WorkerDashboard() {
                         {job.title}
                       </Text>
                       <Text style={[styles.jobListItemMeta, { color: theme.textSecondary }]}>
-                        Client: {job.client_name}
+                        {t('dashboard.clientLabel', { name: job.client_name })}
                       </Text>
                       <Text style={[styles.jobListItemPrice, { color: theme.primary }]}>
-                        {job.total_price ? `TSH ${job.total_price}` : 'Price not set'}
+                        {job.total_price ? `TSH ${job.total_price}` : t('dashboard.priceNotSet')}
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
@@ -1089,7 +1091,7 @@ export default function WorkerDashboard() {
                 onPress={() => router.push('/(worker)/service-assignments' as any)}
               >
                 <Text style={styles.viewAllText}>
-                  View All {assignedJobs.length} Jobs
+                  {t('dashboard.viewAllJobs', { count: assignedJobs.length })}
                 </Text>
               </TouchableOpacity>
             )}
@@ -1103,9 +1105,9 @@ export default function WorkerDashboard() {
           {pendingRequests.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="mail-open-outline" size={48} color={theme.textSecondary} style={{ marginBottom: 12 }} />
-              <Text style={styles.emptyStateTitle}>{t('assignments.pending')}</Text>
+              <Text style={styles.emptyStateTitle}>{t('dashboard.noPendingRequests')}</Text>
               <Text style={styles.emptyStateSubtitle}>
-                New job requests will appear here
+                {t('dashboard.newRequestsAppear')}
               </Text>
             </View>
           ) : (

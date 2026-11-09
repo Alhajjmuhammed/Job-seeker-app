@@ -98,7 +98,7 @@ export default function PostJobScreen() {
       const v = editing ? await apiService.updateVacancy(Number(id), payload) : await apiService.postVacancy(payload);
       setErrors({});
       Alert.alert(t('vacancies.sentTitle'), t('vacancies.sentText'), [
-        { text: 'OK', onPress: () => router.replace(`/(client)/vacancy/${v.id}` as any) },
+        { text: t('common.ok'), onPress: () => router.replace(`/(client)/vacancy/${v.id}` as any) },
       ]);
     } catch (e: any) {
       const fieldErrors = e?.response?.data?.errors || {};

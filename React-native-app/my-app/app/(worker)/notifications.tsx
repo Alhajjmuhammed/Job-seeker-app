@@ -154,10 +154,10 @@ export default function NotificationsScreen() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t('notifications.justNow');
+    if (diffMins < 60) return t('notifications.minutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('notifications.hoursAgo', { count: diffHours });
+    if (diffDays < 7) return t('notifications.daysAgo', { count: diffDays });
     return date.toLocaleDateString();
   };
 
@@ -202,7 +202,7 @@ export default function NotificationsScreen() {
                 { color: filter === 'all' ? theme.primary : theme.textSecondary },
               ]}
             >
-              All ({notifications.length})
+              {t('notifications.all')} ({notifications.length})
             </Text>
           </TouchableOpacity>
 
@@ -219,7 +219,7 @@ export default function NotificationsScreen() {
                 { color: filter === 'unread' ? theme.primary : theme.textSecondary },
               ]}
             >
-              Unread ({unreadCount})
+              {t('notifications.unread')} ({unreadCount})
             </Text>
           </TouchableOpacity>
         </View>
@@ -252,12 +252,12 @@ export default function NotificationsScreen() {
                   style={{ marginBottom: 16 }}
                 />
                 <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                  No {filter === 'unread' ? 'Unread ' : ''}Notifications
+                  {filter === 'unread' ? t('notifications.noUnreadNotifications') : t('notifications.noNotifications')}
                 </Text>
                 <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
                   {filter === 'unread'
-                    ? "You're all caught up!"
-                    : "You'll see notifications here when you receive them"}
+                    ? t('notifications.allCaughtUp')
+                    : t('notifications.notificationsWillAppear')}
                 </Text>
               </View>
             ) : (

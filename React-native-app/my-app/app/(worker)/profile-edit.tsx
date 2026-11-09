@@ -516,7 +516,7 @@ export default function ProfileEditScreen() {
       console.error('Failed to upload image:', error);
       console.error('Error response:', error?.response?.data);
       
-      let errorMsg = 'Failed to upload profile photo';
+      let errorMsg = t('workerProfileScreen.failedUploadPhoto');
       if (error?.response?.data?.profile_image) {
         errorMsg = error.response.data.profile_image[0];
       } else if (error?.response?.data?.error) {
@@ -553,7 +553,7 @@ export default function ProfileEditScreen() {
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(t('common.error'), 'Location permission denied. You can still fill in your address manually.');
+        Alert.alert(t('common.error'), t('workerProfileScreen.locationDenied'));
         return;
       }
 
@@ -565,7 +565,7 @@ export default function ProfileEditScreen() {
       setLongitude(location.coords.longitude);
     } catch (error) {
       console.error('Error getting location:', error);
-      Alert.alert(t('common.error'), 'Could not get your current location.');
+      Alert.alert(t('common.error'), t('workerProfileScreen.locationFailed'));
     } finally {
       setLocatingMe(false);
     }
@@ -596,11 +596,11 @@ export default function ProfileEditScreen() {
       await apiService.updateWorkerProfile(data);
       await refreshUser().catch(() => {});
       Alert.alert(t('common.success'), t('profile.profileUpdatedSuccess'), [
-        { text: 'OK', onPress: () => router.back() }
+        { text: t('common.ok'), onPress: () => router.back() }
       ]);
     } catch (error: any) {
       console.error('Failed to save profile:', error);
-      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to save profile');
+      Alert.alert(t('common.error'), error.response?.data?.error || t('profile.failedSaveProfile'));
     } finally {
       setSaving(false);
     }
@@ -672,7 +672,7 @@ export default function ProfileEditScreen() {
             >
               <Ionicons name="camera" size={20} color="#FFF" />
               <Text style={styles.changePhotoText}>
-                {profile?.profile_image ? 'Change Photo' : 'Upload Photo'}
+                {profile?.profile_image ? t('profile.changePhoto') : t('profile.uploadPhoto')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -748,7 +748,7 @@ export default function ProfileEditScreen() {
               <Ionicons name="locate" size={18} color={theme.primary} />
             )}
             <Text style={[styles.useLocationButtonText, { color: theme.primary }]}>
-              {latitude !== null ? 'Location captured ✓ - Tap to refresh' : 'Use my current location'}
+              {latitude !== null ? t('workerProfileScreen.locationCaptured') : t('workerProfileScreen.useCurrentLocation')}
             </Text>
           </TouchableOpacity>
 
@@ -796,16 +796,16 @@ export default function ProfileEditScreen() {
                   onValueChange={setCountry}
                   style={styles.picker}
                 >
-                  <Picker.Item label="Tanzania" value="Tanzania" />
-                  <Picker.Item label="Tanzania" value="Tanzania" />
-                  <Picker.Item label="Kenya" value="Kenya" />
-                  <Picker.Item label="Uganda" value="Uganda" />
-                  <Picker.Item label="Rwanda" value="Rwanda" />
-                  <Picker.Item label="Burundi" value="Burundi" />
-                  <Picker.Item label="Somalia" value="Somalia" />
-                  <Picker.Item label="Ethiopia" value="Ethiopia" />
-                  <Picker.Item label="Djibouti" value="Djibouti" />
-                  <Picker.Item label="Eritrea" value="Eritrea" />
+                  <Picker.Item label={t('profile.tanzania')} value="Tanzania" />
+                  <Picker.Item label={t('profile.tanzania')} value="Tanzania" />
+                  <Picker.Item label={t('profile.kenya')} value="Kenya" />
+                  <Picker.Item label={t('profile.uganda')} value="Uganda" />
+                  <Picker.Item label={t('profile.rwanda')} value="Rwanda" />
+                  <Picker.Item label={t('profile.burundi')} value="Burundi" />
+                  <Picker.Item label={t('profile.somalia')} value="Somalia" />
+                  <Picker.Item label={t('profile.ethiopia')} value="Ethiopia" />
+                  <Picker.Item label={t('profile.djibouti')} value="Djibouti" />
+                  <Picker.Item label={t('profile.eritrea')} value="Eritrea" />
                 </Picker>
               </View>
             </View>
@@ -830,14 +830,14 @@ export default function ProfileEditScreen() {
                 onValueChange={setReligion}
                 style={styles.picker}
               >
-                <Picker.Item label="Prefer not to say" value="" />
-                <Picker.Item label="Islam" value="islam" />
-                <Picker.Item label="Christianity" value="christianity" />
-                <Picker.Item label="Judaism" value="judaism" />
-                <Picker.Item label="Hinduism" value="hinduism" />
-                <Picker.Item label="Buddhism" value="buddhism" />
-                <Picker.Item label="Sikhism" value="sikhism" />
-                <Picker.Item label="Other" value="other" />
+                <Picker.Item label={t('profile.preferNotSay')} value="" />
+                <Picker.Item label={t('profile.islam')} value="islam" />
+                <Picker.Item label={t('profile.christianity')} value="christianity" />
+                <Picker.Item label={t('profile.judaism')} value="judaism" />
+                <Picker.Item label={t('profile.hinduism')} value="hinduism" />
+                <Picker.Item label={t('profile.buddhism')} value="buddhism" />
+                <Picker.Item label={t('profile.sikhism')} value="sikhism" />
+                <Picker.Item label={t('profile.other')} value="other" />
               </Picker>
             </View>
           </View>
@@ -890,9 +890,9 @@ export default function ProfileEditScreen() {
                 onValueChange={setAvailability}
                 style={styles.picker}
               >
-                <Picker.Item label="Available" value="available" />
-                <Picker.Item label="Busy" value="busy" />
-                <Picker.Item label="Offline" value="offline" />
+                <Picker.Item label={t('profile.available')} value="available" />
+                <Picker.Item label={t('profile.busy')} value="busy" />
+                <Picker.Item label={t('profile.offline')} value="offline" />
               </Picker>
             </View>
           </View>
@@ -970,7 +970,7 @@ export default function ProfileEditScreen() {
               <View style={styles.sectionTitleContainer}>
                 <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.skills')}</Text>
                 <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
-                  Select your skills ({selectedSkills.length} selected)
+                  {t('workerProfileScreen.selectSkills', { count: selectedSkills.length })}
                 </Text>
               </View>
             </View>
@@ -1020,9 +1020,9 @@ export default function ProfileEditScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="briefcase-outline" size={24} color={theme.primary} />
             <View style={styles.sectionTitleContainer}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Work Experience</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('workerProfileScreen.workExperience')}</Text>
               <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
-                Manage your work history
+                {t('workerProfileScreen.manageHistory')}
               </Text>
             </View>
           </View>
@@ -1032,7 +1032,7 @@ export default function ProfileEditScreen() {
             onPress={() => router.push('/experience' as any)}
           >
             <Ionicons name="briefcase" size={20} color="#FFF" />
-            <Text style={[styles.changePhotoText, { color: '#FFF' }]}>Manage Experience</Text>
+            <Text style={[styles.changePhotoText, { color: '#FFF' }]}>{t('workerProfileScreen.manageExperience')}</Text>
           </TouchableOpacity>
         </View>
         {/* Save Button */}

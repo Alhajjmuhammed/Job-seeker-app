@@ -9,7 +9,6 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
-  Modal,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -21,7 +20,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header';
 import { confirmExportMyData } from '../../services/exportMyData';
 import apiService from '../../services/api';
-import { SUPPORTED_LANGUAGES, changeLanguage } from '../../services/i18n';
+import LanguagePicker from '../../components/LanguagePicker';
 
 interface NotificationSettings {
   pushEnabled: boolean;
@@ -41,12 +40,11 @@ interface PrivacySettings {
 }
 
 export default function SettingsScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { user, logout } = useAuth();
   
   const [loading, setLoading] = useState(false);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     pushEnabled: true,
     emailEnabled: true,
@@ -144,12 +142,12 @@ export default function SettingsScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      t('nav.logout'),
+      t('profile.sureLogout'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Logout',
+          text: t('nav.logout'),
           style: 'destructive',
           onPress: async () => {
             await logout();
@@ -167,20 +165,20 @@ export default function SettingsScreen() {
       const preview = await apiService.getAccountDeletionPreview();
       
       Alert.alert(
-        'Delete Account',
-        `This will permanently delete:\n\n` +
-        `• Your profile and personal information\n` +
-        `• ${preview.assignments_count || 0} service jobs (${preview.completed_jobs_count || 0} completed)\n` +
-        `• ${preview.job_post_applications_count || 0} job applications, ${preview.contracts_count || 0} contracts\n` +
-        `• ${(preview.reviews_given_count || 0) + (preview.reviews_received_count || 0)} reviews\n` +
-        `• ${preview.messages_count || 0} messages\n` +
-        `• ${preview.documents_count || 0} documents\n` +
-        `• All other associated data\n\n` +
-        `⚠️ THIS ACTION CANNOT BE UNDONE!`,
+        t('clientSettings.deleteAccountTitle'),
+        t('settingsScreen.deleteIntro') +
+        t('settingsScreen.deleteProfileLine') +
+        t('settingsScreen.deleteJobsLine', { jobs: preview.assignments_count || 0, completed: preview.completed_jobs_count || 0 }) +
+        t('settingsScreen.deleteApplicationsLine', { applications: preview.job_post_applications_count || 0, contracts: preview.contracts_count || 0 }) +
+        t('settingsScreen.deleteReviewsLine', { n: (preview.reviews_given_count || 0) + (preview.reviews_received_count || 0) }) +
+        t('settingsScreen.deleteMessagesLine', { n: preview.messages_count || 0 }) +
+        t('settingsScreen.deleteDocumentsLine', { n: preview.documents_count || 0 }) +
+        t('settingsScreen.deleteOtherLine') +
+        t('settingsScreen.cannotUndo'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Delete Permanently',
+            text: t('clientSettings.deletePermanently'),
             style: 'destructive',
             onPress: confirmDeleteAccount,
           },
@@ -189,8 +187,8 @@ export default function SettingsScreen() {
     } catch (error: any) {
       console.error('Error getting deletion preview:', error);
       Alert.alert(
-        'Error',
-        'Failed to load account information. Please try again.'
+        t('common.error'),
+        t('clientSettings.failedLoadAccount')
       );
     } finally {
       setLoading(false);
@@ -199,23 +197,23 @@ export default function SettingsScreen() {
 
   const confirmDeleteAccount = () => {
     Alert.alert(
-      'Final Confirmation',
-      'Are you absolutely sure? This will permanently delete your account and all data.',
+      t('clientSettings.finalConfirmation'),
+      t('settingsScreen.finalConfirmWorker'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'I Understand - Delete',
+          text: t('settingsScreen.iUnderstandDelete'),
           style: 'destructive',
           onPress: async () => {
             try {
               setLoading(true);
               await apiService.deleteAccount();
               Alert.alert(
-                'Account Deleted',
-                'Your account has been permanently deleted.',
+                t('clientSettings.accountDeleted'),
+                t('clientSettings.accountDeletedMessage'),
                 [
                   {
-                    text: 'OK',
+                    text: t('common.ok'),
                     onPress: async () => {
                       await logout();
                       router.replace('/(auth)/login');
@@ -226,8 +224,8 @@ export default function SettingsScreen() {
             } catch (error: any) {
               console.error('Error deleting account:', error);
               Alert.alert(
-                'Deletion Error',
-                error.response?.data?.error || 'Failed to delete account. Please contact support.'
+                t('clientSettings.deletionError'),
+                error.response?.data?.error || t('clientSettings.failedDeleteAccount')
               );
             } finally {
               setLoading(false);
@@ -240,59 +238,10 @@ export default function SettingsScreen() {
 
   const handleExportData = () => confirmExportMyData(setLoading);
 
-  const handleLanguageChange = () => {
-    setShowLanguageModal(true);
-  };
-
-  const handleSelectLanguage = async (code: string) => {
-    setShowLanguageModal(false);
-    await changeLanguage(code);
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.statusBar} />
       <Header showBack title={t('settings.title')} />
-
-      {/* Language Selection Modal */}
-      <Modal
-        visible={showLanguageModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowLanguageModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('settings.languageSelect')}</Text>
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <TouchableOpacity
-                key={lang.code}
-                style={[
-                  styles.langOption,
-                  { borderColor: theme.border },
-                  i18n.language === lang.code && { borderColor: theme.primary, backgroundColor: theme.primary + '15' },
-                ]}
-                onPress={() => handleSelectLanguage(lang.code)}
-              >
-                <Text style={styles.langFlag}>{lang.flag}</Text>
-                <View style={styles.langInfo}>
-                  <Text style={[styles.langName, { color: theme.text }]}>{lang.name}</Text>
-                  <Text style={[styles.langNative, { color: theme.textSecondary }]}>{lang.nativeName}</Text>
-                </View>
-                {i18n.language === lang.code && (
-                  <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
-                )}
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={[styles.modalCancel, { borderColor: theme.border }]}
-              onPress={() => setShowLanguageModal(false)}
-            >
-              <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Account Section */}
@@ -300,22 +249,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('settings.account')}</Text>
           
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <TouchableOpacity
-              style={styles.settingRow}
-              onPress={handleLanguageChange}
-            >
-              <View style={styles.settingLeft}>
-                <Ionicons name="language-outline" size={24} color={theme.primary} />
-                <Text style={[styles.settingText, { color: theme.text }]}>{t('settings.language')}</Text>
-              </View>
-              <View style={styles.settingRight}>
-                <Text style={[styles.settingValue, { color: theme.textSecondary }]}>
-                  {SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language)?.flag}{' '}
-                  {SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language)?.name ?? 'English'}
-                </Text>
-                <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
-              </View>
-            </TouchableOpacity>
+            <LanguagePicker />
 
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
@@ -622,7 +556,7 @@ export default function SettingsScreen() {
             WorkerConnect v1.0.0
           </Text>
           <Text style={[styles.appInfoText, { color: theme.textSecondary }]}>
-            © 2026 WorkerConnect. All rights reserved.
+            {t('settingsScreen.copyright')}
           </Text>
         </View>
       </ScrollView>
@@ -694,56 +628,5 @@ const styles = StyleSheet.create({
   appInfoText: {
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 36,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins_700Bold',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  langOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    marginBottom: 10,
-  },
-  langFlag: {
-    fontSize: 26,
-  },
-  langInfo: {
-    flex: 1,
-  },
-  langName: {
-    fontSize: 15,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  langNative: {
-    fontSize: 12,
-    fontFamily: 'Poppins_400Regular',
-  },
-  modalCancel: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  modalCancelText: {
-    fontSize: 15,
-    fontFamily: 'Poppins_500Medium',
   },
 });

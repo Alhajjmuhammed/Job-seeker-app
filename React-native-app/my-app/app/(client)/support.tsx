@@ -34,43 +34,43 @@ export default function SupportScreen() {
   const faqs: FAQ[] = [
     {
       id: 1,
-      question: 'How do I post a service request?',
-      answer: 'Tap "Request Service" from your dashboard or the quick actions menu. Fill in the service type, description, location, and budget, then submit.',
+      question: t('supportScreen.clientFaq1Q'),
+      answer: t('supportScreen.clientFaq1A'),
     },
     {
       id: 2,
-      question: 'How do I find and hire a worker?',
-      answer: 'Use the Search tab to browse workers by category or skill. View their profile, ratings, and reviews, then send them a direct hire request.',
+      question: t('supportScreen.clientFaq2Q'),
+      answer: t('supportScreen.clientFaq2A'),
     },
     {
       id: 3,
-      question: 'How do I make a payment?',
-      answer: 'Once a worker completes a job, you will be prompted to release payment. You can pay via mobile money, bank transfer, or other linked payment methods.',
+      question: t('supportScreen.clientFaq3Q'),
+      answer: t('supportScreen.clientFaq3A'),
     },
     {
       id: 4,
-      question: 'How do I rate a worker?',
-      answer: 'After a job is marked complete, you will receive a prompt to rate and review the worker. You can also rate them from your job history.',
+      question: t('supportScreen.clientFaq4Q'),
+      answer: t('supportScreen.clientFaq4A'),
     },
     {
       id: 5,
-      question: 'What if the worker does not show up?',
-      answer: 'Contact our support team immediately. We will help mediate and, if necessary, help you find a replacement worker as quickly as possible.',
+      question: t('supportScreen.clientFaq5Q'),
+      answer: t('supportScreen.clientFaq5A'),
     },
     {
       id: 6,
-      question: 'How do I cancel a service request?',
-      answer: 'Open the service request from My Requests, tap the menu icon, and select Cancel. Note that cancellation policies may apply depending on the job status.',
+      question: t('supportScreen.clientFaq6Q'),
+      answer: t('supportScreen.clientFaq6A'),
     },
     {
       id: 7,
-      question: 'How do I update my payment method?',
-      answer: 'Go to Profile, then Payment Methods. You can add, edit, or remove payment methods from there.',
+      question: t('supportScreen.clientFaq7Q'),
+      answer: t('supportScreen.clientFaq7A'),
     },
     {
       id: 8,
-      question: 'Is my payment information secure?',
-      answer: 'Yes. All payment data is encrypted and we never store full card numbers. We comply with PCI-DSS standards to keep your financial information safe.',
+      question: t('supportScreen.clientFaq8Q'),
+      answer: t('supportScreen.clientFaq8A'),
     },
   ];
 
@@ -94,15 +94,15 @@ export default function SupportScreen() {
         priority: 'medium',
       });
       Alert.alert(
-        'Message Sent',
-        "Your support request has been submitted. We'll get back to you within 24 hours.",
-        [{ text: 'OK', onPress: () => { setContactSubject(''); setContactMessage(''); } }]
+        t('supportScreen.messageSent'),
+        t('support.messageSentSuccess'),
+        [{ text: t('common.ok'), onPress: () => { setContactSubject(''); setContactMessage(''); } }]
       );
     } catch (error) {
       console.error('Error creating support ticket:', error);
       Alert.alert(
         t('common.error'),
-        'Failed to submit your support request. Please check your connection and try again.'
+        t('supportScreen.failedSubmit')
       );
     } finally {
       setSubmitting(false);
@@ -121,7 +121,7 @@ export default function SupportScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.statusBar} />
-      <Header showBack title="Help & Support" />
+      <Header showBack title={t('help.helpSupport')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Quick Contact Options */}
@@ -211,7 +211,7 @@ export default function SupportScreen() {
             {[
               { icon: 'book-outline', title: t('support.gettingStarted'), sub: t('support.learnBasics') },
               { icon: 'shield-checkmark-outline', title: t('support.safetySecurity'), sub: t('support.staySafe') },
-              { icon: 'card-outline', title: 'Payments & Billing', sub: 'Learn about payment methods and billing' },
+              { icon: 'card-outline', title: t('supportScreen.paymentsBilling'), sub: t('supportScreen.paymentsBillingSub') },
             ].map((item, idx, arr) => (
               <View key={idx}>
                 <TouchableOpacity

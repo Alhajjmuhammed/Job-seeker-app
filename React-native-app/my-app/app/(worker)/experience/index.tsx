@@ -50,7 +50,7 @@ export default function ExperienceListScreen() {
       setExperiences(data);
     } catch (error) {
       console.error('Failed to load experiences:', error);
-      Alert.alert(t('common.error'), 'Failed to load work experiences');
+      Alert.alert(t('common.error'), t('experienceScreen.failedLoadList'));
     } finally {
       setLoading(false);
     }
@@ -64,21 +64,21 @@ export default function ExperienceListScreen() {
 
   const handleDelete = (experienceId: number, title: string) => {
     Alert.alert(
-      'Delete Experience',
-      `Are you sure you want to delete "${title}"?`,
+      t('experienceScreen.deleteTitle'),
+      t('experienceScreen.deleteConfirm', { title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await apiService.deleteWorkExperience(experienceId);
-              Alert.alert(t('common.success'), 'Experience deleted successfully');
+              Alert.alert(t('common.success'), t('experienceScreen.deletedSuccess'));
               loadExperiences();
             } catch (error) {
               console.error('Failed to delete experience:', error);
-              Alert.alert(t('common.error'), t('common.delete'));
+              Alert.alert(t('common.error'), t('experienceScreen.failedDelete'));
             }
           },
         },
@@ -98,7 +98,7 @@ export default function ExperienceListScreen() {
     >
       {experience.is_current && (
         <View style={[styles.currentBadge, { backgroundColor: theme.primary }]}>
-          <Text style={styles.currentBadgeText}>Current</Text>
+          <Text style={styles.currentBadgeText}>{t('experienceScreen.current')}</Text>
         </View>
       )}
 
@@ -109,7 +109,7 @@ export default function ExperienceListScreen() {
         <View style={styles.metaItem}>
           <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
           <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-            {formatDate(experience.start_date)} - {experience.is_current ? 'Present' : formatDate(experience.end_date!)}
+            {formatDate(experience.start_date)} - {experience.is_current ? t('cvScreen.present') : formatDate(experience.end_date!)}
           </Text>
         </View>
 
@@ -163,7 +163,7 @@ export default function ExperienceListScreen() {
       {loading ? (
         <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading experiences...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{t('experienceScreen.loadingList')}</Text>
         </View>
       ) : (
         <ScrollView
@@ -180,9 +180,9 @@ export default function ExperienceListScreen() {
         >
           <View style={styles.header}>
             <View style={styles.headerText}>
-              <Text style={[styles.title, { color: theme.text }]}>My Experience</Text>
+              <Text style={[styles.title, { color: theme.text }]}>{t('experienceScreen.myExperience')}</Text>
               <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-                Showcase your professional work history
+                {t('experienceScreen.showcase')}
               </Text>
             </View>
             <TouchableOpacity
@@ -196,14 +196,14 @@ export default function ExperienceListScreen() {
           {experiences.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="briefcase-outline" size={56} color={theme.textSecondary} style={{ marginBottom: 16 }} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>No Experience Added Yet</Text>
-              <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('profile.title')}</Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('experienceScreen.emptyTitle')}</Text>
+              <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>{t('experienceScreen.emptySubtitle')}</Text>
               <TouchableOpacity
                 style={[styles.addFirstButton, { backgroundColor: theme.primary }]}
                 onPress={() => router.push('/experience/add' as any)}
               >
                 <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.addFirstButtonText}>Add Your First Experience</Text>
+                <Text style={styles.addFirstButtonText}>{t('experienceScreen.addFirst')}</Text>
               </TouchableOpacity>
             </View>
           ) : (

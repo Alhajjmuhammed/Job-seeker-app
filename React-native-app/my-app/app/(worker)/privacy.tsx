@@ -25,11 +25,11 @@ export default function PrivacyScreen() {
   const loadPrivacyContent = async () => {
     try {
       const response = await apiService.getPrivacyPolicy();
-      setPrivacyContent(response.content || 'Privacy policy not available.');
+      setPrivacyContent(response.content || t('privacyScreen.policyNotAvailable'));
     } catch (error) {
       console.error('Error loading privacy policy:', error);
-      Alert.alert(t('common.error'), 'Failed to load privacy policy');
-      setPrivacyContent('Failed to load privacy policy. Please try again later.');
+      Alert.alert(t('common.error'), t('privacyScreen.failedLoad'));
+      setPrivacyContent(t('privacyScreen.failedLoadLong'));
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export default function PrivacyScreen() {
       <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
         <Text style={[styles.loadingText, { color: theme.text }]}>
-          Loading privacy policy...
+          {t('privacyScreen.loading')}
         </Text>
       </View>
     );
@@ -48,14 +48,14 @@ export default function PrivacyScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Privacy Policy" showBack />
+      <Header title={t('auth.privacyPolicy')} showBack />
       
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={[styles.contentContainer, { backgroundColor: theme.card }]}>
           <Text style={[styles.title, { color: theme.text }]}>{t('auth.privacyPolicy')}</Text>
           
           <Text style={[styles.lastUpdated, { color: theme.textSecondary }]}>
-            Last updated: {new Date().toLocaleDateString()}
+            {t('privacyScreen.lastUpdated', { date: new Date().toLocaleDateString() })}
           </Text>
           
           <Text style={[styles.contentText, { color: theme.text }]}>

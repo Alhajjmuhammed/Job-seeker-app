@@ -78,7 +78,7 @@ export default function ServiceAssignments() {
       setAssignments(assignmentsList);
     } catch (error: any) {
       console.error('Error loading assignments:', error);
-      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to load assignments');
+      Alert.alert(t('common.error'), error.response?.data?.error || t('assignmentScreens.failedLoadList'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -101,7 +101,7 @@ export default function ServiceAssignments() {
     return (
       <View style={[styles.urgencyBadge, { backgroundColor: config.bg }]}>
         <Text style={[styles.urgencyText, { color: config.text }]}>
-          {urgency.toUpperCase()}
+          {t(`requestService.${urgency}`, { defaultValue: urgency }).toUpperCase()}
         </Text>
       </View>
     );
@@ -120,7 +120,7 @@ export default function ServiceAssignments() {
     return (
       <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
         <Text style={[styles.statusText, { color: config.text }]}>
-          {status.replace('_', ' ').toUpperCase()}
+          {t(`status.${status}`, { defaultValue: status.replace('_', ' ') }).toUpperCase()}
         </Text>
       </View>
     );
@@ -184,7 +184,7 @@ export default function ServiceAssignments() {
             <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
             <Text style={[styles.infoText, { color: theme.textSecondary }]}>
               {new Date(item.preferred_date).toLocaleDateString()}
-              {item.preferred_time && ` at ${item.preferred_time}`}
+              {item.preferred_time && t('requestDetail.atTime', { time: item.preferred_time })}
             </Text>
           </View>
         )}
@@ -192,7 +192,7 @@ export default function ServiceAssignments() {
         <View style={styles.infoRow}>
           <Ionicons name="time-outline" size={16} color={theme.textSecondary} />
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-            {item.duration_days} day{item.duration_days !== 1 ? 's' : ''}
+            {t('assignmentScreens.days', { count: item.duration_days })}
           </Text>
         </View>
       </View>
@@ -209,7 +209,7 @@ export default function ServiceAssignments() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Service Assignments" showBack />
+        <Header title={t('assignments.serviceAssignments')} showBack />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -220,7 +220,7 @@ export default function ServiceAssignments() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Service Assignments" showBack />
+      <Header title={t('assignments.serviceAssignments')} showBack />
       
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: theme.card }]}>
@@ -265,7 +265,7 @@ export default function ServiceAssignments() {
           <Text style={[
             styles.filterText,
             { color: filter === 'pending' ? '#fff' : theme.text },
-          ]}>{t('earnings.pending')}</Text>
+          ]}>{t('assignments.pending')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -278,7 +278,7 @@ export default function ServiceAssignments() {
           <Text style={[
             styles.filterText,
             { color: filter === 'active' ? '#fff' : theme.text },
-          ]}>{t('jobs.activeJob')}</Text>
+          ]}>{t('assignments.active')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -298,9 +298,9 @@ export default function ServiceAssignments() {
           <View style={styles.emptyContainer}>
             <Ionicons name="briefcase-outline" size={64} color={theme.textSecondary} />
             <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              {filter === 'pending' ? 'No pending assignments' :
-               filter === 'active' ? 'No active assignments' :
-               'No service assignments yet'}
+              {filter === 'pending' ? t('assignments.noPendingAssignments') :
+               filter === 'active' ? t('assignmentScreens.noActive') :
+               t('assignments.noServiceAssignments')}
             </Text>
             <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>{t('assignments.assignmentsWillAppear')}</Text>
           </View>

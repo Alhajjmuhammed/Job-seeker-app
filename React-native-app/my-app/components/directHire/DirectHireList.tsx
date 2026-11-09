@@ -52,7 +52,7 @@ export default function DirectHireList({ group }: { group: '(client)' | '(worker
               style={[st.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={st.top}>
                 <Text style={[st.title, { color: theme.text }]} numberOfLines={2}>{h.title}</Text>
-                <Badge status={hireTone(h.status)} label={h.status_display} />
+                <Badge status={hireTone(h.status)} label={t(`status.${h.status}`, { defaultValue: h.status_display })} />
               </View>
               <Text style={[st.sub, { color: theme.textSecondary }]}>
                 {isClient ? h.worker.full_name : h.client.full_name}

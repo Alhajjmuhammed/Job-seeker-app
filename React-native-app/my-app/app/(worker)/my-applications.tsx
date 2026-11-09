@@ -51,7 +51,7 @@ export default function MyApplicationsScreen() {
               style={[st.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={st.top}>
                 <Text style={[st.title, { color: theme.text }]} numberOfLines={2}>{a.vacancy.title}</Text>
-                <Badge status={a.status} label={a.status_display} />
+                <Badge status={a.status} label={t(`status.${a.status}`, { defaultValue: a.status_display })} />
               </View>
               <Text style={[st.sub, { color: theme.textSecondary }]}>
                 {a.vacancy.poster_name} · {a.vacancy.area ? `${a.vacancy.area}, ${a.vacancy.city}` : a.vacancy.city}

@@ -74,8 +74,8 @@ export default function DocumentsScreen() {
     
     if (allTypesUploaded) {
       Alert.alert(
-        'All Documents Uploaded',
-        'You have already uploaded all required document types. You can only add more "Other" documents or delete existing ones to upload new versions.'
+        t('documents.allDocsUploaded'),
+        t('documentsScreen.allUploadedMsg')
       );
     }
     
@@ -86,11 +86,11 @@ export default function DocumentsScreen() {
   const getAvailableDocumentTypes = (): DocumentTypeOption[] => {
     const uploadedTypes = documents.map(doc => doc.document_type);
     const allTypes: DocumentTypeOption[] = [
-      { type: 'id', label: 'National ID Card', icon: 'card-outline', required: true },
-      { type: 'cv', label: 'CV/Resume', icon: 'document-text-outline' },
-      { type: 'certificate', label: 'Certificate', icon: 'school-outline' },
-      { type: 'license', label: 'License', icon: 'ribbon-outline' },
-      { type: 'other', label: 'Other Document', icon: 'folder-outline' },
+      { type: 'id', label: t('documents.nationalIDCard'), icon: 'card-outline', required: true },
+      { type: 'cv', label: t('worker.cvResume'), icon: 'document-text-outline' },
+      { type: 'certificate', label: t('documents.certificate'), icon: 'school-outline' },
+      { type: 'license', label: t('documents.license'), icon: 'ribbon-outline' },
+      { type: 'other', label: t('documents.otherDocument'), icon: 'folder-outline' },
     ];
     
     return allTypes.filter(docType => 
@@ -115,7 +115,7 @@ export default function DocumentsScreen() {
       await uploadFile(file, documentType);
     } catch (error) {
       console.error('Error picking document:', error);
-      Alert.alert(t('common.error'), 'Failed to pick document');
+      Alert.alert(t('common.error'), t('documentsScreen.failedPick'));
     }
   };
 
@@ -130,7 +130,7 @@ export default function DocumentsScreen() {
       loadDocuments(); // Reload the list
     } catch (error: any) {
       console.error('Upload error:', error);
-      Alert.alert(t('worker.uploadFailed'), error.response?.data?.error || 'Failed to upload document');
+      Alert.alert(t('worker.uploadFailed'), error.response?.data?.error || t('documentsScreen.failedUpload'));
     } finally {
       setLoading(false);
     }
@@ -138,12 +138,12 @@ export default function DocumentsScreen() {
 
   const handleDeleteDocument = (doc: Document) => {
     Alert.alert(
-      'Delete Document',
-      `Are you sure you want to delete "${doc.title}"?`,
+      t('documents.deleteDocument'),
+      t('documentsScreen.deleteConfirm', { title: doc.title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -153,7 +153,7 @@ export default function DocumentsScreen() {
               loadDocuments(); // Reload the list
             } catch (error: any) {
               console.error('Delete error:', error);
-              Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to delete document');
+              Alert.alert(t('common.error'), error.response?.data?.error || t('documents.failedDeleteDocument'));
             } finally {
               setLoading(false);
             }
@@ -178,11 +178,11 @@ export default function DocumentsScreen() {
 
   const getDocumentTypeLabel = (type: string) => {
     const labels: { [key: string]: string } = {
-      'id': 'National ID',
-      'cv': 'CV/Resume',
-      'certificate': 'Certificate',
-      'license': 'License',
-      'other': 'Other Document',
+      'id': t('worker.nationalID'),
+      'cv': t('worker.cvResume'),
+      'certificate': t('documents.certificate'),
+      'license': t('documents.license'),
+      'other': t('documents.otherDocument'),
     };
     return labels[type] || type;
   };
@@ -234,8 +234,8 @@ export default function DocumentsScreen() {
           <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF', borderLeftColor: theme.primary }]}>
             <Text style={styles.infoIcon}>📋</Text>
             <Text style={[styles.infoText, { color: isDark ? '#93C5FD' : '#1E40AF' }]}>
-              <Text style={[styles.requiredText, { color: isDark ? '#FCA5A5' : '#DC2626' }]}>Required:</Text> National ID only.{'\n'}
-              <Text style={[styles.optionalText, { color: isDark ? '#6EE7B7' : '#059669' }]}>Optional:</Text> Certificates, degrees, and proof of experience.
+              <Text style={[styles.requiredText, { color: isDark ? '#FCA5A5' : '#DC2626' }]}>{t('documentsScreen.required')}</Text> {t('documentsScreen.requiredText')}{'\n'}
+              <Text style={[styles.optionalText, { color: isDark ? '#6EE7B7' : '#059669' }]}>{t('documentsScreen.optional')}</Text> {t('documentsScreen.optionalText')}
             </Text>
           </View>
 
@@ -266,10 +266,10 @@ export default function DocumentsScreen() {
                   <View style={styles.documentInfo}>
                     <Text style={[styles.documentName, { color: theme.text }]}>{doc.title}</Text>
                     <Text style={[styles.documentType, { color: theme.textSecondary }]}>{getDocumentTypeLabel(doc.document_type)}</Text>
-                    <Text style={[styles.documentDate, { color: theme.textSecondary }]}>Uploaded {formatDate(doc.uploaded_at)}</Text>
+                    <Text style={[styles.documentDate, { color: theme.textSecondary }]}>{t('documentsScreen.uploadedOn', { date: formatDate(doc.uploaded_at) })}</Text>
                     {doc.rejection_reason && (
                       <Text style={[styles.rejectionReason, { color: '#DC2626' }]}>
-                        Reason: {doc.rejection_reason}
+                        {t('documentsScreen.reason', { reason: doc.rejection_reason })}
                       </Text>
                     )}
                   </View>
@@ -282,7 +282,7 @@ export default function DocumentsScreen() {
                         style={{ marginRight: 4 }}
                       />
                       <Text style={[styles.statusText, { color: getStatusStyle(doc.verification_status).color }]}>
-                        {doc.verification_status}
+                        {t(`documentsScreen.status.${doc.verification_status}`, { defaultValue: doc.verification_status })}
                       </Text>
                     </View>
                     <TouchableOpacity

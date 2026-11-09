@@ -54,7 +54,7 @@ export default function ChooseWorkerScreen() {
       setWorkers(data.workers || []);
     } catch (error) {
       console.error('Failed to load workers:', error);
-      Alert.alert('Error', 'Failed to load available workers');
+      Alert.alert(t('common.error'), t('jobsBoard.failedLoadWorkers'));
     } finally {
       setLoading(false);
     }
@@ -84,9 +84,9 @@ export default function ChooseWorkerScreen() {
       <Header showBack />
 
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Choose a Worker</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('jobsBoard.chooseWorker')}</Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Pick who you&apos;d like &mdash; the admin will still confirm before work starts.
+          {t('jobsBoard.chooseWorkerHint')}
         </Text>
       </View>
 
@@ -99,9 +99,9 @@ export default function ChooseWorkerScreen() {
           {workers.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={56} color={theme.textSecondary} style={{ marginBottom: 16 }} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>No Workers Available Right Now</Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('jobsBoard.noWorkersNow')}</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                Skip this step and let our admin assign a qualified worker for you.
+                {t('jobsBoard.noWorkersNowHint')}
               </Text>
             </View>
           ) : (
@@ -123,14 +123,14 @@ export default function ChooseWorkerScreen() {
                   <View style={styles.metaRow}>
                     <Ionicons name="star" size={14} color="#FBBF24" />
                     <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-                      {worker.average_rating} &middot; {worker.completed_jobs} jobs &middot; {worker.experience_years} yrs exp
+                      {t('jobsBoard.workerMeta', { rating: worker.average_rating, jobs: worker.completed_jobs, years: worker.experience_years })}
                     </Text>
                   </View>
                   <View style={styles.metaRow}>
                     <Ionicons name="location-outline" size={14} color={theme.textSecondary} />
                     <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-                      {worker.city || 'Unknown'}
-                      {worker.distance_km !== null ? ` · ${worker.distance_km} km away` : ''}
+                      {worker.city || t('jobsBoard.unknownCity')}
+                      {worker.distance_km !== null ? t('jobsBoard.kmAway', { km: worker.distance_km }) : ''}
                     </Text>
                   </View>
                   {worker.bio ? (
@@ -156,7 +156,7 @@ export default function ChooseWorkerScreen() {
           )}
 
           <TouchableOpacity style={[styles.skipButton, { borderColor: theme.border }]} onPress={handleSkip}>
-            <Text style={[styles.skipButtonText, { color: theme.textSecondary }]}>Skip &mdash; let admin choose</Text>
+            <Text style={[styles.skipButtonText, { color: theme.textSecondary }]}>{t('jobsBoard.skipLetAdmin')}</Text>
           </TouchableOpacity>
         </ScrollView>
       )}

@@ -192,7 +192,7 @@ export default function BrowseJobsScreen() {
             
             <View style={styles.metaItem}>
               <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
-              <Text style={[styles.metaText, { color: theme.textSecondary }]}>{job.city || 'Remote'}</Text>
+              <Text style={[styles.metaText, { color: theme.textSecondary }]}>{job.city || t('jobsBoard.remote')}</Text>
             </View>
           </View>
 
@@ -209,7 +209,7 @@ export default function BrowseJobsScreen() {
             <View style={styles.applicantsContainer}>
               <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
               <Text style={[styles.applicantsText, { color: theme.textSecondary }]}>
-                {job.workers_needed || 1} {(job.workers_needed || 1) > 1 ? 'workers needed' : 'worker needed'}
+                {t('jobsBoard.workersNeeded', { count: job.workers_needed || 1 })}
               </Text>
             </View>
           </View>
@@ -290,7 +290,7 @@ export default function BrowseJobsScreen() {
             ) : (
               <>
                 <Text style={[styles.resultCount, { color: theme.textSecondary }]}>
-                  {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'} found
+                  {t('jobsBoard.jobsFound', { count: filteredJobs.length })}
                 </Text>
                 {filteredJobs.map(renderJobCard)}
               </>

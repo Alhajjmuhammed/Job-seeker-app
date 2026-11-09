@@ -3,10 +3,12 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function WorkerLayout() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   
   return (
     <Tabs
@@ -34,7 +36,7 @@ export default function WorkerLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Home',
+          title: t('nav.home'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -43,7 +45,7 @@ export default function WorkerLayout() {
       <Tabs.Screen
         name="service-assignments"
         options={{
-          title: 'Assignments',
+          title: t('nav.assignments'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="clipboard" size={size} color={color} />
           ),
@@ -52,7 +54,7 @@ export default function WorkerLayout() {
       <Tabs.Screen
         name="messages"
         options={{
-          title: 'Messages',
+          title: t('nav.messages'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           ),
@@ -61,7 +63,7 @@ export default function WorkerLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('nav.profile'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

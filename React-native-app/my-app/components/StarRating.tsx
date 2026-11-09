@@ -2,6 +2,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 interface StarRatingProps {
   rating: number;
@@ -19,6 +20,7 @@ export default function StarRating({
   showLabel = true,
 }: StarRatingProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [tempRating, setTempRating] = useState(0);
 
   const handlePress = (value: number) => {
@@ -40,12 +42,12 @@ export default function StarRating({
   const displayRating = tempRating || rating;
 
   const getRatingLabel = (rating: number) => {
-    if (rating === 0) return 'Tap to rate';
-    if (rating === 1) return 'Poor';
-    if (rating === 2) return 'Fair';
-    if (rating === 3) return 'Good';
-    if (rating === 4) return 'Very Good';
-    if (rating === 5) return 'Excellent';
+    if (rating === 0) return t('componentsText.tapToRate');
+    if (rating === 1) return t('componentsText.ratingPoor');
+    if (rating === 2) return t('componentsText.ratingFair');
+    if (rating === 3) return t('componentsText.ratingGood');
+    if (rating === 4) return t('componentsText.ratingVeryGood');
+    if (rating === 5) return t('componentsText.ratingExcellent');
     return '';
   };
 

@@ -18,8 +18,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Header from '../../components/Header';
 import apiService from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export default function ClientProfileEdit() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
 
@@ -58,7 +60,7 @@ export default function ClientProfileEdit() {
 
   const handleSave = async () => {
     if (!firstName.trim() || !lastName.trim()) {
-      Alert.alert('Error', 'First name and last name are required.');
+      Alert.alert(t('common.error'), t('client.nameRequired'));
       return;
     }
 
@@ -77,12 +79,12 @@ export default function ClientProfileEdit() {
         (user as any).updateUser({ firstName: firstName.trim(), lastName: lastName.trim() });
       }
 
-      Alert.alert('Success', 'Profile updated successfully.', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('common.success'), t('profile.profileUpdatedSuccess'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (e: any) {
-      const msg = e.response?.data?.detail || e.response?.data?.error || 'Failed to update profile.';
-      Alert.alert('Error', msg);
+      const msg = e.response?.data?.detail || e.response?.data?.error || t('clientProfile.failedUpdate');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setSaving(false);
     }
@@ -150,7 +152,7 @@ export default function ClientProfileEdit() {
   return (
     <View style={s.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Header title="Edit Profile" />
+      <Header title={t('profile.editProfile')} />
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
@@ -166,33 +168,33 @@ export default function ClientProfileEdit() {
 
           {/* Personal Info */}
           <View style={s.card}>
-            <Text style={s.cardTitle}>Personal Information</Text>
+            <Text style={s.cardTitle}>{t('profile.personalInformation')}</Text>
 
             <View style={s.row}>
               <View style={s.fieldGroupHalf}>
-                <Text style={s.label}>First Name *</Text>
+                <Text style={s.label}>{t('client.firstName')}</Text>
                 <TextInput
                   style={s.input}
                   value={firstName}
                   onChangeText={setFirstName}
-                  placeholder="First name"
+                  placeholder={t('clientProfile.firstNamePlaceholder')}
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>
               <View style={s.fieldGroupHalf}>
-                <Text style={s.label}>Last Name *</Text>
+                <Text style={s.label}>{t('client.lastName')}</Text>
                 <TextInput
                   style={s.input}
                   value={lastName}
                   onChangeText={setLastName}
-                  placeholder="Last name"
+                  placeholder={t('clientProfile.lastNamePlaceholder')}
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>
             </View>
 
             <View style={s.fieldGroup}>
-              <Text style={s.label}>Phone Number</Text>
+              <Text style={s.label}>{t('auth.phone')}</Text>
               <TextInput
                 style={s.input}
                 value={phone}
@@ -204,12 +206,12 @@ export default function ClientProfileEdit() {
             </View>
 
             <View style={s.fieldGroup}>
-              <Text style={s.label}>Bio</Text>
+              <Text style={s.label}>{t('profile.bio')}</Text>
               <TextInput
                 style={[s.input, s.textArea]}
                 value={bio}
                 onChangeText={setBio}
-                placeholder="Tell us a little about yourself..."
+                placeholder={t('clientProfile.bioPlaceholder')}
                 placeholderTextColor={theme.textSecondary}
                 multiline
                 numberOfLines={3}
@@ -219,26 +221,26 @@ export default function ClientProfileEdit() {
 
           {/* Location */}
           <View style={s.card}>
-            <Text style={s.cardTitle}>Location</Text>
+            <Text style={s.cardTitle}>{t('profile.location')}</Text>
 
             <View style={s.fieldGroup}>
-              <Text style={s.label}>City</Text>
+              <Text style={s.label}>{t('profile.city')}</Text>
               <TextInput
                 style={s.input}
                 value={city}
                 onChangeText={setCity}
-                placeholder="e.g. Zanzibar, Dar es Salaam"
+                placeholder={t('clientProfile.cityPlaceholder')}
                 placeholderTextColor={theme.textSecondary}
               />
             </View>
 
             <View style={[s.fieldGroup, { marginBottom: 0 }]}>
-              <Text style={s.label}>Address</Text>
+              <Text style={s.label}>{t('profile.address')}</Text>
               <TextInput
                 style={[s.input, s.textArea]}
                 value={address}
                 onChangeText={setAddress}
-                placeholder="Your full address"
+                placeholder={t('clientProfile.addressPlaceholder')}
                 placeholderTextColor={theme.textSecondary}
                 multiline
                 numberOfLines={2}
@@ -253,13 +255,13 @@ export default function ClientProfileEdit() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                <Text style={s.saveBtnText}>Save Changes</Text>
+                <Text style={s.saveBtnText}>{t('client.saveChanges')}</Text>
               </>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity style={s.cancelBtn} onPress={() => router.back()}>
-            <Text style={s.cancelBtnText}>Cancel</Text>
+            <Text style={s.cancelBtnText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
 
         </ScrollView>

@@ -99,9 +99,9 @@ export default function RequestServiceScreen() {
       
       if (foundCategory) {
         setCategory(foundCategory);
-        setTitle(`${foundCategory.name} Service Request`);
+        setTitle(t('bookingFlow.defaultTitle', { category: foundCategory.name }));
       } else {
-        Alert.alert(t('common.error'), 'Category not found');
+        Alert.alert(t('common.error'), t('bookingFlow.categoryNotFound'));
         router.back();
         return;
       }
@@ -119,7 +119,7 @@ export default function RequestServiceScreen() {
       }
     } catch (error) {
       console.error('Error loading category:', error);
-      Alert.alert(t('common.error'), 'Failed to load service details');
+      Alert.alert(t('common.error'), t('bookingFlow.failedLoadService'));
     } finally {
       setLoading(false);
     }
@@ -191,12 +191,12 @@ export default function RequestServiceScreen() {
     // Check worker availability before proceeding to payment
     if (availableWorkers === 0) {
       Alert.alert(
-        '⚠️ No Workers Available',
-        `There are currently no available workers for ${category?.name}.\n\nYour request will be queued and processed when workers become available.\n\nDo you want to proceed anyway?`,
+        t('requestService.noWorkersAvailableSymbol'),
+        t('bookingFlow.noWorkersAlertMsg', { category: category?.name }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           { 
-            text: 'Proceed Anyway', 
+            text: t('requestService.proceedAnyway'), 
             onPress: () => setShowPaymentModal(true),
             style: 'default'
           }
@@ -204,12 +204,12 @@ export default function RequestServiceScreen() {
       );
     } else if (workersNeeded > availableWorkers) {
       Alert.alert(
-        'ℹ️ Limited Availability',
-        `You requested ${workersNeeded} worker(s), but only ${availableWorkers} are currently available.\n\nYour request will be accepted and prioritized.\n\nDo you want to continue?`,
+        t('requestService.limitedAvailabilitySymbol'),
+        t('bookingFlow.limitedAlertMsg', { needed: workersNeeded, available: availableWorkers }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           { 
-            text: 'Continue', 
+            text: t('worker.continue'), 
             onPress: () => setShowPaymentModal(true),
             style: 'default'
           }
@@ -284,15 +284,15 @@ export default function RequestServiceScreen() {
       resetForm();
       
       Alert.alert(
-        'Success!',
-        `Your service request has been submitted and payment of TSH ${priceCalculation!.total_price.toFixed(2)} has been processed! Our admin will review your payment and assign a qualified worker soon.`,
+        t('bookingFlow.successTitle'),
+        t('bookingFlow.successMsg', { amount: priceCalculation!.total_price.toFixed(2) }),
         [
           {
-            text: 'View My Requests',
+            text: t('requestService.viewMyRequests'),
             onPress: () => router.replace('/(client)/my-requests'),
           },
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.back(),
           },
         ]
@@ -301,7 +301,7 @@ export default function RequestServiceScreen() {
       console.error('Error:', error);
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
-                          'Failed to submit request. Please try again.';
+                          t('bookingFlow.failedSubmit');
       Alert.alert(t('common.error'), errorMessage);
     } finally {
       setSubmitting(false);
@@ -337,7 +337,7 @@ export default function RequestServiceScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Request Service" showBack />
+        <Header title={t('client.requestService')} showBack />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>{t('requestService.loading')}</Text>
@@ -348,7 +348,7 @@ export default function RequestServiceScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title={`Request ${category?.name || 'Service'}`} showBack />
+      <Header title={t('bookingFlow.requestCategory', { category: category?.name || t('bookingFlow.service') })} showBack />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Category Info */}
@@ -363,7 +363,7 @@ export default function RequestServiceScreen() {
             <View style={styles.rateRow}>
               <Ionicons name="cash-outline" size={16} color={theme.primary} />
               <Text style={[styles.rateText, { color: theme.primary }]}>
-                TSH {category.daily_rate}/day
+                {t('bookingFlow.ratePerDay', { rate: category.daily_rate })}
               </Text>
             </View>
           </View>
@@ -377,8 +377,7 @@ export default function RequestServiceScreen() {
               <Text style={[styles.warningTitle, { color: '#92400E' }]}>{t('requestService.noWorkersAvailable')}</Text>
             </View>
             <Text style={[styles.warningText, { color: '#78350F' }]}>
-              There are currently no available workers for {category?.name}.
-              Your request will be queued and processed as soon as workers become available.
+              {t('bookingFlow.noWorkersBox', { category: category?.name })}
             </Text>
           </View>
         ) : availableWorkers < 5 ? (
@@ -388,19 +387,17 @@ export default function RequestServiceScreen() {
               <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>{t('requestService.limitedAvailability')}</Text>
             </View>
             <Text style={[styles.warningText, { color: '#075985' }]}>
-              Only {availableWorkers} worker(s) currently available for {category?.name}.
-              Your request will be prioritized.
+              {t('bookingFlow.limitedBox', { count: availableWorkers, category: category?.name })}
             </Text>
           </View>
         ) : (
           <View style={[styles.warningCard, { backgroundColor: '#D1FAE5', borderColor: '#10B981' }]}>
             <View style={styles.warningHeader}>
               <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-              <Text style={[styles.warningTitle, { color: '#065F46' }]}>{t('search.workersAvailableCount')}</Text>
+              <Text style={[styles.warningTitle, { color: '#065F46' }]}>{t('requestService.workersAvailable')}</Text>
             </View>
             <Text style={[styles.warningText, { color: '#047857' }]}>
-              {availableWorkers} worker(s) available for {category?.name}.
-              Your request will be processed quickly.
+              {t('bookingFlow.availableBox', { count: availableWorkers, category: category?.name })}
             </Text>
           </View>
         )}
@@ -408,7 +405,7 @@ export default function RequestServiceScreen() {
         {/* Title */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Title <Text style={styles.required}>*</Text>
+            {t('editRequest.titleLabel')} <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
@@ -423,7 +420,7 @@ export default function RequestServiceScreen() {
         {/* Description */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Description <Text style={styles.required}>*</Text>
+            {t('editRequest.descriptionLabel')} <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
             style={[styles.input, styles.textArea, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
@@ -441,7 +438,7 @@ export default function RequestServiceScreen() {
         {/* Location */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Location <Text style={styles.required}>*</Text>
+            {t('profile.location')} <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
@@ -456,7 +453,7 @@ export default function RequestServiceScreen() {
         {/* City */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            City <Text style={styles.required}>*</Text>
+            {t('profile.city')} <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
@@ -518,7 +515,7 @@ export default function RequestServiceScreen() {
         {/* Number of Workers Needed */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Number of Workers Needed <Text style={styles.required}>*</Text>
+            {t('bookingFlow.numberOfWorkers')} <Text style={styles.required}>*</Text>
           </Text>
           <View style={styles.workersSelector}>
             <TouchableOpacity
@@ -540,23 +537,23 @@ export default function RequestServiceScreen() {
             </TouchableOpacity>
           </View>
           <Text style={[styles.helperText, { color: theme.textSecondary }]}>
-            💡 {workersNeeded} {workersNeeded === 1 ? 'worker' : 'workers'} × duration × rate
+            {t('bookingFlow.workersFormula', { count: workersNeeded })}
           </Text>
         </View>
 
         {/* Duration Selector */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: theme.text }]}>
-            Service Duration <Text style={styles.required}>*</Text>
+            {t('bookingFlow.serviceDuration')} <Text style={styles.required}>*</Text>
           </Text>
           <View style={styles.durationButtons}>
             {[
-              { value: 'daily', label: 'Daily' },
-              { value: 'monthly', label: 'Monthly' },
-              { value: '3_months', label: '3 Months' },
-              { value: '6_months', label: '6 Months' },
-              { value: 'yearly', label: 'Yearly' },
-              { value: 'custom', label: 'Custom' },
+              { value: 'daily', label: t('jobs.daily') },
+              { value: 'monthly', label: t('jobs.monthly') },
+              { value: '3_months', label: t('requestService.threeMonths') },
+              { value: '6_months', label: t('requestService.sixMonths') },
+              { value: 'yearly', label: t('requestService.yearly') },
+              { value: 'custom', label: t('requestService.custom') },
             ].map((option) => (
               <TouchableOpacity
                 key={option.value}
@@ -587,7 +584,7 @@ export default function RequestServiceScreen() {
           <>
             <View style={styles.section}>
               <Text style={[styles.label, { color: theme.text }]}>
-                Start Date <Text style={styles.required}>*</Text>
+                {t('bookingFlow.startDate')} <Text style={styles.required}>*</Text>
               </Text>
               <TouchableOpacity
                 style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -612,7 +609,7 @@ export default function RequestServiceScreen() {
 
             <View style={styles.section}>
               <Text style={[styles.label, { color: theme.text }]}>
-                End Date <Text style={styles.required}>*</Text>
+                {t('bookingFlow.endDate')} <Text style={styles.required}>*</Text>
               </Text>
               <TouchableOpacity
                 style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -657,7 +654,7 @@ export default function RequestServiceScreen() {
               <Ionicons name="calendar-outline" size={20} color={theme.primary} />
               <Text style={[styles.priceLabel, { color: theme.text }]}>{t('requestService.duration')}</Text>
               <Text style={[styles.priceValue, { color: theme.text }]}>
-                {priceCalculation.duration_days} days
+                {t('directHire.durationDays', { count: priceCalculation.duration_days })}
               </Text>
             </View>
             
@@ -722,7 +719,7 @@ export default function RequestServiceScreen() {
                     { color: urgency === level ? '#FFFFFF' : theme.text },
                   ]}
                 >
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                  {t(`requestService.${level}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -753,7 +750,7 @@ export default function RequestServiceScreen() {
               <Text style={[styles.warningTitle, { color: '#92400E' }]}>{t('requestService.noWorkersAvailableSymbol')}</Text>
             </View>
             <Text style={[styles.warningText, { color: '#78350F' }]}>
-              No available workers for {category?.name}. Your request will be queued.
+              {t('bookingFlow.noWorkersShort', { category: category?.name })}
             </Text>
           </View>
         ) : availableWorkers < 5 ? (
@@ -763,7 +760,7 @@ export default function RequestServiceScreen() {
               <Text style={[styles.warningTitle, { color: '#0C4A6E' }]}>{t('requestService.limitedAvailabilitySymbol')}</Text>
             </View>
             <Text style={[styles.warningText, { color: '#075985' }]}>
-              Only {availableWorkers} worker(s) available. Request will be prioritized.
+              {t('bookingFlow.limitedShort', { count: availableWorkers })}
             </Text>
           </View>
         ) : (
@@ -773,7 +770,7 @@ export default function RequestServiceScreen() {
               <Text style={[styles.warningTitle, { color: '#065F46' }]}>{t('requestService.workersAvailableSymbol')}</Text>
             </View>
             <Text style={[styles.warningText, { color: '#047857' }]}>
-              {availableWorkers} worker(s) available for {category?.name}. Your request will be processed quickly.
+              {t('bookingFlow.availableBox', { count: availableWorkers, category: category?.name })}
             </Text>
           </View>
         )}
@@ -793,7 +790,7 @@ export default function RequestServiceScreen() {
             <>
               <Ionicons name="card-outline" size={24} color="#FFFFFF" />
               <Text style={styles.submitButtonText}>
-                Pay TSH {priceCalculation?.total_price || '0'} to Get Service
+                {t('bookingFlow.payButton', { amount: priceCalculation?.total_price || '0' })}
               </Text>
             </>
           )}

@@ -37,45 +37,45 @@ export default function DataRetentionScreen() {
       const formattedPolicies: RetentionPolicy[] = [
         {
           data_type: 'Profile Information',
-          retention_period: 'Active account + 30 days after deletion',
-          reason: 'Service delivery and account recovery',
-          deletion_method: 'Permanent deletion or anonymization',
+          retention_period: t('dataRetention.profilePeriod'),
+          reason: t('dataRetention.profileReason'),
+          deletion_method: t('dataRetention.profileMethod'),
         },
         {
           data_type: 'Job History',
-          retention_period: 'Active account + 7 years',
-          reason: 'Legal compliance and dispute resolution',
-          deletion_method: 'Anonymization',
+          retention_period: t('dataRetention.jobsPeriod'),
+          reason: t('dataRetention.jobsReason'),
+          deletion_method: t('dataRetention.anonymization'),
         },
         {
           data_type: 'Payment Records',
-          retention_period: '7 years',
-          reason: 'Tax and financial compliance',
-          deletion_method: 'Secure archival then deletion',
+          retention_period: t('dataRetention.sevenYears'),
+          reason: t('dataRetention.paymentsReason'),
+          deletion_method: t('dataRetention.paymentsMethod'),
         },
         {
           data_type: 'Messages',
-          retention_period: 'Active account + 90 days',
-          reason: 'Service continuity and quality',
-          deletion_method: 'Permanent deletion',
+          retention_period: t('dataRetention.messagesPeriod'),
+          reason: t('dataRetention.messagesReason'),
+          deletion_method: t('dataRetention.permanentDeletion'),
         },
         {
           data_type: 'Reviews & Ratings',
-          retention_period: 'Permanent (anonymized)',
-          reason: 'Platform integrity and trust',
-          deletion_method: 'Name/email removed, content preserved',
+          retention_period: t('dataRetention.reviewsPeriod'),
+          reason: t('dataRetention.reviewsReason'),
+          deletion_method: t('dataRetention.reviewsMethod'),
         },
         {
           data_type: 'Login History',
-          retention_period: '90 days',
-          reason: 'Security and fraud prevention',
-          deletion_method: 'Automatic deletion',
+          retention_period: t('dataRetention.ninetyDays'),
+          reason: t('dataRetention.loginsReason'),
+          deletion_method: t('dataRetention.automaticDeletion'),
         },
         {
           data_type: 'Analytics Data',
-          retention_period: '24 months',
-          reason: 'Service improvement',
-          deletion_method: 'Automatic deletion',
+          retention_period: t('dataRetention.twentyFourMonths'),
+          reason: t('dataRetention.analyticsReason'),
+          deletion_method: t('dataRetention.automaticDeletion'),
         },
       ];
       
@@ -85,6 +85,17 @@ export default function DataRetentionScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // data_type is kept in English (the icon lookup below matches on it); this maps it to its label
+  const DATA_TYPE_LABEL: Record<string, string> = {
+    'Profile Information': 'dataRetention.types.profile',
+    'Job History': 'dataRetention.types.jobs',
+    'Payment Records': 'dataRetention.types.payments',
+    'Messages': 'dataRetention.types.messages',
+    'Reviews & Ratings': 'dataRetention.types.reviews',
+    'Login History': 'dataRetention.types.logins',
+    'Analytics Data': 'dataRetention.types.analytics',
   };
 
   const getIconForDataType = (dataType: string) => {
@@ -108,18 +119,18 @@ export default function DataRetentionScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Data Retention Policy" />
+      <Header title={t('privacy.dataRetentionPolicy')} />
       
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
           <Ionicons name="information-circle" size={32} color={theme.primary} />
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-            We retain your data only as long as necessary to provide our services and comply with legal obligations.
+            {t('dataRetention.intro')}
           </Text>
         </View>
 
         <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          Retention Periods by Data Type
+          {t('dataRetention.periodsByType')}
         </Text>
 
         {policies.map((policy, index) => (
@@ -136,7 +147,7 @@ export default function DataRetentionScreen() {
                 />
               </View>
               <Text style={[styles.dataType, { color: theme.text }]}>
-                {policy.data_type}
+                {DATA_TYPE_LABEL[policy.data_type] ? t(DATA_TYPE_LABEL[policy.data_type]) : policy.data_type}
               </Text>
             </View>
 
@@ -145,7 +156,7 @@ export default function DataRetentionScreen() {
                 <Ionicons name="time-outline" size={18} color={theme.textSecondary} />
                 <View style={styles.detailText}>
                   <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Retention Period
+                    {t('dataRetention.retentionPeriod')}
                   </Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {policy.retention_period}
@@ -157,7 +168,7 @@ export default function DataRetentionScreen() {
                 <Ionicons name="help-circle-outline" size={18} color={theme.textSecondary} />
                 <View style={styles.detailText}>
                   <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Reason
+                    {t('dataRetention.reason')}
                   </Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {policy.reason}
@@ -169,7 +180,7 @@ export default function DataRetentionScreen() {
                 <Ionicons name="trash-outline" size={18} color={theme.textSecondary} />
                 <View style={styles.detailText}>
                   <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Deletion Method
+                    {t('dataRetention.deletionMethod')}
                   </Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {policy.deletion_method}
@@ -182,10 +193,10 @@ export default function DataRetentionScreen() {
 
         <View style={[styles.contactCard, { backgroundColor: theme.card }]}>
           <Text style={[styles.contactTitle, { color: theme.text }]}>
-            Questions or Concerns?
+            {t('dataRetention.questions')}
           </Text>
           <Text style={[styles.contactText, { color: theme.textSecondary }]}>
-            If you have any questions about how we handle your data, please contact our Data Protection Officer:
+            {t('dataRetention.contactDpo')}
           </Text>
           <Text style={[styles.contactEmail, { color: theme.primary }]}>
             privacy@workerconnect.com
@@ -194,10 +205,10 @@ export default function DataRetentionScreen() {
 
         <View style={[styles.legalCard, { backgroundColor: theme.card }]}>
           <Text style={[styles.legalTitle, { color: theme.text }]}>
-            Legal Basis
+            {t('dataRetention.legalBasis')}
           </Text>
           <Text style={[styles.legalText, { color: theme.textSecondary }]}>
-            We process your data under GDPR Article 6(1)(b) for contract performance and Article 6(1)(c) for legal compliance. Some processing is based on your consent (Article 6(1)(a)).
+            {t('dataRetention.legalBasisText')}
           </Text>
         </View>
       </ScrollView>

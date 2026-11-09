@@ -91,7 +91,7 @@ export default function ServiceAssignmentDetail() {
       });
     } catch (error: any) {
       console.error('❌ Error loading assignment:', error);
-      Alert.alert(t('common.error'), error.response?.data?.error || 'Failed to load assignment details');
+      Alert.alert(t('common.error'), error.response?.data?.error || t('assignments.failedLoadAssignmentDetails'));
       router.back();
     } finally {
       setLoading(false);
@@ -117,22 +117,22 @@ export default function ServiceAssignmentDetail() {
     if (!assignment) return;
 
     Alert.alert(
-      'Accept Assignment',
-      'Are you sure you want to accept this service request?',
+      t('assignments.acceptAssignment'),
+      t('assignmentDetail.acceptConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Accept',
+          text: t('common.accept'),
           onPress: async () => {
             try {
               setSubmitting(true);
               await apiService.acceptAssignment(assignment.id, notes || undefined);
-              Alert.alert(t('common.success'), 'Assignment accepted successfully', [
-                { text: 'OK', onPress: () => router.back() }
+              Alert.alert(t('common.success'), t('assignmentDetail.acceptedSuccess'), [
+                { text: t('common.ok'), onPress: () => router.back() }
               ]);
             } catch (error: any) {
               console.error('Error accepting assignment:', error);
-              const errorMessage = error.response?.data?.error || 'Failed to accept assignment';
+              const errorMessage = error.response?.data?.error || t('assignments.failedAcceptAssignment');
               Alert.alert(t('common.error'), errorMessage);
             } finally {
               setSubmitting(false);
@@ -147,28 +147,28 @@ export default function ServiceAssignmentDetail() {
     if (!assignment) return;
     
     if (!rejectionReason.trim()) {
-      Alert.alert(t('worker.required'), 'Please provide a reason for rejection');
+      Alert.alert(t('worker.required'), t('assignments.provideReasonRejection'));
       return;
     }
 
     Alert.alert(
-      'Reject Assignment',
-      'Are you sure you want to reject this service request?',
+      t('assignments.rejectAssignment'),
+      t('assignmentDetail.rejectConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Reject',
+          text: t('common.reject'),
           style: 'destructive',
           onPress: async () => {
             try {
               setSubmitting(true);
               await apiService.rejectAssignment(assignment.id, rejectionReason);
-              Alert.alert(t('assignments.rejected'), 'Assignment rejected', [
-                { text: 'OK', onPress: () => router.back() }
+              Alert.alert(t('assignments.rejected'), t('assignmentDetail.rejectedMsg'), [
+                { text: t('common.ok'), onPress: () => router.back() }
               ]);
             } catch (error: any) {
               console.error('Error rejecting assignment:', error);
-              const errorMessage = error.response?.data?.error || 'Failed to reject assignment';
+              const errorMessage = error.response?.data?.error || t('assignments.failedRejectAssignment');
               Alert.alert(t('common.error'), errorMessage);
             } finally {
               setSubmitting(false);
@@ -201,7 +201,7 @@ export default function ServiceAssignmentDetail() {
     return (
       <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
         <Text style={[styles.statusText, { color: config.text }]}>
-          {status.replace('_', ' ').toUpperCase()}
+          {t(`status.${status}`, { defaultValue: status.replace('_', ' ') }).toUpperCase()}
         </Text>
       </View>
     );
@@ -210,7 +210,7 @@ export default function ServiceAssignmentDetail() {
     if (assignment?.client_phone) {
       Linking.openURL(`tel:${assignment.client_phone}`);
     } else {
-      Alert.alert('No Phone', 'Client phone number not available');
+      Alert.alert(t('assignmentDetail.noPhone'), t('assignmentDetail.noPhoneMsg'));
     }
   };
 
@@ -218,13 +218,13 @@ export default function ServiceAssignmentDetail() {
     if (assignment?.client_email) {
       Linking.openURL(`mailto:${assignment.client_email}`);
     } else {
-      Alert.alert('No Email', 'Client email not available');
+      Alert.alert(t('assignmentDetail.noEmail'), t('assignmentDetail.noEmailMsg'));
     }
   };
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Header title="Assignment Details" showBack />
+        <Header title={t('assignmentDetail.title')} showBack />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -243,7 +243,7 @@ export default function ServiceAssignmentDetail() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Assignment Details" showBack />
+      <Header title={t('assignmentDetail.title')} showBack />
       
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Header Card */}
@@ -265,7 +265,9 @@ export default function ServiceAssignmentDetail() {
           <View style={[styles.urgencyCard, { backgroundColor: urgencyConfig.bg }]}>
             <Ionicons name={urgencyConfig.icon as any} size={24} color={urgencyConfig.text} />
             <Text style={[styles.urgencyTitle, { color: urgencyConfig.text }]}>
-              {assignment.urgency.toUpperCase()} PRIORITY
+              {t('assignmentDetail.priority', {
+                urgency: t(`requestService.${assignment.urgency}`, { defaultValue: assignment.urgency }).toUpperCase(),
+              })}
             </Text>
           </View>
         </View>
@@ -277,9 +279,9 @@ export default function ServiceAssignmentDetail() {
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={theme.textSecondary} />
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Name</Text>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('assignmentDetail.name')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
-                {assignment.client_name || 'N/A'}
+                {assignment.client_name || t('requestDetail.notAvailable')}
               </Text>
             </View>
           </View>
@@ -287,9 +289,9 @@ export default function ServiceAssignmentDetail() {
           <View style={styles.infoRow}>
             <Ionicons name="call-outline" size={20} color={theme.textSecondary} />
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Phone</Text>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('assignmentDetail.phone')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
-                {assignment.client_phone || 'N/A'}
+                {assignment.client_phone || t('requestDetail.notAvailable')}
               </Text>
             </View>
           </View>
@@ -299,7 +301,7 @@ export default function ServiceAssignmentDetail() {
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{t('auth.email')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>
-                {assignment.client_email || 'N/A'}
+                {assignment.client_email || t('requestDetail.notAvailable')}
               </Text>
             </View>
           </View>
@@ -322,7 +324,7 @@ export default function ServiceAssignmentDetail() {
                   onPress={handleEmailClient}
                 >
                   <Ionicons name="mail" size={20} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>Email Client</Text>
+                  <Text style={styles.contactButtonText}>{t('assignmentDetail.emailClient')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -341,7 +343,7 @@ export default function ServiceAssignmentDetail() {
 
         {/* Service Details */}
         <View style={[styles.card, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Service Details</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('assignmentDetail.serviceDetails')}</Text>
           
           <Text style={[styles.description, { color: theme.textSecondary }]}>
             {assignment.description}
@@ -386,10 +388,10 @@ export default function ServiceAssignmentDetail() {
               <Ionicons name="hourglass-outline" size={20} color={theme.textSecondary} />
               <View style={styles.detailContent}>
                 <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                  Estimated Duration
+                  {t('assignmentDetail.estimatedDuration')}
                 </Text>
                 <Text style={[styles.detailValue, { color: theme.text }]}>
-                  {assignment.estimated_duration_hours} hour{assignment.estimated_duration_hours !== 1 ? 's' : ''}
+                  {t('assignmentDetail.hours', { count: assignment.estimated_duration_hours })}
                 </Text>
               </View>
             </View>
@@ -398,7 +400,7 @@ export default function ServiceAssignmentDetail() {
           {assignment.client_notes && (
             <View style={styles.notesSection}>
               <Text style={[styles.notesLabel, { color: theme.textSecondary }]}>
-                Client Notes:
+                {t('requestDetail.clientNotes')}
               </Text>
               <Text style={[styles.notesText, { color: theme.text }]}>
                 {assignment.client_notes}
@@ -411,13 +413,13 @@ export default function ServiceAssignmentDetail() {
         {canRespond && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Your Response
+              {t('assignments.yourResponse')}
             </Text>
             
             {!showRejectInput ? (
               <>
                 <Text style={[styles.label, { color: theme.textSecondary }]}>
-                  Notes (Optional)
+                  {t('assignmentDetail.notesOptional')}
                 </Text>
                 <TextInput
                   style={[
@@ -428,7 +430,7 @@ export default function ServiceAssignmentDetail() {
                       borderColor: theme.border,
                     },
                   ]}
-                  placeholder="Add any notes about this assignment..."
+                  placeholder={t('assignmentDetail.notesPlaceholder')}
                   placeholderTextColor={theme.textSecondary}
                   value={notes}
                   onChangeText={setNotes}
@@ -466,7 +468,7 @@ export default function ServiceAssignmentDetail() {
             ) : (
               <>
                 <Text style={[styles.label, { color: theme.textSecondary }]}>
-                  Rejection Reason *
+                  {t('assignmentDetail.rejectionReason')}
                 </Text>
                 <TextInput
                   style={[
@@ -477,7 +479,7 @@ export default function ServiceAssignmentDetail() {
                       borderColor: theme.border,
                     },
                   ]}
-                  placeholder="Please explain why you're rejecting this assignment..."
+                  placeholder={t('assignmentDetail.rejectionPlaceholder')}
                   placeholderTextColor={theme.textSecondary}
                   value={rejectionReason}
                   onChangeText={setRejectionReason}
@@ -523,12 +525,15 @@ export default function ServiceAssignmentDetail() {
         {(assignment.status === 'accepted' || assignment.status === 'in_progress') && (
           <View style={[styles.card, { backgroundColor: theme.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Actions
+              {t('assignmentDetail.actions')}
             </Text>
 
             {/* Debug Info - Remove in production */}
             <Text style={{ fontSize: 10, color: theme.textSecondary, marginBottom: 8 }}>
-              Status: {isClockedIn ? 'Clocked In' : 'Clocked Out'} | Assignment: {assignment.status}
+              {t('assignmentDetail.debugStatus', {
+                clock: isClockedIn ? t('assignmentDetail.clockedIn') : t('assignmentDetail.clockedOut'),
+                status: t(`status.${assignment.status}`, { defaultValue: assignment.status }),
+              })}
             </Text>
 
             {isClockedIn ? (
@@ -582,7 +587,7 @@ export default function ServiceAssignmentDetail() {
               <Text style={styles.completedText}>{t('assignments.completed')}</Text>
               {assignment.work_completed_at && (
                 <Text style={styles.completedDate}>
-                  Completed on {new Date(assignment.work_completed_at).toLocaleDateString()}
+                  {t('assignmentDetail.completedOn', { date: new Date(assignment.work_completed_at).toLocaleDateString() })}
                 </Text>
               )}
             </View>

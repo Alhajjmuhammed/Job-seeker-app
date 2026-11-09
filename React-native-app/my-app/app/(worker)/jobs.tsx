@@ -104,11 +104,11 @@ export default function WorkerJobsScreen() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'assigned': return 'NEW';
-      case 'in_progress': return 'ACTIVE';
-      case 'completed': return 'DONE';
-      case 'cancelled': return 'CANCELLED';
-      default: return status.toUpperCase();
+      case 'assigned': return t('workerJobsScreen.badgeNew');
+      case 'in_progress': return t('jobs.activeJob');
+      case 'completed': return t('jobs.doneJob');
+      case 'cancelled': return t('jobs.cancelledJob');
+      default: return t(`status.${status}`, { defaultValue: status }).toUpperCase();
     }
   };
 
@@ -303,7 +303,7 @@ export default function WorkerJobsScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <Header title="My Jobs" showBack />
+        <Header title={t('workerJobsScreen.title')} showBack />
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
@@ -315,7 +315,7 @@ export default function WorkerJobsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="My Jobs" showBack />
+      <Header title={t('workerJobsScreen.title')} showBack />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {/* Tabs */}
@@ -325,7 +325,7 @@ export default function WorkerJobsScreen() {
           onPress={() => setSelectedTab('all')}
         >
           <Text style={[styles.tabText, selectedTab === 'all' && styles.activeTabText]}>
-            All ({assignedJobs.length})
+            {t('workerJobsScreen.tabAll', { count: assignedJobs.length })}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -333,7 +333,7 @@ export default function WorkerJobsScreen() {
           onPress={() => setSelectedTab('pending')}
         >
           <Text style={[styles.tabText, selectedTab === 'pending' && styles.activeTabText]}>
-            Pending ({assignedJobs.filter(j => j.status === 'assigned').length})
+            {t('workerJobsScreen.tabPending', { count: assignedJobs.filter(j => j.status === 'assigned').length })}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -341,7 +341,7 @@ export default function WorkerJobsScreen() {
           onPress={() => setSelectedTab('active')}
         >
           <Text style={[styles.tabText, selectedTab === 'active' && styles.activeTabText]}>
-            Active ({assignedJobs.filter(j => j.status === 'in_progress').length})
+            {t('workerJobsScreen.tabActive', { count: assignedJobs.filter(j => j.status === 'in_progress').length })}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -349,7 +349,7 @@ export default function WorkerJobsScreen() {
           onPress={() => setSelectedTab('completed')}
         >
           <Text style={[styles.tabText, selectedTab === 'completed' && styles.activeTabText]}>
-            Done ({assignedJobs.filter(j => j.status === 'completed').length})
+            {t('workerJobsScreen.tabDone', { count: assignedJobs.filter(j => j.status === 'completed').length })}
           </Text>
         </TouchableOpacity>
       </View>
@@ -370,14 +370,14 @@ export default function WorkerJobsScreen() {
               style={styles.emptyIcon}
             />
             <Text style={styles.emptyTitle}>
-              {selectedTab === 'all' 
-                ? 'No jobs assigned yet' 
-                : `No ${selectedTab} jobs`}
+              {selectedTab === 'all'
+                ? t('workerJobsScreen.noJobsYet')
+                : t(`workerJobsScreen.noJobs_${selectedTab}`)}
             </Text>
             <Text style={styles.emptySubtitle}>
               {selectedTab === 'all'
-                ? 'Jobs assigned to you will appear here'
-                : `Your ${selectedTab} jobs will appear here`}
+                ? t('workerJobsScreen.jobsAppear')
+                : t(`workerJobsScreen.jobsAppear_${selectedTab}`)}
             </Text>
           </View>
         ) : (
@@ -404,21 +404,21 @@ export default function WorkerJobsScreen() {
               <View style={styles.jobDetails}>
                 {job.total_price && (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Price:</Text>
+                    <Text style={styles.detailLabel}>{t('workerJobsScreen.price')}</Text>
                     <Text style={styles.detailValue}>
                       TSH {job.total_price}
                     </Text>
                   </View>
                 )}
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Posted:</Text>
+                  <Text style={styles.detailLabel}>{t('workerJobsScreen.posted')}</Text>
                   <Text style={styles.detailValue}>
                     {new Date(job.created_at).toLocaleDateString()}
                   </Text>
                 </View>
                 {job.preferred_date && (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Preferred Date:</Text>
+                    <Text style={styles.detailLabel}>{t('workerJobsScreen.preferredDate')}</Text>
                     <Text style={styles.detailValue}>
                       {new Date(job.preferred_date).toLocaleDateString()}
                     </Text>
@@ -426,7 +426,7 @@ export default function WorkerJobsScreen() {
                 )}
                 {(job.city || job.location) && (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Location:</Text>
+                    <Text style={styles.detailLabel}>{t('workerJobsScreen.location')}</Text>
                     <Text style={styles.detailValue}>{job.city || job.location}</Text>
                   </View>
                 )}
@@ -441,7 +441,7 @@ export default function WorkerJobsScreen() {
                   >
                     <Ionicons name={job.status === 'in_progress' ? 'time' : 'arrow-forward'} size={16} color="#FFFFFF" />
                     <Text style={styles.actionButtonText}>
-                      {job.status === 'in_progress' ? 'Active Session' : 'View Assignment'}
+                      {job.status === 'in_progress' ? t('workerJobsScreen.activeSession') : t('workerJobsScreen.viewAssignment')}
                     </Text>
                   </TouchableOpacity>
                 )}

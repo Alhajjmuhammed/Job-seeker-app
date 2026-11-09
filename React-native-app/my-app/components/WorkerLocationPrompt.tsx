@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import apiService from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 // Shown on the worker dashboard until the worker has saved a location.
 // Clients choosing "nearest worker" can only be matched with workers who
 // have one, and no worker had set it from the profile screen.
 export default function WorkerLocationPrompt() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -26,7 +28,7 @@ export default function WorkerLocationPrompt() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setMessage('Please allow location access to be matched with clients near you.');
+        setMessage(t('componentsText.locationAllow'));
         return;
       }
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
@@ -36,7 +38,7 @@ export default function WorkerLocationPrompt() {
       });
       setVisible(false);
     } catch (error) {
-      setMessage('Could not save your location. Please try again.');
+      setMessage(t('componentsText.locationSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -49,9 +51,9 @@ export default function WorkerLocationPrompt() {
       <View style={styles.row}>
         <Ionicons name="location" size={22} color={theme.primary} />
         <View style={styles.textBox}>
-          <Text style={[styles.title, { color: theme.text }]}>Get jobs near you</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('componentsText.jobsNearYou')}</Text>
           <Text style={[styles.body, { color: theme.textSecondary }]}>
-            Save your location so clients nearby can be matched with you automatically. Tap the button where you usually work.
+            {t('componentsText.jobsNearYouText')}
           </Text>
         </View>
       </View>
@@ -64,7 +66,7 @@ export default function WorkerLocationPrompt() {
         {saving ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Save my location</Text>
+          <Text style={styles.buttonText}>{t('componentsText.saveMyLocation')}</Text>
         )}
       </TouchableOpacity>
     </View>

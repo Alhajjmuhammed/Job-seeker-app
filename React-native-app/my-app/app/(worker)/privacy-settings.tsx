@@ -93,7 +93,7 @@ export default function PrivacySettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Privacy Settings" />
+      <Header title={t('privacy.privacySettings')} />
       
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
@@ -223,11 +223,11 @@ export default function PrivacySettingsScreen() {
         <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
           <Text style={[styles.infoTitle, { color: theme.text }]}>{t('privacy.yourGDPRRights')}</Text>
           <Text style={[styles.infoText, { color: theme.textSecondary }]}>
-            • Right to Access - View your personal data{'\n'}
-            • Right to Rectification - Correct inaccurate data{'\n'}
-            • Right to Erasure - Delete your data{'\n'}
-            • Right to Data Portability - Export your data{'\n'}
-            • Right to Object - Opt out of processing
+            {t('privacy.rightToAccess')}{'\n'}
+            {t('privacy.rightToRectification')}{'\n'}
+            {t('privacy.rightToErasure')}{'\n'}
+            {t('privacy.rightToPortability')}{'\n'}
+            {t('privacy.rightToObject')}
           </Text>
         </View>
       </ScrollView>

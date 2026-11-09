@@ -83,12 +83,12 @@ export default function SavedJobsScreen() {
 
   const confirmUnsave = (jobId: number, title: string) => {
     Alert.alert(
-      'Remove Saved Job',
-      `Remove "${title}" from saved jobs?`,
+      t('jobsBoard.removeSavedTitle'),
+      t('jobsBoard.removeSavedMsg', { title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Remove', 
+          text: t('jobsBoard.remove'), 
           style: 'destructive',
           onPress: () => handleUnsaveJob(jobId)
         },
@@ -165,7 +165,7 @@ export default function SavedJobsScreen() {
           <View style={styles.savedInfo}>
             <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
             <Text style={[styles.savedDate, { color: theme.textSecondary }]}>
-              Saved {new Date(saved.saved_at).toLocaleDateString()}
+              {t('jobsBoard.savedOn', { date: new Date(saved.saved_at).toLocaleDateString() })}
             </Text>
           </View>
         </TouchableOpacity>
@@ -229,7 +229,7 @@ export default function SavedJobsScreen() {
             ) : (
               <>
                 <Text style={[styles.resultCount, { color: theme.textSecondary }]}>
-                  {savedJobs.length} saved {savedJobs.length === 1 ? 'job' : 'jobs'}
+                  {t('jobsBoard.savedCount', { count: savedJobs.length })}
                 </Text>
                 {savedJobs.map(renderSavedJobCard)}
               </>
