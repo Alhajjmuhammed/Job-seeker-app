@@ -94,6 +94,8 @@ def resolve_path(model, dotted):
         related = getattr(field, 'related_model', None)
         if related is not None:
             current = related
+        elif field.get_internal_type() == 'JSONField':
+            return True  # anything after a JSON field is a key inside the JSON (extra_data__direct_hire_id)
         elif i != len(parts) - 1:
             nxt = parts[i + 1]
             return nxt in LOOKUPS
