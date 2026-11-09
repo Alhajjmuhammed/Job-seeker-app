@@ -515,6 +515,13 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'  # schedules are written in UTC (celery.py pins it too); 15:00 UTC = 18:00 EAT
+
+# Phone push alerts through Expo (the app registers ExponentPushToken[...] per phone).
+# Switched off while the test suite runs, so tests never contact Expo.
+import sys as _sys
+EXPO_PUSH_ENABLED = (os.environ.get('EXPO_PUSH_ENABLED', 'true').lower() in ('1', 'true', 'yes')
+                     and 'test' not in _sys.argv[1:2])
+EXPO_ACCESS_TOKEN = os.environ.get('EXPO_ACCESS_TOKEN', '')  # only if push security is turned on in Expo
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 

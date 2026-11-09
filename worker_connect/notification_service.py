@@ -57,6 +57,9 @@ class NotificationService:
         # Broadcast via WebSocket
         NotificationService._broadcast_notification(notification)
 
+        # Phone push (in the background, after the save is committed)
+        NotificationService._push_notification(notification)
+
         # Email (respects the recipient's per-category preference). Alerts sent
         # to many people at once (new job published) skip it - one SMTP round
         # trip per worker inside a request would make the admin wait.
@@ -100,6 +103,32 @@ class NotificationService:
             )
         except Exception as e:
             logger.error(f"Failed to email notification {notification.id} to {notification.recipient_id}: {e}")
+
+    @staticmethod
+    def _push_notification(notification):
+        """Queue a phone push for this notification. Never raises."""
+        try:
+            from .expo_push import enabled
+            if not enabled():
+                return
+            if not PushToken.objects.filter(user_id=notification.recipient_id, is_active=True).exists():
+                return  # no phone registered - nothing to do (and no task queued)
+            from django.db import transaction
+            notification_id = notification.pk
+
+            def queue():
+                try:
+                    from .tasks import send_push_for_notification
+                    send_push_for_notification.delay(notification_id)
+                except Exception as e:  # broker down: send from a side thread instead
+                    logger.warning("Queueing push failed (%s); sending directly", e)
+                    import threading
+                    from .expo_push import push_notification
+                    threading.Thread(target=push_notification, args=(notification_id,), daemon=True).start()
+
+            transaction.on_commit(queue)
+        except Exception as e:
+            logger.error(f"Failed to queue push for notification {notification.id}: {e}")
 
     @staticmethod
     def _broadcast_notification(notification):
