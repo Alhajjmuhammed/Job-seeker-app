@@ -10,7 +10,7 @@
     /* ── Page ── */
     .dl-section {
         min-height: calc(100vh - 72px);
-        background: linear-gradient(140deg, #071a18 0%, #0a2e2b 35%, #0c5450 70%, #0D6E68 100%);
+        background: #0b2422;  /* solid, no gradient */
         display: flex; align-items: center; justify-content: center;
         padding: 3rem 1.5rem;
         position: relative; overflow: hidden;
@@ -19,14 +19,14 @@
         content: '';
         position: absolute; top: -120px; right: -120px;
         width: 500px; height: 500px; border-radius: 50%;
-        background: radial-gradient(circle, rgba(20,184,166,0.18) 0%, transparent 65%);
+        display: none;  /* the glowing circles are gone */
         pointer-events: none;
     }
     .dl-section::after {
         content: '';
         position: absolute; bottom: -100px; left: -100px;
         width: 420px; height: 420px; border-radius: 50%;
-        background: radial-gradient(circle, rgba(13,110,104,0.22) 0%, transparent 65%);
+        display: none;
         pointer-events: none;
     }
 
@@ -46,7 +46,7 @@
     .dl-logo {
         width: 90px; height: 90px;
         border-radius: 26px; object-fit: cover;
-        box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 4px rgba(20,184,166,0.25);
+        box-shadow: none;
         background: white; padding: 2px;
         margin-bottom: 1rem;
     }
@@ -90,19 +90,18 @@
     /* Big download button */
     .btn-dl {
         display: flex; align-items: center; gap: 1rem;
-        background: linear-gradient(135deg, #14b8a6 0%, #0a8c84 100%);
+        background: #14b8a6;
         color: #fff; text-decoration: none;
         padding: 1.05rem 1.75rem; border-radius: 18px;
-        box-shadow: 0 10px 35px rgba(13,110,104,0.55);
-        transition: all 0.25s;
+        transition: background 0.2s;
         position: relative; overflow: hidden;
     }
     .btn-dl::before {
         content: '';
         position: absolute; inset: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 55%);
+        display: none;  /* no shine */
     }
-    .btn-dl:hover { transform: translateY(-3px); box-shadow: 0 18px 50px rgba(13,110,104,0.65); color: #fff; }
+    .btn-dl:hover { background: #0d9488; color: #fff; }
     .btn-dl-icon { font-size: 2rem; flex-shrink: 0; position: relative; }
     .btn-dl-text { position: relative; }
     .btn-dl-main-text { font-size: 1.05rem; font-weight: 700; color: #fff; }
@@ -134,11 +133,10 @@
     .dl-step { display: flex; align-items: flex-start; gap: 0.85rem; }
     .dl-step-n {
         width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
-        background: linear-gradient(135deg, #14b8a6, #0d9488);
+        background: #14b8a6;
         color: #fff; font-size: 0.65rem; font-weight: 800;
         display: flex; align-items: center; justify-content: center;
         margin-top: 1px;
-        box-shadow: 0 3px 10px rgba(13,110,104,0.4);
     }
     .dl-step-t { font-size: 0.82rem; color: rgba(255,255,255,0.75); line-height: 1.5; }
     .dl-step-t strong { color: #fff; font-weight: 700; }
@@ -158,10 +156,10 @@
 
     /* ── LIGHT MODE overrides ── */
     [data-bs-theme="light"] .dl-section {
-        background: linear-gradient(140deg, #e0f2f1 0%, #b2dfdb 35%, #4db6ac 70%, #00897b 100%);
+        background: #e6f4f2;  /* solid light, no gradient */
     }
     [data-bs-theme="light"] .dl-section::before {
-        background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 65%);
+        display: none;
     }
 
     /* Brand text */
