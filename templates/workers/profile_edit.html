@@ -425,14 +425,7 @@
     </div>
 
     <!-- Messages -->
-    {% if messages %}
-    {% for message in messages %}
-        <div class="{% if message.tags == 'error' %}error-message{% else %}success-message{% endif %}">
-            <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
-            {{ message }}
-        </div>
-    {% endfor %}
-    {% endif %}
+    {# messages: shown as the shared pop-up by the layout (partials/toasts.html) #}
 
     <!-- Profile Image Upload (Separate Form) -->
     <div class="profile-form-card mb-4">

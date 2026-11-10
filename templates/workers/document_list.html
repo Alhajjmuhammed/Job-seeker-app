@@ -357,13 +357,7 @@
         </ul>
     </div>
 
-    {% if messages %}
-    {% for message in messages %}
-        <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}">
-            {{ message }}
-        </div>
-    {% endfor %}
-    {% endif %}
+    {# messages: shown as the shared pop-up by the layout (partials/toasts.html) #}
 
     {% if documents %}
     <div class="documents-grid">

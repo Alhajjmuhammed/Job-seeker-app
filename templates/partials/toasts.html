@@ -1,0 +1,59 @@
+{% load i18n %}
+{# One pop-up style for every page (public, client, worker, agent, admin). Include it once per layout. #}
+{% if messages %}
+<style>
+    .wc-toasts { position: fixed; top: calc(var(--header-height, 70px) + 14px); left: 50%; transform: translateX(-50%);
+                 z-index: 2000; display: flex; flex-direction: column; gap: 10px; width: min(440px, calc(100vw - 32px)); pointer-events: none; }
+    .wc-toast { pointer-events: auto; position: relative; overflow: hidden; display: flex; align-items: flex-start; gap: 12px;
+                padding: 14px 14px 16px; border-radius: 14px; background: #fff; color: #1f2937;
+                border: 1px solid rgba(15, 23, 42, .08); box-shadow: 0 14px 40px rgba(15, 23, 42, .18), 0 2px 6px rgba(15, 23, 42, .06);
+                animation: wcToastIn .35s cubic-bezier(.2, .9, .3, 1.2) both; }
+    .wc-toast.hiding { animation: wcToastOut .25s ease-in forwards; }
+    .wc-toast-ico { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .wc-toast-text { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.4; padding-top: 6px; word-break: break-word; }
+    .wc-toast-close { border: 0; background: transparent; color: #9ca3af; width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+                      display: flex; align-items: center; justify-content: center; }
+    .wc-toast-close:hover { background: #f3f4f6; color: #374151; }
+    .wc-toast-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; transform-origin: left; background: var(--wc-t); }
+    .wc-toast { --wc-t: #10b981; --wc-tbg: #d1fae5; --wc-tfg: #059669; }
+    .wc-toast.t-error, .wc-toast.t-danger { --wc-t: #ef4444; --wc-tbg: #fee2e2; --wc-tfg: #dc2626; }
+    .wc-toast.t-warning { --wc-t: #f59e0b; --wc-tbg: #fef3c7; --wc-tfg: #d97706; }
+    .wc-toast.t-info, .wc-toast.t-debug { --wc-t: #3b82f6; --wc-tbg: #dbeafe; --wc-tfg: #2563eb; }
+    .wc-toast-ico { background: var(--wc-tbg); color: var(--wc-tfg); }
+    [data-bs-theme="dark"] .wc-toast { background: #1e293b; color: #e2e8f0; border-color: #334155; box-shadow: 0 14px 40px rgba(0, 0, 0, .5); }
+    [data-bs-theme="dark"] .wc-toast-close:hover { background: #334155; color: #e2e8f0; }
+    [data-bs-theme="dark"] .wc-toast-ico { background: color-mix(in srgb, var(--wc-t) 18%, transparent); color: var(--wc-t); }
+    @keyframes wcToastIn { from { opacity: 0; transform: translateY(-14px) scale(.97); } to { opacity: 1; transform: none; } }
+    @keyframes wcToastOut { to { opacity: 0; transform: translateY(-10px) scale(.97); } }
+    @keyframes wcToastTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    @media (prefers-reduced-motion: reduce) { .wc-toast, .wc-toast.hiding { animation: none; } }
+</style>
+<div class="wc-toasts" id="wcToasts" aria-live="polite">
+    {% for message in messages %}
+    {% with tag=message.tags|default:"info" %}
+    <div class="wc-toast t-{{ tag }}" role="{% if 'error' in tag or 'danger' in tag %}alert{% else %}status{% endif %}"
+         data-ms="{% if 'error' in tag or 'danger' in tag or 'warning' in tag %}8000{% else %}5000{% endif %}">
+        <div class="wc-toast-ico"><i class="bi {% if 'error' in tag or 'danger' in tag %}bi-x-octagon-fill{% elif 'warning' in tag %}bi-exclamation-triangle-fill{% elif 'success' in tag %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i></div>
+        <div class="wc-toast-text">{{ message }}</div>
+        <button type="button" class="wc-toast-close" aria-label="{% trans "Close" %}"><i class="bi bi-x-lg"></i></button>
+        <span class="wc-toast-bar"></span>
+    </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+<script>
+(function () {
+    function close(t) { if (t.classList.contains('hiding')) return; t.classList.add('hiding'); setTimeout(function () { t.remove(); }, 260); }
+    document.querySelectorAll('#wcToasts .wc-toast').forEach(function (t, i) {
+        // closes by itself; hovering pauses both the countdown and the timer line
+        var left = parseInt(t.dataset.ms, 10) + i * 600, bar = t.querySelector('.wc-toast-bar'), started, timer;
+        bar.style.animation = 'wcToastTimer ' + left + 'ms linear forwards';
+        function go() { started = Date.now(); timer = setTimeout(function () { close(t); }, left); bar.style.animationPlayState = 'running'; }
+        t.addEventListener('mouseenter', function () { clearTimeout(timer); left -= Date.now() - started; bar.style.animationPlayState = 'paused'; });
+        t.addEventListener('mouseleave', go);
+        t.querySelector('.wc-toast-close').addEventListener('click', function () { clearTimeout(timer); close(t); });
+        go();
+    });
+})();
+</script>
+{% endif %}

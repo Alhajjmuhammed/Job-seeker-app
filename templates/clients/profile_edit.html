@@ -166,13 +166,7 @@
     <p>{% trans "Update your personal information and preferences" %}</p>
 </div>
 
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-        {{ message }}
-    </div>
-    {% endfor %}
-{% endif %}
+{# messages: shown as the shared pop-up by the layout (partials/toasts.html) #}
 
 <div class="form-card">
     <form method="post">

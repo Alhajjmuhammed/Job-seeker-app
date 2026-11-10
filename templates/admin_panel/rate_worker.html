@@ -74,16 +74,7 @@
                         <h6 class="mb-3">{% trans "Provide Your Rating" %}</h6>
                         
                         <!-- Error Messages -->
-                        {% if messages %}
-                            {% for message in messages %}
-                                {% if message.tags == 'error' %}
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
+                        {# messages: shown as the shared pop-up by the layout (partials/toasts.html) #}
 
                         <!-- Rating Selection -->
                         <div class="mb-4">

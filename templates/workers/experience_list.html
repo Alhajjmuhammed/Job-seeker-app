@@ -346,13 +346,7 @@
     </div>
     {% endif %}
 
-    {% if messages %}
-    {% for message in messages %}
-        <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" style="padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
-            {{ message }}
-        </div>
-    {% endfor %}
-    {% endif %}
+    {# messages: shown as the shared pop-up by the layout (partials/toasts.html) #}
 
     {% if experiences %}
     <div class="timeline">
