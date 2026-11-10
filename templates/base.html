@@ -164,11 +164,13 @@
         }
         .main-nav.scrolled {
             background-color: rgba(11, 22, 38, 0.86) !important;
-            box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.55);
             border-bottom-color: rgba(20, 184, 166, 0.35);
         }
         .main-nav .container { min-height: var(--nav-h); }
         .main-nav a { text-decoration: none !important; }
+        /* no focus ring or glow when a link/button is clicked */
+        .main-nav a:focus, .main-nav button:focus, .main-nav .navbar-toggler:focus,
+        .main-nav .nav-link:focus, .main-nav .dropdown-toggle:focus { outline: none !important; box-shadow: none !important; }
 
         /* brand */
         .main-nav .navbar-brand {
@@ -178,8 +180,7 @@
         }
         .main-nav .brand-logo {
             height: 44px; width: 44px; object-fit: cover; flex-shrink: 0;
-            border-radius: 13px; background: #fff; padding: 3px;
-            box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 6px 18px -6px rgba(20,184,166,.7);
+            background: transparent; padding: 0; border: 0; box-shadow: none; border-radius: 50%;
             transition: transform .2s ease;
         }
         .main-nav .navbar-brand:hover .brand-logo { transform: rotate(-6deg) scale(1.04); }
@@ -203,8 +204,7 @@
         .main-nav .nav-link:hover { color: #fff !important; background: rgba(255,255,255,.09); }
         .main-nav .nav-link.active {
             color: #0b1220 !important; font-weight: 600;
-            background: linear-gradient(135deg, #5eead4, #2dd4bf);
-            box-shadow: 0 6px 16px -8px rgba(45,212,191,.9);
+            background: #2dd4bf;
         }
         .main-nav .nav-icon-link { padding: 8px 12px !important; position: relative; }
 
@@ -223,14 +223,10 @@
             display: inline-flex; align-items: center; gap: 7px;
             color: #fff !important; font-size: .9rem; font-weight: 600;
             padding: 10px 20px; border-radius: 12px; border: 0;
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-            box-shadow: 0 8px 22px -8px rgba(20,184,166,.85), inset 0 1px 0 rgba(255,255,255,.25);
-            transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+            background: #14b8a6;
+            transition: background .2s ease;
         }
-        .main-nav .btn-nav-signup:hover {
-            transform: translateY(-1px); filter: brightness(1.06);
-            box-shadow: 0 12px 26px -8px rgba(20,184,166,.95), inset 0 1px 0 rgba(255,255,255,.25);
-        }
+        .main-nav .btn-nav-signup:hover { background: #0d9488; }
 
         /* round icon buttons: theme + menu */
         .main-nav .nav-round {
@@ -273,12 +269,11 @@
         .main-nav .user-avatar {
             width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(135deg, #14b8a6, #0d9488); color: #fff; font-size: .8rem; font-weight: 700;
+            background: #14b8a6; color: #fff; font-size: .8rem; font-weight: 700;
         }
         .main-nav .dropdown-menu {
             background: #0f172a; border: 1px solid rgba(255,255,255,.1);
             border-radius: 14px; padding: 6px; margin-top: 10px !important; min-width: 220px;
-            box-shadow: 0 18px 40px -12px rgba(0,0,0,.6);
         }
         .main-nav .dropdown-item { color: rgba(255,255,255,.82); border-radius: 9px; padding: 9px 14px; font-size: .88rem; }
         .main-nav .dropdown-item:hover { background: rgba(20,184,166,.15); color: #5eead4; }
@@ -298,13 +293,12 @@
         /* ── Phone / tablet: the menu opens as a rounded card ── */
         @media (max-width: 991.98px) {
             .main-nav { --nav-h: 64px; }
-            .main-nav .brand-logo { height: 38px; width: 38px; border-radius: 11px; }
+            .main-nav .brand-logo { height: 38px; width: 38px; }
             .main-nav .navbar-brand { font-size: 1.08rem; margin-right: .5rem; }
             #navbarNav {
                 margin: 0 0 14px; padding: 12px;
                 background: rgba(15, 23, 42, .97);
                 border: 1px solid rgba(255,255,255,.09); border-radius: 18px;
-                box-shadow: 0 18px 40px -16px rgba(0,0,0,.7);
             }
             .main-nav .nav-pill { background: transparent; border: 0; padding: 0; gap: 4px; border-radius: 0; }
             .main-nav .nav-pill, .main-nav .nav-actions { width: 100%; flex-direction: column; align-items: stretch !important; }
@@ -328,7 +322,7 @@
     <nav class="main-nav navbar navbar-expand-lg" id="mainNav">
         <div class="container">
             <a class="navbar-brand" href="{{ home_url }}">
-                <img src="{% static 'images/logo.png' %}" alt="Worker Connect" class="brand-logo">
+                <img src="{% static 'images/logo-nav.png' %}" alt="Worker Connect" class="brand-logo">
                 <span>Worker <span class="brand-accent">Connect</span></span>
             </a>
 
