@@ -876,8 +876,9 @@ class ClientPagesTests(FlowBase):
 
     def test_menu_links_have_no_underline_or_border(self):
         page = Client().get('/').content.decode()
-        self.assertIn('#navbarNav .btn-nav-signup { text-decoration: none !important; }', page)
-        self.assertIn('#navbarNav .btn-nav-signup { border: none !important; }', page)
+        self.assertIn('.main-nav a { text-decoration: none !important; }', page)  # no underline on any menu link
+        signup = page[page.index('.main-nav .btn-nav-signup {'):]
+        self.assertIn('border: 0;', signup[:signup.index('}')])                   # Sign Up has no outline
 
     def test_booking_page_prices_per_request_like_the_server(self):
         page = self.client_c.get('/services/client/request-service/').content.decode()
