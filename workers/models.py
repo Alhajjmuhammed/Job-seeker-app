@@ -768,3 +768,101 @@ class MobileMoneyAccount(models.Model):
         if self.is_default:
             MobileMoneyAccount.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
+
+
+class WorkerPayout(models.Model):
+    """Money on its way to a worker's Mixx by Yas wallet.
+
+    One row per attempt to pay one worker. It exists before the money
+    moves and survives after, because a disbursement that is only a
+    function call leaves nothing to reconcile against YAS's statement
+    when the two disagree.
+
+    The states are the ordinary four plus one that matters more than all
+    of them:
+
+      ``held``. The A2W specification (p.9) says of status 100, and of
+      any timeout: "Partner should put transaction amount in HOLD state
+      to avoid risk of rollback while amount was disbursed." In other
+      words we were not told whether the money left. Marking such a row
+      failed invites somebody to pay the worker again, and the first
+      payment may well have gone through. So it is held, nothing
+      automatic touches it, and a person checks the statement and
+      resolves it by hand.
+    """
+
+    STATE_CHOICES = [
+        ('pending', 'Waiting to be sent'),
+        ('sending', 'Being sent'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('held', 'Held - outcome unknown, check the statement'),
+    ]
+
+    worker = models.ForeignKey(
+        'WorkerProfile',
+        on_delete=models.PROTECT,
+        related_name='yas_payouts',
+        help_text="The worker being paid"
+    )
+    service_request = models.ForeignKey(
+        'jobs.ServiceRequest',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='worker_payouts',
+        help_text="The job this pays for, when it is for one job"
+    )
+
+    # Shillings. Worker Connect prices and pays in one currency, so
+    # there is no conversion anywhere in a payout.
+    amount = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Amount to send, in TSh"
+    )
+    phone_number = models.CharField(
+        max_length=20,
+        help_text="The wallet this was sent to, as it was at the time"
+    )
+
+    # "CI" and eighteen digits - see worker_connect.yas.new_payout_reference.
+    reference = models.CharField(
+        max_length=20, unique=True, db_index=True,
+        help_text="The REFERENCEID sent to YAS"
+    )
+
+    state = models.CharField(
+        max_length=10, choices=STATE_CHOICES, default='pending', db_index=True
+    )
+
+    # What YAS said. Kept verbatim: their TXNSTATUS is the only thing
+    # that can be quoted back to them in a dispute.
+    yas_txnid = models.CharField(max_length=40, blank=True)
+    yas_status = models.CharField(max_length=10, blank=True)
+    yas_message = models.TextField(blank=True)
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='worker_payouts_created',
+        help_text="The admin who approved this payout"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    settled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['state', '-created_at']),
+            models.Index(fields=['worker', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.reference} - TSh {self.amount} to {self.worker} ({self.state})"
+
+    @property
+    def needs_a_person(self):
+        """Is this one a human has to look at?"""
+        return self.state == 'held'

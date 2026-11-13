@@ -134,6 +134,11 @@ urlpatterns = [
     
     # Payment system endpoints
     path('api/v1/payments/', include('worker_connect.payment_urls')),
+    # Mixx by YAS. Two of these routes are called by YAS's own
+    # gateway, which cannot log in, so they are open and identify
+    # the caller themselves - see worker_connect/yas.py.
+    path('api/v1/payments/yas/',
+         include(('worker_connect.yas_urls', 'yas'), namespace='yas')),
     path('api/v1/payment-methods/', include('worker_connect.payment_methods_urls')),
     
     # Core system endpoints

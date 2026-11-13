@@ -104,6 +104,11 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
             'workers_needed',  # NEW: Multiple workers support
             'assignments',  # NEW: List of worker assignments (filtered)
             'daily_rate', 'total_price',
+            # What the client types into the Mixx menu to pay this
+            # booking. Read-only below, and deliberately so: a client
+            # who could set it could attach somebody else's reference
+            # to their own job.
+            'reference',
             'payment_status', 'payment_method', 'paid_at', 'payment_transaction_id',
             'payment_screenshot', 'payment_verified', 'payment_verified_by', 'payment_verified_at',
             # Legacy field
@@ -121,7 +126,8 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
             'client', 'assigned_by', 'assigned_at', 'worker_response_at',
             'work_started_at', 'work_completed_at', 'completed_by_worker_at',
             'total_hours_worked', 'total_amount', 'created_at', 'updated_at',
-            'daily_rate', 'total_price', 'duration_days', 'paid_at'
+            'daily_rate', 'total_price', 'duration_days', 'paid_at',
+            'reference'
         ]
     
     def get_assignments(self, obj):

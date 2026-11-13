@@ -3,6 +3,10 @@ Service Request Models for Admin-Mediated Workflow
 Admin assigns workers to client service requests
 """
 
+import re
+import secrets
+import string
+
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -137,6 +141,20 @@ class ServiceRequest(models.Model):
     )
     
     # Payment
+    # What a client types into their phone to pay this request.
+    #
+    # The database id will not do. A client paying from the Mixx menu
+    # types this by hand, and an id is both guessable - pay against
+    # somebody else's job by typing 48 instead of 47 - and impossible to
+    # pick out of what YAS send back, because they return it wrapped in
+    # their biller code with no separator.
+    #
+    # "WC" and eight characters is unguessable and has a shape that can
+    # be found inside whatever arrives.
+    reference = models.CharField(
+        max_length=16, unique=True, null=True, blank=True, db_index=True,
+        help_text="Reference a client quotes when paying, e.g. WCA1B2C3D4"
+    )
     payment_status = models.CharField(
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
@@ -317,6 +335,61 @@ class ServiceRequest(models.Model):
     @property
     def is_paid(self):
         return self.payment_status == 'paid' or bool(self.payment_verified)
+
+    REFERENCE_RE = re.compile(r"WC[A-Z0-9]{8}")
+
+    @staticmethod
+    def new_reference():
+        """An unguessable reference, unique in the table."""
+        from jobs.service_request_models import ServiceRequest as _SR
+        while True:
+            ref = "WC" + "".join(
+                secrets.choice(string.ascii_uppercase + string.digits)
+                for _ in range(8))
+            if not _SR.objects.filter(reference=ref).exists():
+                return ref
+
+    def ensure_reference(self):
+        """Give this request a reference if it has none, and return it."""
+        if not self.reference:
+            self.reference = self.new_reference()
+            self.save(update_fields=["reference"])
+        return self.reference
+
+    def mark_paid_by_gateway(self, receipt, method="Mixx by Yas"):
+        """A payment gateway has confirmed real money. Settle the request.
+
+        What an admin does by eye in mark_payment_verified, a gateway
+        does by receipt - so this does the same work, including the part
+        that is easy to miss: apply_assignment_mode. Without it a paid
+        job sits with nobody assigned and the client waits for workers
+        who were never asked.
+
+        payment_verified_by stays null: no person verified this, the
+        gateway did, and recording an admin who did nothing would be a
+        lie in the audit trail.
+        """
+        from django.utils import timezone as _tz
+
+        if self.payment_status == "paid":
+            return False
+
+        now = _tz.now()
+        self.payment_status = "paid"
+        self.paid_at = self.paid_at or now
+        self.payment_method = method
+        self.payment_transaction_id = str(receipt or "")[:100]
+        self.payment_verified = True
+        self.payment_verified_at = now
+        self.save(update_fields=[
+            "payment_status", "paid_at", "payment_method",
+            "payment_transaction_id", "payment_verified",
+            "payment_verified_at",
+        ])
+
+        from clients.assignment_mode import apply_assignment_mode
+        apply_assignment_mode(self)
+        return True
 
     def mark_payment_verified(self, admin_user):
         """

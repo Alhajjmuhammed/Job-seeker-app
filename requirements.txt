@@ -89,3 +89,8 @@ brotli==1.1.0
 # factory-boy==3.3.0
 # faker==25.0.0
 
+
+# Calling Mixx by YAS. Pinned because it was reaching this project only
+# as somebody else's dependency, which is a thing that disappears
+# without warning when that dependency is upgraded.
+requests==2.32.3

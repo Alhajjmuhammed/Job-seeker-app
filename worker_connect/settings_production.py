@@ -122,8 +122,28 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'filters': ['require_debug_false'],
         },
+        # Money gets its own file here too. This module replaces LOGGING
+        # wholesale rather than adding to it, so a handler defined only
+        # in settings.py is not here - and a YAS trail that exists in
+        # development and vanishes in production is worse than none.
+        'yas_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'yas.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+            # See the note on this handler in settings.py: opened on
+            # first write, so it cannot stop the site from booting.
+            'delay': True,
+        },
     },
     'loggers': {
+        'worker_connect.yas': {
+            'handlers': ['yas_file', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'django': {
             'handlers': ['file'],
             'level': 'INFO',

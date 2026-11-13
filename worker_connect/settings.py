@@ -394,6 +394,26 @@ LOGGING = {
             'maxBytes': 10485760,  # 10MB
             'backupCount': 5,
         },
+        # Money has its own log. When a figure on YAS's statement does
+        # not match ours, this is the file that settles it, and mixing it
+        # into the general log would mean grepping a week of noise.
+        'yas_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'yas.log',
+            'formatter': 'verbose',
+            'maxBytes': 10485760,  # 10MB
+            'backupCount': 10,
+            # Opened on the first line written, not at startup. Django
+            # configures logging inside django.setup(), so a handler
+            # that cannot open its file raises before a single URL is
+            # served and the whole site refuses to boot. That is
+            # exactly what happened once: a management command run as
+            # root left this file owned by root, gunicorn runs as
+            # www-data, and every worker died with "Unable to configure
+            # handler 'yas_file'". A log must never be able to do that.
+            'delay': True,
+        },
     },
     'loggers': {
         'django': {
@@ -408,6 +428,14 @@ LOGGING = {
         },
         'api': {
             'handlers': ['api_file', 'console'] if DEBUG else ['api_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # INFO, not WARNING, and on purpose. The console handler is
+        # WARNING in production, so without this every ordinary payment
+        # would go unrecorded and only the failures would show.
+        'worker_connect.yas': {
+            'handlers': ['yas_file', 'console'],
             'level': 'INFO',
             'propagate': False,
         },
@@ -610,3 +638,97 @@ LOGIN_LOCKOUT_SECONDS = config('LOGIN_LOCKOUT_SECONDS', default=900, cast=int)
 
 # Public address of the site, used for links in e-mails.
 SITE_URL = config('SITE_URL', default='https://workersearch.co.tz').rstrip('/')
+
+
+# ---------------------------------------------------------------------------
+# Mixx by YAS
+# ---------------------------------------------------------------------------
+# Everything here is off and empty until somebody fills it in on purpose.
+# EasyFix has an agreed partnership with Mixx by Yas but no biller
+# credentials yet, so there is nothing real to put in these and nothing
+# would work if there were.
+#
+# Two switches, because clients paying in and workers being paid out are
+# separate decisions and will be turned on at different times:
+YAS_CLIENT_PAYMENTS_ENABLED = config(
+    'YAS_CLIENT_PAYMENTS_ENABLED', default=False, cast=bool)
+YAS_WORKER_PAYOUTS_ENABLED = config(
+    'YAS_WORKER_PAYOUTS_ENABLED', default=False, cast=bool)
+# Refunds are their own switch again. The push callback refuses to mark a
+# booking paid when the amount YAS deducted does not match what it costs,
+# and that leaves money taken with nothing given back - this is the way
+# out of it, and it moves real money, so it is off until it is wanted.
+YAS_REFUNDS_ENABLED = config('YAS_REFUNDS_ENABLED', default=False, cast=bool)
+
+# The switches gate what we *start* - asking a handset for money, sending
+# a worker theirs. They do not gate the two callbacks YAS make to us.
+# Money that has already left a client's wallet has to be credited to
+# their booking whatever a flag says, and the callbacks are inert anyway
+# until one of the three things below can identify YAS.
+
+# --- identifying YAS when they call us ------------------------------------
+# A secret of our own in a header, their biller username and password
+# over HTTP Basic, or their gateway's address. Any one is enough; with
+# none of them every callback is refused.
+YAS_CALLBACK_SECRET = config('YAS_CALLBACK_SECRET', default='')
+# YAS's gateway address, comma separated. Never ours: putting our own
+# office address here does not let us test anything, it opens the
+# endpoint to everybody who shares that address. That mistake was made
+# once already on the other platform.
+YAS_ALLOWED_IPS = config('YAS_ALLOWED_IPS', default='')
+
+# --- how our references come home -----------------------------------------
+# YAS prefix our reference with the biller code they issue us. Until
+# they do, yas.py finds our own reference inside whatever arrives.
+YAS_BILLER_CODE = config('YAS_BILLER_CODE', default='')
+
+# --- money in: the Debit Mandate USSD push --------------------------------
+# Whole URLs, not a base address with a path added. YAS give each partner
+# its own named routes on a shared gateway; the paths printed in the
+# specification belong to other billers, and calling them cost a day on
+# the other platform.
+YAS_TOKEN_URL = config('YAS_TOKEN_URL', default='')
+YAS_PAY_URL = config('YAS_PAY_URL', default='')
+YAS_BILLER_MSISDN = config('YAS_BILLER_MSISDN', default='')
+YAS_BILLER_USERNAME = config('YAS_BILLER_USERNAME', default='')
+YAS_BILLER_PASSWORD = config('YAS_BILLER_PASSWORD', default='')
+
+# The Debit Mandate specification gives the callback success code twice
+# with different values - BILLER-18-0000-S in the sample, BILLER-30-0000-S
+# in the table of expected codes. The table wins, and these let the first
+# real test settle it without a deploy.
+YAS_CALLBACK_SUCCESS_CODE = config(
+    'YAS_CALLBACK_SUCCESS_CODE', default='BILLER-30-0000-S')
+YAS_CALLBACK_FAILURE_CODE = config(
+    'YAS_CALLBACK_FAILURE_CODE', default='BILLER-30-3030-E')
+
+# --- money out: A2W, their 'MFI CashIn' -----------------------------------
+YAS_PAYOUT_URL = config('YAS_PAYOUT_URL', default='')
+# Our TigoPesa disbursement account and its PIN. The specification names
+# the PIN as the credential for this call.
+YAS_DISBURSEMENT_MSISDN = config('YAS_DISBURSEMENT_MSISDN', default='')
+YAS_DISBURSEMENT_PIN = config('YAS_DISBURSEMENT_PIN', default='')
+# Shown to the worker so they know who paid them, and the numeric brand
+# id YAS issue at integration.
+YAS_SENDER_NAME = config('YAS_SENDER_NAME', default='Worker Connect')
+YAS_BRAND_ID = config('YAS_BRAND_ID', default='')
+# Sent verbatim as the Authorization header on the payout call, if YAS
+# ask for one. A setting rather than a guess.
+YAS_PAYOUT_AUTH = config('YAS_PAYOUT_AUTH', default='')
+
+# --- money back: Refund Transaction ---------------------------------------
+# Another whole URL, and again a named route YAS have yet to issue. The
+# path printed in their specification, /API/Reverse/ReverseTransacation,
+# belongs to somebody else's biller on the shared gateway.
+YAS_REFUND_URL = config('YAS_REFUND_URL', default='')
+# The merchant/biller number and its MFS PIN, which the refund call
+# carries in its body as ChannelMSISDN and ChannelPIN.
+YAS_CHANNEL_MSISDN = config('YAS_CHANNEL_MSISDN', default='')
+YAS_CHANNEL_PIN = config('YAS_CHANNEL_PIN', default='')
+
+# --- the amount check -----------------------------------------------------
+# A booking is priced in shillings and paid in shillings, so this
+# comparison is exact and needs no slack - unlike the other platform,
+# which prices in dollars and has to allow for the exchange rate. Raise
+# it only if YAS turn out to deduct a fee before the money reaches us.
+YAS_AMOUNT_TOLERANCE = config('YAS_AMOUNT_TOLERANCE', default='0')

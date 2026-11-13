@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (Category, Skill, WorkerProfile, WorkerDocument, WorkExperience,
                      CustomSkillRequest, WorkerCustomSkill, WorkerCustomCategory,
-                     SavedCard, BankAccount, MobileMoneyAccount)
+                     SavedCard, BankAccount, MobileMoneyAccount,
+                     WorkerPayout)
 
 
 @admin.register(Category)
@@ -317,3 +318,49 @@ class MobileMoneyAccountAdmin(admin.ModelAdmin):
         queryset.update(is_verified=True, verified_at=timezone.now())
         self.message_user(request, f"{queryset.count()} mobile money account(s) verified.")
     verify_accounts.short_description = "Verify selected accounts"
+
+
+@admin.register(WorkerPayout)
+class WorkerPayoutAdmin(admin.ModelAdmin):
+    """Money sent to workers' Mixx by Yas wallets.
+
+    Held payouts are the reason this screen exists. A held row means YAS
+    could not tell us whether the money left, so nothing automatic will
+    touch it and somebody has to compare it against the Mixx statement.
+    The list opens on those, newest first.
+    """
+
+    list_display = ['reference', 'worker', 'amount', 'phone_number',
+                    'state', 'yas_status', 'created_at', 'settled_at']
+    list_filter = ['state', 'created_at']
+    search_fields = ['reference', 'yas_txnid', 'phone_number',
+                     'worker__user__first_name', 'worker__user__last_name',
+                     'worker__user__email']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+    list_select_related = ['worker__user', 'created_by']
+
+    # Everything here is a record of what was sent and what came back.
+    # Editing any of it by hand would make the record disagree with the
+    # statement it exists to be compared against. The one thing a person
+    # legitimately changes - resolving a held payout - goes through the
+    # resolve endpoint, which records who decided and on what evidence.
+    readonly_fields = ['worker', 'service_request', 'amount', 'phone_number',
+                       'reference', 'state', 'yas_txnid', 'yas_status',
+                       'yas_message', 'created_by', 'created_at', 'sent_at',
+                       'settled_at']
+
+    def has_add_permission(self, request):
+        # A payout is created through the API, which fills in the
+        # reference and copies the worker's number at approval time. One
+        # typed in here would have neither.
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        # Deleting the record of money that may have moved is never the
+        # right answer.
+        return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'worker__user', 'created_by', 'service_request')
