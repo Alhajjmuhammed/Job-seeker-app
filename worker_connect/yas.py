@@ -74,6 +74,8 @@ PUSH_STATUS_KEYS = ("Status", "status")
 PUSH_TXN_KEYS = ("MFSTransactionID", "mfsTransactionId", "transactionId")
 PUSH_AMOUNT_KEYS = ("Amount", "amount", "AMOUNT")
 PUSH_DESC_KEYS = ("Description", "description")
+PUSH_MSISDN_KEYS = ("CustomerMSISDN", "customerMSISDN", "customerMsisdn",
+                    "MSISDN", "msisdn")
 
 # Their own words for a payment that went through.
 GOOD = {"true", "1", "success", "successful", "completed", "complete",
@@ -104,8 +106,30 @@ def _setting(name, default=""):
 
 
 def _same(a, b) -> bool:
-    """Compare two secrets without leaking their length by timing."""
-    return bool(a) and bool(b) and hmac.compare_digest(str(a), str(b))
+    """Compare two secrets without leaking their length by timing.
+
+    As UTF-8 bytes. hmac.compare_digest refuses a str holding anything
+    outside ASCII with a TypeError, so a caller sending "café" as the
+    secret used to turn a refusal into a 500.
+    """
+    if not (a and b):
+        return False
+    return hmac.compare_digest(str(a).encode("utf-8", "surrogatepass"),
+                               str(b).encode("utf-8", "surrogatepass"))
+
+
+def mask_msisdn(raw) -> str:
+    """A phone number fit for a log: 2557*****678.
+
+    The log is a copy, and a full list of who paid us from which number
+    is not something a log file should be able to leak.
+    """
+    digits = "".join(c for c in str(raw or "") if c.isdigit())
+    if not digits:
+        return ""
+    if len(digits) <= 7:
+        return "*" * len(digits)
+    return digits[:4] + "*" * (len(digits) - 7) + digits[-3:]
 
 
 def _basic_ok(request) -> bool:
@@ -195,7 +219,11 @@ def secret_ok(request) -> bool:
                      and _setting("YAS_BILLER_PASSWORD"))
     has_ips = bool(str(_setting("YAS_ALLOWED_IPS")).strip())
     if not (expected or has_basic or has_ips):
-        logger.critical("Nothing identifies YAS - refusing the callback.")
+        # WARNING, not CRITICAL: anybody on the internet can trigger this
+        # line, and in production CRITICAL (anything from ERROR up) is
+        # mailed to the admins - an open door to an e-mail flood. CRITICAL
+        # is kept for real money anomalies.
+        logger.warning("Nothing identifies YAS - refusing the callback.")
         return False
     got = (request.headers.get("X-YAS-Secret")
            or request.headers.get("X-Callback-Secret") or "")
@@ -272,45 +300,163 @@ def shillings_due(service_request) -> Decimal:
     return price.to_integral_value(rounding="ROUND_FLOOR")
 
 
-def amount_shortfall(service_request, paid) -> Decimal:
-    """How far short this payment falls. Zero or less means it covers it."""
-    due = shillings_due(service_request)
+def _tolerance() -> Decimal:
+    """YAS_AMOUNT_TOLERANCE as a fraction in [0, 1). Anything else is 0.
+
+    A typo in the environment must never quietly accept half payments.
+    """
     try:
         tolerance = Decimal(str(_setting("YAS_AMOUNT_TOLERANCE", "0")))
     except (InvalidOperation, ValueError):
-        tolerance = Decimal("0")
-    floor = due - (due * tolerance)
+        return Decimal("0")
+    if not tolerance.is_finite() or tolerance < 0 or tolerance >= 1:
+        return Decimal("0")
+    return tolerance
+
+
+def amount_shortfall(service_request, paid) -> Decimal:
+    """How far short this payment falls. Zero or less means it covers it."""
+    due = shillings_due(service_request)
+    floor = due - (due * _tolerance())
     return floor - Decimal(str(paid))
 
 
-def _push_shortfall(service_request, amount_raw):
-    """How far a push callback's Amount falls short. Returns (short, paid).
+# What amount_verdict can say.
+AMOUNT_OK = "ok"
+AMOUNT_SHORT = "short"
+AMOUNT_OVER = "over"
+AMOUNT_NO_PRICE = "no_price"
 
-    An absent or unreadable Amount is treated as covering the booking,
-    deliberately. We are the ones who named the amount when we asked for
-    the prompt, so a callback that does not repeat it tells us nothing
-    new - and refusing to credit a payment because a field we did not
-    need was missing would take the client's money and give nothing back.
+
+def amount_verdict(service_request, paid) -> str:
+    """Does this amount pay this booking? The one rule, used everywhere.
+
+    Exact, in both directions. YAS_AMOUNT_TOLERANCE may allow a little
+    LESS (a fee deducted on their side); nothing allows more. Money above
+    the price is money we would have to send back, so it is refused (W2A)
+    or left unapplied (push) rather than quietly kept.
     """
-    if amount_raw in (None, ""):
-        return Decimal("0"), None
+    due = shillings_due(service_request)
+    if due <= 0:
+        return AMOUNT_NO_PRICE
+    paid = Decimal(str(paid))
+    if paid > due:
+        return AMOUNT_OVER
+    if amount_shortfall(service_request, paid) > 0:
+        return AMOUNT_SHORT
+    return AMOUNT_OK
+
+
+def parse_amount(raw):
+    """A positive, finite, plausible Decimal, or None.
+
+    None for anything absent, unreadable, zero, negative, not finite,
+    larger than their AMOUNT field can hold, or not a scalar at all (a
+    JSON list or object).
+    """
+    if raw is None or isinstance(raw, (bool, list, dict, tuple)):
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
     try:
-        paid = Decimal(str(amount_raw))
+        value = Decimal(text)
     except (InvalidOperation, ValueError):
-        logger.warning("YAS push sent an Amount we cannot read: %r",
-                       amount_raw)
-        return Decimal("0"), None
-    if not paid.is_finite() or paid <= 0 or paid > MOST_THEY_CAN_SEND:
-        logger.warning("YAS push sent an implausible Amount: %r", amount_raw)
-        return Decimal("0"), None
-    return amount_shortfall(service_request, paid), paid
+        return None
+    if not value.is_finite() or value <= 0 or value > MOST_THEY_CAN_SEND:
+        return None
+    return value
 
 
 # ---------------------------------------------------------------------------
 # Settling
 # ---------------------------------------------------------------------------
 
-def _record_transaction(service_request, receipt, amount):
+def receipt_key(receipt, gateway_reference="") -> str:
+    """What a gateway payment is recorded under in PaymentTransaction.
+
+    Their receipt (MFSTransactionID / TXNID) when they sent one. A
+    callback without one still has to be recorded - and recognised when
+    it is repeated - so it falls back to the ReferenceID it came with.
+    """
+    receipt = str(receipt or "").strip()
+    if receipt:
+        return receipt[:64]
+    ref = str(gateway_reference or "").strip()
+    return ("NORCPT-" + ref)[:64] if ref else ""
+
+
+def _applied_here(service_request, key) -> bool:
+    """Was this receipt the payment that paid this booking? (a genuine retry)"""
+    from clients.models import PaymentTransaction
+
+    if not key:
+        return False
+    if (service_request.payment_method == "Mixx by Yas"
+            and service_request.payment_transaction_id
+            and service_request.payment_transaction_id[:64] == key):
+        return True
+    return PaymentTransaction.objects.filter(
+        reference=key, service_request=service_request,
+        unapplied_reason="").exists()
+
+
+def _recorded_here(service_request, key) -> bool:
+    """Has this receipt already been recorded against this booking?"""
+    from clients.models import PaymentTransaction
+
+    if not key:
+        return False
+    return (_applied_here(service_request, key)
+            or PaymentTransaction.objects.filter(
+                reference=key, service_request=service_request).exists())
+
+
+def receipt_used_elsewhere(service_request, key) -> bool:
+    """Is this receipt already held by a different booking?
+
+    One receipt is one payment, and one payment pays one booking. Without
+    this a receipt replayed against a second reference settled that one
+    too.
+    """
+    from clients.models import PaymentTransaction
+
+    if not key:
+        return False
+    if (ServiceRequest.objects.filter(payment_transaction_id=key)
+            .exclude(pk=service_request.pk).exists()):
+        return True
+    return (PaymentTransaction.objects.filter(reference=key)
+            .exclude(service_request=service_request)
+            .exclude(consumed_by=service_request).exists())
+
+
+def record_unapplied(service_request, receipt, amount, gateway_reference,
+                     reason, payer_msisdn="", amount_confirmed=True):
+    """Money YAS took that we could not apply. Recorded, and shouted about.
+
+    The row is what makes it refundable: a refund is only ever sent
+    against a recorded payment, and capped at what that payment brought
+    in. The CRITICAL line is what makes somebody look - in production it
+    is mailed to the admins.
+    """
+    row = _record_transaction(service_request, receipt, amount,
+                              gateway_reference=gateway_reference,
+                              unapplied_reason=reason,
+                              payer_msisdn=payer_msisdn,
+                              amount_confirmed=amount_confirmed)
+    logger.critical(
+        "YAS took TSh %s for %s but it was NOT applied: %s. Receipt %s, "
+        "reference %s, recorded as payment #%s. Refund or complete this by "
+        "hand.", amount, service_request.reference, reason,
+        receipt or "(none)", gateway_reference or "(none)",
+        row.pk if row else "NOT RECORDED")
+    return row
+
+
+def _record_transaction(service_request, receipt, amount,
+                        gateway_reference="", unapplied_reason="",
+                        payer_msisdn="", amount_confirmed=True):
     """Leave a row an admin can look at. Never block a payment over it.
 
     consumed_by is a OneToOne and PaymentTransaction.consume claims one
@@ -331,12 +477,19 @@ def _record_transaction(service_request, receipt, amount):
     """
     from clients.models import PaymentTransaction
 
-    reference = str(receipt or "")[:64]
+    reference = receipt_key(receipt, gateway_reference)
     if not reference:
         return None
 
-    value = Decimal(str(amount or 0))
-    taken = PaymentTransaction.objects.filter(
+    try:
+        value = Decimal(str(amount if amount is not None else 0))
+        if not value.is_finite():
+            raise InvalidOperation
+    except (InvalidOperation, ValueError):
+        value = Decimal("0")
+    applied = not unapplied_reason
+    # Only money that paid the booking may claim its consumed_by slot.
+    taken = (not applied) or PaymentTransaction.objects.filter(
         consumed_by=service_request).exists()
 
     def make(link):
@@ -349,6 +502,11 @@ def _record_transaction(service_request, receipt, amount):
                 is_demo=False,
                 consumed_by=service_request if link else None,
                 consumed_at=timezone.now(),
+                service_request=service_request,
+                gateway_reference=str(gateway_reference or "")[:64],
+                unapplied_reason=str(unapplied_reason or ""),
+                payer_msisdn=str(payer_msisdn or "")[:20],
+                amount_confirmed=bool(amount_confirmed),
             )
 
     try:
@@ -360,19 +518,22 @@ def _record_transaction(service_request, receipt, amount):
                        reference, service_request.reference, exc)
         return None
 
-    if taken:
+    if taken and applied:
         logger.info("YAS: recorded %s for %s unlinked - a demo reference "
                     "already holds that booking's slot.",
                     reference, service_request.reference)
     return row
 
 
-def settle(service_request, receipt, amount=None) -> bool:
+def settle(service_request, receipt, amount=None,
+           gateway_reference="", payer_msisdn="") -> bool:
     """Mark it paid, once, and run the client's assign choice.
 
-    Returns True when this call is what paid it, False when it was
-    already paid - so a repeated callback is quiet rather than paying
-    twice or notifying twice.
+    Returns True when this call is what paid it, False when it could not
+    (already paid by any route, refunded, or the job is closed) - so a
+    repeated callback is quiet rather than paying twice or notifying
+    twice. The callers check all of that first and record money they
+    cannot apply; this refusing is the last line, not the first.
 
     Call inside atomic() with the row selected for update.
     """
@@ -380,10 +541,49 @@ def settle(service_request, receipt, amount=None) -> bool:
     if paid_now:
         _record_transaction(service_request, receipt,
                             amount if amount is not None
-                            else service_request.total_price)
+                            else service_request.total_price,
+                            gateway_reference=gateway_reference,
+                            payer_msisdn=payer_msisdn)
         logger.info("YAS settled service request %s with receipt %s",
                     service_request.reference, receipt)
     return paid_now
+
+
+def _normal_msisdn(raw) -> str:
+    """255 and nine digits, or "" - the one shape a refund can go to."""
+    from worker_connect.yas_client import msisdn as _msisdn
+    if isinstance(raw, (list, dict)):
+        return ""
+    return _msisdn(raw)
+
+
+def _push_payer(service_request, reference, reported) -> str:
+    """The wallet a push payment came from.
+
+    The number YAS report on the callback when they report one;
+    otherwise the number we prompted - but only when this callback
+    answers that very prompt, so an older prompt's number is never
+    borrowed.
+    """
+    number = _normal_msisdn(reported)
+    if number:
+        return number
+    if (service_request.yas_prompt_reference
+            and service_request.yas_prompt_reference.upper()
+            == str(reference or "").upper()):
+        return _normal_msisdn(service_request.yas_prompt_msisdn)
+    return ""
+
+
+def _closed_reason(service_request) -> str:
+    """Why this booking cannot take money, or "" when it can."""
+    if service_request.payment_status == "refunded":
+        return "the booking was refunded"
+    if service_request.status in ServiceRequest.CLOSED_STATUSES:
+        return "the booking is %s" % service_request.status
+    if service_request.is_paid:
+        return "the booking is already paid"
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -402,6 +602,12 @@ class YasUssdPushCallbackView(APIView):
     """
     permission_classes = [AllowAny]
     authentication_classes = []
+    # No throttle. The default AnonRateThrottle (100/hour) keys on the
+    # caller's address, and every real callback comes from YAS's one
+    # gateway: the 101st payment in an hour would be answered 429 and
+    # its money credited to nobody. These views identify the caller
+    # themselves (secret_ok) and do almost nothing for one they refuse.
+    throttle_classes = []
 
     def get(self, request):
         return self._handle(request)
@@ -460,61 +666,131 @@ class YasUssdPushCallbackView(APIView):
         for k, v in request.query_params.items():
             data.setdefault(k, v)
 
-        logger.info("YAS ussd-push callback: %s", data)
-
         def first(keys):
             for k in keys:
                 if data.get(k) not in (None, ""):
                     return data[k]
             return ""
 
-        reference = str(first(PUSH_REF_KEYS))
+        reference = str(first(PUSH_REF_KEYS)).strip()[:100]
         state = str(first(PUSH_STATUS_KEYS)).strip().lower()
-        receipt = first(PUSH_TXN_KEYS)
+        raw_receipt = first(PUSH_TXN_KEYS)
+        receipt = ("" if isinstance(raw_receipt, (list, dict))
+                   else str(raw_receipt or "").strip()[:64])
         amount_raw = first(PUSH_AMOUNT_KEYS)
+
+        # Only the fields we act on. The whole body may carry the payer's
+        # number and other things a log file has no business keeping.
+        logger.info("YAS ussd-push callback: ref=%s status=%r receipt=%s "
+                    "amount=%r", reference, state[:20], receipt,
+                    str(amount_raw)[:20])
 
         found = request_for(reference)
         if found is None:
             # Answered as a success they can stop retrying: no amount of
             # retrying will conjure a request that does not exist, and a
             # failure makes their platform try for hours.
-            logger.warning("YAS ussd-push callback for unknown reference %r",
-                           reference)
+            if state in GOOD:
+                logger.critical(
+                    "YAS ussd-push says money was taken for unknown "
+                    "reference %r (receipt %s, amount %r). Find it on the "
+                    "statement and refund it by hand.", reference, receipt,
+                    str(amount_raw)[:20])
+            else:
+                logger.warning("YAS ussd-push callback for unknown "
+                               "reference %r", reference)
             return self._reply(True, reference, "Reference not recognised")
 
         with transaction.atomic():
             locked = (ServiceRequest.objects.select_for_update()
                       .get(pk=found.pk))
+
+            if state not in GOOD:
+                logger.info("YAS ussd-push declined for %s (%r)",
+                            locked.reference, state[:20])
+                # The prompt this answers is over, so the client may ask
+                # for another straight away - but only when it is the
+                # prompt we are waiting on, not an older one.
+                if (locked.yas_prompt_sent_at
+                        and (not locked.yas_prompt_reference
+                             or locked.yas_prompt_reference.upper()
+                             == reference.upper())):
+                    locked.yas_prompt_sent_at = None
+                    locked.save(update_fields=["yas_prompt_sent_at"])
+                # Their payment failed; our handling of the news did not.
+                return self._reply(True, reference, "Failure recorded")
+
+            # From here on YAS say the money left the client's wallet.
+            # Every way out either applies it to the booking or records
+            # it as owed back - none of them drops it.
+            key = receipt_key(receipt, reference)
+
             # Said twice is said once: a repeated callback must not pay
-            # the request again or notify a second time.
-            if locked.payment_status == "paid":
+            # the request again, notify a second time or record twice.
+            if _recorded_here(locked, key):
                 return self._reply(True, reference, "Already settled")
-            if state in GOOD:
-                # Their Amount is mandatory and is what actually left the
-                # client's wallet (spec 1 p.13), so it is checked. The
-                # amount we asked for and the amount deducted should be
-                # the same number; when they are not, something is wrong
-                # on one side or the other and marking the booking paid
-                # would hide it.
-                short, paid = _push_shortfall(locked, amount_raw)
-                if short > 0:
-                    # Not marked paid, and not answered as a failure
-                    # either: a failure makes their platform retry for
-                    # hours, and retrying will not change the amount.
-                    # Logged loudly instead, for a person to settle.
-                    logger.critical(
-                        "YAS push paid %s against %s due for %s - NOT "
-                        "marked paid. Receipt %s. Refund or complete this "
-                        "by hand.", paid, shillings_due(locked),
-                        locked.reference, receipt)
-                    return self._reply(True, reference,
-                                       "Amount does not match the booking")
-                settle(locked, receipt, amount=paid)
-                return self._reply(True, reference)
-            logger.info("YAS ussd-push declined for %s (%r)",
-                        locked.reference, state)
-            # Their payment failed; our handling of the news did not.
-            return self._reply(True, reference, "Failure recorded")
+
+            if receipt_used_elsewhere(locked, key):
+                # The same receipt cannot pay two bookings. It is already
+                # recorded where it first landed, so there is nothing new
+                # to record here.
+                logger.critical(
+                    "YAS ussd-push for %s carries receipt %s, which is "
+                    "already held by another booking - NOT applied. Check "
+                    "the statement.", locked.reference, key)
+                return self._reply(True, reference,
+                                   "Receipt already used")
+
+            payer = _push_payer(locked, reference, first(PUSH_MSISDN_KEYS))
+            paid = parse_amount(amount_raw)
+            closed = _closed_reason(locked)
+            if closed:
+                record_unapplied(locked, receipt,
+                                 paid if paid is not None
+                                 else shillings_due(locked),
+                                 reference, closed, payer_msisdn=payer,
+                                 amount_confirmed=paid is not None)
+                return self._reply(True, reference,
+                                   "Booking cannot take this payment")
+
+            if paid is None:
+                # Their Amount is mandatory (spec 1 p.13) and is what
+                # actually left the wallet. Without a believable one we
+                # cannot know the booking is covered, so it is not marked
+                # paid. Recorded at the amount we asked for, which is the
+                # best evidence we hold, for a person to check.
+                # Flagged unconfirmed: not refundable until a person has
+                # confirmed the real amount from the statement.
+                record_unapplied(
+                    locked, receipt, shillings_due(locked), reference,
+                    "Amount missing or unreadable (%r); recorded at the "
+                    "amount we asked for, UNCONFIRMED - check the statement"
+                    % (str(amount_raw)[:20],), payer_msisdn=payer,
+                    amount_confirmed=False)
+                return self._reply(True, reference,
+                                   "Amount does not match the booking")
+
+            verdict = amount_verdict(locked, paid)
+            if verdict != AMOUNT_OK:
+                # Not marked paid, and not answered as a failure either:
+                # a failure makes their platform retry for hours, and
+                # retrying will not change the amount.
+                record_unapplied(
+                    locked, receipt, paid, reference,
+                    "paid %s against %s due (%s)"
+                    % (paid, shillings_due(locked), verdict),
+                    payer_msisdn=payer)
+                return self._reply(True, reference,
+                                   "Amount does not match the booking")
+
+            if not settle(locked, receipt, amount=paid,
+                          gateway_reference=reference, payer_msisdn=payer):
+                record_unapplied(locked, receipt, paid, reference,
+                                 "the booking would not settle",
+                                 payer_msisdn=payer)
+                return self._reply(True, reference,
+                                   "Booking cannot take this payment")
+            return self._reply(True, reference)
 
 
 # ---------------------------------------------------------------------------
@@ -627,6 +903,8 @@ class YasBillPaymentView(APIView):
     """
     permission_classes = [AllowAny]
     authentication_classes = []
+    # No throttle - see YasUssdPushCallbackView.throttle_classes.
+    throttle_classes = []
     # XML arrives as a body DRF has no parser for, so take it raw.
     parser_classes = []
 
@@ -653,74 +931,107 @@ class YasBillPaymentView(APIView):
         amount_raw = tags.get("AMOUNT", "")
         msisdn = tags.get("MSISDN", "")
         logger.info("YAS w2a: TXNID=%s ref=%s amount=%s msisdn=%s",
-                    txnid, reference, amount_raw, msisdn)
+                    txnid, reference, amount_raw[:20], mask_msisdn(msisdn))
 
         found = request_for(reference)
         if found is None:
             return _xml_reply(txnid, reference, False, E_REF,
                               "No booking with that reference", msisdn)
 
-        if found.payment_status == "paid":
-            # Their platform may simply be asking again. Saying TS keeps
-            # it from retrying for a request that is already settled.
-            return _xml_reply(txnid, found.reference, True, OK,
-                              "This booking is already paid", msisdn)
-
-        # 'refunded' is the one state a payment must not be taken for:
-        # the money has gone back, and taking it again would charge for
-        # a booking nobody is going to do. A *failed* payment is left
-        # payable on purpose - a mistyped PIN is the commonest reason
-        # for one, and the client's next attempt should work.
-        if found.payment_status == "refunded":
-            logger.warning("YAS w2a for %s, which was refunded",
+        # A TS answer is what makes YAS take the money, and the TXNID is
+        # the only thing that tells a retry of a payment we accepted from
+        # a second payment. Without one we can neither tell nor refund.
+        if not txnid:
+            logger.warning("YAS w2a for %s arrived without a TXNID",
                            found.reference)
-            return _xml_reply(txnid, found.reference, False, E_LOCKED,
-                              "This booking was refunded and cannot be paid",
-                              msisdn)
+            return _xml_reply(txnid, found.reference, False, E_INVALID,
+                              "Payment could not be identified", msisdn)
 
-        try:
-            paid = Decimal(str(amount_raw or "0"))
-        except (InvalidOperation, ValueError):
-            return _xml_reply(txnid, found.reference, False, E_AMOUNT,
-                              "Amount not understood", msisdn)
-        if not paid.is_finite() or paid <= 0:
-            return _xml_reply(txnid, found.reference, False, E_AMOUNT,
-                              "Amount must be more than zero", msisdn)
-        # Decimal is happy to parse "1e999999" as a finite number, and a
-        # number that large sails past the does-it-cover-the-booking
-        # check and settles it. Their AMOUNT field is ten characters
-        # (spec 2 p.5), so anything above ten digits is not an amount
-        # they could have sent.
-        if paid > MOST_THEY_CAN_SEND:
-            logger.warning("YAS w2a implausible amount %r for %s",
-                           amount_raw, found.reference)
-            return _xml_reply(txnid, found.reference, False, E_TOO_HIGH,
-                              "Amount is not a valid amount", msisdn)
-
-        # Both sides are in shillings, so this is an exact comparison,
-        # not the loose band a currency conversion would force.
-        due = shillings_due(found)
-        if due <= 0:
-            logger.error("YAS w2a: service request %s has no price",
-                         found.reference)
-            return _xml_reply(txnid, found.reference, False, E_SERVICE,
-                              "This booking has no amount set yet, "
-                              "please try again shortly", msisdn)
-        short = amount_shortfall(found, paid)
-        if short > 0:
-            logger.warning("YAS w2a short payment: %s against %s for %s",
-                           paid, due, found.reference)
-            return _xml_reply(
-                txnid, found.reference, False, E_TOO_LOW,
-                "Pay %s to confirm this booking" % due, msisdn)
-
+        # Everything is decided with the booking locked, so two payments
+        # arriving together cannot both see it unpaid.
         with transaction.atomic():
             locked = (ServiceRequest.objects.select_for_update()
                       .get(pk=found.pk))
-            if locked.payment_status == "paid":
+            key = receipt_key(txnid)
+
+            # Their platform may simply be asking again about a payment we
+            # already accepted. Only then is an already-paid booking
+            # answered TS - TF to a genuine retry could make them reverse
+            # money we have applied.
+            if _applied_here(locked, key):
                 return _xml_reply(txnid, locked.reference, True, OK,
                                   "This booking is already paid", msisdn)
-            settle(locked, txnid, amount=paid)
+
+            # One receipt pays one booking.
+            if receipt_used_elsewhere(locked, key) or _recorded_here(locked,
+                                                                     key):
+                logger.warning("YAS w2a TXNID %s for %s was already used",
+                               key, locked.reference)
+                return _xml_reply(txnid, locked.reference, False, E_INVALID,
+                                  "This payment was already used", msisdn)
+
+            # Paid by any route (gateway, screenshot verified by an
+            # admin...), refunded, cancelled or completed: TF, so YAS do
+            # not take the money at all. A *failed* payment is left
+            # payable on purpose - a mistyped PIN is the commonest reason
+            # for one, and the client's next attempt should work.
+            closed = _closed_reason(locked)
+            if closed:
+                logger.warning("YAS w2a for %s refused: %s",
+                               locked.reference, closed)
+                return _xml_reply(txnid, locked.reference, False, E_LOCKED,
+                                  "This booking cannot be paid: %s"
+                                  % closed.replace("the booking ", "it ", 1),
+                                  msisdn)
+
+            text = str(amount_raw or "").strip()
+            try:
+                paid = Decimal(text or "0")
+            except (InvalidOperation, ValueError):
+                return _xml_reply(txnid, locked.reference, False, E_AMOUNT,
+                                  "Amount not understood", msisdn)
+            if not paid.is_finite() or paid <= 0:
+                return _xml_reply(txnid, locked.reference, False, E_AMOUNT,
+                                  "Amount must be more than zero", msisdn)
+            # Decimal is happy to parse "1e999999" as a finite number.
+            # Their AMOUNT field is ten characters (spec 2 p.5), so
+            # anything above ten digits is not an amount they could have
+            # sent.
+            if paid > MOST_THEY_CAN_SEND:
+                logger.warning("YAS w2a implausible amount %r for %s",
+                               text[:20], locked.reference)
+                return _xml_reply(txnid, locked.reference, False, E_TOO_HIGH,
+                                  "Amount is not a valid amount", msisdn)
+
+            # Both sides are in shillings, so this is an exact comparison
+            # in both directions - not the loose band a currency
+            # conversion would force.
+            due = shillings_due(locked)
+            verdict = amount_verdict(locked, paid)
+            if verdict == AMOUNT_NO_PRICE:
+                logger.error("YAS w2a: service request %s has no price",
+                             locked.reference)
+                return _xml_reply(txnid, locked.reference, False, E_SERVICE,
+                                  "This booking has no amount set yet, "
+                                  "please try again shortly", msisdn)
+            if verdict == AMOUNT_SHORT:
+                logger.warning("YAS w2a short payment: %s against %s for %s",
+                               paid, due, locked.reference)
+                return _xml_reply(
+                    txnid, locked.reference, False, E_TOO_LOW,
+                    "Pay %s to confirm this booking" % due, msisdn)
+            if verdict == AMOUNT_OVER:
+                logger.warning("YAS w2a overpayment: %s against %s for %s",
+                               paid, due, locked.reference)
+                return _xml_reply(
+                    txnid, locked.reference, False, E_TOO_HIGH,
+                    "Pay exactly %s to confirm this booking" % due, msisdn)
+
+            if not settle(locked, txnid, amount=paid,
+                          gateway_reference=reference,
+                          payer_msisdn=_normal_msisdn(msisdn)):
+                return _xml_reply(txnid, locked.reference, False, E_LOCKED,
+                                  "This booking cannot be paid", msisdn)
             reference_out = locked.reference
 
         return _xml_reply(

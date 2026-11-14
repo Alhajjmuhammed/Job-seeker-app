@@ -155,6 +155,22 @@ class ServiceRequest(models.Model):
         max_length=16, unique=True, null=True, blank=True, db_index=True,
         help_text="Reference a client quotes when paying, e.g. WCA1B2C3D4"
     )
+    # The last Mixx by Yas push prompt we asked for, exactly as sent
+    # (biller code + reference + attempt marker), and when. A new prompt
+    # is refused while this one is recent - see YAS_PROMPT_WINDOW_SECONDS -
+    # unless YAS have told us it failed, which clears the time.
+    yas_prompt_reference = models.CharField(
+        max_length=64, blank=True, default="",
+        help_text="ReferenceID of the last Mixx by Yas prompt sent"
+    )
+    yas_prompt_sent_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the last Mixx by Yas prompt was sent"
+    )
+    yas_prompt_msisdn = models.CharField(
+        max_length=20, blank=True, default="",
+        help_text="The number the last Mixx by Yas prompt was sent to"
+    )
     payment_status = models.CharField(
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
@@ -350,11 +366,52 @@ class ServiceRequest(models.Model):
                 return ref
 
     def ensure_reference(self):
-        """Give this request a reference if it has none, and return it."""
-        if not self.reference:
-            self.reference = self.new_reference()
-            self.save(update_fields=["reference"])
+        """Give this request a reference if it has none, and return it.
+
+        Atomic. Two requests for the same booking (the instructions
+        screen and the pay button, say) used to be able to mint two
+        different references, the second overwriting the first - and a
+        client who had already typed the first into the Mixx menu paid
+        against a reference that no longer existed. The write is now a
+        conditional update that only lands while the column is still
+        empty, and whatever is in the row afterwards is what every caller
+        returns.
+        """
+        if self.reference:
+            return self.reference
+        from django.db import IntegrityError, transaction as _tx
+        from django.db.models import Q
+        from jobs.service_request_models import ServiceRequest as _SR
+
+        empty = Q(reference__isnull=True) | Q(reference="")
+        for _ in range(5):
+            candidate = self.new_reference()
+            try:
+                with _tx.atomic():
+                    _SR.objects.filter(empty, pk=self.pk).update(
+                        reference=candidate)
+                break
+            except IntegrityError:
+                # Somebody minted the same random reference a moment ago.
+                continue
+        self.reference = (_SR.objects.filter(pk=self.pk)
+                          .values_list("reference", flat=True).first())
         return self.reference
+
+    # A booking in one of these states can no longer take a payment.
+    CLOSED_STATUSES = ("cancelled", "completed")
+
+    @property
+    def can_take_payment(self):
+        """May money be taken for this booking right now?
+
+        Not when it is already paid by any route (a gateway, or an admin
+        verifying a screenshot - which sets payment_verified), not when
+        the money has gone back, and not when the job is closed.
+        """
+        return not (self.is_paid
+                    or self.payment_status == "refunded"
+                    or self.status in self.CLOSED_STATUSES)
 
     def mark_paid_by_gateway(self, receipt, method="Mixx by Yas"):
         """A payment gateway has confirmed real money. Settle the request.
@@ -371,7 +428,7 @@ class ServiceRequest(models.Model):
         """
         from django.utils import timezone as _tz
 
-        if self.payment_status == "paid":
+        if not self.can_take_payment:
             return False
 
         now = _tz.now()

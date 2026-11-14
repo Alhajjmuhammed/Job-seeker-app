@@ -87,6 +87,59 @@ def resmfici(txn_status, txnid='42326232', message='Success'):
                 ("MESSAGE", message)))
 
 
+def approver():
+    """A second superuser, so the one sending is not the one who approved."""
+    from accounts.models import User
+    user, _ = User.objects.get_or_create(
+        username='approver', defaults=dict(
+            email='approver@t.co', user_type='admin', is_staff=True,
+            is_superuser=True))
+    return user
+
+
+def completed_job(case, wp=None, pay=D('25000')):
+    """A booking this worker has completed, earning ``pay`` on it."""
+    from jobs.service_request_models import ServiceRequestAssignment
+    sr, _ = case.book()
+    # A payout needs the client to have paid for the job.
+    ServiceRequest.objects.filter(pk=sr.pk).update(payment_status='paid')
+    sr.refresh_from_db()
+    ServiceRequestAssignment.objects.create(
+        service_request=sr, worker=wp or case.wp, status='completed',
+        worker_payment=pay)
+    return sr
+
+
+def make_payout(case, amount, wp=None, created_by='approver', **kw):
+    """A payout for a job the worker really completed, approved by approver()."""
+    wp = wp or case.wp
+    if created_by == 'approver':
+        created_by = approver()
+    # A payout needs a verified wallet to go to by default.
+    if not kw.get('phone_number') and not MobileMoneyAccount.objects.filter(
+            user=wp.user, provider='tigo_pesa', is_verified=True).exists():
+        MobileMoneyAccount.objects.create(
+            user=wp.user, provider='tigo_pesa',
+            phone_number=wp.user.phone_number or '0714123456',
+            account_name='Verified', is_default=True, is_verified=True)
+    sr = kw.pop('service_request', None) or completed_job(
+        case, wp=wp, pay=max(D(str(amount)), D('25000')))
+    return yas_client.create_payout(wp, amount, created_by=created_by,
+                                    service_request=sr, **kw)
+
+
+def make_refund(case, amount, phone, created_by='approver', **kw):
+    """A refund against real YAS money on case.sr, approved by approver()."""
+    if created_by == 'approver':
+        created_by = approver()
+    if not yas_client.gateway_payments(case.sr).exists():
+        yas.settle(case.sr, '26797615656', amount=case.sr.total_price,
+                   gateway_reference=case.ref, payer_msisdn='255714123456')
+        case.sr.refresh_from_db()
+    return yas_client.create_refund(case.sr, amount, phone,
+                                    created_by=created_by, **kw)
+
+
 class YasBase(FlowBase):
     """A booking with a reference, ready to be paid."""
 
@@ -383,8 +436,9 @@ class CallerTests(YasBase):
 
 @override_settings(**IDENTIFIED)
 class UssdPushTests(YasBase):
-    def test_a_success_with_the_amount_absent_pays_the_booking(self):
+    def test_a_success_with_the_exact_amount_pays_the_booking(self):
         r = self.push({'ReferenceID': self.ref, 'Status': 'true',
+                       'Amount': int(self.sr.total_price),
                        'MFSTransactionID': '26797615656'})
         self.assertEqual(r.status_code, 200)
         body = r.json()
@@ -400,6 +454,7 @@ class UssdPushTests(YasBase):
         # while every other call in the document is a POST. A callback
         # that arrives by the method we did not allow is a 405.
         r = self.push({'ReferenceID': self.ref, 'Status': 'true',
+                       'Amount': int(self.sr.total_price),
                        'MFSTransactionID': '268'}, method='get')
         self.assertEqual(r.status_code, 200)
         self.sr.refresh_from_db()
@@ -414,7 +469,8 @@ class UssdPushTests(YasBase):
             sr.save()
             ref = sr.ensure_reference()
             self.push({'ReferenceID': ref, 'Status': word,
-                       'MFSTransactionID': 'x'})
+                       'Amount': int(sr.total_price),
+                       'MFSTransactionID': 'x-' + word})
             sr.refresh_from_db()
             self.assertEqual(sr.payment_status, 'paid', 'on %r' % word)
 
@@ -430,6 +486,7 @@ class UssdPushTests(YasBase):
 
     def test_the_same_callback_twice_pays_once(self):
         body = {'ReferenceID': self.ref, 'Status': 'true',
+                'Amount': int(self.sr.total_price),
                 'MFSTransactionID': '26797615656'}
         self.push(body)
         with mock.patch('clients.assignment_mode.apply_assignment_mode') as m:
@@ -456,7 +513,7 @@ class UssdPushTests(YasBase):
         # ever read.
         r = self.client.get(
             PUSH + '?ReferenceID=%s&Status=true&MFSTransactionID=77'
-            % self.ref,
+            '&Amount=%s' % (self.ref, int(self.sr.total_price)),
             HTTP_X_YAS_SECRET=SECRET, CONTENT_TYPE='application/json')
         self.assertEqual(r.status_code, 200)
         self.sr.refresh_from_db()
@@ -468,6 +525,7 @@ class UssdPushTests(YasBase):
 
     def test_their_other_spellings_of_the_fields_are_read(self):
         r = self.push({'referenceId': self.ref, 'status': 'true',
+                       'amount': int(self.sr.total_price),
                        'mfsTransactionId': '99'})
         self.assertEqual(r.status_code, 200)
         self.sr.refresh_from_db()
@@ -503,32 +561,47 @@ class UssdPushTests(YasBase):
         self.sr.refresh_from_db()
         self.assertEqual(self.sr.payment_status, 'paid')
 
-    def test_paying_more_is_not_treated_as_short(self):
-        self.push({'ReferenceID': self.ref, 'Status': 'true',
-                   'Amount': int(self.sr.total_price) + 1000,
-                   'MFSTransactionID': '1'})
+    def test_paying_more_is_not_applied_but_recorded(self):
+        # Exact in both directions: money above the price is money owed
+        # back, so it is recorded for a refund rather than kept.
+        with self.assertLogs('worker_connect.yas', level='CRITICAL'):
+            self.push({'ReferenceID': self.ref, 'Status': 'true',
+                       'Amount': int(self.sr.total_price) + 1000,
+                       'MFSTransactionID': 'OVER1'})
         self.sr.refresh_from_db()
-        self.assertEqual(self.sr.payment_status, 'paid')
+        self.assertEqual(self.sr.payment_status, 'pending')
+        row = PaymentTransaction.objects.get(reference='OVER1')
+        self.assertTrue(row.unapplied_reason)
+        self.assertEqual(row.service_request_id, self.sr.pk)
+        self.assertIsNone(row.consumed_by_id)
 
-    def test_a_missing_amount_still_credits_the_payment(self):
-        # We named the amount when we asked for the prompt, so a callback
-        # that does not repeat it tells us nothing new. Refusing to
-        # credit it would take the money and give nothing back.
-        self.push({'ReferenceID': self.ref, 'Status': 'true',
-                   'MFSTransactionID': '1'})
+    def test_a_missing_amount_does_not_settle_but_is_recorded(self):
+        # Their Amount is mandatory and is what left the wallet. Without
+        # it we cannot know the booking is covered.
+        with self.assertLogs('worker_connect.yas', level='CRITICAL'):
+            self.push({'ReferenceID': self.ref, 'Status': 'true',
+                       'MFSTransactionID': 'NOAMT1'})
         self.sr.refresh_from_db()
-        self.assertEqual(self.sr.payment_status, 'paid')
+        self.assertEqual(self.sr.payment_status, 'pending')
+        row = PaymentTransaction.objects.get(reference='NOAMT1')
+        self.assertIn('Amount missing', row.unapplied_reason)
 
-    def test_an_unreadable_amount_still_credits_the_payment(self):
-        for amount in ('', 'abc', 'NaN', '1e999999', '-5'):
+    def test_an_unreadable_amount_does_not_settle(self):
+        for i, amount in enumerate(('', 'abc', 'NaN', '1e999999', '-5', '0',
+                                    'Infinity', [1], {'a': 1})):
             sr, _ = self.book()
             sr.payment_status = 'pending'
             sr.save(update_fields=['payment_status'])
             ref = sr.ensure_reference()
-            self.push({'ReferenceID': ref, 'Status': 'true',
-                       'Amount': amount, 'MFSTransactionID': '1'})
+            with self.assertLogs('worker_connect.yas', level='CRITICAL'):
+                self.push({'ReferenceID': ref, 'Status': 'true',
+                           'Amount': amount, 'MFSTransactionID': 'U%d' % i})
             sr.refresh_from_db()
-            self.assertEqual(sr.payment_status, 'paid', 'on %r' % amount)
+            self.assertEqual(sr.payment_status, 'pending', 'on %r' % amount)
+            # Recorded, so it can be refunded.
+            self.assertTrue(PaymentTransaction.objects.filter(
+                reference='U%d' % i, service_request=sr).exclude(
+                unapplied_reason='').exists(), 'on %r' % amount)
 
     @override_settings(YAS_CALLBACK_SUCCESS_CODE='BILLER-18-0000-S')
     def test_the_success_code_can_be_changed_without_a_deploy(self):
@@ -607,11 +680,15 @@ class BillPaymentTests(YasBase):
         self.sr.refresh_from_db()
         self.assertEqual(self.sr.payment_status, 'pending')
 
-    def test_paying_more_than_due_is_accepted(self):
+    def test_paying_more_than_due_is_refused(self):
+        # Exact in both directions: TF, so YAS do not take the money.
         r = self.w2a(self.body(amount=int(self.sr.total_price) + 5000))
-        self.assertEqual(self.tags(r)['RESULT'], 'TS')
+        tags = self.tags(r)
+        self.assertEqual(tags['RESULT'], 'TF')
+        self.assertEqual(tags['ERRORCODE'], yas.E_TOO_HIGH)
+        self.assertIn(str(yas.shillings_due(self.sr)), tags['CONTENT'])
         self.sr.refresh_from_db()
-        self.assertEqual(self.sr.payment_status, 'paid')
+        self.assertEqual(self.sr.payment_status, 'pending')
 
     def test_a_price_with_cents_is_settled_by_the_whole_shillings(self):
         # YAS cannot send forty cents, so a booking priced at 750.40 is
@@ -633,16 +710,24 @@ class BillPaymentTests(YasBase):
             self.assertEqual(self.tags(r)['ERRORCODE'], yas.E_AMOUNT,
                              'on %r' % amount)
 
-    def test_an_already_paid_booking_answers_success(self):
-        # Their platform may simply be asking again. TF would make it
-        # retry for a booking that is already settled.
+    def test_an_already_paid_booking_refuses_a_new_payment(self):
+        # TS here takes the client's money a second time. Only a genuine
+        # retry of the payment that paid it is answered TS.
         self.sr.mark_paid_by_gateway('earlier')
         r = self.w2a(self.body())
         tags = self.tags(r)
-        self.assertEqual(tags['RESULT'], 'TS')
+        self.assertEqual(tags['RESULT'], 'TF')
+        self.assertEqual(tags['ERRORCODE'], yas.E_LOCKED)
         self.assertIn('already paid', tags['CONTENT'])
         self.sr.refresh_from_db()
         self.assertEqual(self.sr.payment_transaction_id, 'earlier')
+
+    def test_a_retry_of_the_payment_that_paid_it_answers_success(self):
+        self.assertEqual(self.tags(self.w2a(self.body(txnid='BP1')))['RESULT'],
+                         'TS')
+        tags = self.tags(self.w2a(self.body(txnid='BP1')))
+        self.assertEqual(tags['RESULT'], 'TS')
+        self.assertIn('already paid', tags['CONTENT'])
 
     def test_a_refunded_booking_cannot_be_paid(self):
         self.sr.payment_status = 'refunded'
@@ -744,7 +829,10 @@ class BillPaymentTests(YasBase):
         self.w2a(self.body())
         with mock.patch('clients.assignment_mode.apply_assignment_mode') as m:
             second = self.w2a(self.body())
+            third = self.w2a(self.body(txnid='BP-SECOND'))
+        # The same TXNID again is a retry (TS); a new one is refused (TF).
         self.assertEqual(self.tags(second)['RESULT'], 'TS')
+        self.assertEqual(self.tags(third)['RESULT'], 'TF')
         m.assert_not_called()
 
 
@@ -936,8 +1024,8 @@ class PayoutCreationTests(FlowBase):
         MobileMoneyAccount.objects.create(
             user=self.worker_user, provider='tigo_pesa',
             phone_number='0714123456', account_name='Wor Ker',
-            is_default=True)
-        payout = yas_client.create_payout(self.wp, D('25000'),
+            is_default=True, is_verified=True)
+        payout = make_payout(self, D('25000'),
                                           created_by=self.admin)
         # Copied, not read at send time: a profile edited between
         # approval and sending must not redirect the money.
@@ -945,13 +1033,16 @@ class PayoutCreationTests(FlowBase):
         self.assertEqual(payout.state, 'pending')
         self.assertEqual(payout.created_by_id, self.admin.id)
 
-    def test_without_a_wallet_their_account_number_is_used(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
-        self.assertEqual(payout.phone_number, '0744555666')
+    def test_without_a_verified_wallet_there_is_no_default_number(self):
+        # The account phone is edited freely, so it is not a destination.
+        with self.assertRaises(yas_client.PayoutRefused):
+            yas_client.create_payout(
+                self.wp, D('25000'), created_by=self.admin,
+                service_request=completed_job(self))
 
     def test_making_a_payout_sends_nothing(self):
         with mock.patch.object(yas_client, 'http_requests') as net:
-            yas_client.create_payout(self.wp, D('25000'))
+            make_payout(self, D('25000'))
         net.post.assert_not_called()
 
 
@@ -962,8 +1053,8 @@ class PayoutSendTests(FlowBase):
         MobileMoneyAccount.objects.create(
             user=self.worker_user, provider='tigo_pesa',
             phone_number='0714123456', account_name='Wor Ker',
-            is_default=True)
-        self.payout = yas_client.create_payout(self.wp, D('25000.90'),
+            is_default=True, is_verified=True)
+        self.payout = make_payout(self, D('25000.90'),
                                                created_by=self.admin)
 
     def answer(self, text, code=200):
@@ -1185,22 +1276,24 @@ class AdminEndpointTests(FlowBase):
         MobileMoneyAccount.objects.create(
             user=self.worker_user, provider='tigo_pesa',
             phone_number='0714123456', account_name='Wor Ker',
-            is_default=True)
+            is_default=True, is_verified=True)
 
     def test_a_client_cannot_see_the_payouts(self):
         self.assertIn(self.client_c.get('/api/v1/payments/yas/payouts/')
                       .status_code, (401, 403))
 
     def test_a_worker_cannot_pay_themselves(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         r = post_json(self.worker_c,
                       '/api/v1/payments/yas/payouts/%s/send/' % payout.id, {})
         self.assertIn(r.status_code, (401, 403))
 
     def test_an_admin_creates_a_payout_and_nothing_is_sent(self):
+        job = completed_job(self)
         with mock.patch.object(yas_client, 'http_requests') as net:
             r = post_json(self.admin_c, '/api/v1/payments/yas/payouts/',
-                          {'worker_id': self.wp.id, 'amount': '25000'})
+                          {'worker_id': self.wp.id, 'amount': '25000',
+                           'service_request_id': job.id})
         self.assertEqual(r.status_code, 201, r.content)
         net.post.assert_not_called()
         self.assertEqual(r.json()['state'], 'pending')
@@ -1223,13 +1316,15 @@ class AdminEndpointTests(FlowBase):
         MobileMoneyAccount.objects.all().delete()
         self.worker2_user.phone_number = ''
         self.worker2_user.save(update_fields=['phone_number'])
+        job = completed_job(self, wp=self.wp2)
         r = post_json(self.admin_c, '/api/v1/payments/yas/payouts/',
-                      {'worker_id': self.wp2.id, 'amount': '1000'})
-        self.assertEqual(r.status_code, 201)
-        self.assertIn('no usable Mixx by Yas number', r.json()['warning'])
+                      {'worker_id': self.wp2.id, 'amount': '1000',
+                       'service_request_id': job.id})
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('no verified Mixx by Yas wallet', r.json()['error'])
 
     def test_sending_is_unavailable_while_payouts_are_off(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         with mock.patch.object(yas_client, 'http_requests') as net:
             r = post_json(self.admin_c,
                           '/api/v1/payments/yas/payouts/%s/send/' % payout.id,
@@ -1239,7 +1334,7 @@ class AdminEndpointTests(FlowBase):
 
     @override_settings(**PAYOUTS_ON)
     def test_a_held_payout_answers_202_not_200(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         with mock.patch.object(yas_client.http_requests, 'post',
                                return_value=mock.Mock(
                                    status_code=200, text=resmfici('100'))):
@@ -1252,7 +1347,7 @@ class AdminEndpointTests(FlowBase):
 
     @override_settings(**PAYOUTS_ON)
     def test_a_paid_payout_answers_200(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         with mock.patch.object(yas_client.http_requests, 'post',
                                return_value=mock.Mock(
                                    status_code=200, text=resmfici('200'))):
@@ -1263,7 +1358,7 @@ class AdminEndpointTests(FlowBase):
         self.assertEqual(r.json()['state'], 'paid')
 
     def test_only_a_held_payout_is_resolved_by_hand(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         r = post_json(self.admin_c,
                       '/api/v1/payments/yas/payouts/%s/resolve/' % payout.id,
                       {'outcome': 'paid'})
@@ -1271,7 +1366,7 @@ class AdminEndpointTests(FlowBase):
         self.assertIn('held', r.json()['error'])
 
     def test_a_held_payout_is_resolved_by_a_person_who_looked(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         WorkerPayout.objects.filter(pk=payout.pk).update(state='held')
         r = post_json(self.admin_c,
                       '/api/v1/payments/yas/payouts/%s/resolve/' % payout.id,
@@ -1285,7 +1380,7 @@ class AdminEndpointTests(FlowBase):
         self.assertIn('boss', payout.yas_message)
 
     def test_resolving_needs_a_real_outcome(self):
-        payout = yas_client.create_payout(self.wp, D('25000'))
+        payout = make_payout(self, D('25000'))
         WorkerPayout.objects.filter(pk=payout.pk).update(state='held')
         for outcome in ({}, {'outcome': 'maybe'}, {'outcome': 'held'}):
             r = post_json(
@@ -1296,16 +1391,16 @@ class AdminEndpointTests(FlowBase):
 
     def test_held_payouts_are_counted_where_an_admin_will_see_them(self):
         for _ in range(3):
-            p = yas_client.create_payout(self.wp, D('1000'))
+            p = make_payout(self, D('1000'))
             WorkerPayout.objects.filter(pk=p.pk).update(state='held')
         r = self.admin_c.get('/api/v1/payments/yas/payouts/')
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()['held'], 3)
 
     def test_the_payout_list_can_be_narrowed(self):
-        p = yas_client.create_payout(self.wp, D('1000'))
+        p = make_payout(self, D('1000'))
         WorkerPayout.objects.filter(pk=p.pk).update(state='held')
-        yas_client.create_payout(self.wp, D('2000'))
+        make_payout(self, D('2000'))
         r = self.admin_c.get('/api/v1/payments/yas/payouts/?state=held')
         self.assertEqual(r.json()['count'], 1)
 
@@ -1340,7 +1435,7 @@ class StatusEndpointTests(FlowBase):
             self.assertNotIn(secret, raw)
 
     def test_it_counts_the_payouts_that_need_a_person(self):
-        p = yas_client.create_payout(self.wp, D('1000'))
+        p = make_payout(self, D('1000'))
         WorkerPayout.objects.filter(pk=p.pk).update(state='held')
         body = self.admin_c.get(STATUS).json()
         self.assertEqual(body['payouts']['held'], 1)
@@ -1370,15 +1465,15 @@ class RefundReferenceTests(FlowBase):
 class RefundCreationTests(YasBase):
     def test_approving_a_refund_sends_nothing(self):
         with mock.patch.object(yas_client, 'http_requests') as net:
-            refund = yas_client.create_refund(
-                self.sr, self.sr.total_price, '0714123456')
+            refund = make_refund(self, self.sr.total_price, '0714123456')
         net.post.assert_not_called()
         self.assertEqual(refund.state, 'pending')
         self.assertEqual(refund.client_id, self.sr.client_id)
 
     def test_the_clients_number_is_copied_onto_the_row(self):
-        refund = yas_client.create_refund(self.sr, D('1000'), '0714123456')
-        self.assertEqual(refund.phone_number, '0714123456')
+        # The paying wallet, as recorded at pay time.
+        refund = make_refund(self, D('1000'), '0714123456')
+        self.assertEqual(refund.phone_number, '255714123456')
 
 
 @override_settings(**REFUNDS_ON)
@@ -1386,9 +1481,9 @@ class RefundSendTests(YasBase):
     def setUp(self):
         super().setUp()
         yas_client.forget_token()
-        self.sr.mark_paid_by_gateway('26797615656')
-        self.refund = yas_client.create_refund(
-            self.sr, D('30000.90'), '0714123456', created_by=self.admin,
+        yas.settle(self.sr, '26797615656', amount=self.sr.total_price,
+                   gateway_reference=self.ref, payer_msisdn='255714123456')
+        self.refund = make_refund(self,D('30000.90'), '0714123456', created_by=self.admin,
             reason='paid the wrong amount',
             mfs_transaction_id='26797615656',
             purchase_reference=self.ref)
@@ -1541,7 +1636,8 @@ class RefundEndpointTests(YasBase):
         self.assertIn(r.status_code, (401, 403))
 
     def test_an_admin_approves_a_refund_and_nothing_is_sent(self):
-        self.sr.mark_paid_by_gateway('26797615656')
+        yas.settle(self.sr, '26797615656', amount=self.sr.total_price,
+                   gateway_reference=self.ref)
         with mock.patch.object(yas_client, 'http_requests') as net:
             r = post_json(self.admin_c, '/api/v1/payments/yas/refunds/',
                           {'service_request_id': self.sr.id,
@@ -1567,16 +1663,16 @@ class RefundEndpointTests(YasBase):
                            'amount': amount})
             self.assertEqual(r.status_code, 400, 'on %r' % amount)
 
-    def test_a_booking_with_no_receipt_is_flagged_at_once(self):
-        ServiceRequest.objects.filter(pk=self.sr.pk).update(
-            reference=None, payment_transaction_id='')
+    def test_a_booking_never_paid_by_yas_cannot_be_refunded(self):
+        # Refused at approval now, rather than warned about: there is no
+        # original payment for YAS to reverse.
         r = post_json(self.admin_c, '/api/v1/payments/yas/refunds/',
                       {'service_request_id': self.sr.id, 'amount': '1000'})
-        self.assertEqual(r.status_code, 201)
-        self.assertIn('cannot find the payment', r.json()['warning'])
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('no Mixx by Yas payment', r.json()['error'])
 
     def test_sending_is_unavailable_while_refunds_are_off(self):
-        refund = yas_client.create_refund(self.sr, D('1000'), '0714123456')
+        refund = make_refund(self, D('1000'), '0714123456')
         with mock.patch.object(yas_client, 'http_requests') as net:
             r = post_json(
                 self.admin_c,
@@ -1586,8 +1682,7 @@ class RefundEndpointTests(YasBase):
 
     @override_settings(**REFUNDS_ON)
     def test_a_held_refund_answers_202(self):
-        refund = yas_client.create_refund(
-            self.sr, D('1000'), '0714123456',
+        refund = make_refund(self, D('1000'), '0714123456',
             mfs_transaction_id='26797615656')
         yas_client.forget_token()
         token = mock.Mock(status_code=200, content=b'{}')
@@ -1603,7 +1698,7 @@ class RefundEndpointTests(YasBase):
         self.assertTrue(r.json()['needs_a_person'])
 
     def test_only_a_held_refund_is_resolved_by_hand(self):
-        refund = yas_client.create_refund(self.sr, D('1000'), '0714123456')
+        refund = make_refund(self, D('1000'), '0714123456')
         r = post_json(
             self.admin_c,
             '/api/v1/payments/yas/refunds/%s/resolve/' % refund.id,
@@ -1611,7 +1706,7 @@ class RefundEndpointTests(YasBase):
         self.assertEqual(r.status_code, 400)
 
     def test_a_held_refund_is_resolved_by_a_person_who_looked(self):
-        refund = yas_client.create_refund(self.sr, D('1000'), '0714123456')
+        refund = make_refund(self, D('1000'), '0714123456')
         ClientRefund.objects.filter(pk=refund.pk).update(state='held')
         r = post_json(
             self.admin_c,
@@ -1625,7 +1720,7 @@ class RefundEndpointTests(YasBase):
 
     def test_held_refunds_are_counted_where_an_admin_will_see_them(self):
         for _ in range(2):
-            refund = yas_client.create_refund(self.sr, D('1000'),
+            refund = make_refund(self, D('1000'),
                                               '0714123456')
             ClientRefund.objects.filter(pk=refund.pk).update(state='held')
         r = self.admin_c.get('/api/v1/payments/yas/refunds/')
@@ -1633,7 +1728,7 @@ class RefundEndpointTests(YasBase):
         self.assertEqual(r.json()['held'], 2)
 
     def test_the_status_screen_counts_refunds_waiting(self):
-        refund = yas_client.create_refund(self.sr, D('1000'), '0714123456')
+        refund = make_refund(self, D('1000'), '0714123456')
         ClientRefund.objects.filter(pk=refund.pk).update(state='held')
         body = self.admin_c.get(STATUS).json()
         self.assertEqual(body['refunds_waiting']['held'], 1)
@@ -1769,7 +1864,7 @@ class RetryTests(YasBase):
         # booking reference stays the first thing found inside it.
         marker = yas_client.new_attempt_marker()
         self.assertTrue(marker.isdigit(), marker)
-        # Microseconds (20) plus two random digits.
+        # Seconds (14) plus eight random digits.
         self.assertEqual(len(marker), 22)
 
     def test_the_whole_reference_stays_inside_the_only_length_they_state(self):

@@ -77,6 +77,34 @@ def _flag(name) -> bool:
     return bool(_setting(name, False))
 
 
+# gunicorn kills a worker after 30 seconds (gunicorn_config.py). A money
+# call still waiting when that happens leaves its row in 'sending' with
+# nobody left to finish it, so no single call may wait longer than this,
+# whatever the settings say - and the token and the money call together
+# stay below gunicorn's limit with the defaults (8 + 20).
+_MOST_ANY_CALL_MAY_WAIT = 25
+
+
+def _timeout(name, default) -> float:
+    try:
+        value = float(_setting(name, default))
+    except (TypeError, ValueError):
+        value = float(default)
+    if not value > 0:
+        value = float(default)
+    return min(value, _MOST_ANY_CALL_MAY_WAIT)
+
+
+def http_timeout() -> float:
+    """Seconds to wait on a payment, payout or refund call."""
+    return _timeout("YAS_HTTP_TIMEOUT", 20)
+
+
+def token_timeout() -> float:
+    """Seconds to wait for a token."""
+    return _timeout("YAS_TOKEN_TIMEOUT", 8)
+
+
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
@@ -238,8 +266,14 @@ def new_attempt_marker() -> str:
     """
     from django.utils import timezone as _tz
 
-    return (_tz.now().strftime("%Y%m%d%H%M%S%f")
-            + "".join(secrets.choice("0123456789") for _ in range(2)))
+    # Seconds plus eight random digits, still 22 digits in all. The
+    # microseconds this used to carry are not real on every platform -
+    # on Windows the clock moves in steps of a millisecond or more, so
+    # fifty fast attempts collided on two random digits. Eight random
+    # digits make a repeat within one second about one in two million
+    # for fifty attempts.
+    return (_tz.now().strftime("%Y%m%d%H%M%S")
+            + "".join(secrets.choice("0123456789") for _ in range(8)))
 
 
 def _fetch_token() -> str:
@@ -255,7 +289,7 @@ def _fetch_token() -> str:
             },
             headers={"Content-Type": "application/x-www-form-urlencoded",
                      "Cache-Control": "no-cache"},
-            timeout=20,
+            timeout=token_timeout(),
         )
         data = resp.json() if resp.content else {}
     except Exception as exc:                                   # noqa: BLE001
@@ -297,8 +331,16 @@ def forget_token() -> None:
         _token_cache["expires_at"] = 0.0
 
 
-def request_payment(phone, amount_tzs, request_ref, remarks="") -> tuple:
+def request_payment(phone, amount_tzs, request_ref, remarks="",
+                    reference_id=None, report=None) -> tuple:
     """Ask a client's phone for the money. Returns (sent, message).
+
+    reference_id is the exact ReferenceID to send (the caller stores it
+    first, so the callback and any refund can name this very attempt);
+    without one a fresh attempt marker is made here. When ``report`` is a
+    dict, ``report["maybe_sent"]`` is set True if the request went out
+    and no answer came back - the prompt may be ringing even though this
+    returns False.
 
     ``sent`` means YAS accepted the request and the prompt is on its
     way, never that the money arrived - that is the callback's news, and
@@ -342,7 +384,9 @@ def request_payment(phone, amount_tzs, request_ref, remarks="") -> tuple:
         "Amount": amount,
         "Remarks": (remarks or "Worker Connect booking %s" % request_ref)[:100],
         # Unique per attempt, not per booking - see new_attempt_marker.
-        "ReferenceID": reference_for(request_ref, new_attempt_marker()),
+        "ReferenceID": (str(reference_id) if reference_id
+                        else reference_for(request_ref,
+                                           new_attempt_marker())),
     }
     headers = {
         "Authorization": "bearer " + bearer,
@@ -357,7 +401,12 @@ def request_payment(phone, amount_tzs, request_ref, remarks="") -> tuple:
     url = str(_setting("YAS_PAY_URL"))
 
     def send():
-        resp = http_requests.post(url, json=body, headers=headers, timeout=30)
+        if isinstance(report, dict):
+            report["maybe_sent"] = True
+        resp = http_requests.post(url, json=body, headers=headers,
+                                  timeout=http_timeout())
+        if isinstance(report, dict):
+            report["maybe_sent"] = False
         payload = {}
         if resp.content:
             try:
@@ -478,8 +527,11 @@ def _payout_envelope(payout) -> str:
     return '<?xml version="1.0"?><COMMAND>%s</COMMAND>' % inner
 
 
-def send_payout(payout) -> tuple:
+def send_payout(payout, sent_by=None) -> tuple:
     """Send a worker their money. Returns (state, message).
+
+    Whether ``sent_by`` may send it (four-eyes, permissions) is decided
+    by the caller - yas_views.send_payout - before this is reached.
 
     The state is written to the row before this returns, and it is the
     row - not this return value - that decides whether anybody may try
@@ -519,9 +571,22 @@ def send_payout(payout) -> tuple:
     # Claim the row. Only a pending payout may be sent, and the claim is
     # a conditional update so two admins pressing at once cannot both
     # win: whichever one changes no rows stops here.
-    claimed = (WorkerPayout.objects
-               .filter(pk=payout.pk, state='pending')
-               .update(state='sending', sent_at=timezone.now()))
+    claim = {"state": 'sending', "sent_at": timezone.now()}
+    if sent_by is not None:
+        claim["sent_by"] = sent_by
+    with transaction.atomic():
+        row = (WorkerPayout.objects.select_for_update()
+               .filter(pk=payout.pk).first())
+        if row is not None and row.state == 'pending':
+            problem = payout_problem(row.worker, row.service_request,
+                                     row.amount, exclude_pk=row.pk)
+            if problem:
+                logger.warning("YAS payout %s not sent: %s",
+                               payout.reference, problem)
+                return row.state, problem + " Nothing was sent."
+        claimed = (WorkerPayout.objects
+                   .filter(pk=payout.pk, state='pending')
+                   .update(**claim))
     if not claimed:
         payout.refresh_from_db()
         return payout.state, {
@@ -559,7 +624,7 @@ def send_payout(payout) -> tuple:
     try:
         resp = http_requests.post(str(_setting("YAS_PAYOUT_URL")),
                                   data=body.encode("utf-8"),
-                                  headers=headers, timeout=60)
+                                  headers=headers, timeout=http_timeout())
         text = resp.text or ""
     except Exception as exc:                                   # noqa: BLE001
         # "This is the same case for any kind of timeout as well" - p.9.
@@ -598,35 +663,164 @@ def send_payout(payout) -> tuple:
     return finish('failed', txn_status, reason, txnid)
 
 
+class PayoutRefused(ValueError):
+    """A payout that may not be made. The message is for the admin."""
+
+
+class RefundRefused(ValueError):
+    """A refund that may not be made. The message is for the admin."""
+
+
+def second_approver_required() -> bool:
+    return bool(_setting("YAS_REQUIRE_SECOND_APPROVER", True))
+
+
+def registered_number(worker) -> str:
+    """The worker's own number: their Tigo/Mixx wallet, else their account's."""
+    from workers.models import MobileMoneyAccount
+
+    # Verified wallets only, and nothing else. An unverified wallet - or
+    # the account's own phone, which the worker edits freely - is just a
+    # number somebody typed. With no verified wallet there is no default
+    # destination: the admin has to name one, with a reason, and a second
+    # person sends it.
+    wallet = (MobileMoneyAccount.objects
+              .filter(user=worker.user, provider='tigo_pesa', is_active=True,
+                      is_verified=True)
+              .order_by('-is_default', '-created_at').first())
+    return wallet.phone_number.strip() if wallet else ""
+
+
+def payout_problem(worker, service_request, value, exclude_pk=None):
+    """Why this payout may not be made (or sent) now, or "" when it may.
+
+    Checked when it is approved and again, with the rows locked, just
+    before it is sent - so a payout approved under older, looser rules,
+    or whose booking was refunded in between, cannot leave.
+    """
+    from jobs.service_request_models import (ServiceRequest,
+                                             ServiceRequestAssignment)
+    from workers.models import WorkerPayout
+
+    if service_request is None:
+        return "This payout names no booking."
+    booking = (ServiceRequest.objects.select_for_update()
+               .filter(pk=service_request.pk).first())
+    if booking is None:
+        return "The booking this payout is for no longer exists."
+    if booking.payment_status == 'refunded':
+        return "The client was refunded for this booking."
+    if not booking.is_paid:
+        return "The client has not paid for this booking."
+    assignment = (ServiceRequestAssignment.objects.select_for_update()
+                  .filter(service_request=booking, worker=worker,
+                          status='completed').first())
+    if assignment is None:
+        return ("This worker has no completed assignment on that booking, "
+                "so there is nothing to pay.")
+    others = (WorkerPayout.objects
+              .filter(worker=worker, service_request=booking)
+              .exclude(state='failed'))
+    if exclude_pk is not None:
+        others = others.exclude(pk=exclude_pk)
+    earned = Decimal(str(assignment.worker_payment or 0))
+    spent = sum((p.amount for p in others), Decimal("0"))
+    if Decimal(str(value)) > earned - spent:
+        return ("That is more than this worker earned on this booking "
+                "(TSh %s)." % (earned - spent))
+    return ""
+
+
 def create_payout(worker, amount, created_by=None, service_request=None,
-                  phone_number=""):
+                  phone_number="", override_reason=""):
     """A payout row, ready to send. Nothing is sent by making one.
+
+    A payout pays a worker for one job, and only what they earned on it:
+
+      the worker must have a COMPLETED assignment on ``service_request``;
+      the amount may not exceed that assignment's worker_payment;
+      one live (not failed) payout per worker per job - a database
+      constraint, and checked here with the assignment row locked.
+
+    The destination is the worker's own registered number. Another number
+    is only accepted with an ``override_reason``, is recorded on the row
+    with who set it, and is refused outright when
+    YAS_REQUIRE_SECOND_APPROVER is off - with nobody else checking, one
+    person could otherwise send a worker's pay to their own phone.
 
     The number is copied onto the row rather than read from the worker's
     profile at send time, so a profile edited between approval and
     sending cannot redirect the money.
+
+    Raises PayoutRefused with a message for the admin.
     """
-    from workers.models import MobileMoneyAccount, WorkerPayout
+    from django.db import IntegrityError
+    from workers.models import WorkerPayout
     from worker_connect.yas import new_payout_reference
 
-    number = str(phone_number or "").strip()
-    if not number:
-        wallet = (MobileMoneyAccount.objects
-                  .filter(user=worker.user, provider='tigo_pesa',
-                          is_active=True)
-                  .order_by('-is_default', '-created_at').first())
-        number = wallet.phone_number if wallet else (
-            getattr(worker.user, 'phone_number', '') or "")
+    if service_request is None:
+        raise PayoutRefused("A payout must name the booking it pays for "
+                            "(service_request_id).")
+    try:
+        value = Decimal(str(amount))
+        if not value.is_finite() or value <= 0:
+            raise ValueError
+    except Exception:                                         # noqa: BLE001
+        raise PayoutRefused("amount must be more than zero.")
+    if whole_shillings(value) <= 0:
+        raise PayoutRefused("amount must be at least one shilling.")
+
+    registered = registered_number(worker)
+    asked = str(phone_number or "").strip()
+    note = ""
+    if not registered and not asked:
+        raise PayoutRefused(
+            "This worker has no verified Mixx by Yas wallet. Verify one, or "
+            "name the number to pay (phone_number) and say why "
+            "(override_reason).")
+    if asked and msisdn(asked) != msisdn(registered):
+        if not second_approver_required():
+            raise PayoutRefused(
+                "A payout can only go to the worker's own registered number "
+                "while YAS_REQUIRE_SECOND_APPROVER is off.")
+        reason = str(override_reason or "").strip()
+        if not reason:
+            raise PayoutRefused(
+                "That is not the worker's registered number. Say why it "
+                "should go there instead (override_reason).")
+        who = (created_by.get_full_name() or created_by.username
+               if created_by is not None else "unknown")
+        note = ("Destination set by %s instead of the registered number "
+                "%s: %s" % (who, registered or "(none)", reason))
+        number = asked
+    else:
+        number = registered
 
     with transaction.atomic():
-        return WorkerPayout.objects.create(
-            worker=worker,
-            service_request=service_request,
-            amount=Decimal(str(amount)),
-            phone_number=number,
-            reference=new_payout_reference(),
-            created_by=created_by,
-        )
+        live = list(WorkerPayout.objects.select_for_update()
+                    .filter(worker=worker, service_request=service_request)
+                    .exclude(state='failed'))
+        if live:
+            raise PayoutRefused(
+                "This worker already has a payout for this booking (%s, %s)."
+                % (live[0].reference, live[0].get_state_display()))
+        problem = payout_problem(worker, service_request, value)
+        if problem:
+            raise PayoutRefused(problem)
+        try:
+            with transaction.atomic():
+                return WorkerPayout.objects.create(
+                    worker=worker,
+                    service_request=service_request,
+                    amount=value,
+                    phone_number=number,
+                    reference=new_payout_reference(),
+                    created_by=created_by,
+                    destination_note=note,
+                )
+        except IntegrityError:
+            raise PayoutRefused("This worker already has a payout for this "
+                                "booking.")
 
 
 # ---------------------------------------------------------------------------
@@ -652,33 +846,305 @@ def refunds_live() -> bool:
     return _flag("YAS_REFUNDS_ENABLED") and configured_for_refunds()
 
 
-def create_refund(service_request, amount, phone_number, created_by=None,
-                  reason="", mfs_transaction_id="", purchase_reference=""):
+def gateway_payments(service_request, refundable_only=False):
+    """Real Mixx by Yas money recorded against this booking.
+
+    refundable_only leaves out rows whose amount nobody has confirmed: YAS
+    said money was taken without saying how much, so the figure on the row
+    is only what we asked for and cannot be a refund cap.
+    """
+    from django.db.models import Q
+    from clients.models import PaymentTransaction
+
+    rows = (PaymentTransaction.objects
+            .filter(method='yas', is_demo=False)
+            .filter(Q(service_request=service_request)
+                    | Q(consumed_by=service_request)))
+    if refundable_only:
+        rows = rows.filter(amount_confirmed=True)
+    return rows
+
+
+def _refunded_against(rows) -> int:
+    """Whole shillings already sent back, or on their way, for these rows."""
+    return sum(whole_shillings(r.amount) for r in rows)
+
+
+def refund_problem(refund):
+    """Why this refund may not be sent now, or "" when it may.
+
+    Checked again, with the payment locked, just before sending - so a
+    refund approved under older, looser rules cannot leave: it must
+    reverse a real, confirmed Mixx by Yas payment and stay within what
+    that payment brought in.
+    """
+    from clients.models import ClientRefund, PaymentTransaction
+
+    if refund.payment_id is None:
+        return "This refund is not linked to a recorded Mixx by Yas payment."
+    payment = (PaymentTransaction.objects.select_for_update()
+               .filter(pk=refund.payment_id, method='yas', is_demo=False)
+               .first())
+    if payment is None:
+        return "The payment this refund reverses is not a Mixx by Yas payment."
+    if not payment.amount_confirmed:
+        return ("The amount of the payment this reverses has not been "
+                "confirmed from the statement yet.")
+    others = (ClientRefund.objects.filter(payment=payment)
+              .exclude(state='failed').exclude(pk=refund.pk))
+    if (whole_shillings(refund.amount) + _refunded_against(others)
+            > whole_shillings(payment.amount)):
+        return "That is more than is left to refund on this payment."
+    return ""
+
+
+def confirm_payment_amount(payment_id, amount, note, user):
+    """A person confirms, from the statement, what an unconfirmed payment was.
+
+    Until then the row is not refundable. Four-eyes: whoever confirms the
+    amount may not also approve the refund of it (create_refund checks).
+    Raises RefundRefused.
+    """
+    from clients.models import PaymentTransaction
+    from worker_connect.yas import MOST_THEY_CAN_SEND
+
+    note = str(note or "").strip()
+    if len(note) < 5:
+        raise RefundRefused("Say what you checked (note) - the statement "
+                            "line that shows the amount.")
+    try:
+        value = Decimal(str(amount))
+        if not value.is_finite() or value <= 0 or value > MOST_THEY_CAN_SEND:
+            raise ValueError
+    except Exception:                                         # noqa: BLE001
+        raise RefundRefused("amount must be more than zero.")
+    who = (user.get_full_name() or user.username) if user else "unknown"
+    with transaction.atomic():
+        row = (PaymentTransaction.objects.select_for_update()
+               .filter(pk=payment_id, method='yas', is_demo=False).first())
+        if row is None:
+            raise RefundRefused("No Mixx by Yas payment with that id.")
+        if row.amount_confirmed:
+            raise RefundRefused("This payment's amount is already confirmed.")
+        # A push charges exactly what we asked for, which is what the row
+        # holds. The statement can show less (or the same), never more -
+        # a bigger figure here would only inflate the refund cap.
+        asked_for = whole_shillings(row.amount)
+        if whole_shillings(value) <= 0:
+            raise RefundRefused("amount must be at least one shilling.")
+        if value > asked_for:
+            raise RefundRefused(
+                "That is more than we asked the client for (TSh %s). A "
+                "prompt cannot take more than it asked." % asked_for)
+        was = row.amount
+        row.amount = value
+        row.amount_confirmed = True
+        row.amount_confirmed_by = user
+        row.amount_note = ("Amount confirmed by %s as TSh %s (recorded as "
+                           "%s): %s" % (who, value, was, note))
+        row.save(update_fields=["amount", "amount_confirmed",
+                                "amount_confirmed_by", "amount_note"])
+    logger.info("YAS payment #%s amount confirmed as %s by %s",
+                row.pk, value, who)
+    return row
+
+
+def create_refund(service_request, amount=None, phone_number="",
+                  created_by=None, reason="", mfs_transaction_id="",
+                  purchase_reference="", payment=None, override_reason=""):
     """A refund row, ready to send. Nothing is sent by making one.
 
-    The number is copied onto the row at approval, not read at send
-    time, for the same reason as a payout: a profile edited in between
-    must not redirect money.
+    A refund reverses one recorded Mixx by Yas payment and is capped at
+    what that payment brought in:
+
+      the booking must have real (non-demo) YAS money recorded against
+      it, with a confirmed amount - ``payment``, or its one applied
+      payment when none is named;
+      amount > 0, and every refund that has not failed against that
+      payment, this one included, adds up to no more than it brought in;
+      the booking and the payment are locked while that is checked;
+      whoever confirmed an unreported amount may not approve its refund.
+
+    The money goes back to the wallet it came from (the payment's
+    payer_msisdn). When that is unknown it goes to the client's profile
+    number, and the row says so in destination_note. Any other number
+    needs an ``override_reason``, is recorded with who set it, and is
+    refused while YAS_REQUIRE_SECOND_APPROVER is off.
+
+    The receipt and ReferenceID sent to YAS are the ones recorded at pay
+    time, copied from the payment - never re-derived, and never typed in.
+    mfs_transaction_id / purchase_reference are accepted only when they
+    agree with the payment.
+
+    Raises RefundRefused with a message for the admin.
     """
-    from clients.models import ClientRefund
+    from clients.models import ClientRefund, PaymentTransaction
+    from jobs.service_request_models import ServiceRequest
     from worker_connect.yas import new_refund_reference
 
     with transaction.atomic():
+        booking = (ServiceRequest.objects.select_for_update()
+                   .get(pk=service_request.pk))
+        candidates = gateway_payments(booking)
+        if payment is not None:
+            chosen = (candidates.select_for_update()
+                      .filter(pk=getattr(payment, 'pk', payment)).first())
+            if chosen is None:
+                raise RefundRefused("That payment is not a Mixx by Yas "
+                                    "payment for this booking.")
+        else:
+            applied = list(candidates.filter(unapplied_reason=''))
+            pool = applied or list(candidates)
+            if not pool:
+                raise RefundRefused(
+                    "This booking has no Mixx by Yas payment recorded, so "
+                    "there is nothing to refund through Mixx by Yas.")
+            if len(pool) > 1:
+                raise RefundRefused(
+                    "This booking has more than one Mixx by Yas payment. "
+                    "Name the one to refund (payment_id).")
+            chosen = (PaymentTransaction.objects.select_for_update()
+                      .get(pk=pool[0].pk))
+
+        if not chosen.amount_confirmed:
+            raise RefundRefused(
+                "YAS did not report how much this payment was. Confirm the "
+                "amount from the statement first (confirm-amount).")
+        if (second_approver_required() and created_by is not None
+                and chosen.amount_confirmed_by_id == created_by.pk):
+            raise RefundRefused("You confirmed this payment's amount, so "
+                                "somebody else has to approve its refund.")
+
+        receipt = chosen.reference
+        if receipt.startswith("NORCPT-"):
+            receipt = ""
+        if mfs_transaction_id and str(mfs_transaction_id) != receipt:
+            raise RefundRefused("mfs_transaction_id does not match the "
+                                "recorded payment.")
+        if (purchase_reference
+                and str(purchase_reference) != chosen.gateway_reference):
+            raise RefundRefused("purchase_reference does not match the "
+                                "recorded payment.")
+
+        brought_in = whole_shillings(chosen.amount)
+        already = _refunded_against(
+            ClientRefund.objects.select_for_update()
+            .filter(payment=chosen).exclude(state='failed'))
+        left = brought_in - already
+        if left <= 0:
+            raise RefundRefused("This payment has already been refunded in "
+                                "full.")
+        try:
+            value = (Decimal(left).quantize(Decimal("0.01"))
+                     if amount in (None, "") else Decimal(str(amount)))
+            if not value.is_finite() or value <= 0:
+                raise ValueError
+        except Exception:                                     # noqa: BLE001
+            raise RefundRefused("amount must be more than zero.")
+        if whole_shillings(value) <= 0:
+            raise RefundRefused("amount must be at least one shilling.")
+        if whole_shillings(value) > left:
+            raise RefundRefused(
+                "That is more than is left to refund on this payment "
+                "(TSh %s of TSh %s)." % (max(left, 0), brought_in))
+
+        # And across the booking as a whole, in case older refunds were
+        # made before refunds named their payment.
+        total_in = _refunded_against(
+            gateway_payments(booking, refundable_only=True))
+        total_out = _refunded_against(
+            ClientRefund.objects.filter(service_request=booking)
+            .exclude(state='failed'))
+        if total_out + whole_shillings(value) > total_in:
+            raise RefundRefused("That is more than this booking brought in "
+                                "through Mixx by Yas.")
+
+        # Where it goes: back to the wallet it came from.
+        payer = msisdn(chosen.payer_msisdn)
+        if payer:
+            default, note = payer, ""
+        else:
+            default = (getattr(booking.client, 'phone_number', '')
+                       or "").strip()
+            note = ("The payer's number was not reported, so this goes to "
+                    "the client's profile number.")
+        asked = str(phone_number or "").strip()
+        if asked and msisdn(asked) != msisdn(default):
+            if not second_approver_required():
+                raise RefundRefused(
+                    "A refund can only go back to the paying wallet while "
+                    "YAS_REQUIRE_SECOND_APPROVER is off.")
+            why = str(override_reason or "").strip()
+            if not why:
+                raise RefundRefused(
+                    "That is not the number the payment came from. Say why "
+                    "it should go there instead (override_reason).")
+            who = ((created_by.get_full_name() or created_by.username)
+                   if created_by is not None else "unknown")
+            note = ("%sDestination set by %s instead of %s: %s"
+                    % (note + " " if note else "", who,
+                       default or "(none)", why))
+            number = asked
+        else:
+            number = default
+
         return ClientRefund.objects.create(
-            service_request=service_request,
-            client=service_request.client,
-            amount=Decimal(str(amount)),
-            phone_number=str(phone_number or "").strip(),
+            service_request=booking,
+            client=booking.client,
+            amount=value,
+            phone_number=number,
             reference=new_refund_reference(),
-            mfs_transaction_id=str(mfs_transaction_id or "")[:100],
-            purchase_reference=str(purchase_reference or "")[:64],
+            mfs_transaction_id=receipt[:100],
+            purchase_reference=chosen.gateway_reference[:64],
             reason=str(reason or ""),
             created_by=created_by,
+            payment=chosen,
+            destination_note=note,
         )
 
 
-def send_refund(refund) -> tuple:
+def after_refund_paid(refund) -> None:
+    """A refund went through. Mark the booking refunded when it is complete.
+
+    Only for the payment that paid the booking: once everything it
+    brought in has gone back, the booking reads 'refunded' and can take no
+    more money. A partial refund leaves it as it is - the refund rows are
+    the record of what went back - and says so in the log. Money that was
+    never applied (unapplied_reason) does not change the booking at all.
+    """
+    from clients.models import ClientRefund
+    from jobs.service_request_models import ServiceRequest
+
+    payment = refund.payment
+    if payment is None or refund.service_request_id is None:
+        return
+    sent_back = _refunded_against(
+        ClientRefund.objects.filter(payment=payment, state='paid'))
+    whole = sent_back >= whole_shillings(payment.amount)
+    if payment.unapplied_reason:
+        logger.info("Refund %s returned TSh %s of unapplied payment %s.",
+                    refund.reference, sent_back, payment.reference)
+        return
+    if whole:
+        ServiceRequest.objects.filter(pk=refund.service_request_id).update(
+            payment_status='refunded')
+        logger.info("Refund %s completes the refund of %s; booking marked "
+                    "refunded.", refund.reference, payment.reference)
+    else:
+        logger.info("Refund %s is partial: TSh %s of %s returned for %s.",
+                    refund.reference, sent_back,
+                    whole_shillings(payment.amount), payment.reference)
+
+
+def send_refund(refund, sent_by=None) -> tuple:
     """Send a client their money back. Returns (state, message).
+
+    Whether ``sent_by`` may send it (four-eyes, permissions) is decided
+    by the caller - yas_views.send_refund - before this is reached.
+
+    The token is fetched before the row is claimed: a worker killed while
+    waiting for a token used to leave the row in 'sending' although
+    nothing had gone out.
 
     Built the same way as send_payout and for the same reasons: the row
     is claimed before the call so a crash cannot leave it looking
@@ -717,10 +1183,7 @@ def send_refund(refund) -> tuple:
             "original reference, so Mixx by Yas cannot find the payment to "
             "reverse.")
 
-    claimed = (ClientRefund.objects
-               .filter(pk=refund.pk, state='pending')
-               .update(state='sending', sent_at=timezone.now()))
-    if not claimed:
+    def not_sendable():
         refund.refresh_from_db()
         return refund.state, {
             'sending': "This refund is already on its way.",
@@ -729,6 +1192,37 @@ def send_refund(refund) -> tuple:
                      "before sending it again."),
             'failed': "This refund failed. Create a new one to try again.",
         }.get(refund.state, "This refund cannot be sent.")
+
+    if not ClientRefund.objects.filter(pk=refund.pk,
+                                       state='pending').exists():
+        return not_sendable()
+
+    bearer = token()
+    if not bearer:
+        # No token means the request was never made, so nothing moved,
+        # and the row was never claimed: it is still pending and can be
+        # sent again - unlike a call that went out and was not answered.
+        refund.refresh_from_db()
+        return refund.state, ("Mixx by Yas would not issue a token, so "
+                              "nothing was sent. Try again shortly.")
+
+    claim = {"state": 'sending', "sent_at": timezone.now()}
+    if sent_by is not None:
+        claim["sent_by"] = sent_by
+    with transaction.atomic():
+        row = (ClientRefund.objects.select_for_update()
+               .filter(pk=refund.pk).first())
+        if row is not None and row.state == 'pending':
+            problem = refund_problem(row)
+            if problem:
+                logger.warning("YAS refund %s not sent: %s",
+                               refund.reference, problem)
+                return row.state, problem + " Nothing was sent."
+        claimed = (ClientRefund.objects
+                   .filter(pk=refund.pk, state='pending')
+                   .update(**claim))
+    if not claimed:
+        return not_sendable()
     refund.refresh_from_db()
 
     def finish(state, code="", message="", their_reference=""):
@@ -740,17 +1234,9 @@ def send_refund(refund) -> tuple:
             refund.settled_at = timezone.now()
         refund.save(update_fields=["state", "yas_code", "yas_message",
                                    "yas_reference", "settled_at"])
+        if state == 'paid':
+            after_refund_paid(refund)
         return state, message
-
-    bearer = token()
-    if not bearer:
-        # No token means the request was never made, so nothing moved.
-        # Back to pending, where it can be sent again - unlike a call
-        # that went out and was not answered.
-        ClientRefund.objects.filter(pk=refund.pk).update(state='pending')
-        refund.refresh_from_db()
-        return refund.state, ("Mixx by Yas would not issue a token, so "
-                              "nothing was sent. Try again shortly.")
 
     body = {
         "CustomerMSISDN": number,
@@ -766,7 +1252,11 @@ def send_refund(refund) -> tuple:
     if refund.mfs_transaction_id:
         body["MFSTransactionID"] = refund.mfs_transaction_id
     if refund.purchase_reference:
-        body["PurchaseReferenceID"] = reference_for(refund.purchase_reference)
+        # Exactly the ReferenceID the original payment was made with, as
+        # recorded at pay time - biller code and attempt marker included.
+        # Re-deriving it from the booking reference dropped the marker,
+        # and YAS could not find the payment to reverse.
+        body["PurchaseReferenceID"] = refund.purchase_reference
     headers = {
         "Authorization": "bearer " + bearer,
         "Username": str(_setting("YAS_BILLER_USERNAME")),
@@ -777,7 +1267,7 @@ def send_refund(refund) -> tuple:
 
     try:
         resp = http_requests.post(str(_setting("YAS_REFUND_URL")), json=body,
-                                  headers=headers, timeout=60)
+                                  headers=headers, timeout=http_timeout())
         data = {}
         if resp.content:
             try:

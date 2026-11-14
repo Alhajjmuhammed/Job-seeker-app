@@ -52,6 +52,8 @@ urlpatterns = [
          yas_views.send_refund, name='refund-send'),
     path('refunds/<int:refund_id>/resolve/',
          yas_views.resolve_refund, name='refund-resolve'),
+    path('payments/<int:payment_id>/confirm-amount/',
+         yas_views.confirm_payment_amount, name='payment-confirm-amount'),
 
     # --- what the admin screen reads -------------------------------------
     path('status/', yas_views.yas_status, name='status'),

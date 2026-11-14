@@ -294,6 +294,35 @@ class MobileMoneyAccountAdmin(admin.ModelAdmin):
     list_filter = ['provider', 'is_verified', 'is_default', 'is_active', 'created_at']
     search_fields = ['user__username', 'user__email', 'phone_number', 'account_name']
     readonly_fields = ['created_at', 'updated_at', 'verified_at']
+
+    @staticmethod
+    def _can_verify(request):
+        # Verifying a wallet decides where workers' pay goes: same rule as sending a payout.
+        user = getattr(request, 'user', None)
+        return bool(user and (user.is_superuser or user.has_perm('workers.send_workerpayout')))
+
+    def get_readonly_fields(self, request, obj=None):
+        # A verified wallet's owner, number and network cannot be edited here:
+        # payouts follow verified wallets. Add a new wallet and verify it.
+        fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None and obj.is_verified:
+            fields += ['user', 'provider', 'phone_number']
+        if not self._can_verify(request):
+            fields += ['is_verified']
+        return fields
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if not self._can_verify(request):
+            actions.pop('verify_accounts', None)
+        return actions
+
+    def save_model(self, request, obj, form, change):
+        from django.utils import timezone
+        if obj.is_verified and not obj.verified_at:
+            obj.verified_at = timezone.now()
+        super().save_model(request, obj, form, change)
+
     fieldsets = (
         ('User', {
             'fields': ('user',)
@@ -314,9 +343,18 @@ class MobileMoneyAccountAdmin(admin.ModelAdmin):
     actions = ['verify_accounts']
     
     def verify_accounts(self, request, queryset):
+        from django.core.exceptions import PermissionDenied
         from django.utils import timezone
-        queryset.update(is_verified=True, verified_at=timezone.now())
-        self.message_user(request, f"{queryset.count()} mobile money account(s) verified.")
+        if not self._can_verify(request):
+            raise PermissionDenied
+        done = 0
+        for account in queryset.filter(is_verified=False):
+            account.is_verified = True
+            account.verified_at = timezone.now()
+            account.save(update_fields=['is_verified', 'verified_at'])
+            self.log_change(request, account, 'Verified mobile money wallet')  # who verified, in the admin history
+            done += 1
+        self.message_user(request, f"{done} mobile money account(s) verified.")
     verify_accounts.short_description = "Verify selected accounts"
 
 
@@ -347,7 +385,8 @@ class WorkerPayoutAdmin(admin.ModelAdmin):
     # resolve endpoint, which records who decided and on what evidence.
     readonly_fields = ['worker', 'service_request', 'amount', 'phone_number',
                        'reference', 'state', 'yas_txnid', 'yas_status',
-                       'yas_message', 'created_by', 'created_at', 'sent_at',
+                       'yas_message', 'created_by', 'sent_by',
+                       'destination_note', 'created_at', 'sent_at',
                        'settled_at']
 
     def has_add_permission(self, request):

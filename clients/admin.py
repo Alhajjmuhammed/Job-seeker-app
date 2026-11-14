@@ -50,7 +50,9 @@ class ClientRefundAdmin(admin.ModelAdmin):
                        'reference', 'mfs_transaction_id',
                        'purchase_reference', 'state', 'reason',
                        'yas_reference', 'yas_code', 'yas_message',
-                       'created_by', 'created_at', 'sent_at', 'settled_at']
+                       'created_by', 'sent_by', 'payment',
+                       'destination_note', 'created_at',
+                       'sent_at', 'settled_at']
 
     def has_add_permission(self, request):
         # A refund is approved through the API, which mints the

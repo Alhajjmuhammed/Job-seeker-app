@@ -144,6 +144,54 @@ class PaymentTransaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     consumed_at = models.DateTimeField(null=True, blank=True)
 
+    # --- real gateway money (Mixx by Yas) ---------------------------------
+    # consumed_by is a OneToOne that a demo reference usually holds already,
+    # so gateway money is linked to its booking here as well. Every row the
+    # gateway writes carries the booking it arrived against, whether or not
+    # it was applied to it.
+    service_request = models.ForeignKey(
+        'jobs.ServiceRequest', on_delete=models.SET_NULL, null=True,
+        blank=True, related_name='gateway_payments',
+        help_text="The booking this gateway money arrived against"
+    )
+    # Exactly what the gateway knows the payment by - the push ReferenceID
+    # with its attempt marker, or the reference the client typed - so a
+    # refund can name the original payment without re-deriving it.
+    gateway_reference = models.CharField(
+        max_length=64, blank=True, default='',
+        help_text="The ReferenceID the gateway holds for this payment"
+    )
+    # Empty when the money paid for the booking. Otherwise it was taken
+    # from the client but could not be applied (booking already paid,
+    # cancelled, wrong amount...), and it is owed back.
+    unapplied_reason = models.TextField(
+        blank=True, default='',
+        help_text="Why this money was not applied to the booking (owed back)"
+    )
+    # The wallet the money came from, as the gateway reported it (W2A
+    # MSISDN, push CustomerMSISDN, or the number we prompted). A refund
+    # goes back here unless somebody records why it should not.
+    payer_msisdn = models.CharField(
+        max_length=20, blank=True, default='',
+        help_text="The wallet this payment came from"
+    )
+    # False when YAS said money was taken but gave no believable Amount:
+    # the amount on this row is then only what we asked for. Such a row is
+    # not refundable until a person confirms the amount from the statement.
+    amount_confirmed = models.BooleanField(
+        default=True,
+        help_text="False until a person confirms an amount YAS did not report"
+    )
+    amount_confirmed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='yas_amounts_confirmed',
+        help_text="Who confirmed the amount from the statement"
+    )
+    amount_note = models.TextField(
+        blank=True, default='',
+        help_text="The evidence the amount was confirmed on"
+    )
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -160,6 +208,23 @@ class PaymentTransaction(models.Model):
         return self.consumed_by_id is not None
 
     @classmethod
+    def redeemable(cls):
+        """Rows a client may present as a booking's payment reference.
+
+        Never money a gateway recorded. A Mixx by Yas receipt is written
+        here so it can be reconciled and refunded - and it is often left
+        unlinked (consumed_by empty): money that could not be applied, or
+        applied money whose booking slot a demo reference already holds.
+        Typed in as payment_transaction_id on a new booking, such a row
+        used to pay that booking too: free work, or a refundable payment
+        spent twice.
+        """
+        from django.db.models import Q
+        return (cls.objects
+                .exclude(Q(method='yas') & Q(is_demo=False))
+                .filter(service_request__isnull=True, unapplied_reason=''))
+
+    @classmethod
     def redeem(cls, reference, client, expected_amount=None):
         """
         Look up an unused reference belonging to this client.
@@ -170,7 +235,7 @@ class PaymentTransaction(models.Model):
         if not reference:
             return None
         try:
-            txn = cls.objects.get(reference=reference, client=client)
+            txn = cls.redeemable().get(reference=reference, client=client)
         except cls.DoesNotExist:
             return None
         if txn.is_consumed:
@@ -201,7 +266,7 @@ class PaymentTransaction(models.Model):
             return False
 
         with transaction.atomic():
-            txn = cls.objects.select_for_update().filter(
+            txn = cls.redeemable().select_for_update().filter(
                 reference=reference, client=client, consumed_by__isnull=True
             ).first()
             if txn is None or txn.amount != service_request.total_price:
@@ -310,6 +375,24 @@ class ClientRefund(models.Model):
         related_name='yas_refunds_created',
         help_text="The admin who approved this refund"
     )
+    # The original gateway payment being reversed. A refund is capped at
+    # what that payment actually brought in.
+    payment = models.ForeignKey(
+        PaymentTransaction, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='refunds',
+        help_text="The original Mixx by Yas payment this reverses"
+    )
+    # Empty when the money goes back to the wallet it came from.
+    destination_note = models.TextField(
+        blank=True, default='',
+        help_text="Why the destination is not the payer's own wallet"
+    )
+    # Four-eyes: who pressed send, which must not be who approved it.
+    sent_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='yas_refunds_sent',
+        help_text="The admin who sent this refund"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     settled_at = models.DateTimeField(null=True, blank=True)
@@ -319,6 +402,10 @@ class ClientRefund(models.Model):
         indexes = [
             models.Index(fields=['state', '-created_at']),
             models.Index(fields=['client', '-created_at']),
+        ]
+        permissions = [
+            ('send_clientrefund',
+             'Can approve, send and resolve Mixx by Yas refunds'),
         ]
 
     def __str__(self):

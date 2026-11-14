@@ -731,4 +731,36 @@ YAS_CHANNEL_PIN = config('YAS_CHANNEL_PIN', default='')
 # comparison is exact and needs no slack - unlike the other platform,
 # which prices in dollars and has to allow for the exchange rate. Raise
 # it only if YAS turn out to deduct a fee before the money reaches us.
+# It only ever allows LESS than the price; paying more than the price is
+# always refused (W2A answers error014, a push is not applied).
 YAS_AMOUNT_TOLERANCE = config('YAS_AMOUNT_TOLERANCE', default='0')
+
+# --- who may move money -----------------------------------------------------
+# Creating, sending and resolving payouts and refunds needs a superuser or
+# the permission workers.send_workerpayout / clients.send_clientrefund -
+# not merely is_staff. With this on (the default), the person who approved
+# a payout or refund cannot also send it, and a payout cannot be sent to a
+# number other than the worker's own when it is off.
+YAS_REQUIRE_SECOND_APPROVER = config(
+    'YAS_REQUIRE_SECOND_APPROVER', default=True, cast=bool)
+
+# --- push prompts -----------------------------------------------------------
+# While a prompt is this recent, a new one for the same booking is refused
+# (unless YAS have already told us the last one failed). Long enough for a
+# client to find their phone and type a PIN; short enough that a missed
+# prompt can be retried.
+YAS_PROMPT_WINDOW_SECONDS = config(
+    'YAS_PROMPT_WINDOW_SECONDS', default=180, cast=int)
+
+# --- outbound timeouts --------------------------------------------------------
+# gunicorn kills a worker after 30s (gunicorn_config.py). A money call that
+# outlives it leaves its row in 'sending' with nobody to finish it, so the
+# token and the money call together stay below that. yas_client clamps
+# these to 25s whatever is set here.
+YAS_HTTP_TIMEOUT = config('YAS_HTTP_TIMEOUT', default=20, cast=int)
+YAS_TOKEN_TIMEOUT = config('YAS_TOKEN_TIMEOUT', default=8, cast=int)
+# A payout or refund still 'sending' after this long was cut off mid-call;
+# a superuser may then resolve it by hand, with evidence, like a held one.
+# Nothing ever retries it automatically.
+YAS_STUCK_SENDING_MINUTES = config(
+    'YAS_STUCK_SENDING_MINUTES', default=10, cast=int)

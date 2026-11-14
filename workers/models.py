@@ -764,6 +764,25 @@ class MobileMoneyAccount(models.Model):
         return f"{self.get_provider_display()} - {self.phone_number}"
     
     def save(self, *args, **kwargs):
+        # A verified wallet is verified for one number on one network.
+        # Change either and it is a new, unchecked destination - payouts
+        # follow the verified wallet, so keeping the flag would let an
+        # edit redirect a worker's pay.
+        if self.pk and self.is_verified:
+            before = (MobileMoneyAccount.objects.filter(pk=self.pk)
+                      .values('phone_number', 'provider', 'user_id').first())
+            if before and (
+                    (before['phone_number'] or '').strip()
+                    != (self.phone_number or '').strip()
+                    or before['provider'] != self.provider
+                    # handing a verified wallet to someone else is a new destination too
+                    or before['user_id'] != self.user_id):
+                self.is_verified = False
+                self.verified_at = None
+                update_fields = kwargs.get('update_fields')
+                if update_fields is not None:
+                    kwargs['update_fields'] = set(update_fields) | {
+                        'is_verified', 'verified_at'}
         # If this account is set as default, unset other defaults for this user
         if self.is_default:
             MobileMoneyAccount.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
@@ -848,6 +867,21 @@ class WorkerPayout(models.Model):
         related_name='worker_payouts_created',
         help_text="The admin who approved this payout"
     )
+    # Four-eyes: who pressed send, which must not be who approved it.
+    sent_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='worker_payouts_sent',
+        help_text="The admin who sent this payout"
+    )
+    # Empty when the money goes to the worker's own registered number.
+    # When an admin sent it somewhere else, who did it, why, and what the
+    # registered number was at the time.
+    destination_note = models.TextField(
+        blank=True, default='',
+        help_text="Why the destination differs from the worker's own number"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     settled_at = models.DateTimeField(null=True, blank=True)
@@ -857,6 +891,19 @@ class WorkerPayout(models.Model):
         indexes = [
             models.Index(fields=['state', '-created_at']),
             models.Index(fields=['worker', '-created_at']),
+        ]
+        constraints = [
+            # One live payout per worker per job. A failed one does not
+            # count, so a refused transfer can be approved again.
+            models.UniqueConstraint(
+                fields=['worker', 'service_request'],
+                condition=~models.Q(state='failed'),
+                name='workerpayout_one_live_per_worker_job',
+            ),
+        ]
+        permissions = [
+            ('send_workerpayout',
+             'Can approve, send and resolve Mixx by Yas worker payouts'),
         ]
 
     def __str__(self):
