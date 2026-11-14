@@ -528,6 +528,8 @@ def client_browse_workers(request):
     category_id = request.GET.get('category')
     if not category_id:
         return Response({'error': 'category is required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not str(category_id).isdigit():  # "NaN" / "abc" used to be a 500
+        return Response({'error': 'category must be a number'}, status=status.HTTP_400_BAD_REQUEST)
 
     from .assignment_mode import bookable_workers
     workers = bookable_workers(category_id).filter(

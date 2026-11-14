@@ -60,7 +60,8 @@
           "locationWhenInUsePermission": "Worker Search uses your location to find workers near you and to record where a job takes place."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

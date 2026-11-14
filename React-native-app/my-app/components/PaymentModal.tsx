@@ -216,7 +216,7 @@ export default function PaymentModal({
             <View style={styles.amountContainer}>
               <Text style={styles.amountLabel}>{t('paymentModal.totalAmount')}</Text>
               <Text style={styles.amountValue}>
-                {currency} {amount.toFixed(2)}
+                {currency} {Number(amount || 0).toFixed(2)}
               </Text>
             </View>
 
@@ -348,7 +348,7 @@ export default function PaymentModal({
                       <>
                         <Ionicons name="card" size={20} color="#fff" />
                         <Text style={styles.payButtonText}>
-                          {t('paymentModal.payAmount', { currency, amount: amount.toFixed(2) })}
+                          {t('paymentModal.payAmount', { currency, amount: Number(amount || 0).toFixed(2) })}
                         </Text>
                       </>
                     )}
@@ -403,7 +403,7 @@ export default function PaymentModal({
                       <>
                         <Ionicons name="phone-portrait" size={20} color="#fff" />
                         <Text style={styles.payButtonText}>
-                          {t('paymentModal.payAmount', { currency, amount: amount.toFixed(2) })}
+                          {t('paymentModal.payAmount', { currency, amount: Number(amount || 0).toFixed(2) })}
                         </Text>
                       </>
                     )}

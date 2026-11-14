@@ -48,6 +48,11 @@ export default function ChooseWorkerScreen() {
     try {
       setLoading(true);
       const categoryId = Number(params.categoryId);
+      if (!Number.isFinite(categoryId) || categoryId <= 0) {
+        // opened without a service chosen: nothing to look up (the server needs a category)
+        setWorkers([]);
+        return;
+      }
       const lat = params.latitude ? Number(params.latitude) : null;
       const lon = params.longitude ? Number(params.longitude) : null;
       const data = await apiService.getAvailableWorkersForRequest(categoryId, lat, lon);

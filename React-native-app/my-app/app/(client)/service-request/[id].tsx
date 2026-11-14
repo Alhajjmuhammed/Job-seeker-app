@@ -700,7 +700,7 @@ export default function ServiceRequestDetailScreen() {
                 {t('requestDetail.totalHours')}
               </Text>
               <Text style={[styles.summaryValue, { color: theme.primary }]}>
-                {t('requestDetail.hoursShort', { hours: totalHours.toFixed(2) })}
+                {t('requestDetail.hoursShort', { hours: Number(totalHours || 0).toFixed(2) })}
               </Text>
             </View>
 

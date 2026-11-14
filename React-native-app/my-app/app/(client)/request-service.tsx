@@ -336,7 +336,7 @@ export default function RequestServiceScreen() {
       
       Alert.alert(
         t('bookingFlow.successTitle'),
-        t('bookingFlow.successMsg', { amount: priceCalculation!.total_price.toFixed(2) }),
+        t('bookingFlow.successMsg', { amount: Number(priceCalculation!.total_price || 0).toFixed(2) }),
         [
           {
             text: t('requestService.viewMyRequests'),

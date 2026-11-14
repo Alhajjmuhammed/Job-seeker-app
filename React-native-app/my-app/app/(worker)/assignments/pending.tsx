@@ -189,7 +189,7 @@ export default function PendingAssignmentsScreen() {
                   <View style={styles.infoRow}>
                     <Ionicons name="cash-outline" size={18} color={theme.primary} />
                     <Text style={[styles.budgetText, { color: theme.primary }]}>
-                      TSH {assignment.total_price.toFixed(2)}
+                      TSH {Number(assignment.total_price || 0).toFixed(2)}
                     </Text>
                   </View>
                 )}

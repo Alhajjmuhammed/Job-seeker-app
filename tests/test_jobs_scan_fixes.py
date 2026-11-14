@@ -157,6 +157,11 @@ class AdminAndApiInputFixes(FlowBase):
                       {'content_type': 'user', 'content_id': 'abc', 'report_type': 'spam'})
         self.assertEqual(r.status_code, 400)
 
+    def test_browse_workers_with_a_bad_category_is_a_400_not_a_500(self):
+        for bad in ('NaN', 'abc', '-1'):
+            r = self.client_c.get(f'/api/v1/client/browse-workers/?category={bad}')
+            self.assertEqual(r.status_code, 400, (bad, r.content))
+
     def test_category_rename_to_existing_name_is_a_clear_error(self):
         from workers.models import Category
         other = Category.objects.create(name='Electrician')

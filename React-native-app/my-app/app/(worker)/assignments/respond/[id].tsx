@@ -257,7 +257,7 @@ export default function RespondAssignmentScreen() {
                   {t('assignmentScreens.totalPrice')}
                 </Text>
                 <Text style={[styles.budgetValue, { color: theme.primary }]}>
-                  TSH {assignment.total_price.toFixed(2)}
+                  TSH {Number(assignment.total_price || 0).toFixed(2)}
                 </Text>
               </View>
             )}
