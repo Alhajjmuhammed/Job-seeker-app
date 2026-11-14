@@ -1,5 +1,5 @@
 """
-Messaging system for Worker Connect.
+Messaging system for Worker Search.
 
 Enables in-app messaging between clients and workers.
 """

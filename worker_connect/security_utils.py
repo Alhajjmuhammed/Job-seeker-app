@@ -1,5 +1,5 @@
 """
-Security utilities for Worker Connect
+Security utilities for Worker Search
 Provides input validation, sanitization, and security helpers
 """
 

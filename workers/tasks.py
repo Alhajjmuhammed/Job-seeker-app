@@ -195,8 +195,8 @@ def send_welcome_email(user_id, user_type):
         html_message = render_to_string('emails/welcome.html', context)
         
         send_mail(
-            subject="Welcome to Worker Connect!",
-            message=f"Welcome to Worker Connect, {user.first_name}! Start exploring opportunities today.",
+            subject="Welcome to Worker Search!",
+            message=f"Welcome to Worker Search, {user.first_name}! Start exploring opportunities today.",
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             html_message=html_message,

@@ -166,7 +166,7 @@ def _decide(request, worker):
         worker.verification_status = 'verified'
         worker.save(update_fields=['verification_status'])
         _notify(worker, 'You are verified ✅',
-                'Your Worker Connect account is verified. You can now be assigned to jobs.')
+                'Your Worker Search account is verified. You can now be assigned to jobs.')
         messages.success(request, f'{name} is verified.')
         return
 

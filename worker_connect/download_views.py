@@ -10,7 +10,7 @@ APK_SIZE = '~86 MB'
 
 def download_app(request):
     """
-    Public download page for the Worker Connect Android app.
+    Public download page for the Worker Search Android app.
     Serves a page with a direct APK download link and QR code.
     """
     # Build the absolute APK URL

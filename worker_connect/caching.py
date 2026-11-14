@@ -1,5 +1,5 @@
 """
-Caching utilities for Worker Connect.
+Caching utilities for Worker Search.
 
 Provides Redis-based caching with fallback to local memory cache.
 """

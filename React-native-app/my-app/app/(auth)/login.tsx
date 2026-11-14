@@ -82,7 +82,7 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={[styles.appName, { color: isDark ? '#fff' : TEAL }]}>Worker Connect</Text>
+          <Text style={[styles.appName, { color: isDark ? '#fff' : TEAL }]}>Worker Search</Text>
         </View>
 
         {/* Form card */}

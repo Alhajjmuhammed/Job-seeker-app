@@ -1,5 +1,5 @@
 """
-Security headers middleware for Worker Connect.
+Security headers middleware for Worker Search.
 
 Adds important security headers to all responses.
 """

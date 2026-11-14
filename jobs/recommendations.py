@@ -1,5 +1,5 @@
 """
-Job recommendation engine for Worker Connect.
+Job recommendation engine for Worker Search.
 
 Recommends jobs to workers based on skills, location, history, and preferences.
 """

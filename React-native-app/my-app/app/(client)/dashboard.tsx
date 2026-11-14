@@ -248,7 +248,7 @@ export default function ClientDashboard() {
   return (
     <View style={s.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Header title="Worker Connect" />
+      <Header title="Worker Search" />
       <ScrollView
         style={s.scroll}
         showsVerticalScrollIndicator={false}
@@ -261,7 +261,7 @@ export default function ClientDashboard() {
           <View style={s.heroTopRow}>
             <Image source={require('../../assets/images/logo.png')} style={s.heroLogo} resizeMode="contain" />
             <View>
-              <Text style={s.heroAppName}>Worker Connect</Text>
+              <Text style={s.heroAppName}>Worker Search</Text>
               <Text style={s.heroTagline}>{t('clientDashboard.tagline')}</Text>
             </View>
           </View>

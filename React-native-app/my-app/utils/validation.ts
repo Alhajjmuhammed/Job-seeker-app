@@ -1,5 +1,5 @@
 /**
- * Form validation utilities for Worker Connect mobile app.
+ * Form validation utilities for Worker Search mobile app.
  * Provides comprehensive client-side validation for all forms.
  */
 

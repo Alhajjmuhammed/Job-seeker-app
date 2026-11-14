@@ -1,5 +1,5 @@
 """
-Job categories management for Worker Connect.
+Job categories management for Worker Search.
 """
 
 from rest_framework.decorators import api_view, permission_classes

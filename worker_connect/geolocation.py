@@ -1,5 +1,5 @@
 """
-Geolocation utilities for Worker Connect.
+Geolocation utilities for Worker Search.
 
 Provides distance calculations and location-based filtering for jobs and workers.
 """

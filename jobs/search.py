@@ -1,5 +1,5 @@
 """
-Search functionality for Worker Connect.
+Search functionality for Worker Search.
 
 Provides full-text search for jobs and workers with filters.
 """

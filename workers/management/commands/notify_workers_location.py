@@ -15,7 +15,7 @@ from workers.models import WorkerProfile
 TITLE = 'Get jobs near you 📍'
 MESSAGE = (
     'Clients can now be matched automatically with the nearest worker. '
-    'Open your Worker Connect dashboard and tap "Save my location" where you usually '
+    'Open your Worker Search dashboard and tap "Save my location" where you usually '
     'work, so jobs near you can reach you. It takes one tap.'
 )
 

@@ -72,7 +72,7 @@ def build_message(notification, token):
     body = (notification.message or '').strip()
     return {
         'to': token,
-        'title': (notification.title or 'Worker Connect')[:100],
+        'title': (notification.title or 'Worker Search')[:100],
         'body': body[:240] + ('…' if len(body) > 240 else ''),
         'sound': 'default',
         'priority': 'high',

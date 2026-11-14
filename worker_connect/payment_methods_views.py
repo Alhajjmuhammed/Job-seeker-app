@@ -1,5 +1,5 @@
 """
-Payment methods API views for Worker Connect.
+Payment methods API views for Worker Search.
 """
 
 from rest_framework import status, viewsets

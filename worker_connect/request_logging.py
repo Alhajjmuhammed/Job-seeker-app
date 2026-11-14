@@ -1,5 +1,5 @@
 """
-Request logging middleware for Worker Connect.
+Request logging middleware for Worker Search.
 
 Provides detailed logging of API requests and responses for debugging and monitoring.
 """

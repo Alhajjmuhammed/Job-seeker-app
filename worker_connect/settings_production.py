@@ -1,5 +1,5 @@
 """
-Production settings for Worker Connect
+Production settings for Worker Search
 Import this in production: export DJANGO_SETTINGS_MODULE=worker_connect.settings_production
 """
 

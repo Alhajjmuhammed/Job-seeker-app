@@ -178,7 +178,7 @@ class WorkerProfileAdmin(admin.ModelAdmin):
             notify_system_alert(
                 worker.user,
                 'System Announcement',
-                'This is a notification from Worker Connect admin.'
+                'This is a notification from Worker Search admin.'
             )
             count += 1
         self.message_user(request, f"Sent notification to {count} worker(s).")

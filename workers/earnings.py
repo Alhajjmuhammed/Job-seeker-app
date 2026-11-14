@@ -1,5 +1,5 @@
 """
-Earnings tracking system for Worker Connect.
+Earnings tracking system for Worker Search.
 
 Tracks worker earnings, payments, and financial reports.
 

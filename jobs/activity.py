@@ -1,5 +1,5 @@
 """
-Activity feed for Worker Connect dashboard.
+Activity feed for Worker Search dashboard.
 """
 
 from django.db import models

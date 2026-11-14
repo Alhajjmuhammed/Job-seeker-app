@@ -132,7 +132,7 @@
         <div class="ui-chat-av t-{{ kind }}">{% if c.is_support and not me_admin %}<i class="bi bi-headset"></i>{% else %}{{ u.get_full_name|default:u.username|first|upper }}{% endif %}</div>
         <div class="ui-chat-body">
           <div class="ui-chat-row">
-            <span class="ui-chat-name">{% if c.is_support and not me_admin %}{% trans "Worker Connect support" %}{% else %}{{ u.get_full_name|default:u.username }}{% endif %}</span>
+            <span class="ui-chat-name">{% if c.is_support and not me_admin %}{% trans "Worker Search support" %}{% else %}{{ u.get_full_name|default:u.username }}{% endif %}</span>
             {% if c.time_label %}<span class="ui-chat-time">{{ c.time_label }}</span>{% endif %}
           </div>
           <div class="ui-chat-row">
@@ -161,9 +161,9 @@
       <a href="{% url 'jobs:inbox' %}" class="btn btn-sm btn-light ui-chat-back" aria-label="{% trans 'Back to chats' %}"><i class="bi bi-arrow-left"></i></a>
       <div class="ui-chat-av t-{{ okind }}">{% if other_is_admin and not me_admin %}<i class="bi bi-headset"></i>{% else %}{{ other_user.get_full_name|default:other_user.username|first|upper }}{% endif %}</div>
       <div style="min-width:0">
-        <div class="ui-chat-name">{% if other_is_admin and not me_admin %}{% trans "Worker Connect support" %}{% else %}{{ other_user.get_full_name|default:other_user.username }}{% endif %}</div>
+        <div class="ui-chat-name">{% if other_is_admin and not me_admin %}{% trans "Worker Search support" %}{% else %}{{ other_user.get_full_name|default:other_user.username }}{% endif %}</div>
         <div class="ui-chat-sub">
-          {% if okind == 'admin' %}{% trans "Worker Connect support team" %}
+          {% if okind == 'admin' %}{% trans "Worker Search support team" %}
           {% elif okind == 'worker' %}{{ t_worker }}{% else %}{{ t_client }}{% endif %}
           {% if current.about %} · {% trans "Job" %}: {{ current.about }}{% endif %}
         </div>

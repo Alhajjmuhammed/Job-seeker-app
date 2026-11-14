@@ -1,5 +1,5 @@
 """
-Activity feed API views for Worker Connect.
+Activity feed API views for Worker Search.
 """
 
 from rest_framework.decorators import api_view, permission_classes

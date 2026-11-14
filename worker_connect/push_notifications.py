@@ -1,5 +1,5 @@
 """
-Push notifications service for Worker Connect mobile app.
+Push notifications service for Worker Search mobile app.
 
 Supports Firebase Cloud Messaging (FCM) for mobile push notifications.
 """

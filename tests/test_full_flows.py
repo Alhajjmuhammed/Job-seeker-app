@@ -1113,7 +1113,7 @@ class ChatTests(FlowBase):
 
     def test_everyone_can_reach_support_and_admin_can_reach_everyone(self):
         inbox = self.worker_c.get('/jobs/inbox/')
-        self.assertContains(inbox, 'Worker Connect support')
+        self.assertContains(inbox, 'Worker Search support')
         self.send(self.worker_c, self.admin, 'need help')
         self.send(self.admin_c, self.other_client, 'hello from admin')
         self.assertTrue(Message.objects.filter(message='need help', recipient=self.admin).exists())
@@ -1204,7 +1204,7 @@ class ChatTests(FlowBase):
         r = ag.get('/jobs/inbox/')
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'agent-sidebar')
-        self.assertContains(r, 'Worker Connect support')
+        self.assertContains(r, 'Worker Search support')
 
     def test_chat_socket_groups_are_per_pair(self):
         from worker_connect.websocket_consumers import chat_group_name

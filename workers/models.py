@@ -832,7 +832,7 @@ class WorkerPayout(models.Model):
         help_text="The job this pays for, when it is for one job"
     )
 
-    # Shillings. Worker Connect prices and pays in one currency, so
+    # Shillings. Worker Search prices and pays in one currency, so
     # there is no conversion anywhere in a payout.
     amount = models.DecimalField(
         max_digits=12, decimal_places=2,

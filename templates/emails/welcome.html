@@ -1,12 +1,12 @@
 {% extends "emails/base.html" %}
 
 {% load i18n %}
-{% block title %}Welcome to Worker Connect{% endblock %}
+{% block title %}Welcome to Worker Search{% endblock %}
 
 {% block content %}
-<h2>Welcome to Worker Connect, {{ user.first_name|default:user.username }}! 🎉</h2>
+<h2>Welcome to Worker Search, {{ user.first_name|default:user.username }}! 🎉</h2>
 
-<p>{% trans "Thank you for joining Worker Connect! We're excited to have you on board." %}</p>
+<p>{% trans "Thank you for joining Worker Search! We're excited to have you on board." %}</p>
 
 <div class="info-box">
     <h3>{% trans "Get Started" %}</h3>
@@ -20,7 +20,7 @@
 </div>
 
 <p style="text-align: center;">
-    <a href="{{ dashboard_url }}" class="btn">{% trans "Log in to Worker Connect" %}</a>
+    <a href="{{ dashboard_url }}" class="btn">{% trans "Log in to Worker Search" %}</a>
 </p>
 
 <p>{% trans "You can log in with your email, username or phone number." %}</p>
@@ -53,5 +53,5 @@
 <p>{% trans "If you have any questions, our support team is always here to help." %}</p>
 
 <p>{% trans "Best regards," %}<br>
-<strong>{% trans "The Worker Connect Team" %}</strong></p>
+<strong>{% trans "The Worker Search Team" %}</strong></p>
 {% endblock %}

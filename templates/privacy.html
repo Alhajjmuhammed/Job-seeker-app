@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}Privacy Policy - Worker Connect{% endblock %}
+{% block title %}Privacy Policy - Worker Search{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -21,11 +21,11 @@
                 <section class="mb-5">
                     <h2 class="h4 fw-bold mb-3" style="color:#10b981;"><i class="bi bi-1-circle me-2"></i>{% trans "Introduction" %}</h2>
                     <p class="text-muted lh-lg">
-                        Worker Connect ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains 
+                        Worker Search ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains 
                         how we collect, use, disclose, and safeguard your information when you use our platform and services.
                     </p>
                     <p class="text-muted lh-lg">
-                        {% trans "By using Worker Connect, you agree to the collection and use of information in accordance with this policy." %}
+                        {% trans "By using Worker Search, you agree to the collection and use of information in accordance with this policy." %}
                     </p>
                 </section>
 
@@ -184,7 +184,7 @@
                 <section class="mb-5">
                     <h2 class="h4 fw-bold mb-3" style="color:#10b981;"><i class="bi bi-person-check me-2"></i>{% trans "Children's Privacy" %}</h2>
                     <p class="text-muted lh-lg">
-                        Worker Connect is not intended for users under 18 years of age. We do not knowingly collect information from children. 
+                        Worker Search is not intended for users under 18 years of age. We do not knowingly collect information from children. 
                         If you become aware that a child has provided us with personal information, please contact us immediately.
                     </p>
                 </section>
@@ -203,6 +203,14 @@
                     <p class="text-muted lh-lg">
                         Your information may be transferred to and processed in countries outside Tanzania. We ensure appropriate safeguards 
                         are in place to protect your information in accordance with this Privacy Policy.
+                    </p>
+                </section>
+
+                <section class="mb-5">
+                    <h2 class="h4 fw-bold mb-3" style="color:#10b981;"><i class="bi bi-person-x me-2"></i>{% trans "Deleting your account" %}</h2>
+                    <p class="text-muted lh-lg">
+                        {% trans "You can delete your account and personal data at any time: in the app under Settings, then Delete account, or on this page:" %}
+                        <a href="{% url 'account_delete' %}">workersearch.co.tz/account/delete/</a>
                     </p>
                 </section>
 

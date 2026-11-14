@@ -1,5 +1,5 @@
 """
-Admin notification utilities for Worker Connect.
+Admin notification utilities for Worker Search.
 
 This module provides utility functions for sending notifications to admins
 about important system events like new user registrations, job postings,
@@ -24,7 +24,7 @@ def notify_admins_new_user(user):
     try:
         subject = f'New User Registration: {user.email}'
         message = f"""
-A new user has registered on Worker Connect:
+A new user has registered on Worker Search:
 
 Name: {user.first_name} {user.last_name}
 Email: {user.email}
@@ -56,7 +56,7 @@ def notify_admins_new_job(job):
         subject = f'New Job Posted: {job.title}'
         price = getattr(job, 'total_price', None) or getattr(job, 'budget', None) or 'Not specified'
         message = f"""
-A new job has been posted on Worker Connect:
+A new job has been posted on Worker Search:
 
 Title: {job.title}
 Client: {job.client.email}
@@ -194,7 +194,7 @@ Email: {worker.email}
 Log in to review the application and respond.
 
 Best regards,
-Worker Connect Team
+Worker Search Team
         """
         
         notify_user(client, subject, message)
@@ -237,7 +237,7 @@ Client: {job.client.first_name} {job.client.last_name}
 Log in to view more details.
 
 Best regards,
-Worker Connect Team
+Worker Search Team
         """
         
         notify_user(worker, subject, message)

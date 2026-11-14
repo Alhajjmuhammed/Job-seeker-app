@@ -25,7 +25,7 @@ class Command(BaseCommand):
         passed = []
 
         self.stdout.write(self.style.HTTP_INFO('\n' + '='*60))
-        self.stdout.write(self.style.HTTP_INFO('🔒 WORKER CONNECT SECURITY AUDIT'))
+        self.stdout.write(self.style.HTTP_INFO('🔒 WORKER SEARCH SECURITY AUDIT'))
         self.stdout.write(self.style.HTTP_INFO('='*60 + '\n'))
 
         # Check 1: DEBUG mode

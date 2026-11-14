@@ -808,7 +808,7 @@ export default function WorkerDashboard() {
                 resizeMode="contain"
               />
               <View>
-                <Text style={styles.greetingAppName}>Worker Connect</Text>
+                <Text style={styles.greetingAppName}>Worker Search</Text>
                 <Text style={styles.greetingAppTagline}>{t('dashboard.tagline')}</Text>
               </View>
             </View>

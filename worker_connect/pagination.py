@@ -1,5 +1,5 @@
 """
-Advanced pagination implementations for Worker Connect API.
+Advanced pagination implementations for Worker Search API.
 
 Provides cursor-based pagination for better performance on large datasets.
 """

@@ -180,7 +180,7 @@ export default function Header({
                 style={styles.logoImage}
                 resizeMode="cover"
               />
-              <Text style={styles.appName}>WORKER CONNECT</Text>
+              <Text style={styles.appName}>WORKER SEARCH</Text>
             </View>
           )}
           

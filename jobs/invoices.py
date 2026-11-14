@@ -1,5 +1,5 @@
 """
-Invoice generation for Worker Connect.
+Invoice generation for Worker Search.
 """
 
 from django.db import models

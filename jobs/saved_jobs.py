@@ -1,5 +1,5 @@
 """
-Saved jobs functionality for Worker Connect.
+Saved jobs functionality for Worker Search.
 
 Allows workers to save jobs for later viewing.
 """

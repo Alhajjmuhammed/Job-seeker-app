@@ -1,5 +1,5 @@
 """
-Analytics and metrics collection service for Worker Connect.
+Analytics and metrics collection service for Worker Search.
 
 Provides event tracking, metrics collection, and performance monitoring.
 """

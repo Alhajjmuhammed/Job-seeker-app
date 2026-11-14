@@ -22,7 +22,7 @@ def get_conversations(request):
     conversations = []
     for c in _conversation_list(request.user):
         other, last = c['user'], c['last_message']
-        name = other.get_full_name() or (other.username if me_admin else 'Worker Connect')
+        name = other.get_full_name() or (other.username if me_admin else 'Worker Search')
         conversations.append({
             'id': other.id,
             'name': name,
@@ -69,7 +69,7 @@ def get_messages(request, user_id):
     me_admin = is_admin(user)
 
     def name_of(u):
-        return u.get_full_name() or (u.username if me_admin or u.pk == user.pk else 'Worker Connect')
+        return u.get_full_name() or (u.username if me_admin or u.pk == user.pk else 'Worker Search')
 
     messages_data = [{
         'id': msg.id,

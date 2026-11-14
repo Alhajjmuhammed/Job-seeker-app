@@ -66,7 +66,7 @@ def general_search(request):
         category_count = Category.objects.count()
         
         return Response({
-            'message': 'Worker Connect Search API',
+            'message': 'Worker Search Search API',
             'endpoints': {
                 'jobs': '/api/search/jobs/',
                 'workers': '/api/search/workers/', 

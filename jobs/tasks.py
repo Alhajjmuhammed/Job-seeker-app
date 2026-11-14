@@ -226,7 +226,7 @@ def send_invoice_email(self, client_email, invoice_id):
             'worker__user', 'client__user', 'job'
         ).get(id=invoice_id)
         
-        subject = f"Invoice #{invoice.invoice_number} from Worker Connect"
+        subject = f"Invoice #{invoice.invoice_number} from Worker Search"
         
         context = {
             'invoice': invoice,

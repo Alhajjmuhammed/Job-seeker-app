@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Worker Connect",
+    "name": "Worker Search",
     "slug": "easyfix-company-limited",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/app-icon.png",
     "scheme": "workerconnect",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,15 +17,15 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.easyfixsoft.workerconnect",
       "infoPlist": {
-        "NSCameraUsageDescription": "Worker Connect uses the camera so you can take a photo of your ID, documents or payment confirmation.",
-        "NSPhotoLibraryUsageDescription": "Worker Connect needs access to your photos so you can upload your profile picture, documents or payment confirmation.",
-        "NSLocationWhenInUseUsageDescription": "Worker Connect uses your location to find workers near you and to record where a job takes place.",
+        "NSCameraUsageDescription": "Worker Search uses the camera so you can take a photo of your ID, documents or payment confirmation.",
+        "NSPhotoLibraryUsageDescription": "Worker Search needs access to your photos so you can upload your profile picture, documents or payment confirmation.",
+        "NSLocationWhenInUseUsageDescription": "Worker Search uses your location to find workers near you and to record where a job takes place.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/adaptive-foreground.png",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.easyfixsoft.workerconnect",
@@ -50,14 +50,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Worker Connect needs access to your photos so you can upload your profile picture, documents or payment confirmation.",
-          "cameraPermission": "Worker Connect uses the camera so you can take a photo of your ID, documents or payment confirmation."
+          "photosPermission": "Worker Search needs access to your photos so you can upload your profile picture, documents or payment confirmation.",
+          "cameraPermission": "Worker Search uses the camera so you can take a photo of your ID, documents or payment confirmation."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Worker Connect uses your location to find workers near you and to record where a job takes place."
+          "locationWhenInUsePermission": "Worker Search uses your location to find workers near you and to record where a job takes place."
         }
       ],
       "expo-notifications"

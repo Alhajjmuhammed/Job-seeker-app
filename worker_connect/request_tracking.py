@@ -1,5 +1,5 @@
 """
-Request ID tracking middleware for Worker Connect.
+Request ID tracking middleware for Worker Search.
 
 Adds a unique request ID to each request for tracing and debugging.
 The request ID is:

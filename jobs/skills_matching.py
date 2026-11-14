@@ -1,5 +1,5 @@
 """
-Skills matching system for Worker Connect.
+Skills matching system for Worker Search.
 
 Advanced matching algorithm for pairing jobs with workers based on skills.
 """

@@ -1,5 +1,5 @@
 """
-Job completion workflow for Worker Connect.
+Job completion workflow for Worker Search.
 
 Handles the job completion process including reviews, ratings, and disputes.
 """

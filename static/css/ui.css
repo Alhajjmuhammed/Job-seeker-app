@@ -1,5 +1,5 @@
 /*
- * Worker Connect - one look for every signed-in page (admin, client, worker).
+ * Worker Search - one look for every signed-in page (admin, client, worker).
  *
  * Loaded last in the three app layouts, so it wins over the per-page styles
  * that made each screen look different: one text scale, one card, one

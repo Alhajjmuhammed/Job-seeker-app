@@ -1,5 +1,5 @@
 """
-Admin analytics API views for Worker Connect dashboard.
+Admin analytics API views for Worker Search dashboard.
 
 Provides statistics and metrics for the admin panel.
 """

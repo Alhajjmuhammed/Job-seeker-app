@@ -1,5 +1,5 @@
 """
-Admin bulk action views for Worker Connect.
+Admin bulk action views for Worker Search.
 """
 
 from rest_framework.decorators import api_view, permission_classes

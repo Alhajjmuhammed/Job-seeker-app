@@ -1,5 +1,5 @@
 """
-Notification preferences for Worker Connect.
+Notification preferences for Worker Search.
 
 Allows users to manage their notification settings.
 """

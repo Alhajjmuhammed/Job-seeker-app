@@ -9,8 +9,8 @@ class Command(BaseCommand):
         faqs = [
             {
                 'category': 'general',
-                'question': 'How does Worker Connect work?',
-                'answer': 'Worker Connect is a platform that connects clients with skilled workers for various services.',
+                'question': 'How does Worker Search work?',
+                'answer': 'Worker Search is a platform that connects clients with skilled workers for various services.',
             },
             {
                 'category': 'worker',

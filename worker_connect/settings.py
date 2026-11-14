@@ -288,7 +288,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@workerconnect
 SERVER_EMAIL = config('SERVER_EMAIL', default='errors@workerconnect.com')
 
 # Email subject prefix for admin emails
-EMAIL_SUBJECT_PREFIX = '[Worker Connect] '
+EMAIL_SUBJECT_PREFIX = '[Worker Search] '
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
@@ -531,7 +531,7 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8081')
 
 # API Configuration
 API_VERSION = '1.0'
-API_TITLE = 'Worker Connect API'
+API_TITLE = 'Worker Search API'
 
 # Analytics Configuration
 ANALYTICS_ENABLED = config('ANALYTICS_ENABLED', default=True, cast=bool)
@@ -710,7 +710,7 @@ YAS_DISBURSEMENT_MSISDN = config('YAS_DISBURSEMENT_MSISDN', default='')
 YAS_DISBURSEMENT_PIN = config('YAS_DISBURSEMENT_PIN', default='')
 # Shown to the worker so they know who paid them, and the numeric brand
 # id YAS issue at integration.
-YAS_SENDER_NAME = config('YAS_SENDER_NAME', default='Worker Connect')
+YAS_SENDER_NAME = config('YAS_SENDER_NAME', default='Worker Search')
 YAS_BRAND_ID = config('YAS_BRAND_ID', default='')
 # Sent verbatim as the Authorization header on the payout call, if YAS
 # ask for one. A setting rather than a guess.

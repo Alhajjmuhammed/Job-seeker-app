@@ -58,7 +58,7 @@
     "deleteAccount": "Futa Akaunti",
     "deleteWarning": "Hatua hii haiwezi kutenduliwa!",
     "createAccount": "Fungua Akaunti",
-    "joinToday": "Jiunge na Worker Connect leo",
+    "joinToday": "Jiunge na Worker Search leo",
     "iWantTo": "Nataka:",
     "findWork": "👷 Kutafuta Kazi",
     "imWorker": "Mimi ni fundi",
@@ -560,7 +560,7 @@
     "call": "Piga simu",
     "cannotCall": "Simu hii haiwezi kupiga simu.",
     "support": "Msaada",
-    "supportTeam": "Msaada wa Worker Connect",
+    "supportTeam": "Msaada wa Worker Search",
     "worker": "Fundi",
     "client": "Mteja",
     "justNow": "sasa",
@@ -656,7 +656,7 @@
     "sendMessageButton": "Tuma Ujumbe",
     "helpArticles": "Makala za Msaada",
     "gettingStarted": "Mwongozo wa Kuanza",
-    "learnBasics": "Jifunze mambo ya msingi ya WorkerConnect",
+    "learnBasics": "Jifunze mambo ya msingi ya Worker Search",
     "safetySecurity": "Vidokezo vya Usalama",
     "staySafe": "Kaa salama unapofanya kazi",
     "buildingProfile": "Kujenga Wasifu Wako",
@@ -1671,7 +1671,7 @@
     "cannotUndo": "⚠️ HATUA HII HAIWEZI KUTENDULIWA!",
     "finalConfirmWorker": "Una uhakika kabisa? Hii itafuta akaunti yako na taarifa zote kabisa.",
     "iUnderstandDelete": "Nimeelewa - Futa",
-    "copyright": "© 2026 WorkerConnect. Haki zote zimehifadhiwa."
+    "copyright": "© 2026 Worker Search. Haki zote zimehifadhiwa."
   },
   "authScreen": {
     "resetEmailFailed": "Imeshindikana kutuma barua pepe ya kubadilisha nywila. Tafadhali jaribu tena.",

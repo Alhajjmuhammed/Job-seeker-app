@@ -58,7 +58,7 @@
     "deleteAccount": "Delete Account",
     "deleteWarning": "This action cannot be undone!",
     "createAccount": "Create Account",
-    "joinToday": "Join Worker Connect today",
+    "joinToday": "Join Worker Search today",
     "iWantTo": "I want to:",
     "findWork": "👷 Find Work",
     "imWorker": "I'm a worker",
@@ -560,7 +560,7 @@
     "call": "Call",
     "cannotCall": "This phone can't make calls.",
     "support": "Support",
-    "supportTeam": "Worker Connect support",
+    "supportTeam": "Worker Search support",
     "worker": "Worker",
     "client": "Client",
     "justNow": "now",
@@ -656,7 +656,7 @@
     "sendMessageButton": "Send Message",
     "helpArticles": "Help Articles",
     "gettingStarted": "Getting Started Guide",
-    "learnBasics": "Learn the basics of WorkerConnect",
+    "learnBasics": "Learn the basics of Worker Search",
     "safetySecurity": "Safety & Security Tips",
     "staySafe": "Stay safe while working",
     "buildingProfile": "Building Your Profile",
@@ -1671,7 +1671,7 @@
     "cannotUndo": "⚠️ THIS ACTION CANNOT BE UNDONE!",
     "finalConfirmWorker": "Are you absolutely sure? This will permanently delete your account and all data.",
     "iUnderstandDelete": "I Understand - Delete",
-    "copyright": "© 2026 WorkerConnect. All rights reserved."
+    "copyright": "© 2026 Worker Search. All rights reserved."
   },
   "authScreen": {
     "resetEmailFailed": "Could not send reset email. Please try again.",

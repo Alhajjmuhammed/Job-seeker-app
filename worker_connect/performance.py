@@ -1,5 +1,5 @@
 """
-Performance monitoring for Worker Connect.
+Performance monitoring for Worker Search.
 
 Tracks response times, database queries, and system metrics.
 """

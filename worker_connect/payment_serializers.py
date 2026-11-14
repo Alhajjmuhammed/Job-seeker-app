@@ -1,5 +1,5 @@
 """
-Payment serializers for Worker Connect.
+Payment serializers for Worker Search.
 """
 
 from rest_framework import serializers

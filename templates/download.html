@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}Download Worker Connect App{% endblock %}
+{% block title %}Download Worker Search App{% endblock %}
 
 {% block extra_css %}
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -210,9 +210,9 @@
     <!-- LEFT: Brand + QR -->
     <div class="dl-left">
         <div class="dl-brand">
-            <img src="{% static 'images/logo.png' %}" alt="{% trans "Worker Connect" %}" class="dl-logo"
+            <img src="{% static 'images/logo.png' %}" alt="{% trans "Worker Search" %}" class="dl-logo"
                  onerror="this.src='https://via.placeholder.com/90/0D6E68/fff?text=WC'">
-            <div class="dl-app-name">{% trans "Worker Connect" %}</div>
+            <div class="dl-app-name">{% trans "Worker Search" %}</div>
             <div class="dl-app-sub">{% trans "Connect with skilled workers near you" %}</div>
             <div class="dl-pills">
                 <span class="dl-pill"><i class="bi bi-android2"></i> {% trans "Android" %}</span>
@@ -256,7 +256,7 @@
                 <div class="dl-step"><div class="dl-step-n">1</div><div class="dl-step-t">{% trans "Tap" %} <strong>{% trans "Download for Android" %}</strong> {% trans "above to save the file" %}</div></div>
                 <div class="dl-step"><div class="dl-step-n">2</div><div class="dl-step-t">{% trans "Open the" %} <strong>{% trans ".apk" %}</strong> {% trans "file from your downloads or notification bar" %}</div></div>
                 <div class="dl-step"><div class="dl-step-n">3</div><div class="dl-step-t">{% trans "If prompted, allow" %} <strong>{% trans "Install from Unknown Sources" %}</strong> {% trans "in settings" %}</div></div>
-                <div class="dl-step"><div class="dl-step-n">4</div><div class="dl-step-t">{% trans "Tap" %} <strong>{% trans "Install" %}</strong>{% trans ", then open Worker Connect and sign up!" %}</div></div>
+                <div class="dl-step"><div class="dl-step-n">4</div><div class="dl-step-t">{% trans "Tap" %} <strong>{% trans "Install" %}</strong>{% trans ", then open Worker Search and sign up!" %}</div></div>
             </div>
         </div>
 

@@ -1,5 +1,5 @@
 """
-Mobile app configuration service for Worker Connect.
+Mobile app configuration service for Worker Search.
 
 Provides remote configuration endpoint for app settings, feature flags,
 and dynamic content that can be updated without app releases.

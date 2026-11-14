@@ -1,4 +1,4 @@
-# Swahili translations for Worker Connect
+# Swahili translations for Worker Search
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
@@ -1069,9 +1069,9 @@ msgstr "Ondoa"
 
 #: templates/admin_panel/agent_detail.html:161
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "No workers assigned yet."
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/agent_list.html:14
 #, fuzzy
@@ -1291,9 +1291,9 @@ msgstr "Wafanyakazi Wenye Ujuzi"
 #: templates/download.html:217 templates/emails/base.html:209
 #: templates/invoices/invoice_template.html:290
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "Worker Connect"
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "Worker Search"
+msgstr "Chukua Worker Search"
 
 #: templates/admin_panel/base_admin.html:645
 #, fuzzy
@@ -1496,9 +1496,9 @@ msgstr "Chapisha maombi ya huduma"
 
 #: templates/admin_panel/category_list.html:101
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker is paid"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/category_list.html:105
 #, fuzzy
@@ -2333,9 +2333,9 @@ msgstr ""
 
 #: templates/admin_panel/job_management.html:403
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker assigned"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/job_management.html:450
 #: templates/admin_panel/manage_users.html:558
@@ -2359,9 +2359,9 @@ msgstr "Wafanyakazi Wenye Ujuzi"
 #: templates/admin_panel/service_request_detail.html:61
 #: templates/clients/service_request_detail.html:263
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker Assigned"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/job_management.html:467
 msgid "No jobs found matching your filters."
@@ -3028,9 +3028,9 @@ msgstr ""
 
 #: templates/admin_panel/service_request_detail.html:429
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker hasn't responded yet"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/service_request_detail.html:462
 #: templates/service_requests/worker/assignment_detail.html:127
@@ -3077,9 +3077,9 @@ msgstr "Maelezo ya Ziada"
 
 #: templates/admin_panel/service_request_detail.html:531
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "All workers assigned!"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/service_request_detail.html:537
 #, fuzzy
@@ -3717,9 +3717,9 @@ msgstr "Maombi Yanayosubiri"
 #: templates/admin_panel/view_request_workers.html:96
 #: templates/jobs/job_detail.html:1033
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "No Workers Assigned Yet"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/admin_panel/view_request_workers.html:109
 msgid "Sorted by distance"
@@ -3879,9 +3879,9 @@ msgstr ""
 
 #: templates/admin_panel/worker_verification_list.html:498
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "No workers found"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/agents/base_agents.html:243 templates/http_landing.html:711
 msgid "Agent Portal"
@@ -3981,9 +3981,9 @@ msgstr ""
 
 #: templates/agents/dashboard.html:128
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Workers Joined"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/agents/dashboard.html:131
 #, fuzzy
@@ -4932,9 +4932,9 @@ msgstr "Wafanyakazi Wenye Ujuzi"
 
 #: templates/clients/service_request_detail.html:183
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker Photo"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/clients/service_request_detail.html:248
 #, fuzzy
@@ -5163,7 +5163,7 @@ msgid "Install"
 msgstr ""
 
 #: templates/download.html:261
-msgid ", then open Worker Connect and sign up!"
+msgid ", then open Worker Search and sign up!"
 msgstr ""
 
 #: templates/download.html:266
@@ -5212,9 +5212,9 @@ msgstr ""
 
 #: templates/emails/base.html:225
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "Worker Connect, Inc."
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "Worker Search, Inc."
+msgstr "Chukua Worker Search"
 
 #: templates/emails/base.html:226
 msgid "123 Business Street, City, State 12345"
@@ -5355,9 +5355,9 @@ msgstr ""
 #: templates/emails/payment_received.html:52
 #: templates/emails/review_received.html:56 templates/emails/welcome.html:43
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "The Worker Connect Team"
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "The Worker Search Team"
+msgstr "Chukua Worker Search"
 
 #: templates/emails/job_assigned.html:7
 msgid "Congratulations! You've Been Assigned! 🎉"
@@ -5451,9 +5451,9 @@ msgstr ""
 
 #: templates/emails/job_completed.html:58
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "Thank you for using Worker Connect!"
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "Thank you for using Worker Search!"
+msgstr "Chukua Worker Search"
 
 #: templates/emails/job_reminder.html:7
 msgid "Upcoming Job Reminder ⏰"
@@ -5514,7 +5514,7 @@ msgid "View Earnings"
 msgstr "Jumla ya Mapato"
 
 #: templates/emails/payment_received.html:49
-msgid "Thank you for being a valued member of Worker Connect!"
+msgid "Thank you for being a valued member of Worker Search!"
 msgstr ""
 
 #: templates/emails/review_received.html:7
@@ -5554,7 +5554,7 @@ msgstr ""
 
 #: templates/emails/welcome.html:9
 msgid ""
-"Thank you for joining Worker Connect! We're excited to have you on board."
+"Thank you for joining Worker Search! We're excited to have you on board."
 msgstr ""
 
 #: templates/emails/welcome.html:11
@@ -5791,9 +5791,9 @@ msgstr ""
 
 #: templates/home.html:167
 #, fuzzy
-#| msgid "With Worker Connect"
-msgid "Why Choose Worker Connect?"
-msgstr "Na Worker Connect"
+#| msgid "With Worker Search"
+msgid "Why Choose Worker Search?"
+msgstr "Na Worker Search"
 
 #: templates/home.html:174
 #, fuzzy
@@ -5860,11 +5860,11 @@ msgstr "Unaoamini"
 #: templates/http_landing.html:451
 msgid ""
 "Post a job, hire a verified professional or find new work opportunities. "
-"Worker Connect brings clients, workers and agents together on one secure "
+"Worker Search brings clients, workers and agents together on one secure "
 "platform."
 msgstr ""
 "Chapisha kazi, ajiri mtaalamu aliyethibitishwa au pata fursa mpya za kazi. "
-"Worker Connect inaunganisha wateja, wafanyakazi na mawakala kwenye jukwaa "
+"Worker Search inaunganisha wateja, wafanyakazi na mawakala kwenye jukwaa "
 "moja salama."
 
 #: templates/http_landing.html:454
@@ -6003,8 +6003,8 @@ msgstr ""
 "wataalamu bora kwenye jukwaa."
 
 #: templates/http_landing.html:557
-msgid "About Worker Connect"
-msgstr "Kuhusu Worker Connect"
+msgid "About Worker Search"
+msgstr "Kuhusu Worker Search"
 
 #: templates/http_landing.html:558
 msgid "Built for Tanzania's"
@@ -6016,13 +6016,13 @@ msgstr "Nguvu Kazi Inayokua"
 
 #: templates/http_landing.html:559
 msgid ""
-"Worker Connect is Tanzania's first dedicated platform bridging the gap "
+"Worker Search is Tanzania's first dedicated platform bridging the gap "
 "between skilled professionals and the clients who need them — built to solve"
 " a real problem with a real digital solution."
 msgstr ""
-"Worker Connect ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu"
-" wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na"
-" suluhisho la kidijitali."
+"Worker Search ni jukwaa la kwanza nchini Tanzania linalounganisha wataalamu "
+"wenye ujuzi na wateja wanaowahitaji — limejengwa kutatua tatizo la kweli na "
+"suluhisho la kidijitali."
 
 #: templates/http_landing.html:564
 msgid "Fully Verified Network"
@@ -6082,8 +6082,8 @@ msgid "Client Satisfaction"
 msgstr "Kuridhika kwa Wateja"
 
 #: templates/http_landing.html:626
-msgid "Take Worker Connect"
-msgstr "Chukua Worker Connect"
+msgid "Take Worker Search"
+msgstr "Chukua Worker Search"
 
 #: templates/http_landing.html:626
 msgid "Everywhere You Go"
@@ -6226,8 +6226,8 @@ msgid "Grow Your Business"
 msgstr "Kukuza Biashara Yako"
 
 #: templates/http_landing.html:772
-msgid "With Worker Connect"
-msgstr "Na Worker Connect"
+msgid "With Worker Search"
+msgstr "Na Worker Search"
 
 #: templates/http_landing.html:773
 msgid ""
@@ -6291,9 +6291,9 @@ msgstr ""
 
 #: templates/invoices/invoice_template.html:403
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "Generated by Worker Connect | workerconnect.com"
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "Generated by Worker Search | workerconnect.com"
+msgstr "Chukua Worker Search"
 
 #: templates/jobs/accept_application.html:4
 #, fuzzy
@@ -6521,9 +6521,9 @@ msgstr ""
 
 #: templates/jobs/direct_hire_detail.html:59
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker's response"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/jobs/direct_hire_detail.html:69
 #, fuzzy
@@ -6806,9 +6806,9 @@ msgstr "Jumla ya Mapato"
 
 #: templates/jobs/job_form.html:177
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Workers Needed"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/jobs/job_form.html:183
 msgid "How many workers do you need?"
@@ -7078,7 +7078,7 @@ msgstr "Arifa"
 
 #: templates/privacy.html:28
 msgid ""
-"By using Worker Connect, you agree to the collection and use of information "
+"By using Worker Search, you agree to the collection and use of information "
 "in accordance with this policy."
 msgstr ""
 
@@ -9109,9 +9109,9 @@ msgstr "Inapatikana"
 
 #: templates/terms.html:33
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "To use Worker Connect, you must:"
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "To use Worker Search, you must:"
+msgstr "Chukua Worker Search"
 
 #: templates/terms.html:36
 msgid "Be at least 18 years of age"
@@ -9148,7 +9148,7 @@ msgid "Account Types:"
 msgstr "Akaunti"
 
 #: templates/terms.html:47
-msgid "Worker Connect offers three account types: Worker, Client, and Agent."
+msgid "Worker Search offers three account types: Worker, Client, and Agent."
 msgstr ""
 
 #: templates/terms.html:50
@@ -9173,8 +9173,8 @@ msgstr "Jumla ya Huduma"
 
 #: templates/terms.html:63
 msgid ""
-"Worker Connect provides a platform connecting clients with verified workers."
-" Our services include:"
+"Worker Search provides a platform connecting clients with verified workers. "
+"Our services include:"
 msgstr ""
 
 #: templates/terms.html:66
@@ -9294,8 +9294,7 @@ msgid "Verification & Safety"
 msgstr "Arifa"
 
 #: templates/terms.html:116
-msgid ""
-"Worker Connect conducts identity verification for all workers. However:"
+msgid "Worker Search conducts identity verification for all workers. However:"
 msgstr ""
 
 #: templates/terms.html:119
@@ -9336,7 +9335,7 @@ msgstr ""
 
 #: templates/terms.html:142
 msgid ""
-"Worker Connect acts as an intermediary platform. To the fullest extent "
+"Worker Search acts as an intermediary platform. To the fullest extent "
 "permitted by law:"
 msgstr ""
 
@@ -9421,8 +9420,8 @@ msgstr ""
 
 #: templates/terms.html:200
 msgid ""
-"By using Worker Connect, you acknowledge that you have read, understood, and"
-" agree to be bound by these Terms & Conditions."
+"By using Worker Search, you acknowledge that you have read, understood, and "
+"agree to be bound by these Terms & Conditions."
 msgstr ""
 
 #: templates/workers/analytics.html:95
@@ -9577,9 +9576,9 @@ msgstr ""
 
 #: templates/workers/base_worker.html:637
 #, fuzzy
-#| msgid "Worker Connect"
+#| msgid "Worker Search"
 msgid "Worker Panel"
-msgstr "Worker Connect"
+msgstr "Worker Search"
 
 #: templates/workers/base_worker.html:647 templates/workers/dashboard.html:137
 msgid "Analytics"
@@ -9595,9 +9594,9 @@ msgstr "Nyaraka"
 
 #: templates/workers/cv_template.html:284
 #, fuzzy
-#| msgid "Take Worker Connect"
-msgid "Generated by Worker Connect"
-msgstr "Chukua Worker Connect"
+#| msgid "Take Worker Search"
+msgid "Generated by Worker Search"
+msgstr "Chukua Worker Search"
 
 #: templates/workers/cv_view.html:4 templates/workers/cv_view.html:5
 #: templates/workers/cv_view.html:56 templates/workers/dashboard.html:152
@@ -11057,11 +11056,11 @@ msgstr "Tafuta mazungumzo"
 msgid "Support"
 msgstr "Msaada"
 
-msgid "Worker Connect support"
-msgstr "Msaada wa Worker Connect"
+msgid "Worker Search support"
+msgstr "Msaada wa Worker Search"
 
-msgid "Worker Connect support team"
-msgstr "Timu ya msaada ya Worker Connect"
+msgid "Worker Search support team"
+msgstr "Timu ya msaada ya Worker Search"
 
 msgid "Say hello"
 msgstr "Sema habari"
@@ -11977,3 +11976,126 @@ msgstr "Sababu (si lazima) - upande mwingine utaiona"
 msgid ""
 "You are busy with other work. Finish it first, or decline this request."
 msgstr "Uko na kazi nyingine kwa sasa. Imalize kwanza, au kataa ombi hili."
+
+msgid "Delete your account"
+msgstr "Futa akaunti yako"
+
+msgid "Delete your Worker Search account"
+msgstr "Futa akaunti yako ya Worker Search"
+
+msgid "You can delete your account and personal data at any time."
+msgstr "Unaweza kufuta akaunti yako na taarifa zako binafsi wakati wowote."
+
+msgid "In the app"
+msgstr "Kwenye programu"
+
+msgid "Open Worker Search, go to Settings, then tap Delete account."
+msgstr "Fungua Worker Search, nenda Mipangilio, kisha gusa Futa akaunti."
+
+msgid "What is deleted"
+msgstr "Kinachofutwa"
+
+msgid "Your profile, name, e-mail, phone number and photo"
+msgstr "Wasifu wako, jina, barua pepe, namba ya simu na picha"
+
+msgid "Your ID and other documents, CV and work experience"
+msgstr "Kitambulisho chako na hati nyingine, CV na uzoefu wa kazi"
+
+msgid "Your messages, notifications, saved wallets and settings"
+msgstr "Ujumbe wako, arifa, pochi za pesa ulizohifadhi na mipangilio"
+
+msgid "What we keep, and why"
+msgstr "Tunachobaki nacho, na kwa nini"
+
+msgid ""
+"Records of payments and completed jobs are kept without your name for as "
+"long as the law requires (for tax and accounting), then removed. Deletion is"
+" permanent and cannot be undone."
+msgstr ""
+"Kumbukumbu za malipo na kazi zilizokamilika zinabaki bila jina lako kwa muda"
+" unaotakiwa na sheria (kwa kodi na hesabu), kisha zinaondolewa. Kufuta ni "
+"kwa kudumu na hakuwezi kurudishwa."
+
+msgid "Delete my account now"
+msgstr "Futa akaunti yangu sasa"
+
+#, python-format
+msgid "You are signed in as %(name)s."
+msgstr "Umeingia kama %(name)s."
+
+msgid "Your password"
+msgstr "Nywila yako"
+
+msgid "I understand that my account and data will be deleted permanently."
+msgstr "Ninaelewa kwamba akaunti yangu na taarifa zangu zitafutwa kwa kudumu."
+
+msgid "Delete my account"
+msgstr "Futa akaunti yangu"
+
+msgid "Ask us to delete your account"
+msgstr "Tuombe tufute akaunti yako"
+
+#, python-format
+msgid ""
+"If you can sign in, <a href=\"/accounts/login/?next=%(url)s\">sign in</a> "
+"and delete it yourself right away. Otherwise send us this request and we "
+"will contact you to confirm, then delete the account within 30 days."
+msgstr ""
+"Kama unaweza kuingia, <a href=\"/accounts/login/?next=%(url)s\">ingia</a> "
+"uifute mwenyewe sasa hivi. Vinginevyo tutumie ombi hili nasi tutawasiliana "
+"nawe kuthibitisha, kisha tutaifuta akaunti ndani ya siku 30."
+
+msgid "E-mail or phone number of your account"
+msgstr "Barua pepe au namba ya simu ya akaunti yako"
+
+msgid "Anything else we should know (optional)"
+msgstr "Jambo lingine tunalopaswa kujua (si lazima)"
+
+msgid "Send deletion request"
+msgstr "Tuma ombi la kufuta"
+
+#, python-format
+msgid "You can also write to %(support_email)s."
+msgstr "Unaweza pia kuandika kwa %(support_email)s."
+
+msgid "Deleting your account"
+msgstr "Kufuta akaunti yako"
+
+msgid ""
+"You can delete your account and personal data at any time: in the app under "
+"Settings, then Delete account, or on this page:"
+msgstr ""
+"Unaweza kufuta akaunti yako na taarifa zako binafsi wakati wowote: kwenye "
+"programu nenda Mipangilio, kisha Futa akaunti, au kwenye ukurasa huu:"
+
+msgid "Staff accounts are removed by an administrator, not from this page."
+msgstr ""
+"Akaunti za wafanyakazi wa ofisi zinaondolewa na msimamizi, si kwenye ukurasa"
+" huu."
+
+msgid "Please tick the box to confirm that you want to delete your account."
+msgstr ""
+"Tafadhali weka alama kwenye kisanduku kuthibitisha kwamba unataka kufuta "
+"akaunti yako."
+
+msgid "That password is not right."
+msgstr "Nywila hiyo si sahihi."
+
+msgid "We could not delete your account. Please contact us."
+msgstr "Hatukuweza kufuta akaunti yako. Tafadhali wasiliana nasi."
+
+msgid "Your account and personal data have been deleted."
+msgstr "Akaunti yako na taarifa zako binafsi zimefutwa."
+
+msgid "Too many requests. Please try again later."
+msgstr "Maombi mengi mno. Tafadhali jaribu tena baadaye."
+
+msgid "Please enter the e-mail or phone number of your account."
+msgstr "Tafadhali weka barua pepe au namba ya simu ya akaunti yako."
+
+msgid ""
+"Thank you. We received your request and will contact you to confirm, then "
+"delete the account within 30 days."
+msgstr ""
+"Asante. Tumepokea ombi lako; tutawasiliana nawe kuthibitisha, kisha "
+"tutaifuta akaunti ndani ya siku 30."

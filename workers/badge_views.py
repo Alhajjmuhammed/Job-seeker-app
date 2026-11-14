@@ -1,5 +1,5 @@
 """
-Badge API views for Worker Connect.
+Badge API views for Worker Search.
 """
 
 from rest_framework.decorators import api_view, permission_classes

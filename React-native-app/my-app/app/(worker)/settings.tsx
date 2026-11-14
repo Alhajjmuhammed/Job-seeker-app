@@ -553,7 +553,7 @@ export default function SettingsScreen() {
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={[styles.appInfoText, { color: theme.textSecondary }]}>
-            WorkerConnect v1.0.0
+            Worker Search v1.0.0
           </Text>
           <Text style={[styles.appInfoText, { color: theme.textSecondary }]}>
             {t('settingsScreen.copyright')}

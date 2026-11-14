@@ -252,11 +252,11 @@ def password_reset_request(request):
         
         # Send email
         send_mail(
-            subject='Password Reset Request - Worker Connect',
+            subject='Password Reset Request - Worker Search',
             message=f'''
 Hello {user.first_name},
 
-You requested a password reset for your Worker Connect account.
+You requested a password reset for your Worker Search account.
 
 Click the link below to reset your password:
 {reset_url}
@@ -266,7 +266,7 @@ This link will expire in 24 hours.
 If you didn't request this reset, please ignore this email.
 
 Best regards,
-Worker Connect Team
+Worker Search Team
             ''',
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],

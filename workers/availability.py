@@ -1,5 +1,5 @@
 """
-Worker availability calendar and scheduling for Worker Connect.
+Worker availability calendar and scheduling for Worker Search.
 
 Allows workers to set their availability and clients to see when workers are free.
 """

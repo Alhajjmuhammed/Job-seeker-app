@@ -1,5 +1,5 @@
 """
-Payment methods API URLs for Worker Connect.
+Payment methods API URLs for Worker Search.
 """
 
 from django.urls import path, include

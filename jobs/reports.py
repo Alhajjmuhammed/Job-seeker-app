@@ -1,5 +1,5 @@
 """
-Report/Flag system for Worker Connect.
+Report/Flag system for Worker Search.
 
 Allows users to report inappropriate content, users, or behavior.
 """

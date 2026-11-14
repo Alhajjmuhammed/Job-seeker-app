@@ -1,5 +1,5 @@
 """
-Comprehensive health check endpoints for Worker Connect.
+Comprehensive health check endpoints for Worker Search.
 
 Provides detailed health status for all system dependencies.
 """
@@ -301,7 +301,7 @@ def health_check(request):
     """
     return Response({
         'status': 'healthy',
-        'service': 'Worker Connect API',
+        'service': 'Worker Search API',
         'timestamp': time.time(),
     })
 

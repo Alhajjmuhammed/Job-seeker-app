@@ -17,12 +17,12 @@ const TERMS_SECTIONS = [
   {
     number: '1',
     title: 'Introduction',
-    body: 'Welcome to Worker Connect. These Terms and Conditions govern your use of our platform, website, and services. By accessing or using Worker Connect, you agree to be bound by these terms. If you disagree with any part of these terms, you may not access our service.',
+    body: 'Welcome to Worker Search. These Terms and Conditions govern your use of our platform, website, and services. By accessing or using Worker Search, you agree to be bound by these terms. If you disagree with any part of these terms, you may not access our service.',
   },
   {
     number: '2',
     title: 'Eligibility',
-    body: 'To use Worker Connect, you must:',
+    body: 'To use Worker Search, you must:',
     bullets: [
       'Be at least 18 years of age',
       'Have the legal capacity to enter into binding contracts',
@@ -34,7 +34,7 @@ const TERMS_SECTIONS = [
   {
     number: '3',
     title: 'User Accounts',
-    body: 'Worker Connect offers three account types: Worker, Client, and Agent.',
+    body: 'Worker Search offers three account types: Worker, Client, and Agent.',
     bullets: [
       'Workers: Must upload valid national ID, complete profile verification, and maintain accurate skill listings',
       'Clients: Must provide accurate company/personal information and payment details',
@@ -45,7 +45,7 @@ const TERMS_SECTIONS = [
   {
     number: '4',
     title: 'Services',
-    body: 'Worker Connect provides a platform connecting clients with verified workers. Our services include:',
+    body: 'Worker Search provides a platform connecting clients with verified workers. Our services include:',
     bullets: [
       'Job posting and worker matching',
       'Identity verification for workers',
@@ -90,7 +90,7 @@ const TERMS_SECTIONS = [
   {
     number: '7',
     title: 'Verification & Safety',
-    body: 'Worker Connect conducts identity verification for all workers. However:',
+    body: 'Worker Search conducts identity verification for all workers. However:',
     bullets: [
       'We cannot guarantee the complete accuracy of all user information',
       'Users are responsible for their own safety and due diligence',
@@ -101,7 +101,7 @@ const TERMS_SECTIONS = [
   {
     number: '8',
     title: 'Intellectual Property',
-    body: 'The Worker Connect platform, including its design, features, and content, is owned by Worker Connect and protected by copyright, trademark, and other intellectual property laws. You may not:',
+    body: 'The Worker Search platform, including its design, features, and content, is owned by Worker Search and protected by copyright, trademark, and other intellectual property laws. You may not:',
     bullets: [
       'Copy, modify, or distribute platform content without permission',
       'Use our trademarks or branding without authorization',
@@ -111,7 +111,7 @@ const TERMS_SECTIONS = [
   {
     number: '9',
     title: 'Limitation of Liability',
-    body: 'Worker Connect acts as an intermediary platform. To the fullest extent permitted by law:',
+    body: 'Worker Search acts as an intermediary platform. To the fullest extent permitted by law:',
     bullets: [
       'We are not liable for the quality, safety, or legality of services performed',
       'We do not guarantee job completion or worker availability',
@@ -152,7 +152,7 @@ const PRIVACY_SECTIONS = [
   {
     number: '1',
     title: 'Introduction',
-    body: 'Worker Connect ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform and services.\n\nBy using Worker Connect, you agree to the collection and use of information in accordance with this policy.',
+    body: 'Worker Search ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform and services.\n\nBy using Worker Search, you agree to the collection and use of information in accordance with this policy.',
   },
   {
     number: '2',
@@ -262,7 +262,7 @@ const PRIVACY_SECTIONS = [
   {
     number: '9',
     title: "Children's Privacy",
-    body: "Worker Connect is not intended for users under 18 years of age. We do not knowingly collect information from children. If you become aware that a child has provided us with personal information, please contact us immediately.",
+    body: "Worker Search is not intended for users under 18 years of age. We do not knowingly collect information from children. If you become aware that a child has provided us with personal information, please contact us immediately.",
   },
   {
     number: '10',
@@ -419,7 +419,7 @@ export default function TermsScreen() {
           <Ionicons name={isTerms ? 'information-circle' : 'shield-checkmark'} size={18} color={accentColor} />
           <Text style={[styles.footerNoteText, { color: accentColor }]}>
             {isTerms
-              ? 'By using Worker Connect, you acknowledge that you have read, understood, and agree to be bound by these Terms & Conditions.'
+              ? 'By using Worker Search, you acknowledge that you have read, understood, and agree to be bound by these Terms & Conditions.'
               : 'Your privacy matters to us. We are committed to protecting your personal information and using it responsibly.'}
           </Text>
         </View>

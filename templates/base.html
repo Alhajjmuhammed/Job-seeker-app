@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{% block title %}Worker Connect - Find Your Perfect Worker{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Worker Connect is Tanzania's platform connecting clients with verified skilled workers for daily, monthly and custom jobs.{% endblock %}">
+    <title>{% block title %}Worker Search - Find Your Perfect Worker{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Worker Search is Tanzania's platform connecting clients with verified skilled workers for daily, monthly and custom jobs.{% endblock %}">
 
     <!-- Open Graph / social link previews -->
-    <meta property="og:title" content="{% block og_title %}Worker Connect - Tanzania's #1 Job Platform{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Post a job, hire a verified professional, or find new work opportunities on Worker Connect.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Worker Search - Tanzania's #1 Job Platform{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Post a job, hire a verified professional, or find new work opportunities on Worker Search.{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon-192.png' %}{% endblock %}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
@@ -322,8 +322,8 @@
     <nav class="main-nav navbar navbar-expand-lg" id="mainNav">
         <div class="container">
             <a class="navbar-brand" href="{{ home_url }}">
-                <img src="{% static 'images/logo-nav.png' %}" alt="Worker Connect" class="brand-logo">
-                <span>Worker <span class="brand-accent">Connect</span></span>
+                <img src="{% static 'images/logo-nav.png' %}" alt="Worker Search" class="brand-logo">
+                <span>Worker <span class="brand-accent">Search</span></span>
             </a>
 
             <!-- theme + menu buttons: always visible; last on wide screens -->
@@ -434,8 +434,8 @@
                 <!-- Brand Column -->
                 <div class="col-lg-4 col-md-6">
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <img src="{% static 'images/logo.png' %}" alt="Worker Connect" style="width:50px;height:50px;object-fit:cover;border-radius:50%;background:white;padding:1px;">
-                        <span class="fw-bold fs-5">Worker Connect</span>
+                        <img src="{% static 'images/logo.png' %}" alt="Worker Search" style="width:50px;height:50px;object-fit:cover;border-radius:50%;background:white;padding:1px;">
+                        <span class="fw-bold fs-5">Worker Search</span>
                     </div>
                     <p style="color:white;font-size:0.92rem;line-height:1.7;">
                         Tanzania's trusted platform connecting clients with verified, skilled professionals for every job &mdash; big or small.
@@ -506,7 +506,7 @@
             <div class="container py-3">
                 <div class="row align-items-center g-2">
                     <div class="col-md-4 text-center text-md-start">
-                        <span style="color:white;font-size:0.85rem;">&copy; 2026 Worker Connect. {% trans "All rights reserved" %}.</span>
+                        <span style="color:white;font-size:0.85rem;">&copy; 2026 Worker Search. {% trans "All rights reserved" %}.</span>
                     </div>
                     <!-- 🌐 Language Switcher -->
                     <div class="col-md-4 text-center">

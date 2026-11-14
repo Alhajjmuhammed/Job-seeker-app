@@ -1,5 +1,5 @@
 """
-Enhanced OpenAPI schema definitions for Worker Connect API.
+Enhanced OpenAPI schema definitions for Worker Search API.
 
 Provides detailed examples, descriptions, and custom schema classes.
 """

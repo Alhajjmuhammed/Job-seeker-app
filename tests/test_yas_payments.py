@@ -63,7 +63,7 @@ PAYOUTS_ON = dict(YAS_WORKER_PAYOUTS_ENABLED=True,
                   YAS_DISBURSEMENT_MSISDN='255691511330',
                   YAS_DISBURSEMENT_PIN='1456',
                   YAS_BRAND_ID='1232',
-                  YAS_SENDER_NAME='Worker Connect',
+                  YAS_SENDER_NAME='Worker Search',
                   YAS_PAYOUT_AUTH='')
 
 
@@ -1127,7 +1127,7 @@ class PayoutSendTests(FlowBase):
         # we did not owe.
         self.assertEqual(tags['AMOUNT'], '25000')
         self.assertEqual(tags['BRAND_ID'], '1232')
-        self.assertEqual(tags['SENDERNAME'], 'Worker Connect')
+        self.assertEqual(tags['SENDERNAME'], 'Worker Search')
         self.assertEqual(tags['LANGUAGE1'], 'en')
         self.assertIn('xml', post.call_args.kwargs['headers']['Content-Type'])
 

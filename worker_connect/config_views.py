@@ -8,13 +8,13 @@ from django.conf import settings
 def terms_of_service(request):
     """Get terms of service content"""
     terms_content = """
-    # Terms of Service - Worker Connect
+    # Terms of Service - Worker Search
     
     ## 1. Acceptance of Terms
     By using our service, you agree to these terms.
     
     ## 2. Service Description
-    Worker Connect is a platform connecting skilled workers with clients.
+    Worker Search is a platform connecting skilled workers with clients.
     
     ## 3. User Responsibilities
     - Provide accurate information
@@ -42,7 +42,7 @@ def terms_of_service(request):
 def privacy_policy(request):
     """Get privacy policy content"""
     privacy_content = """
-    # Privacy Policy - Worker Connect
+    # Privacy Policy - Worker Search
     
     ## Information We Collect
     - Personal identification information

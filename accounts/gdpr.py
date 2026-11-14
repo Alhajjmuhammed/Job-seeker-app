@@ -1,5 +1,5 @@
 """
-GDPR compliance utilities for Worker Connect.
+GDPR compliance utilities for Worker Search.
 
 Provides data export and deletion functionality per GDPR requirements.
 """

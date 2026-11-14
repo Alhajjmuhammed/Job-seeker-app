@@ -1,5 +1,5 @@
 """
-Document verification workflow for Worker Connect.
+Document verification workflow for Worker Search.
 
 Handles document upload verification for workers (ID, certifications, etc.)
 """

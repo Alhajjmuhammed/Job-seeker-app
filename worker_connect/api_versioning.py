@@ -1,5 +1,5 @@
 """
-API versioning utilities for Worker Connect.
+API versioning utilities for Worker Search.
 
 This module provides tools for managing API versions, deprecation notices,
 and version-aware routing.

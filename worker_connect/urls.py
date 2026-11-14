@@ -2,6 +2,7 @@
 URL configuration for worker_connect project.
 """
 from django.contrib import admin
+from accounts.account_deletion import account_delete
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -18,12 +19,12 @@ from .download_views import download_app
 # API Documentation Schema
 schema_view = get_schema_view(
     openapi.Info(
-        title="Worker Connect API",
+        title="Worker Search API",
         default_version='v1',
         description="""
-## Worker Connect API Documentation
+## Worker Search API Documentation
 
-Worker Connect is a platform connecting clients with workers for various services.
+Worker Search is a platform connecting clients with workers for various services.
 
 ### Authentication
 Most endpoints require authentication via Token. Include the token in the Authorization header:
@@ -62,6 +63,8 @@ urlpatterns = [
     # Legal Pages
     path('terms/', TemplateView.as_view(template_name='terms.html'), name='terms'),
     path('privacy/', TemplateView.as_view(template_name='privacy.html'), name='privacy'),
+    # public "delete my account" page (Google Play requires a web link for this)
+    path('account/delete/', account_delete, name='account_delete'),
 
     # Mobile App Download Page
     path('download/', download_app, name='download_app'),
@@ -190,9 +193,9 @@ handler404 = 'worker_connect.error_handlers.handler404'
 handler500 = 'worker_connect.error_handlers.handler500'
 
 # Customize admin site
-admin.site.site_header = "Worker Connect Administration"
-admin.site.site_title = "Worker Connect Admin"
-admin.site.index_title = "Welcome to Worker Connect Admin Panel"
+admin.site.site_header = "Worker Search Administration"
+admin.site.site_title = "Worker Search Admin"
+admin.site.index_title = "Welcome to Worker Search Admin Panel"
 
 # Force admin to use custom login URL instead of Django's default
 admin.site.login_url = '/accounts/login/'

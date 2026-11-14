@@ -312,7 +312,7 @@ def pay_service_request(request, request_id):
     report = {}
     sent, message = yas_client.request_payment(
         phone, service_request.total_price, reference,
-        remarks="Worker Connect %s" % reference,
+        remarks="Worker Search %s" % reference,
         reference_id=reference_id, report=report)
 
     if not sent:
@@ -368,7 +368,7 @@ def payment_instructions(request, request_id):
         "steps": [
             "Dial *150*01# on your Mixx by Yas line.",
             "Choose Pay Bills, then Enter Business Number.",
-            "Enter the business number for Worker Connect.",
+            "Enter the business number for Worker Search.",
             "Enter %s as the reference." % reference,
             "Enter %s as the amount." % service_request.total_price,
             "Confirm with your PIN.",

@@ -382,7 +382,7 @@ def request_payment(phone, amount_tzs, request_ref, remarks="",
         "BillerMSISDN": (msisdn(_setting("YAS_BILLER_MSISDN"))
                          or str(_setting("YAS_BILLER_MSISDN")).strip()),
         "Amount": amount,
-        "Remarks": (remarks or "Worker Connect booking %s" % request_ref)[:100],
+        "Remarks": (remarks or "Worker Search booking %s" % request_ref)[:100],
         # Unique per attempt, not per booking - see new_attempt_marker.
         "ReferenceID": (str(reference_id) if reference_id
                         else reference_for(request_ref,
@@ -518,7 +518,7 @@ def _payout_envelope(payout) -> str:
         ("PIN", str(_setting("YAS_DISBURSEMENT_PIN")).strip()),
         ("MSISDN1", msisdn(payout.phone_number)),
         ("AMOUNT", str(whole_shillings(payout.amount))),
-        ("SENDERNAME", str(_setting("YAS_SENDER_NAME", "Worker Connect"))[:50]),
+        ("SENDERNAME", str(_setting("YAS_SENDER_NAME", "Worker Search"))[:50]),
         ("BRAND_ID", str(_setting("YAS_BRAND_ID")).strip()),
         ("LANGUAGE1", "en"),
     )

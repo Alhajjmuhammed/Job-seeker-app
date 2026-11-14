@@ -1,5 +1,5 @@
 """
-Payment integration foundation for Worker Connect.
+Payment integration foundation for Worker Search.
 
 Provides models and utilities for handling payments via Stripe.
 """

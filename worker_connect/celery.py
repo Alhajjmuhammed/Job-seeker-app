@@ -1,5 +1,5 @@
 """
-Celery configuration for Worker Connect background tasks.
+Celery configuration for Worker Search background tasks.
 
 This module configures Celery for asynchronous task processing.
 """

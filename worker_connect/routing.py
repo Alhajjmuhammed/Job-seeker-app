@@ -1,5 +1,5 @@
 """
-WebSocket URL routing for Worker Connect.
+WebSocket URL routing for Worker Search.
 """
 
 from django.urls import re_path

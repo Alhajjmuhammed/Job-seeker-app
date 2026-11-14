@@ -47,7 +47,7 @@ def client_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Registration successful! Welcome to Worker Connect.')
+            messages.success(request, 'Registration successful! Welcome to Worker Search.')
             return redirect('clients:dashboard')
     else:
         form = ClientRegistrationForm()
@@ -287,7 +287,7 @@ def forgot_password(request):
                 context = {
                     'user': user,
                     'reset_url': reset_url,
-                    'site_name': 'Worker Connect',
+                    'site_name': 'Worker Search',
                     'expiry_hours': 24,
                 }
                 
@@ -296,7 +296,7 @@ def forgot_password(request):
                 
                 try:
                     send_mail(
-                        subject='Password Reset Request - Worker Connect',
+                        subject='Password Reset Request - Worker Search',
                         message=plain_message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[email],

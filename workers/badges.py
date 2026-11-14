@@ -1,5 +1,5 @@
 """
-Worker verification badges and tiers for Worker Connect.
+Worker verification badges and tiers for Worker Search.
 
 Manages verification levels and badges for workers.
 """

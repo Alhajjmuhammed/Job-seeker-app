@@ -1,5 +1,5 @@
 """
-Standardized error codes and error handling for Worker Connect API.
+Standardized error codes and error handling for Worker Search API.
 
 Provides consistent error responses across all endpoints.
 """

@@ -1,5 +1,5 @@
 """
-Database query optimization utilities for Worker Connect.
+Database query optimization utilities for Worker Search.
 
 Provides helpers for efficient database queries using select_related and prefetch_related.
 """

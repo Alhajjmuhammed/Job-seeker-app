@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete your account" %} - Worker Search{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+             style="width:72px;height:72px;background:rgba(239,68,68,.1);">
+          <i class="bi bi-person-x" style="font-size:2rem;color:#ef4444;"></i>
+        </div>
+        <h1 class="h2 fw-bold mb-2">{% trans "Delete your Worker Search account" %}</h1>
+        <p class="text-muted mb-0">{% trans "You can delete your account and personal data at any time." %}</p>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4"><div class="card-body p-4">
+        <h2 class="h5 fw-bold">{% trans "In the app" %}</h2>
+        <p class="mb-0">{% trans "Open Worker Search, go to Settings, then tap Delete account." %}</p>
+      </div></div>
+
+      <div class="card border-0 shadow-sm mb-4"><div class="card-body p-4">
+        <h2 class="h5 fw-bold">{% trans "What is deleted" %}</h2>
+        <ul class="mb-3">
+          <li>{% trans "Your profile, name, e-mail, phone number and photo" %}</li>
+          <li>{% trans "Your ID and other documents, CV and work experience" %}</li>
+          <li>{% trans "Your messages, notifications, saved wallets and settings" %}</li>
+        </ul>
+        <h2 class="h5 fw-bold">{% trans "What we keep, and why" %}</h2>
+        <p class="mb-0">{% trans "Records of payments and completed jobs are kept without your name for as long as the law requires (for tax and accounting), then removed. Deletion is permanent and cannot be undone." %}</p>
+      </div></div>
+
+      <div class="card border-0 shadow-sm"><div class="card-body p-4">
+        {% if signed_in %}
+          <h2 class="h5 fw-bold">{% trans "Delete my account now" %}</h2>
+          <p class="text-muted">{% blocktrans with name=request.user.get_full_name|default:request.user.username %}You are signed in as {{ name }}.{% endblocktrans %}</p>
+          <form method="post">{% csrf_token %}
+            <label class="form-label" for="pw">{% trans "Your password" %}</label>
+            <input id="pw" type="password" name="password" class="form-control mb-3" required autocomplete="current-password">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="confirm" id="confirm" required>
+              <label class="form-check-label" for="confirm">{% trans "I understand that my account and data will be deleted permanently." %}</label>
+            </div>
+            <button class="btn btn-danger w-100">{% trans "Delete my account" %}</button>
+          </form>
+        {% else %}
+          <h2 class="h5 fw-bold">{% trans "Ask us to delete your account" %}</h2>
+          <p class="text-muted">{% blocktrans with url=request.get_full_path %}If you can sign in, <a href="/accounts/login/?next={{ url }}">sign in</a> and delete it yourself right away. Otherwise send us this request and we will contact you to confirm, then delete the account within 30 days.{% endblocktrans %}</p>
+          <form method="post">{% csrf_token %}
+            <label class="form-label" for="contact">{% trans "E-mail or phone number of your account" %}</label>
+            <input id="contact" name="contact" class="form-control mb-3" required maxlength="200">
+            <label class="form-label" for="note">{% trans "Anything else we should know (optional)" %}</label>
+            <textarea id="note" name="note" class="form-control mb-3" rows="3" maxlength="1000"></textarea>
+            <button class="btn btn-danger w-100">{% trans "Send deletion request" %}</button>
+          </form>
+          <p class="small text-muted mt-3 mb-0">{% blocktrans %}You can also write to {{ support_email }}.{% endblocktrans %}</p>
+        {% endif %}
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

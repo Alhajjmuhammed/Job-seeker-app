@@ -1,5 +1,5 @@
 """
-Review and rating system for Worker Connect.
+Review and rating system for Worker Search.
 
 Allows clients to review workers and workers to review clients.
 """

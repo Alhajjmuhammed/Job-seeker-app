@@ -1,5 +1,5 @@
 """
-Earnings API views for Worker Connect.
+Earnings API views for Worker Search.
 """
 
 from rest_framework.decorators import api_view, permission_classes

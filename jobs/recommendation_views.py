@@ -1,5 +1,5 @@
 """
-Recommendation API views for Worker Connect.
+Recommendation API views for Worker Search.
 """
 
 from rest_framework.decorators import api_view, permission_classes
